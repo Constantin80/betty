@@ -12,13 +12,13 @@ import info.fmro.betty.objects.SessionTokenObject;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.objects.TimeStamps;
 import info.fmro.betty.utility.Formulas;
-import info.fmro.shared.utility.AlreadyPrintedMap;
 import info.fmro.shared.utility.Generic;
-import info.fmro.shared.utility.Ignorable;
-import info.fmro.shared.utility.IgnorableDatabase;
 import info.fmro.shared.utility.SynchronizedMap;
 import info.fmro.shared.utility.SynchronizedReader;
-import info.fmro.shared.utility.SynchronizedSet;
+import info.fmro.shared.utility.SynchronizedSafeSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,8 +31,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class VarsIO {
 
@@ -251,26 +249,26 @@ public class VarsIO {
                             Statics.marketCataloguesMap.copyFrom(marketCataloguesMap);
                             break;
                         case "safeMarketsMap":
-                            @SuppressWarnings("unchecked") SynchronizedMap<String, SynchronizedSet<SafeRunner>> safeMarketsMap =
-                                    (SynchronizedMap<String, SynchronizedSet<SafeRunner>>) objectFromFile;
+                            @SuppressWarnings("unchecked") SynchronizedMap<String, SynchronizedSafeSet<SafeRunner>> safeMarketsMap =
+                                    (SynchronizedMap<String, SynchronizedSafeSet<SafeRunner>>) objectFromFile;
                             Statics.safeMarketsMap.copyFrom(safeMarketsMap);
                             break;
                         case "safeMarketBooksMap":
                             @SuppressWarnings("unchecked") SynchronizedMap<String, MarketBook> safeMarketBooksMap = (SynchronizedMap<String, MarketBook>) objectFromFile;
                             Statics.safeMarketBooksMap.copyFrom(safeMarketBooksMap);
                             break;
-                        case "alreadyPrintedMap":
-                            @SuppressWarnings("unchecked") AlreadyPrintedMap alreadyPrintedMap = (AlreadyPrintedMap) objectFromFile;
-                            Generic.alreadyPrintedMap.copyFrom(alreadyPrintedMap);
-                            break;
+//                        case "alreadyPrintedMap":
+//                            @SuppressWarnings("unchecked") AlreadyPrintedMap alreadyPrintedMap = (AlreadyPrintedMap) objectFromFile;
+//                            Generic.alreadyPrintedMap.copyFrom(alreadyPrintedMap);
+//                            break;
                         case "timedWarningsMap":
                             @SuppressWarnings("unchecked") SynchronizedMap<String, Long> timedWarningsMap = (SynchronizedMap<String, Long>) objectFromFile;
                             Statics.timedWarningsMap.copyFrom(timedWarningsMap);
                             break;
-                        case "ignorableDatabase":
-                            @SuppressWarnings("unchecked") IgnorableDatabase ignorableDatabase = (IgnorableDatabase) objectFromFile;
-                            Ignorable.database.copyFrom(ignorableDatabase);
-                            break;
+//                        case "ignorableDatabase":
+//                            @SuppressWarnings("unchecked") IgnorableDatabase ignorableDatabase = (IgnorableDatabase) objectFromFile;
+//                            Ignorable.database.copyFrom(ignorableDatabase);
+//                            break;
                         default:
                             logger.error("unknown object in the fileNames map: {} {}", key, Statics.objectFileNamesMap.get(key));
                             break;
@@ -284,8 +282,9 @@ public class VarsIO {
                 logger.warn("objectFromFile null for: {} {}", key, Statics.objectFileNamesMap.get(key));
             }
         } // end for
-        Ignorable.database.syncIgnorableDatabase("is used right after all objects have been read");
+//        Ignorable.database.syncIgnorableDatabase(Statics.programIsRunningMultiThreaded);
 
+//        Ignorable.database.testIsGenerated();
         logger.info("have read objects from files");
     }
 
@@ -331,15 +330,15 @@ public class VarsIO {
                 case "safeMarketBooksMap":
                     Generic.synchronizedWriteObjectToFile(Statics.safeMarketBooksMap, Statics.objectFileNamesMap.get(key));
                     break;
-                case "alreadyPrintedMap":
-                    Generic.synchronizedWriteObjectToFile(Generic.alreadyPrintedMap, Statics.objectFileNamesMap.get(key));
-                    break;
+//                case "alreadyPrintedMap":
+//                    Generic.synchronizedWriteObjectToFile(Generic.alreadyPrintedMap, Statics.objectFileNamesMap.get(key));
+//                    break;
                 case "timedWarningsMap":
                     Generic.synchronizedWriteObjectToFile(Statics.timedWarningsMap, Statics.objectFileNamesMap.get(key));
                     break;
-                case "ignorableDatabase":
-                    Generic.synchronizedWriteObjectToFile(Ignorable.database, Statics.objectFileNamesMap.get(key));
-                    break;
+//                case "ignorableDatabase":
+//                    Generic.synchronizedWriteObjectToFile(Ignorable.database, Statics.objectFileNamesMap.get(key));
+//                    break;
                 default:
                     logger.error("unknown key in the fileNames map: {} {}", key, Statics.objectFileNamesMap.get(key));
                     break;

@@ -1,43 +1,28 @@
 package info.fmro.betty.objects;
 
 import info.fmro.betty.enums.MatchStatus;
-import static org.junit.Assert.assertEquals;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import info.fmro.betty.main.ApiDefault;
+import org.junit.jupiter.api.Test;
 
-public class CoralEventTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-    private static final Logger logger = LoggerFactory.getLogger(CoralEventTest.class);
-
-    @Rule
-    @SuppressWarnings("PublicField")
-    public TestRule watchman = new TestWatcher() {
-        @Override
-        public void starting(Description description) {
-            logger.info("{} being run...", description.getMethodName());
-        }
-    };
-
+public class CoralEventTest
+        extends ApiDefault {
     @Test
-    public void testUpdateSeconds() {
+    void updateSeconds() {
         CoralEvent instance = new CoralEvent(0L, 1L), secondInstance = new CoralEvent(0L, 1L);
         int result = instance.update(secondInstance);
         int expResult = 0;
-        assertEquals("first", expResult, result);
+        assertEquals(expResult, result, "first");
 
         secondInstance.setSeconds(3);
         result = instance.update(secondInstance);
         expResult = 1;
-        assertEquals("second", expResult, result);
+        assertEquals(expResult, result, "second");
     }
 
     @Test
-    public void testSetMatchStatus() {
+    void setMatchStatus() {
         CoralEvent instance = new CoralEvent(0L, 1L);
         instance.setHomeScore(1);
         instance.setHomeTeam("a");
@@ -46,11 +31,11 @@ public class CoralEventTest {
         instance.setMatchStatus(MatchStatus.HALF_TIME);
         long result = instance.errors();
         long expResult = 0L;
-        assertEquals("first", expResult, result);
+        assertEquals(expResult, result, "first");
 //
 //        secondInstance.setSeconds(3);
 //        result = instance.update(secondInstance);
 //        expResult = 1;
-//        assertEquals("second", expResult, result);
+//        assertEquals(expResult, result, "second");
     }
 }

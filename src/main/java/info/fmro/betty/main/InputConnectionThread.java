@@ -3,6 +3,10 @@ package info.fmro.betty.main;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,9 +15,6 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Objects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.helpers.MessageFormatter;
 
 public class InputConnectionThread
         extends Thread {
@@ -300,7 +301,7 @@ public class InputConnectionThread
                     String aliasCommandString = inputLine.substring("alias ".length()).trim(), aliasFirst = null, aliasSecond = null;
                     if (aliasCommandString.startsWith("\"") && aliasCommandString.indexOf('"', aliasCommandString.indexOf('"') + "\"".length()) > 0) {
                         aliasFirst = aliasCommandString.substring(aliasCommandString.indexOf('"') + "\"".length(),
-                                aliasCommandString.indexOf('"', aliasCommandString.indexOf('"') + "\"".length()));
+                                                                  aliasCommandString.indexOf('"', aliasCommandString.indexOf('"') + "\"".length()));
                         aliasSecond = aliasCommandString.substring(aliasCommandString.indexOf('"', aliasCommandString.indexOf('"') + "\"".length()) + "\"".length()).trim();
                         if (aliasSecond.startsWith("\"") && aliasSecond.indexOf('"', aliasSecond.indexOf('"') + "\"".length()) > 0) {
                             aliasSecond = aliasSecond.substring(aliasSecond.indexOf('"') + "\"".length(), aliasSecond.indexOf('"', aliasSecond.indexOf('"') + "\"".length()));
@@ -322,10 +323,11 @@ public class InputConnectionThread
                         if (!Objects.equals(previousValue, aliasSecond)) {
                             Formulas.matchesCache.clear();
                         }
-                        GetLiveMarketsThread.timedMapEventsCounter.set(GetLiveMarketsThread.timedMapEventsCounter.get() - GetLiveMarketsThread.timedMapEventsCounter.get() % 10 +
-                                11); // will delay running checkAll again
+                        GetLiveMarketsThread.timedMapEventsCounter.set(GetLiveMarketsThread.timedMapEventsCounter.get() - GetLiveMarketsThread.timedMapEventsCounter.get() % 10 + 11); // will delay running checkAll again
                         Statics.timeStamps.setLastMapEventsToScraperEvents(System.currentTimeMillis() + Generic.MINUTE_LENGTH_MILLISECONDS);
-                        Statics.threadPoolExecutor.execute(new LaunchCommandThread("mapEventsToScraperEvents", true));
+                        if (Statics.safeBetModuleActivated) {
+                            Statics.threadPoolExecutor.execute(new LaunchCommandThread("mapEventsToScraperEvents", true));
+                        }
                     }
                 } else if (inputLine.startsWith("reserve ")) {
                     String reserveCommandString = inputLine.substring("reserve ".length()).trim();
@@ -366,7 +368,7 @@ public class InputConnectionThread
                     logger.info("safetylimits: {}", Generic.objectToString(Statics.safetyLimits));
                 } else if (inputLine.equals("help")) {
                     printWriter.println("Commands list: stop sleep wake exit/quit savepage refreshpage getnewssoid writeobjects findmarkettypes printmarket printevent " +
-                            "printmarkettype weighttest printmap debug alias reserve cancelorders readaliases printaliases safetylimits help");
+                                        "printmarkettype weighttest printmap debug alias reserve cancelorders readaliases printaliases safetylimits help");
                 } else {
                     printWriter.println("Unknown command: " + inputLine + " . Use \"help\" for a commands list.");
                 }

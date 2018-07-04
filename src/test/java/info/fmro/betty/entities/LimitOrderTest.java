@@ -1,100 +1,58 @@
 package info.fmro.betty.entities;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import info.fmro.betty.main.ApiDefault;
+import org.junit.jupiter.api.Test;
 
-public class LimitOrderTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-    private static final Logger logger = LoggerFactory.getLogger(LimitOrderTest.class);
-
-    @Rule
-    @SuppressWarnings("PublicField")
-    public TestRule watchman = new TestWatcher() {
-        @Override
-        public void starting(Description description) {
-            logger.info("{} being run...", description.getMethodName());
-        }
-    };
-
+public class LimitOrderTest
+        extends ApiDefault {
     @Test
-    public void testGetSize() {
+    void getSize() {
         LimitOrder instance = new LimitOrder();
         double expResult;
         double result;
-        assertTrue("1", null == instance.getSize());
+        assertTrue(null == instance.getSize(), "1");
 
         expResult = 123456.12d;
         instance.setSize(123456.1234556d);
         result = instance.getSize();
-        assertTrue("1", expResult == result);
+        assertTrue(expResult == result, "1");
     }
 
     @Test
-    public void testSetSize() {
+    void setSize() {
         LimitOrder instance = new LimitOrder();
 
         double size = 3.62378947368421d;
         instance.setSize(size);
         String result = instance.getSizeString();
         String expResult = "3.62";
-        assertEquals("1", expResult, result);
+        assertEquals(expResult, result, "1");
 
         size = 3.62978947368421d;
         instance.setSize(size);
         result = instance.getSizeString();
         expResult = "3.62";
-        assertEquals("2", expResult, result);
+        assertEquals(expResult, result, "2");
 
         size = .62978947368421d;
         instance.setSize(size);
         result = instance.getSizeString();
         expResult = "0.62";
-        assertEquals("3", expResult, result);
+        assertEquals(expResult, result, "3");
 
         size = 1000d;
         instance.setSize(size);
         result = instance.getSizeString();
         expResult = "1000.0";
-        assertEquals("4", expResult, result);
+        assertEquals(expResult, result, "4");
 
         size = 0d;
         instance.setSize(size);
         result = instance.getSizeString();
         expResult = "0.0";
-        assertEquals("5", expResult, result);
+        assertEquals(expResult, result, "5");
     }
-
-    // @Test
-    // public void testGetPrice() {
-    //     LimitOrder instance = new LimitOrder();
-    //     Double expResult = null;
-    //     Double result = instance.getPrice();
-    //     assertEquals(expResult, result);
-    // }
-    // @Test
-    // public void testSetPrice() {
-    //     Double price = null;
-    //     LimitOrder instance = new LimitOrder();
-    //     instance.setPrice(price);
-    // }
-    // @Test
-    // public void testGetPersistenceType() {
-    //     LimitOrder instance = new LimitOrder();
-    //     PersistenceType expResult = null;
-    //     PersistenceType result = instance.getPersistenceType();
-    //     assertEquals(expResult, result);
-    // }
-    // @Test
-    // public void testSetPersistenceType() {
-    //     PersistenceType persistenceType = null;
-    //     LimitOrder instance = new LimitOrder();
-    //     instance.setPersistenceType(persistenceType);
-    // }
 }

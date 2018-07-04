@@ -87,6 +87,7 @@ public enum ParsedMarketType {
     FIRST_CORNER,
     MATCH_BET,
     ACCA,
+    ALT_TOTAL_GOALS,
     NEXT_GOAL,
     ET_NEXT_GOAL,
     MATCH_ODDS,

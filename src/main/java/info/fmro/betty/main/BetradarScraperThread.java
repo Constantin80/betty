@@ -13,11 +13,14 @@ import com.ximpleware.XPathParseException;
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.enums.MatchStatus;
 import info.fmro.betty.objects.BetradarEvent;
-import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.utility.WebScraperMethods;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -30,9 +33,6 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.helpers.MessageFormatter;
 
 public class BetradarScraperThread
         extends ScraperThread {
@@ -643,7 +643,7 @@ public class BetradarScraperThread
 
     @Override
     public void getScraperEventsInner(long startTime, boolean fullRun, boolean checkAll, AutoPilot autoPilot, VTDNav vtdNav, AtomicInteger listSize,
-            AtomicInteger scrapedEventsCounter)
+                                      AtomicInteger scrapedEventsCounter)
             throws XPathParseException, XPathEvalException, NavException {
 
         final boolean checkForErrors = (timedScraperCounter.get() - 1) % 10 == 0;
@@ -766,7 +766,7 @@ public class BetradarScraperThread
                                     if (counterNotStarted > 0) {
                                         if (Statics.debugLevel.check(2, 195)) {
                                             Generic.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "{} found started game after not started: counterNotStarted={} {} id:{}",
-                                                    threadId, counterNotStarted, matchStatus.name(), eventId);
+                                                                              threadId, counterNotStarted, matchStatus.name(), eventId);
                                         }
 //                                                            lastFoundStartedAfterNotStarted.set(startTime);
                                     }
@@ -791,12 +791,12 @@ public class BetradarScraperThread
                                             if (matchStatus != null && matchStatus.hasStarted()) { // all good, nothing to be done here
                                             } else if (matchStatus == null) {
                                                 logger.error("{} matchStatus null; this else branch shouldn't be entered: {} {}", threadId, scrapedMatchStatus,
-                                                        Generic.objectToString(scraperEvent));
+                                                             Generic.objectToString(scraperEvent));
                                             } else { // !matchStatus.hasStarted()
                                                 if (existingScraperEvent != null) {
-                                                    logger.error("{} !hasStarted exists in map: {} {}", threadId, Generic.objectToString(existingScraperEvent,
-                                                            Generic.objectToString(scraperEvent)));
-                                                    BlackList.removeScraper(scraperEvent);
+                                                    logger.error("{} !hasStarted exists in map: {} {}", threadId, Generic.objectToString(existingScraperEvent, Generic.objectToString(scraperEvent)));
+                                                    scraperEvent.setIgnored(Generic.MINUTE_LENGTH_MILLISECONDS * 2L);
+//                                                    MaintenanceThread.removeScraper(scraperEvent);
                                                 } else { // existingScraperEvent null & betradarEventsMap.containsKey(eventId)
                                                     long timeSinceLastRemoved = startTime - Statics.betradarEventsMap.getTimeStampRemoved();
                                                     Statics.betradarEventsMap.removeValueAll(null);
@@ -804,7 +804,7 @@ public class BetradarScraperThread
                                                     String printedString = MessageFormatter.arrayFormat(
                                                             "{} null betradarEvent in map, timeSinceLastRemoved: {} for eventId: {} of scraperEvent: {} {}",
                                                             new Object[]{threadId, timeSinceLastRemoved, eventId, Generic.objectToString(scraperEvent),
-                                                                Generic.objectToString(existingScraperEvent)}).getMessage();
+                                                                         Generic.objectToString(existingScraperEvent)}).getMessage();
 //                                                    if (timeSinceLastRemoved < 1_000L) {
 //                                                        logger.info("{} null betradarEvent in map timeSinceLastRemoved {} for eventId {}", threadId, timeSinceLastRemoved,
 //                                                                eventId);
@@ -828,7 +828,7 @@ public class BetradarScraperThread
 //                                                }
                                                 } else {
                                                     logger.error("existingScraperEvent found during {} put double check: {} {}", threadId,
-                                                            Generic.objectToString(existingScraperEvent), Generic.objectToString(scraperEvent));
+                                                                 Generic.objectToString(existingScraperEvent), Generic.objectToString(scraperEvent));
 //                                                    existingScraperEvent = inMapScraperEvent;
                                                 }
                                             } else { // won't be added
@@ -858,10 +858,10 @@ public class BetradarScraperThread
                                                         final String printedString = MessageFormatter.arrayFormat(
                                                                 "{} null event in map or id not found, timeSinceLastRemoved: {} for matchedEventId: {} of scraperEvent: {} {}",
                                                                 new Object[]{threadId, timeSinceLastRemoved, matchedEventId, Generic.objectToString(scraperEvent),
-                                                                    Generic.objectToString(existingScraperEvent)}).getMessage();
+                                                                             Generic.objectToString(existingScraperEvent)}).getMessage();
                                                         if (timeSinceLastRemoved < 1_000L) {
                                                             logger.info("{} null event in map or id not found, timeSinceLastRemoved {} for matchedEventId {} of scraperEventId {}",
-                                                                    threadId, timeSinceLastRemoved, matchedEventId, eventId);
+                                                                        threadId, timeSinceLastRemoved, matchedEventId, eventId);
                                                         } else {
                                                             logger.error(printedString);
                                                         }
@@ -876,9 +876,9 @@ public class BetradarScraperThread
 //                                                            Generic.objectToString(scraperEvent), Generic.objectToString(existingScraperEvent));
 
                                                     Generic.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR,
-                                                            "{} check true scraperEvent updated into check false {} scraperEvent: {} {}", threadId, existingScraperErrors,
-                                                            Generic.objectToString(scraperEvent, "seconds", "classModifiers", "minutesPlayed", "stoppageTime", "Stamp"),
-                                                            Generic.objectToString(existingScraperEvent, "seconds", "classModifiers", "minutesPlayed", "stoppageTime", "Stamp"));
+                                                                                      "{} check true scraperEvent updated into check false {} scraperEvent: {} {}", threadId, existingScraperErrors,
+                                                                                      Generic.objectToString(scraperEvent, "seconds", "classModifiers", "minutesPlayed", "stoppageTime", "Stamp"),
+                                                                                      Generic.objectToString(existingScraperEvent, "seconds", "classModifiers", "minutesPlayed", "stoppageTime", "Stamp"));
 
                                                     // probably no need for removal, ignore is done when existingScraperEvent.errors() is invoked
 //                                                    Statics.betradarEventsMap.remove(eventId);
@@ -890,7 +890,7 @@ public class BetradarScraperThread
                                         if (Statics.debugLevel.check(3, 108)) {
                                             final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
                                             final String formattedDate = scraperEvent.getHomeTeam() + "/" + scraperEvent.getAwayTeam() + ": " +
-                                                    scraperEvent.getStartTime().getTime() + " " + simpleDateFormat.format(scraperEvent.getStartTime());
+                                                                         scraperEvent.getStartTime().getTime() + " " + simpleDateFormat.format(scraperEvent.getStartTime());
                                             logger.info("{} scraperEvent parsed: {} {}", threadId, formattedDate, Generic.objectToString(scraperEvent));
                                         }
                                     } else {
@@ -899,7 +899,7 @@ public class BetradarScraperThread
                                         if (scraperErrors >= 100) {
 //                                            logger.error("{} scraperEvent scraperErrors: {} in getScraperEvents for: {}", threadId, scraperErrors, scraperString);
                                             Generic.alreadyPrintedMap.logOnce(5L * Generic.MINUTE_LENGTH_MILLISECONDS, logger, LogLevel.ERROR,
-                                                    "{} scraperEvent scraperErrors: {} in getScraperEvents for: {}", threadId, scraperErrors, scraperString);
+                                                                              "{} scraperEvent scraperErrors: {} in getScraperEvents for: {}", threadId, scraperErrors, scraperString);
                                         } else if (scraperErrors >= 1) {
                                             final long currentTime = System.currentTimeMillis();
 
@@ -909,7 +909,7 @@ public class BetradarScraperThread
 
                                                 if (lapsedTime > Generic.MINUTE_LENGTH_MILLISECONDS) { // temporary errors allowed for at most 1 minute
                                                     logger.error("{} scraperEvent minor but lasting {} ms scraperErrors: {} in getScraperEvents for: {}", threadId,
-                                                            lapsedTime, scraperErrors, scraperString);
+                                                                 lapsedTime, scraperErrors, scraperString);
                                                 } else { // might be a normal temporary error; not enough time has lapsed
                                                 }
                                             } else { // first time this particular error is found
@@ -917,14 +917,14 @@ public class BetradarScraperThread
                                             }
                                         } else {
                                             logger.error("STRANGE {} scraperErrors {} value for scraperEvent: {}", threadId, scraperErrors,
-                                                    Generic.objectToString(scraperEvent));
+                                                         Generic.objectToString(scraperEvent));
                                         }
                                     } // end else
                                 } else {
                                     if (Statics.debugLevel.check(2, 137)) {
                                         logger.error("{} scraperEvent not scraped properly: {} {} {} {} {} {} {} {}", threadId, Generic.objectToString(scraperEvent),
-                                                scrapedStartTime, scrapedHomeTeam, scrapedAwayTeam, scrapedScore, scrapedHtScore, scrapedMatchStatus,
-                                                scrapedMinutesPlayed);
+                                                     scrapedStartTime, scrapedHomeTeam, scrapedAwayTeam, scrapedScore, scrapedHtScore, scrapedMatchStatus,
+                                                     scrapedMinutesPlayed);
                                     }
                                 }
                             } else { // event not changed recently and not fullRun
@@ -1022,9 +1022,9 @@ public class BetradarScraperThread
                                                 break;
                                             default:
                                                 // maxTimeBetweenUpdates = Math.min(maxTimeBetweenUpdates, Generic.MINUTE_LENGTH_MILLISECONDS * 20L);
-                                                logger.error("STRANGE matchstatus {} in Statics.{}EventsMap during matchStatus check for: {}", matchStatus.name(), threadId,
-                                                        Generic.objectToString(betradarEvent));
-                                                BlackList.removeScraper(betradarEvent);
+                                                logger.error("STRANGE matchstatus {} in Statics.{}EventsMap during matchStatus check for: {}", matchStatus.name(), threadId, Generic.objectToString(betradarEvent));
+                                                betradarEvent.setIgnored(Generic.MINUTE_LENGTH_MILLISECONDS * 15L);
+//                                                MaintenanceThread.removeScraper(betradarEvent);
 //                                                Statics.betradarEventsMap.removeValueAll(betradarEvent);
                                                 break;
                                         } // end switch
@@ -1037,7 +1037,8 @@ public class BetradarScraperThread
                                         }
                                     } else { // matchstatus == null
                                         logger.error("null matchStatus in Statics.{}EventsMap while checking matchStatus for: {}", threadId, Generic.objectToString(betradarEvent));
-                                        BlackList.removeScraper(betradarEvent);
+                                        betradarEvent.setIgnored(Generic.MINUTE_LENGTH_MILLISECONDS * 2L);
+//                                        MaintenanceThread.removeScraper(betradarEvent);
 //                                        Statics.betradarEventsMap.removeValueAll(betradarEvent);
                                     }
                                 } else { // betradarEvent == null
@@ -1055,7 +1056,7 @@ public class BetradarScraperThread
                 } else { // program will enter on this branch when no updated events exist (nLiveEvents won't update); time < 20 minutes can activate during half_time
                     long timeSinceLastPageGet = startTime - lastPageGet.get();
                     if (timeSinceLastUpdate > Generic.MINUTE_LENGTH_MILLISECONDS * 30L ||
-                            (timeSinceLastUpdate > Generic.MINUTE_LENGTH_MILLISECONDS * 20L && timeSinceLastPageGet > Generic.MINUTE_LENGTH_MILLISECONDS * 30L)) {
+                        (timeSinceLastUpdate > Generic.MINUTE_LENGTH_MILLISECONDS * 20L && timeSinceLastPageGet > Generic.MINUTE_LENGTH_MILLISECONDS * 30L)) {
                         logger.warn("no started events exist and no updated {} events for {}ms", threadId, timeSinceLastUpdate);
                         mustRefreshPage.set(true);
                     } else { // too little time passed or page get too recent
@@ -1077,7 +1078,7 @@ public class BetradarScraperThread
     @Override
     public HtmlPage getHtmlPage(WebClient webClient) {
         HtmlPage htmlPage = WebScraperMethods.getPage(webClient, SAVE_FOLDER + "/start", mustRefreshPage, mustSavePage,
-                "http://livescore.betradar.com/ls/livescore/?/betfair/en/page", threadId, selectFootballXPath, orderByKickoffXPath, tickerZeroXPath);
+                                                      "http://livescore.betradar.com/ls/livescore/?/betfair/en/page", threadId, selectFootballXPath, orderByKickoffXPath, tickerZeroXPath);
         //                onclick="SRLive.trigger('treefilter:select', { _id: '1', selected: { type: 'sports', property: '_sid', value: '1' }})"
         //                onclick="SRLive.trigger('treefilter:select', { _id: '1', selected: { type: 'sports', property: '_sid', value: '1' }})"
         //                onclick="SRLive.trigger('treefilter:select', { _id: '1', selected: { type: 'sports', property: '_sid', value: '1' }})"

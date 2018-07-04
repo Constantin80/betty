@@ -1,10 +1,10 @@
 package info.fmro.betty.utility;
 
 import info.fmro.betty.entities.Event;
+import info.fmro.betty.entities.EventType;
 import info.fmro.betty.entities.MarketCatalogue;
 import info.fmro.betty.entities.MarketDescription;
 import info.fmro.betty.entities.PlaceInstruction;
-import info.fmro.shared.utility.LogLevel;
 import info.fmro.betty.main.ScraperThread;
 import info.fmro.betty.main.VarsIO;
 import info.fmro.betty.objects.BetradarEvent;
@@ -14,10 +14,14 @@ import info.fmro.betty.objects.ScraperEvent;
 import info.fmro.betty.objects.StampedDouble;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.objects.TwoOrderedStrings;
-import info.fmro.shared.utility.AlreadyPrintedMap;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
+import info.fmro.shared.utility.LogLevel;
 import info.fmro.shared.utility.SynchronizedMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -26,8 +30,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Formulas {
 
@@ -286,7 +288,7 @@ public class Formulas {
                 final char c = modifiedString.charAt(i);
                 if ((c < 48 || c > 57) && (c < 97 || c > 122) && c != 32) {
                     Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, Formulas.logger, LogLevel.ERROR, "forbidden char:{} code:{} in parseTeamString: {}", c, (int) c,
-                            teamString);
+                                                      teamString);
                 }
             } // end for
 
@@ -527,7 +529,7 @@ public class Formulas {
                 existingSize = Statics.executingOrdersMap.get(orderPrice);
             } else {
                 logger.error("STRANGE order not found in Statics.executingOrdersMap for: {} in {}", Generic.objectToString(orderPrice),
-                        Generic.objectToString(Statics.executingOrdersMap));
+                             Generic.objectToString(Statics.executingOrdersMap));
                 existingSize = 0;
             }
 
@@ -710,7 +712,7 @@ public class Formulas {
         if (marketCatalogue != null) {
             result = getEventIdOfMarketCatalogue(marketCatalogue);
         } else {
-            logger.error("couldn't find marketId {} in Statics.marketCataloguesMap during getEventOfMarket", marketId);
+            logger.info("couldn't find marketId {} in Statics.marketCataloguesMap during getEventOfMarket", marketId);
             result = null;
         }
 
@@ -727,6 +729,32 @@ public class Formulas {
         final String eventId = getEventIdOfMarketCatalogue(marketCatalogue);
         final Event event = Statics.eventsMap.get(eventId);
         return event;
+    }
+
+    public static boolean isMarketType(MarketCatalogue marketCatalogue, String... types) {
+        final boolean result;
+
+        if (marketCatalogue != null && types != null) {
+            final EventType eventType = marketCatalogue.getEventType();
+            if (eventType != null) {
+                final String eventTypeId = eventType.getId();
+                if (eventTypeId != null) {
+                    final List listTypes = Arrays.asList(types);
+                    result = listTypes.contains(eventTypeId);
+                } else {
+                    logger.error("null eventType in isMarketType for: {} {}", Generic.objectToString(types), Generic.objectToString(marketCatalogue));
+                    result = false;
+                }
+            } else {
+                logger.error("null eventTypeId in isMarketType for: {} {}", Generic.objectToString(types), Generic.objectToString(marketCatalogue));
+                result = false;
+            }
+        } else {
+            logger.error("null arguments in isMarketType for: {} {}", Generic.objectToString(types), Generic.objectToString(marketCatalogue));
+            result = false;
+        }
+
+        return result;
     }
 
     public static boolean isEachWayMarketType(String marketId) { // assumes the worst in case it doesn't find an answer

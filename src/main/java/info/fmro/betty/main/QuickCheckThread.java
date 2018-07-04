@@ -22,6 +22,10 @@ import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import info.fmro.shared.utility.SynchronizedMap;
 import info.fmro.shared.utility.SynchronizedSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -33,9 +37,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.helpers.MessageFormatter;
 
 public class QuickCheckThread
         extends Thread
@@ -51,7 +52,7 @@ public class QuickCheckThread
     public static final PriceProjection priceProjectionBest = new PriceProjection();
     public static final ExBestOffersOverrides exBestOffersOverrides = new ExBestOffersOverrides();
     public final AverageLogger averageLogger = new AverageLogger(this,
-            "getMarketBooks ran {}({}) times average/max: listSize {}/{} took {}/{} ms of which {}/{} ms waiting for threads", "getMarketBooks ran {}({}) times", 3);
+                                                                 "getMarketBooks ran {}({}) times average/max: listSize {}/{} took {}/{} ms of which {}/{} ms waiting for threads", "getMarketBooks ran {}({}) times", 3);
 
     static {
         priceDataSetAll.add(PriceData.EX_ALL_OFFERS);
@@ -177,7 +178,7 @@ public class QuickCheckThread
                 minExpectedRuns = (int) (Math.ceil(safeMarkets / Statics.N_ALL) * Statics.DELAY_PRINTAVERAGES / Statics.DELAY_GETMARKETBOOKS);
             } else { // nAllThreads > nBestThreads
                 minExpectedRuns = (int) ((Math.ceil(safeMarketsImportant / Statics.N_ALL) + Math.ceil((safeMarkets - safeMarketsImportant) / Statics.N_BEST)) *
-                        Statics.DELAY_PRINTAVERAGES / Statics.DELAY_GETMARKETBOOKS);
+                                         Statics.DELAY_PRINTAVERAGES / Statics.DELAY_GETMARKETBOOKS);
             }
 
             expectedRuns = Math.max(maxLimitation, minExpectedRuns); // always at least minExpectedRuns
@@ -250,7 +251,7 @@ public class QuickCheckThread
 
                 final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
                 final List<MarketBook> marketBooksList = ApiNgRescriptOperations.listMarketBook(marketIdsListSplit, localPriceProjection, null, null, null, Statics.appKey.get(),
-                        rescriptResponseHandler);
+                                                                                                rescriptResponseHandler);
 
                 // if (marketBooksList != null) {
                 //     returnSet.addAll(marketBooksList);
@@ -286,18 +287,18 @@ public class QuickCheckThread
                                 final MarketBook existingMarketBook;
 //                                synchronized (Statics.safeMarketBooksMap) {
 
-                                if (BlackList.notExistOrIgnored(Statics.marketCataloguesMap, marketId, startTime) || BlackList.isTempRemovedMarket(marketId)) {
+                                if (BlackList.notExistOrIgnored(Statics.marketCataloguesMap, marketId, startTime)) {
                                     BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "marketBook, marketCatalogue map");
 
-                                    BlackList.removeFromSecondaryMaps(marketId);
+                                    MaintenanceThread.removeFromSecondaryMaps(marketId);
                                     continue; // next for element
                                 } else {
                                     existingMarketBook = Statics.safeMarketBooksMap.putIfAbsent(marketId, marketBook);
                                     if (existingMarketBook == null) { // marketBook was added, no previous marketBook existed
-                                        if (BlackList.notExistOrIgnored(Statics.marketCataloguesMap, marketId, startTime) || BlackList.isTempRemovedMarket(marketId)) {
+                                        if (BlackList.notExistOrIgnored(Statics.marketCataloguesMap, marketId, startTime)) {
                                             BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime,
-                                                    "marketBook, marketCatalogue map, after put");
-                                            BlackList.removeFromSecondaryMaps(marketId);
+                                                                                         "marketBook, marketCatalogue map, after put");
+                                            MaintenanceThread.removeFromSecondaryMaps(marketId);
                                             continue; // next for element
                                         } else {
 //                                            existingMarketBook = null;
@@ -325,14 +326,14 @@ public class QuickCheckThread
                                     final List<Runner> runnersList = marketBook.getRunners();
                                     if (marketStatus != null && runnersList != null) {
                                         Statics.safetyLimits.createPlaceInstructionList(runnersList, safeRunnersSet, marketBook, marketId, startTime, endTime, marketStatus, inplay,
-                                                betDelay, timePreviousMarketBookCheck);
+                                                                                        betDelay, timePreviousMarketBookCheck);
                                     } else {
                                         logger.error("null marketStatus or runnersList in getMarketBooks for: {}", Generic.objectToString(marketBook));
                                     }
                                 } else {
                                     long timeSinceLastRemoved = startTime - Statics.safeMarketsMap.getTimeStampRemoved();
                                     String printedString = MessageFormatter.arrayFormat("null/empty safeRunnersSet in getMarketBooks for marketId: {} timeSinceLastRemoved: {}ms",
-                                            new Object[]{marketId, timeSinceLastRemoved}).getMessage();
+                                                                                        new Object[]{marketId, timeSinceLastRemoved}).getMessage();
                                     if (timeSinceLastRemoved < 1_000L) {
                                         logger.info(printedString);
                                     } else {
@@ -358,7 +359,7 @@ public class QuickCheckThread
                     if (returnListSize != listSize) {
                         // this does happen with old, expired markedIds; it should go away with the next maintenance clean maps
                         Generic.alreadyPrintedMap.logOnce(Statics.debugLevel.check(2, 172), Generic.MINUTE_LENGTH_MILLISECONDS * 5L, logger, LogLevel.WARN,
-                                "returnSetSize: {} different from listSize: {} in getMarketBooks", returnListSize, listSize);
+                                                          "returnSetSize: {} different from listSize: {} in getMarketBooks", returnListSize, listSize);
                     }
 
                     final long currentTime = System.currentTimeMillis();
@@ -366,11 +367,6 @@ public class QuickCheckThread
                     if (Statics.debugLevel.check(3, 151)) {
                         logger.info("getMarketBooks: {} marketBooks in {} ms of which {} ms waiting for threads", returnListSize, currentTime - startTime, endTime - startTime);
                     }
-//                    if (!toRemoveSet.isEmpty()) {
-//                        Statics.safeMarketsMap.removeAllKeys(toRemoveSet);
-//                        Statics.safeMarketsImportantMap.removeAllKeys(toRemoveSet);
-//                        Statics.safeMarketBooksMap.removeAllKeys(toRemoveSet);
-//                    }
 
                     Statics.safeMarketBooksMap.timeStamp();
                 } else {
@@ -395,7 +391,7 @@ public class QuickCheckThread
             final int safeMarketsImportantMapSize = Statics.safeMarketsImportantMap.size();
             final int nAllThreads = (int) Math.ceil((double) safeMarketsMapSize / Statics.N_ALL); // nThreads if N_ALL is used
             final int nBestThreads = (int) (Math.ceil((double) (safeMarketsMapSize - safeMarketsImportantMapSize) / Statics.N_BEST) +
-                    Math.ceil((double) safeMarketsImportantMapSize / Statics.N_ALL)); // nThreads if N_BEST is used
+                                            Math.ceil((double) safeMarketsImportantMapSize / Statics.N_ALL)); // nThreads if N_BEST is used
 
             if (nAllThreads <= nBestThreads || currentTime >= lastBooksFullRun.get() + 2_000L) {
                 lastBooksFullRun.set(currentTime);

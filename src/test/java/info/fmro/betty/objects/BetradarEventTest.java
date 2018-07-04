@@ -1,56 +1,43 @@
 package info.fmro.betty.objects;
 
 import info.fmro.betty.enums.MatchStatus;
+import info.fmro.betty.main.ApiDefault;
+import org.junit.jupiter.api.Test;
+
 import java.util.Date;
-import static org.junit.Assert.assertEquals;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class BetradarEventTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-    private static final Logger logger = LoggerFactory.getLogger(BetradarEventTest.class);
+public class BetradarEventTest
+        extends ApiDefault {
     private static final long startTime = System.currentTimeMillis();
-
-    @Rule
-    @SuppressWarnings("PublicField")
-    public TestRule watchman = new TestWatcher() {
-        @Override
-        public void starting(Description description) {
-            logger.info("{} being run...", description.getMethodName());
-        }
-    };
 
     public BetradarEventTest() {
     }
 
     @Test
-    public void testGetHomeScore() {
+    void getHomeScore() {
         BetradarEvent instance = new BetradarEvent(1, startTime);
         int expResult = -1;
         int result = instance.getHomeScore();
-        assertEquals(expResult, result);
+        assertEquals(expResult, result, "1");
 
         BetradarEvent secondInstance = new BetradarEvent(1, startTime);
         instance.update(secondInstance);
         expResult = -1;
         result = instance.getHomeScore();
-        assertEquals(expResult, result);
+        assertEquals(expResult, result, "2");
 
         secondInstance = new BetradarEvent(1, startTime);
         secondInstance.setHomeScore(1);
         instance.update(secondInstance);
         expResult = 1;
         result = instance.getHomeScore();
-        assertEquals(expResult, result);
+        assertEquals(expResult, result, "3");
     }
 
     @Test
-    public void testSetHomeScore() {
+    void setHomeScore() {
         BetradarEvent instance = new BetradarEvent(1, startTime);
         instance.setHomeScore(1);
         int result = instance.getHomeScore();
@@ -59,28 +46,28 @@ public class BetradarEventTest {
     }
 
     @Test
-    public void testGetHomeHtScore() {
+    void getHomeHtScore() {
         BetradarEvent instance = new BetradarEvent(1, startTime);
         int expResult = -1;
         int result = instance.getHomeHtScore();
-        assertEquals(expResult, result);
+        assertEquals(expResult, result, "1");
 
         BetradarEvent secondInstance = new BetradarEvent(1, startTime);
         instance.update(secondInstance);
         expResult = -1;
         result = instance.getHomeHtScore();
-        assertEquals(expResult, result);
+        assertEquals(expResult, result, "2");
 
         secondInstance = new BetradarEvent(1, startTime);
         secondInstance.setHomeHtScore(1);
         instance.update(secondInstance);
         expResult = 1;
         result = instance.getHomeHtScore();
-        assertEquals(expResult, result);
+        assertEquals(expResult, result, "3");
     }
 
     @Test
-    public void testSetHomeHtScore() {
+    void setHomeHtScore() {
         BetradarEvent instance = new BetradarEvent(1, startTime);
         instance.setHomeHtScore(1);
         int result = instance.getHomeHtScore();
@@ -89,7 +76,7 @@ public class BetradarEventTest {
     }
 
     @Test
-    public void testUpdate() {
+    void update() {
         BetradarEvent scraperEvent = new BetradarEvent(1, startTime);
         BetradarEvent instance = new BetradarEvent(1, startTime);
         int expResult = 0;
@@ -98,7 +85,7 @@ public class BetradarEventTest {
     }
 
     @Test
-    public void testErrors() {
+    void errors() {
         BetradarEvent scraperEvent = new BetradarEvent(1, startTime);
         scraperEvent.timeStamp();
         scraperEvent.setStartTime(new Date());

@@ -3,15 +3,14 @@ package info.fmro.betty.main;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
-import info.fmro.shared.utility.LogLevel;
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.utility.Formulas;
-import info.fmro.shared.utility.AlreadyPrintedMap;
 import info.fmro.shared.utility.Generic;
-import java.lang.reflect.Type;
-import java.util.Date;
+import info.fmro.shared.utility.LogLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Type;
+import java.util.Date;
 
 public class JsonConverter {
 
@@ -29,7 +28,6 @@ public class JsonConverter {
 
     /**
      * This method deserializes the specified Json into an object of the specified class.
-     *
      */
     public static <T> T convertFromJson(String toConvertString, Class<T> clazz) {
         try {
@@ -46,7 +44,6 @@ public class JsonConverter {
 
     /**
      * This method deserializes the specified Json into an object of the specified Type.
-     *
      */
     public static <T> T convertFromJson(String toConvertString, Type typeOfT) {
         try {
@@ -56,7 +53,7 @@ public class JsonConverter {
                 logger.error("jsonSyntaxException in convertFromJson Type {} for: {}", typeOfT, toConvertString, jsonSyntaxException);
             } else {
                 Generic.alreadyPrintedMap.logOnce(defaultPrintExpiry, logger, LogLevel.ERROR, "jsonSyntaxException in convertFromJson Type {} for: {}", typeOfT, toConvertString,
-                        jsonSyntaxException);
+                                                  jsonSyntaxException);
             }
             return null;
         }

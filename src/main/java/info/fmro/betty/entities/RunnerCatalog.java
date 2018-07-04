@@ -30,35 +30,35 @@ public class RunnerCatalog
         return this.selectionId;
     }
 
-//    public synchronized void setSelectionId(Long selectionId) {
+    //    public synchronized void setSelectionId(Long selectionId) {
 //        this.selectionId = selectionId;
 //    }
     public synchronized String getRunnerName() {
         return this.runnerName;
     }
 
-//    public synchronized void setRunnerName(String runnerName) {
+    //    public synchronized void setRunnerName(String runnerName) {
 //        this.runnerName = runnerName;
 //    }
     public synchronized Double getHandicap() {
         return this.handicap;
     }
 
-//    public synchronized void setHandicap(Double handicap) {
+    //    public synchronized void setHandicap(Double handicap) {
 //        this.handicap = handicap;
 //    }
     public synchronized Integer getSortPriority() {
         return this.sortPriority;
     }
 
-//    public synchronized void setSortPriority(Integer sortPriority) {
+    //    public synchronized void setSortPriority(Integer sortPriority) {
 //        this.sortPriority = sortPriority;
 //    }
     public synchronized Map<String, String> getMetadata() {
         return metadata == null ? null : new HashMap<>(metadata);
     }
 
-//    public synchronized void setMetadata(Map<String, String> metadata) {
+    //    public synchronized void setMetadata(Map<String, String> metadata) {
 //        this.metadata = metadata == null ? null : new HashMap<>(metadata);
 //    }
     @Override
@@ -77,26 +77,30 @@ public class RunnerCatalog
         if (!Objects.equals(this.selectionId, other.selectionId)) {
             return false;
         }
-        if (!Objects.equals(this.runnerName, other.runnerName)) {
-            return false;
-        }
+//        if (!Objects.equals(this.runnerName, other.runnerName)) {
+//            return false;
+//        }
         if (!Objects.equals(this.handicap, other.handicap)) {
             return false;
         }
-        if (!Objects.equals(this.sortPriority, other.sortPriority)) {
-            return false;
-        }
-        return Objects.equals(this.metadata, other.metadata);
+//        if (!Objects.equals(this.sortPriority, other.sortPriority)) {
+//            return false;
+//        }
+//        if (!Objects.equals(this.metadata, other.metadata)) {
+//            return false;
+//        }
+
+        return true;
     }
 
     @Override
     public synchronized int hashCode() {
         int hash = 7;
         hash = 97 * hash + Objects.hashCode(this.selectionId);
-        hash = 97 * hash + Objects.hashCode(this.runnerName);
+//        hash = 97 * hash + Objects.hashCode(this.runnerName);
         hash = 97 * hash + Objects.hashCode(this.handicap);
-        hash = 97 * hash + Objects.hashCode(this.sortPriority);
-        hash = 97 * hash + Objects.hashCode(this.metadata);
+//        hash = 97 * hash + Objects.hashCode(this.sortPriority);
+//        hash = 97 * hash + Objects.hashCode(this.metadata);
         return hash;
     }
 }

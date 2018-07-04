@@ -2,15 +2,16 @@ package info.fmro.betty.main;
 
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.helpers.MessageFormatter;
 
 public class LoggerThread
         implements Runnable {
@@ -47,8 +48,7 @@ public class LoggerThread
             final long highest = Collections.max(list);
             final long sum = list.stream().mapToLong(Long::longValue).sum();
             final long average = Math.round((double) sum / (double) nEntries);
-            final String valuesString = (new StringBuilder(64)).append("(").append("nEntries:").append(nEntries).append(" lowest:").append(lowest).append(" average:").
-                    append(average).append(" highest:").append(highest).append(")").toString();
+            final String valuesString = (new StringBuilder(64)).append("(").append("nEntries:").append(nEntries).append(" lowest:").append(lowest).append(" average:").append(average).append(" highest:").append(highest).append(")").toString();
             final String formattedString = MessageFormatter.arrayFormat(messageFormat, new Object[]{valuesString}).getMessage();
 
             logger.info("loggerThread {}ms after last input: {}", DEFAULT_TIME_OUT_TO_PRINT, formattedString);

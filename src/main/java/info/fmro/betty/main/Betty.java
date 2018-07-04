@@ -6,6 +6,24 @@ import info.fmro.betty.objects.SessionTokenObject;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.utility.UncaughtExceptionHandler;
 import info.fmro.shared.utility.Generic;
+import org.apache.http.HttpEntity;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ssl.DefaultHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -29,23 +47,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.conn.ssl.DefaultHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Betty {
 
@@ -55,8 +56,9 @@ public class Betty {
     private Betty() {
     }
 
-    //@SuppressWarnings({"UseSpecificCatch", "TooBroadCatch"})
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
+        Statics.standardStreamsList = Generic.replaceStandardStreams(Statics.STDOUT_FILE_NAME, Statics.STDERR_FILE_NAME, Statics.LOGS_FOLDER_NAME, !Statics.closeStandardStreamsNotInitialized);
+
         FileOutputStream outFileOutputStream = null, errFileOutputStream = null;
         PrintStream outPrintStream = null, errPrintStream = null;
 
@@ -65,8 +67,10 @@ public class Betty {
 
         try {
 //            new File(Statics.LOGS_FOLDER_NAME).mkdirs(); // moved to Generic.replaceStandardStreams
-            new File(Statics.betradarScraperThread.SAVE_FOLDER).mkdirs();
-            new File(Statics.coralScraperThread.SAVE_FOLDER).mkdirs();
+            if (Statics.safeBetModuleActivated) {
+                new File(Statics.betradarScraperThread.SAVE_FOLDER).mkdirs();
+                new File(Statics.coralScraperThread.SAVE_FOLDER).mkdirs();
+            }
             new File(Statics.DATA_FOLDER_NAME).mkdirs();
 
             outFileOutputStream = (FileOutputStream) Statics.standardStreamsList.get(0);
@@ -75,11 +79,11 @@ public class Betty {
             errPrintStream = (PrintStream) Statics.standardStreamsList.get(3);
 
             int debugLevel = 0;
-            for (String arg : args) {
+            for (final String arg : args) {
                 if (arg.equals("-help")) {
                     logger.info("Available options:\n  -help             prints this help screen\n" +
-                            "  -debug=[0|1|2|3]  writes debug info to disk (0 is default and writes nothing, 3 writes all)\n" +
-                            "  -denyBetting      denies placing of bets");
+                                "  -debug=[0|1|2|3]  writes debug info to disk (0 is default and writes nothing, 3 writes all)\n" +
+                                "  -denyBetting      denies placing of bets");
                     return;
                 } else if (arg.equals("-denyBetting")) {
                     Statics.denyBetting.set(true);
@@ -105,8 +109,7 @@ public class Betty {
 
             if (Statics.notPlacingOrders) {
                 logger.error("Statics.notPlacingOrders true. The program will not place orders.");
-            } else {
-                // regular run, nothing ot be done
+            } else { // regular run, nothing ot be done
             }
 
             VarsIO.readVarsFromFile(Statics.VARS_FILE_NAME);
@@ -116,34 +119,52 @@ public class Betty {
             Statics.safebetsSynchronizedWriter.initialize(Statics.SAFEBETS_FILE_NAME, true);
             Statics.newMarketSynchronizedWriter.initialize(Statics.NEWMARKET_FILE_NAME, true);
 
-            Thread loggerThread = new Thread(Statics.loggerThread);
+            if (Statics.programIsRunningMultiThreaded.getAndSet(true)) {
+                logger.error("initial programMultithreaded state is true");
+            }
+
+            // threads only get started below this line
+
+            final Thread loggerThread = new Thread(Statics.loggerThread);
             loggerThread.start();
-            InputServerThread inputServerThread = new InputServerThread();
+            final InputServerThread inputServerThread = new InputServerThread();
             inputServerThread.start();
-            MaintenanceThread maintenanceThread = new MaintenanceThread();
+            final MaintenanceThread maintenanceThread = new MaintenanceThread();
             maintenanceThread.start();
-            GetFundsThread getFundsThread = new GetFundsThread();
+            final GetFundsThread getFundsThread = new GetFundsThread();
             getFundsThread.start();
-            GetLiveMarketsThread getLiveMarketsThread = new GetLiveMarketsThread();
+            final GetLiveMarketsThread getLiveMarketsThread = new GetLiveMarketsThread();
             getLiveMarketsThread.start();
-            Thread betradarThread = new Thread(Statics.betradarScraperThread);
-            betradarThread.start();
-            Thread coralThread = new Thread(Statics.coralScraperThread);
-            coralThread.start();
+            final Thread betradarThread;
+            if (Statics.safeBetModuleActivated) {
+                betradarThread = new Thread(Statics.betradarScraperThread);
+                betradarThread.start();
+            } else {
+                betradarThread = new Thread();
+            }
+            final Thread coralThread;
+            if (Statics.safeBetModuleActivated) {
+                coralThread = new Thread(Statics.coralScraperThread);
+                coralThread.start();
+            } else {
+                coralThread = new Thread();
+            }
             // QuickCheckThread quickCheckThread = new QuickCheckThread();
             Betty.quickCheckThread.start();
-            Thread cancelOrdersThread = new Thread(new CancelOrdersThread());
+            final Thread cancelOrdersThread = new Thread(new CancelOrdersThread());
             cancelOrdersThread.start();
-            Thread placedAmountsThread = new Thread(new PlacedAmountsThread());
+            final Thread placedAmountsThread = new Thread(new PlacedAmountsThread());
             placedAmountsThread.start();
-            Thread timeJumpDetectorThread = new Thread(new TimeJumpDetectorThread());
+            final Thread timeJumpDetectorThread = new Thread(new TimeJumpDetectorThread());
             timeJumpDetectorThread.start();
-            Thread idleConnectionMonitorThread = new Thread(new IdleConnectionMonitorThread(Statics.connManager));
+            final Thread idleConnectionMonitorThread = new Thread(new IdleConnectionMonitorThread(Statics.connManager));
             idleConnectionMonitorThread.start();
 
-            if (!BrowserVersion.BEST_SUPPORTED.equals(BrowserVersion.FIREFOX_52)) {
-                // sometimes this changes if I use a new version of HtmlUnit
-                logger.error("HtmlUnit BrowserVersion.BEST_SUPPORTED has changed, a review of BrowserVersion usage is necessary");
+            if (Statics.safeBetModuleActivated) {
+                if (!BrowserVersion.BEST_SUPPORTED.equals(BrowserVersion.FIREFOX_52)) {
+                    // sometimes this changes if I use a new version of HtmlUnit
+                    logger.error("HtmlUnit BrowserVersion.BEST_SUPPORTED has changed, a review of BrowserVersion usage is necessary");
+                }
             }
 
             while (!Statics.mustStop.get()) {
@@ -278,10 +299,15 @@ public class Betty {
 
             logger.info("All threads finished");
 
+            if (!Statics.programIsRunningMultiThreaded.getAndSet(false)) {
+                logger.error("final programMultithreaded state is false");
+            }
+
 //            Statics.matcherSynchronizedWriter.close();
 //            Statics.safebetsSynchronizedWriter.close();
 //            Statics.newMarketSynchronizedWriter.close();
             VarsIO.writeObjectsToFiles();
+            Generic.alreadyPrintedMap.clear(); // also prints the important properties
         } catch (FileNotFoundException | NumberFormatException | InterruptedException exception) {
             logger.error("STRANGE ERROR inside Betty", exception);
         } catch (Throwable throwable) { // attempts to catch fatal errors
@@ -291,13 +317,12 @@ public class Betty {
 //            logger.info("closing standard streams");
             Generic.closeStandardStreams();
 //            logger.info("closing final objects");
-            Generic.closeObjects(outPrintStream, outFileOutputStream, errPrintStream, errFileOutputStream, Statics.matcherSynchronizedWriter, Statics.safebetsSynchronizedWriter,
-                    Statics.newMarketSynchronizedWriter);
+            Generic.closeObjects(outPrintStream, outFileOutputStream, errPrintStream, errFileOutputStream, Statics.matcherSynchronizedWriter, Statics.safebetsSynchronizedWriter, Statics.newMarketSynchronizedWriter);
         }
     }
 
-    public static boolean authenticate(String authURL, AtomicReference<String> bu, AtomicReference<String> bp, SessionTokenObject sessionTokenObject, AtomicBoolean needSessionToken,
-            String keyStoreFileName, String keyStorePassword, String keyStoreType, AtomicReference<String> appKey) {
+    public static boolean authenticate(String authURL, AtomicReference<String> bu, AtomicReference<String> bp, SessionTokenObject sessionTokenObject, AtomicBoolean needSessionToken, String keyStoreFileName, String keyStorePassword, String keyStoreType,
+                                       AtomicReference<String> appKey) {
         boolean success = false;
         long beginTime = System.currentTimeMillis();
         HttpClientBuilder httpClientBuilder = HttpClients.custom();
@@ -325,7 +350,9 @@ public class Betty {
 
             logger.info("authenticate executing request: {}", httpPost.getRequestLine());
 
+            int whileCounter = 0;
             while (Statics.needSessionToken.get() && !Statics.mustStop.get()) {
+                whileCounter++;
                 CloseableHttpResponse closeableHttpResponse = null;
 
                 try {
@@ -353,7 +380,7 @@ public class Betty {
                             success = true;
                         } else {
                             logger.error("authentication failed, sessionToken: {}", Generic.objectToString(sessionToken));
-                            Generic.threadSleep(500L);
+                            Generic.threadSleep(500L); // main sleep is further down
                         }
                     } else {
                         logger.error("authentication failed, httpEntity null, status line: {} timeStamp={}", closeableHttpResponse.getStatusLine(), System.currentTimeMillis());
@@ -365,7 +392,45 @@ public class Betty {
                 }
 
                 if (Statics.needSessionToken.get() && !Statics.mustStop.get()) {
-                    Generic.threadSleep(1000L);
+                    final long amountToSleep;
+                    switch (whileCounter) {
+                        case 0:
+                            logger.error("whileCounter is {} in authenticate method", whileCounter);
+                            amountToSleep = 10_000L;
+                            break;
+                        case 1:
+                            amountToSleep = 1_000L;
+                            break;
+                        case 2:
+                            amountToSleep = 2_000L;
+                            break;
+                        case 3:
+                            amountToSleep = 5_000L;
+                            break;
+                        case 4:
+                            amountToSleep = 6_000L;
+                            break;
+                        case 5:
+                            amountToSleep = 8_000L;
+                            break;
+                        case 6:
+                            amountToSleep = 10_000L;
+                            break;
+                        case 7:
+                            amountToSleep = 12_000L;
+                            break;
+                        case 8:
+                            amountToSleep = 15_000L;
+                            break;
+                        case 9:
+                            amountToSleep = 20_000L;
+                            break;
+                        default:
+                            logger.error("problems while authenticating, whileCounter {}", whileCounter);
+                            amountToSleep = 30_000L;
+                            break;
+                    }
+                    Generic.threadSleep(amountToSleep);
                 } else { // successful authentication, nothing else to be done
                 }
             } // end while

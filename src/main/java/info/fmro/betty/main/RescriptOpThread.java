@@ -16,12 +16,14 @@ import info.fmro.betty.objects.Statics;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class RescriptOpThread<T>
         implements Runnable {
@@ -31,6 +33,7 @@ public class RescriptOpThread<T>
     private String marketId;
     private Set<T> returnSet;
     private HashSet<String> eventIdsSet;
+    private TreeSet<String> marketIdsSet;
     private HashSet<MarketProjection> marketProjectionsSet;
     private SafetyLimits safetyLimits;
     private List<PlaceInstruction> placeInstructionsList;
@@ -41,6 +44,13 @@ public class RescriptOpThread<T>
         this.operation = "listMarketCatalogue";
         this.returnSet = returnSet;
         this.eventIdsSet = eventIdsSet;
+        this.marketProjectionsSet = marketProjectionsSet;
+    }
+
+    public RescriptOpThread(Set<T> returnSet, TreeSet<String> marketIdsSet, HashSet<MarketProjection> marketProjectionsSet) {
+        this.operation = "listMarketCatalogue";
+        this.returnSet = returnSet;
+        this.marketIdsSet = marketIdsSet;
         this.marketProjectionsSet = marketProjectionsSet;
     }
 
@@ -66,13 +76,13 @@ public class RescriptOpThread<T>
     public void run() {
         switch (operation) {
             case "listMarketCatalogue":
-                if (returnSet != null && eventIdsSet != null && eventIdsSet.size() > 0) {
+                if (returnSet != null && (eventIdsSet != null && eventIdsSet.size() > 0) || (marketIdsSet != null && marketIdsSet.size() > 0)) {
                     MarketFilter marketFilter = new MarketFilter();
                     marketFilter.setEventIds(eventIdsSet);
+                    marketFilter.setMarketIds(marketIdsSet);
 
                     RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
-                    List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, Statics.appKey.get(),
-                            rescriptResponseHandler);
+                    List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, Statics.appKey.get(), rescriptResponseHandler);
 
                     if (marketCatalogueList != null) {
                         returnSet.addAll((List<T>) marketCatalogueList);
@@ -85,8 +95,7 @@ public class RescriptOpThread<T>
                                 marketFilter = new MarketFilter();
                                 marketFilter.setEventIds(singleEventSet);
 
-                                marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, Statics.appKey.get(),
-                                        rescriptResponseHandler);
+                                marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, Statics.appKey.get(), rescriptResponseHandler);
 
                                 if (marketCatalogueList != null) {
                                     returnSet.addAll((List<T>) marketCatalogueList);
@@ -133,8 +142,7 @@ public class RescriptOpThread<T>
                 try {
                     if (safetyLimits != null) {
                         RescriptAccountResponseHandler rescriptAccountResponseHandler = new RescriptAccountResponseHandler();
-                        AccountFundsResponse accountFundsResponse = ApiNgRescriptOperations.getAccountFunds(Statics.appKey.get(), Statics.sessionTokenObject.getSessionToken(),
-                                rescriptAccountResponseHandler);
+                        AccountFundsResponse accountFundsResponse = ApiNgRescriptOperations.getAccountFunds(Statics.appKey.get(), Statics.sessionTokenObject.getSessionToken(), rescriptAccountResponseHandler);
 
                         if (accountFundsResponse != null) {
                             Double availableToBetBalance = accountFundsResponse.getAvailableToBetBalance();
@@ -197,10 +205,10 @@ public class RescriptOpThread<T>
                             ExecutionReportStatus executionReportStatus = placeExecutionReport.getStatus();
                             if (executionReportStatus == ExecutionReportStatus.SUCCESS) {
                                 logger.info("successful order placing market: {} list: {} report: {}", marketId, Generic.objectToString(placeInstructionsList),
-                                        Generic.objectToString(placeExecutionReport));
+                                            Generic.objectToString(placeExecutionReport));
                             } else {
                                 logger.error("executionReportStatus not successful {} in {} for: {} {}", executionReportStatus,
-                                        Generic.objectToString(placeExecutionReport), marketId, Generic.objectToString(placeInstructionsList));
+                                             Generic.objectToString(placeExecutionReport), marketId, Generic.objectToString(placeInstructionsList));
                             }
                         } else {
                             // temporary removal until 2nd scraper
@@ -215,7 +223,7 @@ public class RescriptOpThread<T>
                         }
                     } else { // Statics.notPlacingOrders || Statics.denyBetting.get()
                         logger.warn("order placing denied {} {}: marketId = {}, placeInstructionsList = {}", Statics.notPlacingOrders, Statics.denyBetting.get(), marketId,
-                                Generic.objectToString(placeInstructionsList));
+                                    Generic.objectToString(placeInstructionsList));
                     }
 
                     CancelOrdersThread.addOrder(0L);

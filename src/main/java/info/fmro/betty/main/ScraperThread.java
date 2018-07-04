@@ -14,22 +14,22 @@ import com.ximpleware.VTDGen;
 import com.ximpleware.VTDNav;
 import com.ximpleware.XPathEvalException;
 import com.ximpleware.XPathParseException;
-import info.fmro.shared.utility.LogLevel;
 import info.fmro.betty.objects.AverageLogger;
 import info.fmro.betty.objects.AverageLoggerInterface;
 import info.fmro.betty.objects.RecordedMaxValue;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.betty.utility.WebScraperMethods;
-import info.fmro.shared.utility.AlreadyPrintedMap;
 import info.fmro.shared.utility.Generic;
+import info.fmro.shared.utility.LogLevel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ScraperThread
         implements Runnable, AverageLoggerInterface {
@@ -77,15 +77,11 @@ public class ScraperThread
         this.browserVersion = browserVersion;
         this.cacheMaxSize = cacheMaxSize;
         this.singleLogger = singleLogger;
-        this.averageLogger = new AverageLogger(this,
-                this.threadId + " ran {}({}) times average/max: listSize {}/{} nScraped {}/{} took {}/{} ms of which {}/{} ms getting htmlPage",
-                this.threadId + " ran {}({}) times", 4);
+        this.averageLogger = new AverageLogger(this, this.threadId + " ran {}({}) times average/max: listSize {}/{} nScraped {}/{} took {}/{} ms of which {}/{} ms getting htmlPage", this.threadId + " ran {}({}) times", 4);
         if (this.singleLogger) {
             this.averageLoggerFull = null;
         } else {
-            this.averageLoggerFull = new AverageLogger(this,
-                    this.threadId + " full ran {}({}) times average/max: listSize {}/{} nScraped {}/{} took {}/{} ms of which {}/{} ms getting htmlPage",
-                    this.threadId + " full ran {}({}) times", 4);
+            this.averageLoggerFull = new AverageLogger(this, this.threadId + " full ran {}({}) times average/max: listSize {}/{} nScraped {}/{} took {}/{} ms of which {}/{} ms getting htmlPage", this.threadId + " full ran {}({}) times", 4);
         }
     }
 
@@ -104,7 +100,7 @@ public class ScraperThread
     }
 
     public void getScraperEventsInner(long startTime, boolean fullRun, boolean checkAll, AutoPilot autoPilot, VTDNav vtdNav, AtomicInteger listSize,
-            AtomicInteger scrapedEventsCounter)
+                                      AtomicInteger scrapedEventsCounter)
             throws XPathParseException, XPathEvalException, NavException { // should be overriden
     }
 
@@ -174,7 +170,7 @@ public class ScraperThread
             final String fullRunString = fullRun ? " fullRun" : "";
             final String checkAllString = checkAll ? " checkAll" : "";
             logger.info("{} getScraperEvents{}{} listSize/scraped: {}/{} took: {} ms of which {} ms getting htmlPage", threadId, checkAllString, fullRunString, listSize.get(),
-                    scrapedEventsCounter.get(), totalRunTime, timeGettingPage);
+                        scrapedEventsCounter.get(), totalRunTime, timeGettingPage);
         }
 
         long neededExtraDelay;
@@ -283,7 +279,7 @@ public class ScraperThread
                                 // close window and reload page is the only reliable way for refresh
                                 if (threadSave != null && threadSave.isAlive()) {
                                     Generic.alreadyPrintedMap.logOnce(Statics.debugLevel.check(3, 196), Generic.MINUTE_LENGTH_MILLISECONDS * 5L, logger, LogLevel.WARN,
-                                            "{} threadSave still alive: won't refresh yet", threadId);
+                                                                      "{} threadSave still alive: won't refresh yet", threadId);
                                 } else {
                                     logger.info("{} mustRefreshPage encountered", threadId);
 

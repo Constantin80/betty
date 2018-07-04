@@ -2,21 +2,23 @@ package info.fmro.betty.objects;
 
 import info.fmro.betty.enums.ScrapedField;
 import info.fmro.betty.enums.Side;
+import info.fmro.betty.main.MaintenanceThread;
 import info.fmro.shared.utility.Generic;
-import info.fmro.shared.utility.Ignorable;
+import info.fmro.shared.utility.SafeObjectInterface;
 import info.fmro.shared.utility.SynchronizedMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+// replace the container of SafeRunner from SynchronizedSet to Safe variant, to have on add and on remove methods; on remove I'll add a removed boolean
 public class SafeRunner
-        extends Ignorable
-        implements Serializable, Comparable<SafeRunner> {
+        implements SafeObjectInterface, Serializable, Comparable<SafeRunner> {
 
     private static final Logger logger = LoggerFactory.getLogger(SafeRunner.class);
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
@@ -26,11 +28,12 @@ public class SafeRunner
     private final Long selectionId; // The unique id of the runner (unique for that particular market)
     private final Side side; // only one side can ever be safe
     private final HashMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapers = new HashMap<>(4);
+    private boolean hasBeenRemoved; // flag placed as I remove the object from set, so I don't use the object anymore
 //    private double placedAmount; // only used for the specialLimitPeriod
 
     @SuppressWarnings("LeakingThisInConstructor")
     public SafeRunner(String marketId, Long selectionId, Side side, long timeStamp, Map<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapers,
-            ScrapedField... scrapedFields) {
+                      ScrapedField... scrapedFields) {
         this.marketId = marketId;
         this.selectionId = selectionId;
         this.side = side;
@@ -42,7 +45,7 @@ public class SafeRunner
                     this.usedScrapers.put(scrapedFields[i], existingValue);
                 } else {
                     logger.error("null or too low size map during SafeRunner creation for: {} {} {} {}", Generic.objectToString(scrapedFields[i]),
-                            Generic.objectToString(existingValue), Generic.objectToString(scrapedFields), Generic.objectToString(this));
+                                 Generic.objectToString(existingValue), Generic.objectToString(scrapedFields), Generic.objectToString(this));
                 }
             } // end for
         } else {
@@ -55,7 +58,7 @@ public class SafeRunner
     }
 
     public SafeRunner(String marketId, Long selectionId, Side side, Map<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapers,
-            ScrapedField... scrapedFields) {
+                      ScrapedField... scrapedFields) {
         this(marketId, selectionId, side, System.currentTimeMillis(), usedScrapers, scrapedFields);
     }
 
@@ -67,11 +70,40 @@ public class SafeRunner
         this.addedStamp = System.currentTimeMillis();
     }
 
+    public boolean hasBeenRemoved() {
+        return this.hasBeenRemoved;
+    }
+
+    public void setHasBeenRemoved(boolean hasBeenRemoved) {
+        this.hasBeenRemoved = hasBeenRemoved;
+    }
+
+    @Override
+    public int runOnRemoval() {
+        final int modified;
+        if (!this.hasBeenRemoved()) {
+            modified = 1;
+        } else {
+            modified = 0;
+        }
+        this.setHasBeenRemoved(true);
+
+        return modified;
+    }
+
+    @Override
+    public int runOnAdd() {
+        final int modified;
+        modified = 0; // method not used so far
+
+        return modified;
+    }
+
     public String getMarketId() {
         return marketId;
     }
 
-//    public double getPlacedAmount() {
+    //    public double getPlacedAmount() {
 //        return placedAmount;
 //    }
 //
@@ -107,21 +139,21 @@ public class SafeRunner
         return selectionId;
     }
 
-//    public synchronized void setSelectionId(long selectionId) {
+    //    public synchronized void setSelectionId(long selectionId) {
 //        this.selectionId = selectionId;
 //    }
     public synchronized Side getSide() {
         return side;
     }
 
-//    public synchronized void setSide(Side side) {
+    //    public synchronized void setSide(Side side) {
 //        this.side = side;
 //    }
     public synchronized HashMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> getUsedScrapers() {
         return usedScrapers == null ? null : new HashMap<>(usedScrapers);
     }
 
-//    public synchronized SynchronizedMap<Class<? extends ScraperEvent>, Long> removeUsedField(ScrapedField scrapedField) {
+    //    public synchronized SynchronizedMap<Class<? extends ScraperEvent>, Long> removeUsedField(ScrapedField scrapedField) {
 //        return usedScrapers.remove(scrapedField);
 //    }
 //    public synchronized boolean removeUsedScraper(ScrapedField scrapedField, Class<? extends ScraperEvent> clazz, Long scraperId) {
@@ -222,15 +254,16 @@ public class SafeRunner
         } // end for
         if (modified > 0) {
             if (!sufficientScrapers()) {
-                BlackList.removeSafeRunner(marketId, this);
+                MaintenanceThread.removeSafeRunner(marketId, this);
             } else {
-                final long currentTime = System.currentTimeMillis();
-                final long safeRunnerAge = currentTime - this.addedStamp;
-
-                if (safeRunnerAge < 30_000L) { // sufficient scrapers left, but 1 was ignored and safeRunner is young; this results in a long ignore for the safeRunner
-                    logger.error("ignoring young {}ms safeRunner due to scraperEvent ignore: {}", safeRunnerAge, Generic.objectToString(this));
-                    this.setIgnored(300_000L, currentTime); // 5 minutes ignore
-                }
+                // this default ignore was mostly moved to ScraperEvent.setIgnore and affects the whole Event
+//                final long currentTime = System.currentTimeMillis();
+//                final long safeRunnerAge = currentTime - this.addedStamp;
+//
+//                if (safeRunnerAge < 30_000L) { // sufficient scrapers left, but 1 was ignored and safeRunner is young; this results in a long ignore for the safeRunner
+//                    logger.error("ignoring young {}ms safeRunner due to scraperEvent ignore: {}", safeRunnerAge, Generic.objectToString(this));
+//                    this.setIgnored(300_000L, currentTime); // 5 minutes ignore
+//                }
             }
         }
 
@@ -258,14 +291,14 @@ public class SafeRunner
                 final int otherUsedScrapersSize = otherUsedScrapers.size();
                 if (usedScrapersSize != otherUsedScrapersSize) {
                     logger.error("usedScrapersSize {} != otherUsedScrapersSize {} in SafeRunner.update: {} {}", usedScrapersSize, otherUsedScrapersSize,
-                            Generic.objectToString(this), Generic.objectToString(safeRunner));
+                                 Generic.objectToString(this), Generic.objectToString(safeRunner));
                     modified = 0;
                 } else {
                     final Set<ScrapedField> usedScrapersKeys = this.usedScrapers.keySet();
                     final Set<ScrapedField> otherUsedScrapersKeys = otherUsedScrapers.keySet();
                     if (!Objects.equals(usedScrapersKeys, otherUsedScrapersKeys)) {
                         logger.error("usedScrapersKeys {} != otherUsedScrapersKeys {} in SafeRunner.update: {} {}", Generic.objectToString(usedScrapersKeys),
-                                Generic.objectToString(otherUsedScrapersKeys), Generic.objectToString(this), Generic.objectToString(safeRunner));
+                                     Generic.objectToString(otherUsedScrapersKeys), Generic.objectToString(this), Generic.objectToString(safeRunner));
                         modified = 0;
                     } else {
                         modified = 0; // initialized

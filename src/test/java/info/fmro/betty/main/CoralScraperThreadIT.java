@@ -1,27 +1,9 @@
 package info.fmro.betty.main;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.junit.jupiter.api.Test;
 
 public class CoralScraperThreadIT {
-
-    private static final Logger logger = LoggerFactory.getLogger(CoralScraperThreadIT.class);
-
-    @Rule
-    @SuppressWarnings("PublicField")
-    public TestRule watchman = new TestWatcher() {
-        @Override
-        public void starting(Description description) {
-            logger.info("{} being run...", description.getMethodName());
-        }
-    };
-
-//    @Test
+    //    @Test
 //    public void testGetScraperEvents() {
 //        System.out.println("getScraperEvents");
 //        HtmlPage htmlPage = null;
@@ -40,7 +22,7 @@ public class CoralScraperThreadIT {
 //    }
     // test disabled for now; RDS blocking of Coral prevents any integration testing
     @Test
-    public void testRun() {
+    void testRun() {
         // dummy empty method
 //        Generic.disableHTTPSValidation();
 //        Generic.turnOffHtmlUnitLogger();

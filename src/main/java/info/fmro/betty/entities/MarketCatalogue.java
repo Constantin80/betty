@@ -1,10 +1,15 @@
 package info.fmro.betty.entities;
 
 import info.fmro.betty.main.LaunchCommandThread;
+import info.fmro.betty.main.MaintenanceThread;
 import info.fmro.betty.objects.ParsedMarket;
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
+import info.fmro.shared.utility.LogLevel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
@@ -13,8 +18,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MarketCatalogue
         extends Ignorable
@@ -35,7 +38,7 @@ public class MarketCatalogue
     private ParsedMarket parsedMarket;
     private long timeStamp;
 
-//    public MarketCatalogue() {
+    //    public MarketCatalogue() {
 //    }
     public MarketCatalogue(String marketId) {
         this.marketId = marketId;
@@ -51,14 +54,35 @@ public class MarketCatalogue
     public synchronized int setIgnored(long period, long currentTime) {
         final int modified = super.setIgnored(period, currentTime);
 
-        if (modified > 0) {
+        if (modified > 0 && this.isIgnored()) {
+            // public static final SynchronizedMap<String, SynchronizedSet<SafeRunner>> safeMarketsMap = new SynchronizedMap<>(64); // <marketId, HashSet<SafeRunner>>
+//            final SynchronizedSet<SafeRunner> safeRunners = Statics.safeMarketsMap.get(marketId);
+//            if (safeRunners != null && !safeRunners.isEmpty()) {
+//                safeRunners.clear();
+//                Statics.safeMarketsImportantMap.remove(marketId);
+//                Statics.safeMarketBooksMap.remove(marketId);
+//
+////                synchronized (safeRunners) {
+////                    for (final SafeRunner safeRunner : safeRunners) {
+////                        safeRunner.setIgnored(period, currentTime);
+////                    }
+////                }
+//            } else { // nothing to be done, it's probably normal behavior to have no safeRunners
+//            }
+
+            MaintenanceThread.removeFromSecondaryMaps(marketId);
+
+            // delayed starting of threads might no longer be necessary
             final long realCurrentTime = System.currentTimeMillis();
             final long realPeriod = period + currentTime - realCurrentTime + 500L; // 500ms added to account for clock errors
             final LinkedHashSet<Entry<String, MarketCatalogue>> marketCatalogueEntriesSet = new LinkedHashSet<>(2);
             marketCatalogueEntriesSet.add(new SimpleEntry<>(this.marketId, this));
 
-            logger.info("ignoreMarketCatalogue to check: {} delay: {} launch: findSafeRunners", this.marketId, realPeriod);
-            Statics.threadPoolExecutor.execute(new LaunchCommandThread("findSafeRunners", marketCatalogueEntriesSet, realPeriod));
+            if (Statics.safeBetModuleActivated) {
+                logger.info("ignoreMarketCatalogue to check: {} delay: {} launch: findSafeRunners", this.marketId, realPeriod);
+                Statics.threadPoolExecutor.execute(new LaunchCommandThread("findSafeRunners", marketCatalogueEntriesSet, realPeriod));
+            }
+        } else { // ignored was not modified or market is not ignored, likely nothing to be done
         }
 
         return modified;
@@ -73,7 +97,7 @@ public class MarketCatalogue
     }
 
     public synchronized int setMarketName(String marketName) {
-        int modified;
+        final int modified;
         if (this.marketName == null) {
             if (marketName == null) {
                 modified = 0;
@@ -95,7 +119,7 @@ public class MarketCatalogue
     }
 
     public synchronized int setMarketStartTime(Date marketStartTime) {
-        int modified;
+        final int modified;
         if (this.marketStartTime == null) {
             if (marketStartTime == null) {
                 modified = 0;
@@ -117,7 +141,7 @@ public class MarketCatalogue
     }
 
     public synchronized int setDescription(MarketDescription description) {
-        int modified;
+        final int modified;
         if (this.description == null) {
             if (description == null) {
                 modified = 0;
@@ -139,7 +163,7 @@ public class MarketCatalogue
     }
 
     public synchronized int setTotalMatched(Double totalMatched) {
-        int modified;
+        final int modified;
         if (this.totalMatched == null) {
             if (totalMatched == null) {
                 modified = 0;
@@ -161,7 +185,7 @@ public class MarketCatalogue
     }
 
     public synchronized int setRunners(List<RunnerCatalog> runners) {
-        int modified;
+        final int modified;
         if (this.runners == null) {
             if (runners == null) {
                 modified = 0;
@@ -183,7 +207,7 @@ public class MarketCatalogue
     }
 
     public synchronized int setEventType(EventType eventType) {
-        int modified;
+        final int modified;
         if (this.eventType == null) {
             if (eventType == null) {
                 modified = 0;
@@ -205,7 +229,7 @@ public class MarketCatalogue
     }
 
     public synchronized int setCompetition(Competition competition) {
-        int modified;
+        final int modified;
         if (this.competition == null) {
             if (competition == null) {
                 modified = 0;
@@ -224,28 +248,34 @@ public class MarketCatalogue
 
     public synchronized Event getEventStump() {
         // even with stump, because it's used during update, I still need some initialization
-        if (this.timeStamp > 0L) {
-            event.setTimeStamp(this.timeStamp);
-        } else {
-            event.timeStamp();
+        if (event != null) {
+            if (this.timeStamp > 0L) {
+                event.setTimeStamp(this.timeStamp);
+            } else {
+                event.timeStamp();
+            }
+            event.setMarketCountStump();
+        } else { // event null, not much to be done
         }
-        event.setMarketCountStump();
         return event;
     }
 
     private synchronized Event getEvent() { // I will only keep stump Event in MarketCatalogue
-        if (this.timeStamp > 0L) {
-            event.setTimeStamp(this.timeStamp);
-        } else {
-            event.timeStamp();
+        if (event != null) {
+            if (this.timeStamp > 0L) {
+                event.setTimeStamp(this.timeStamp);
+            } else {
+                event.timeStamp();
+            }
+            event.setMarketCountStump();
+            event.initializeCollections();
+        } else { // event null, not much to be done
         }
-        event.setMarketCountStump();
-        event.initializeCollections();
         return event;
     }
 
     public synchronized int setEvent(Event event) { // doesn't set equal Events and only does an equality check on id
-        int modified;
+        final int modified;
         if (this.event == null) {
             if (event == null) {
                 modified = 0;
@@ -267,16 +297,17 @@ public class MarketCatalogue
     }
 
     public synchronized int setParsedMarket(ParsedMarket parsedMarket) {
-        int modified;
+        final int modified;
         if (parsedMarket == null) {
-            logger.error("not allowed to set null value for parsedMarket in MarketCatalogue: {}" + Generic.objectToString(this));
             if (this.parsedMarket == null) {
+                Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "trying to set null over null value for parsedMarket in MarketCatalogue: {}", this.marketId);
                 modified = 0;
             } else {
                 // won't allow null to be set
                 // this.parsedMarket = parsedMarket;
                 // modified = 1;
 
+                logger.error("not allowed to set null value for parsedMarket in MarketCatalogue: {}", Generic.objectToString(this));
                 modified = 0;
             }
         } else if (parsedMarket.equals(this.parsedMarket)) {
@@ -301,39 +332,29 @@ public class MarketCatalogue
         this.timeStamp = System.currentTimeMillis();
     }
 
-    @Override
-    public synchronized int resetTempRemoved() {
-        final int modified = 0;
-
-        // method disabled, as the one with Event argument has a safety double check
-        logger.error("attempted to used MarketCatalogue.resetTempRemoved without Event argument, which for safety reasons is disabled: ", Generic.objectToString(this));
-
-        return modified;
-    }
-
-    public synchronized int resetTempRemoved(Event event) {
-        final int modified;
-        if (this.isTempRemoved()) {
-            final int nMatched;
-            if (event != null) {
-                nMatched = event.getNScraperEventIds();
-            } else {
-                nMatched = 0;
-            }
-
-            if (nMatched >= Statics.MIN_MATCHED) {
-                modified = super.resetTempRemoved();
-            } else {
-                logger.error("attempted marketCatalogue.resetTempRemoved on for attached event with insufficient {} scrapers for: {} {}", nMatched, Generic.objectToString(this),
-                        Generic.objectToString(event));
-                modified = 0;
-            }
-        } else {
-            modified = 0;
-        }
-
-        return modified;
-    }
+//    public synchronized int resetTempRemoved(Event event) {
+//        final int modified;
+//        if (this.isTempRemoved()) {
+//            final int nMatched;
+//            if (event != null) {
+//                nMatched = event.getNValidScraperEventIds();
+//            } else {
+//                nMatched = 0;
+//            }
+//
+//            if (nMatched >= Statics.MIN_MATCHED) {
+//                modified = super.resetTempRemoved();
+//            } else {
+//                logger.error("attempted marketCatalogue.resetTempRemoved on for attached event with insufficient {} scrapers for: {} {}", nMatched, Generic.objectToString(this),
+//                             Generic.objectToString(event));
+//                modified = 0;
+//            }
+//        } else {
+//            modified = 0;
+//        }
+//
+//        return modified;
+//    }
 
     public synchronized int update(MarketCatalogue marketCatalogue) {
         int modified;

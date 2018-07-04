@@ -1,14 +1,14 @@
 package info.fmro.betty.objects;
 
-import info.fmro.shared.utility.LogLevel;
 import info.fmro.betty.enums.MatchStatus;
 import info.fmro.betty.utility.Formulas;
-import info.fmro.shared.utility.AlreadyPrintedMap;
 import info.fmro.shared.utility.Generic;
-import java.io.Serializable;
-import java.util.concurrent.atomic.AtomicLong;
+import info.fmro.shared.utility.LogLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class CoralEvent
         extends ScraperEvent
@@ -19,7 +19,7 @@ public class CoralEvent
     private String eventName;
     private int seconds = -1;
 
-//    public CoralEvent(long eventId) {
+    //    public CoralEvent(long eventId) {
 //        super("coral", eventId);
 //    }
     public CoralEvent(long eventId, long timeStamp) {
@@ -27,7 +27,7 @@ public class CoralEvent
     }
 
     public synchronized int parseName() {
-        int modified;
+        final int modified;
         if (eventName.contains(" v ")) {
             int homeModified = this.setHomeTeam(eventName.substring(0, eventName.indexOf(" v ")).trim());
             int awayModified = this.setAwayTeam(eventName.substring(eventName.indexOf(" v ") + " v ".length()).trim());
@@ -61,13 +61,13 @@ public class CoralEvent
             modified = 0;
         } else {
             if (Formulas.matchTeams(this.eventName, eventName) > Statics.highThreshold) {
-                BlackList.ignoreScraper(this, minimalBlackListPeriod); // avoid filling logs
+                this.setIgnored(minimalBlackListPeriod); // avoid filling logs
 //                modified = -10000; // blackListed
 
                 this.eventName = eventName;
                 modified = 1;
             } else {
-                BlackList.ignoreScraper(this, standardBlackListPeriod);
+                this.setIgnored(standardBlackListPeriod);
 //                modified = -10000; // blackListed
 
                 this.eventName = eventName;
@@ -89,12 +89,12 @@ public class CoralEvent
             modified = 0;
         } else if (minutesPlayed == -1) {
             logger.info("{} reset attempt mainutesPlayed to {} from {} for: {} {}/{}", objectId, minutesPlayed, existingMinutesPlayed, this.getEventId(), this.getHomeTeam(),
-                    this.getAwayTeam());
+                        this.getAwayTeam());
             modified = 0;
         } else if (existingMinutesPlayed < minutesPlayed) {
             modified = this.setMinutesPlayedUnckeched(minutesPlayed);
         } else if (existingMinutesPlayed <= 0) { // this.minutesPlayed > minutesPlayed && minutesPlayed != -1
-            BlackList.ignoreScraper(this, minimalBlackListPeriod);
+            this.setIgnored(minimalBlackListPeriod);
             logger.error("{} outOfRange change minutesPlayed {} to {} in scraperEvent: {}", objectId, existingMinutesPlayed, minutesPlayed, Generic.objectToString(this));
 //            modified = -10000; // blackListed
 
@@ -102,13 +102,13 @@ public class CoralEvent
         } else if (minutesPlayed > 0 && existingMinutesPlayed - minutesPlayed == 1) {
             modified = this.setMinutesPlayedUnckeched(minutesPlayed); // minutesPlayed taken back by 1; happens sometimes
         } else if ((minutesPlayed == 120 && this.getMatchStatus() == MatchStatus.AWAITING_PEN) || (minutesPlayed >= 105 && this.getMatchStatus() == MatchStatus.SECOND_ET) ||
-                (minutesPlayed == 105 && this.getMatchStatus() == MatchStatus.ET_HALF_TIME) || (minutesPlayed >= 90 && this.getMatchStatus() == MatchStatus.FIRST_ET) ||
-                (minutesPlayed == 90 && this.getMatchStatus() == MatchStatus.AWAITING_ET) || (minutesPlayed >= 45 && this.getMatchStatus() == MatchStatus.SECOND_HALF) ||
-                (minutesPlayed == 45 && this.getMatchStatus() == MatchStatus.HALF_TIME) || (minutesPlayed >= 0 && this.getMatchStatus() == MatchStatus.FIRST_HALF)) {
+                   (minutesPlayed == 105 && this.getMatchStatus() == MatchStatus.ET_HALF_TIME) || (minutesPlayed >= 90 && this.getMatchStatus() == MatchStatus.FIRST_ET) ||
+                   (minutesPlayed == 90 && this.getMatchStatus() == MatchStatus.AWAITING_ET) || (minutesPlayed >= 45 && this.getMatchStatus() == MatchStatus.SECOND_HALF) ||
+                   (minutesPlayed == 45 && this.getMatchStatus() == MatchStatus.HALF_TIME) || (minutesPlayed >= 0 && this.getMatchStatus() == MatchStatus.FIRST_HALF)) {
             logger.warn("REVIEW {} minutesPlayed {} reduced to {} in scraperEvent: {}", objectId, existingMinutesPlayed, minutesPlayed, Generic.objectToString(this));
             modified = this.setMinutesPlayedUnckeched(minutesPlayed); // minutesPlayed taken back by larger amount, but in the same period; happens sometimes
         } else {
-            BlackList.ignoreScraper(this, minimalBlackListPeriod);
+            this.setIgnored(minimalBlackListPeriod);
             logger.error("{} change differentPeriod minutesPlayed {} to {} in scraperEvent: {}", objectId, existingMinutesPlayed, minutesPlayed, Generic.objectToString(this));
 //            modified = -10000; // blackListed
 
@@ -122,7 +122,7 @@ public class CoralEvent
     }
 
     public synchronized int setSeconds(int seconds) {
-        int modified;
+        final int modified;
         if (this.seconds == seconds) {
             modified = 0;
         } else if (seconds == -1) {
@@ -193,7 +193,7 @@ public class CoralEvent
                     break;
                 case NOT_STARTED:
                     if (this.getHomeScore() != 0 || this.getAwayScore() != 0 || anyHtScoreExists() || this.getHomeRedCards() > 0 || this.getAwayRedCards() > 0 ||
-                            stoppageTimeExists() || !minutesAre(0) || this.getSeconds() != 0) {
+                        stoppageTimeExists() || !minutesAre(0) || this.getSeconds() != 0) {
                         errors += 13107200L;
                     }
                     break;

@@ -2,17 +2,16 @@ package info.fmro.betty.objects;
 
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.enums.MatchStatus;
-import info.fmro.betty.main.LaunchCommandThread;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
 import info.fmro.shared.utility.LogLevel;
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
+
+import java.io.Serializable;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class ScraperEvent
         extends Ignorable
@@ -43,12 +42,16 @@ public class ScraperEvent
         this.setTimeStamp(timeStamp);
     }
 
+    public synchronized String getObjectId() {
+        return objectId;
+    }
+
     public synchronized long getEventId() {
         return eventId;
     }
 
-//    public synchronized int setEventId(long eventId) {
-//        int modified;
+    //    public synchronized int setEventId(long eventId) {
+//        final int modified;
 //        if (this.eventId == eventId) {
 //            modified = 0;
 //        } else if (this.eventId == -1) {
@@ -120,10 +123,10 @@ public class ScraperEvent
             modified = 0;
         } else {
             if (Formulas.matchTeams(this.homeTeam, homeTeam) > Statics.highThreshold) {
-                BlackList.ignoreScraper(this, shortBlackListPeriod);
+                this.setIgnored(shortBlackListPeriod);
 //                modified = -10000; // blackListed
             } else {
-                BlackList.ignoreScraper(this, standardBlackListPeriod);
+                this.setIgnored(standardBlackListPeriod);
 //                modified = -10000; // blackListed
             }
             logger.error("{} change homeTeam {} to {} in scraperEvent: {}", objectId, this.homeTeam, homeTeam, Generic.objectToString(this));
@@ -151,10 +154,10 @@ public class ScraperEvent
             modified = 0;
         } else {
             if (Formulas.matchTeams(this.awayTeam, awayTeam) > Statics.highThreshold) {
-                BlackList.ignoreScraper(this, shortBlackListPeriod);
+                this.setIgnored(shortBlackListPeriod);
 //                modified = -10000; // blackListed
             } else {
-                BlackList.ignoreScraper(this, standardBlackListPeriod);
+                this.setIgnored(standardBlackListPeriod);
 //                modified = -10000; // blackListed
             }
             logger.error("{} change awayTeam {} to {} in scraperEvent: {}", objectId, this.awayTeam, awayTeam, Generic.objectToString(this));
@@ -177,7 +180,7 @@ public class ScraperEvent
             this.homeRedCards = homeRedCards;
             modified = 1;
         } else {
-            BlackList.ignoreScraper(this, standardBlackListPeriod);
+            this.setIgnored(standardBlackListPeriod);
             logger.error("{} change homeRedCards {} to {} in scraperEvent: {}", objectId, this.homeRedCards, homeRedCards, Generic.objectToString(this));
 //            modified = -10000; // blackListed
 
@@ -199,7 +202,7 @@ public class ScraperEvent
             this.awayRedCards = awayRedCards;
             modified = 1;
         } else {
-            BlackList.ignoreScraper(this, standardBlackListPeriod);
+            this.setIgnored(standardBlackListPeriod);
             logger.error("{} change awayRedCards {} to {} in scraperEvent: {}", objectId, this.awayRedCards, awayRedCards, Generic.objectToString(this));
 //            modified = -10000; // blackListed
 
@@ -237,7 +240,7 @@ public class ScraperEvent
                 if (addedGoals > 1) {
                     if (timeLapsed < 15_000L * addedGoals && !isPenalties) {
                         // more than 1 goal per 15 seconds; this error does happen fairly often, as scores are sometimes not updated immediately
-                        BlackList.ignoreScraper(this, standardBlackListPeriod);
+                        this.setIgnored(standardBlackListPeriod, currentTime);
                         logger.error("{} change homeScore {} to {} after {} ms in scraperEvent: {}", objectId, this.homeScore, homeScore, timeLapsed, Generic.objectToString(this));
 //                        modified = -10000; // blackListed
 
@@ -252,14 +255,14 @@ public class ScraperEvent
                     modified = 1;
                 }
             } else if (homeScore >= 0 && addedGoals == -1) { // score taken back by 1 goal; happens rarely due to scrapeSite score errors
-                BlackList.ignoreScraper(this, shortBlackListPeriod);
+                this.setIgnored(shortBlackListPeriod, currentTime);
                 logger.error("REVIEW {} homeScore {} reduced to {} in scraperEvent: {}", objectId, this.homeScore, homeScore, Generic.objectToString(this));
 //                modified = -10000; // blackListed
 
                 this.homeScore = homeScore;
                 modified = 1;
             } else {
-                BlackList.ignoreScraper(this, standardBlackListPeriod);
+                this.setIgnored(standardBlackListPeriod, currentTime);
                 logger.error("{} change homeScore {} to {} in scraperEvent: {}", objectId, this.homeScore, homeScore, Generic.objectToString(this));
 //                modified = -10000; // blackListed
 
@@ -310,7 +313,7 @@ public class ScraperEvent
                 if (addedGoals > 1) {
                     if (timeLapsed < 15000L * addedGoals && !isPenalties) {
                         // more than 1 goal per 15 seconds; this error does happen fairly often, as scores are sometimes not updated immediately
-                        BlackList.ignoreScraper(this, standardBlackListPeriod);
+                        this.setIgnored(standardBlackListPeriod, currentTime);
                         logger.error("{} change awayScore {} to {} after {} ms in scraperEvent: {}", objectId, this.awayScore, awayScore, timeLapsed, Generic.objectToString(this));
 //                        modified = -10000; // blackListed
 
@@ -325,14 +328,14 @@ public class ScraperEvent
                     modified = 1;
                 }
             } else if (awayScore >= 0 && addedGoals == -1) { // score taken back by 1 goal; happens rarely due to scrapeSite score errors
-                BlackList.ignoreScraper(this, shortBlackListPeriod);
+                this.setIgnored(shortBlackListPeriod, currentTime);
                 logger.error("REVIEW {} awayScore {} reduced to {} in scraperEvent: {}", objectId, this.awayScore, awayScore, Generic.objectToString(this));
 //                modified = -10000; // blackListed
 
                 this.awayScore = awayScore;
                 modified = 1;
             } else {
-                BlackList.ignoreScraper(this, standardBlackListPeriod);
+                this.setIgnored(standardBlackListPeriod, currentTime);
                 logger.error("{} attempted to change awayScore {} to {} in scraperEvent: {}", objectId, this.awayScore, awayScore, Generic.objectToString(this));
 //                modified = -10000; // blackListed
 
@@ -370,7 +373,7 @@ public class ScraperEvent
     }
 
     public synchronized int setHomeHtScore(int homeHtScore, boolean allowedReset) {
-        int modified;
+        final int modified;
         if (this.homeHtScore == homeHtScore) {
             modified = 0;
         } else if (this.homeHtScore == -1) {
@@ -386,7 +389,7 @@ public class ScraperEvent
             // allowedReset support removed, htScore will just stay there
             modified = 0;
         } else {
-            BlackList.ignoreScraper(this, standardBlackListPeriod);
+            this.setIgnored(standardBlackListPeriod);
             this.ignoreHt();
             logger.error("{} change homeHtScore {} to {} in scraperEvent, will ignoredHt: {}", objectId, this.homeHtScore, homeHtScore, Generic.objectToString(this));
             this.homeHtScore = homeHtScore; // after logging the error message
@@ -411,7 +414,7 @@ public class ScraperEvent
     }
 
     public synchronized int setAwayHtScore(int awayHtScore, boolean allowedReset) {
-        int modified;
+        final int modified;
         if (this.awayHtScore == awayHtScore) {
             modified = 0;
         } else if (this.awayHtScore == -1) {
@@ -427,7 +430,7 @@ public class ScraperEvent
             // allowedReset support removed, htScore will just stay there
             modified = 0;
         } else {
-            BlackList.ignoreScraper(this, standardBlackListPeriod);
+            this.setIgnored(standardBlackListPeriod);
             this.ignoreHt();
             logger.error("{} change awayHtScore {} to {} in scraperEvent, will ignoredHt: {}", objectId, this.awayHtScore, awayHtScore, Generic.objectToString(this));
             this.awayHtScore = awayHtScore; // after logging the error message
@@ -459,7 +462,7 @@ public class ScraperEvent
         } else if (matchStatus == null) {
             if (resetToNullIgnored) { // this seems to happen in case of coral just before the match disappears, but not only then
                 final String printedString = MessageFormatter.arrayFormat("{} reset attempt matchStatus to {} from {} for: {} {}/{}",
-                        new Object[]{objectId, matchStatus, this.matchStatus, this.eventId, this.homeTeam, this.awayTeam}).getMessage();
+                                                                          new Object[]{objectId, matchStatus, this.matchStatus, this.eventId, this.homeTeam, this.awayTeam}).getMessage();
 
                 if ("coral".equals(objectId)) {
                     Generic.alreadyPrintedMap.logOnce(Statics.debugLevel.check(2, 210), Generic.MINUTE_LENGTH_MILLISECONDS * 5L, logger, LogLevel.INFO, printedString);
@@ -470,7 +473,7 @@ public class ScraperEvent
 //                this.matchStatus = matchStatus;
                 modified = 0;
             } else {
-                BlackList.ignoreScraper(this, shortBlackListPeriod);
+                this.setIgnored(shortBlackListPeriod);
                 logger.error("{} reset matchStatus {} to {} in scraperEvent: {}", objectId, this.matchStatus, matchStatus, Generic.objectToString(this));
 //                modified = -10000; // blackListed
 
@@ -478,18 +481,18 @@ public class ScraperEvent
                 modified = 1;
             }
         } else if (matchStatus == MatchStatus.NOT_STARTED || matchStatus == MatchStatus.POSTPONED) {
-            BlackList.ignoreScraper(this, shortBlackListPeriod);
+            this.setIgnored(shortBlackListPeriod);
             logger.error("{} reset matchStatus {} to {} in scraperEvent: {}", objectId, this.matchStatus, matchStatus, Generic.objectToString(this));
 //            modified = -10000; // blackListed
 
             this.matchStatus = matchStatus;
             modified = 1;
         } else if (this.matchStatus.ordinal() < MatchStatus.FIRST_HALF.ordinal() || this.matchStatus.ordinal() > MatchStatus.ENDED.ordinal() ||
-                this.matchStatus.ordinal() < matchStatus.ordinal()) {
+                   this.matchStatus.ordinal() < matchStatus.ordinal()) {
             this.matchStatus = matchStatus;
             modified = 1;
         } else if (this.matchStatus.ordinal() - matchStatus.ordinal() == 1) {
-            BlackList.ignoreScraper(this, shortBlackListPeriod);
+            this.setIgnored(shortBlackListPeriod);
             logger.error("REVIEW {} matchStatus {} reduced to {} in scraperEvent: {}", objectId, this.matchStatus, matchStatus, Generic.objectToString(this));
 //            this.matchStatus = matchStatus; // matchStatus taken back by 1 setting; does happen rarely
 //            modified = 1;
@@ -498,7 +501,7 @@ public class ScraperEvent
             this.matchStatus = matchStatus;
             modified = 1;
         } else {
-            BlackList.ignoreScraper(this, standardBlackListPeriod);
+            this.setIgnored(standardBlackListPeriod);
             logger.error("{} change matchStatus {} to {} in scraperEvent: {}", objectId, this.matchStatus, matchStatus, Generic.objectToString(this));
 //            modified = -10000; // blackListed
 
@@ -514,7 +517,7 @@ public class ScraperEvent
     }
 
     public synchronized int setMinutesPlayedUnckeched(int minutesPlayed) {
-        int modified;
+        final int modified;
         if (this.minutesPlayed == minutesPlayed) {
             modified = 0;
         } else {
@@ -532,7 +535,7 @@ public class ScraperEvent
             this.minutesPlayed = minutesPlayed;
             modified = 1;
         } else if (this.minutesPlayed <= 1) { // this.minutesPlayed > minutesPlayed && minutesPlayed != -1
-            BlackList.ignoreScraper(this, minimalBlackListPeriod);
+            this.setIgnored(minimalBlackListPeriod);
             logger.error("{} outOfRange change minutesPlayed {} to {} in scraperEvent: {}", objectId, this.minutesPlayed, minutesPlayed, Generic.objectToString(this));
 //            modified = -10000; // blackListed
 
@@ -542,17 +545,17 @@ public class ScraperEvent
             this.minutesPlayed = minutesPlayed; // minutesPlayed taken back by 1; happens sometimes
             modified = 1;
         } else if ((this.minutesPlayed > 1 && this.minutesPlayed < 45 && minutesPlayed >= 1) ||
-                (this.minutesPlayed > 46 && this.minutesPlayed < 90 && minutesPlayed >= 46) ||
-                (this.minutesPlayed > 91 && this.minutesPlayed < 105 && minutesPlayed >= 91) ||
-                (this.minutesPlayed > 106 && this.minutesPlayed < 120 && minutesPlayed >= 106)) {
+                   (this.minutesPlayed > 46 && this.minutesPlayed < 90 && minutesPlayed >= 46) ||
+                   (this.minutesPlayed > 91 && this.minutesPlayed < 105 && minutesPlayed >= 91) ||
+                   (this.minutesPlayed > 106 && this.minutesPlayed < 120 && minutesPlayed >= 106)) {
             logger.warn("REVIEW {} minutesPlayed {} reduced to {} in scraperEvent: {}", objectId, this.minutesPlayed, minutesPlayed, Generic.objectToString(this));
             this.minutesPlayed = minutesPlayed; // minutesPlayed taken back by larger amount, but in the same period; happens sometimes
             modified = 1;
         } else if ((this.minutesPlayed == 45 && minutesPlayed >= 1) ||
-                (this.minutesPlayed == 90 && minutesPlayed >= 46) ||
-                (this.minutesPlayed == 105 && minutesPlayed >= 91) ||
-                (this.minutesPlayed == 120 && minutesPlayed >= 106)) {
-            BlackList.ignoreScraper(this, minimalBlackListPeriod);
+                   (this.minutesPlayed == 90 && minutesPlayed >= 46) ||
+                   (this.minutesPlayed == 105 && minutesPlayed >= 91) ||
+                   (this.minutesPlayed == 120 && minutesPlayed >= 106)) {
+            this.setIgnored(minimalBlackListPeriod);
             logger.error("{} change breakLike minutesPlayed {} to {} in scraperEvent: {}", objectId, this.minutesPlayed, minutesPlayed, Generic.objectToString(this));
             // this.minutesPlayed = minutesPlayed; // minutesPlayed taken back by larger amount, but in the same period or during break
             // modified = 1;
@@ -561,7 +564,7 @@ public class ScraperEvent
             this.minutesPlayed = minutesPlayed;
             modified = 1;
         } else {
-            BlackList.ignoreScraper(this, minimalBlackListPeriod);
+            this.setIgnored(minimalBlackListPeriod);
             logger.error("{} change differentPeriod minutesPlayed {} to {} in scraperEvent: {}", objectId, this.minutesPlayed, minutesPlayed, Generic.objectToString(this));
 //            modified = -10000; // blackListed
 
@@ -576,7 +579,7 @@ public class ScraperEvent
     }
 
     public synchronized int setStoppageTime(int stoppageTime) {
-        int modified;
+        final int modified;
         if (this.stoppageTime == stoppageTime) {
             modified = 0;
         } else if (this.stoppageTime < stoppageTime || stoppageTime == -1) { // stoppageTime will reset when periods or match are over
@@ -631,19 +634,29 @@ public class ScraperEvent
             if (this.matchedEventId != null) {
                 final Event event = Statics.eventsMap.get(this.matchedEventId);
                 if (event != null) {
-                    final long realCurrentTime = System.currentTimeMillis();
-                    final long realPeriod = period + currentTime - realCurrentTime + 500L; // 500ms added to account for clock errors
-                    final HashSet<Event> eventsSet = new HashSet<>(2);
-                    eventsSet.add(event);
+                    event.ignoredScrapersCheck();
+                    if (!event.isIgnored()) {
+                        logger.info("event still not ignored after ScraperEvent ignored: {} {} {}", this.eventId, event.getId(), event.getNValidScraperEventIds());
+                        final long eventIgnorePeriod = Math.min(period, Statics.MINIMUM_BAD_STUFF_HAPPENED_IGNORE); // if period is smaller than default minimum, it will be used
+                        event.setIgnored(eventIgnorePeriod, currentTime);
+                    } else { // event got ignored, standard behavior, nothing to be done
+                    }
 
-                    logger.info("ignoreScraper {} toCheckEvent: {} delay: {} launch: findInterestingMarkets findSafeRunners", this.eventId, matchedEventId, realPeriod);
-                    Statics.threadPoolExecutor.execute(new LaunchCommandThread("findInterestingMarkets", eventsSet, realPeriod));
-                    Statics.threadPoolExecutor.execute(new LaunchCommandThread("findSafeRunners", eventsSet, realPeriod));
+                    // delayed starting of threads might no longer be necessary
+//                    final long realCurrentTime = System.currentTimeMillis();
+//                    final long realPeriod = period + currentTime - realCurrentTime + 500L; // 500ms added to account for clock errors
+//                    final HashSet<Event> eventsSet = new HashSet<>(2);
+//                    eventsSet.add(event);
+//
+//                    logger.info("ignoreScraper {} toCheckEvent: {} delay: {} launch: findInterestingMarkets findSafeRunners", this.eventId, matchedEventId, realPeriod);
+//                    Statics.threadPoolExecutor.execute(new LaunchCommandThread("findInterestingMarkets", eventsSet, realPeriod));
+//                    Statics.threadPoolExecutor.execute(new LaunchCommandThread("findSafeRunners", eventsSet, realPeriod));
                 } else { // error message is printed in checkEventNMatched, nothing to be done
                     logger.error("no event in map for matchedEventId {} in ScraperEvent.setIgnored for: {}", this.matchedEventId, Generic.objectToString(this));
                 }
             } else { // no event attached, nothing to be done
             }
+        } else { // ignored was not modified, likely nothing to be done
         }
 
         return modified;
@@ -710,7 +723,7 @@ public class ScraperEvent
     }
 
     public synchronized int setMatchedEventId(String matchedEventId) {
-        int modified;
+        final int modified;
         if (this.matchedEventId == null) {
             if (matchedEventId == null) {
                 modified = 0; // values are both null
@@ -721,7 +734,7 @@ public class ScraperEvent
         } else if (this.matchedEventId.equals(matchedEventId)) {
             modified = 0; // values are equal
         } else {
-            BlackList.ignoreScraper(this, shortBlackListPeriod);
+            this.setIgnored(shortBlackListPeriod);
             logger.error("REVIEW {} changing matched event from {} to {} for scraperEvent: {}", objectId, this.matchedEventId, matchedEventId, Generic.objectToString(this));
             modified = -10000; // blackListed; this won't pass
         }
@@ -733,23 +746,23 @@ public class ScraperEvent
         return modified;
     }
 
-    public synchronized int resetMatchedEventId() {
-        int modified;
-        if (this.matchedEventId == null) {
-            BlackList.ignoreScraper(this, shortBlackListPeriod);
-            logger.error("REVIEW {} trying to reset already null matchedEventId {} for scraperEvent: {}", objectId, this.matchedEventId, Generic.objectToString(this));
-            modified = -10000; // blackListed
-        } else {
-            this.matchedEventId = null;
-            modified = 1;
-        }
-
-        if (modified > 0) {
-            matchedTimeStamp();
-        }
-
-        return modified;
-    }
+//    public synchronized int resetMatchedEventId() {
+//        final int modified;
+//        if (this.matchedEventId == null) {
+//            BlackList.ignoreScraper(this, shortBlackListPeriod);
+//            logger.error("REVIEW {} trying to reset already null matchedEventId {} for scraperEvent: {}", objectId, this.matchedEventId, Generic.objectToString(this));
+//            modified = -10000; // blackListed
+//        } else {
+//            this.matchedEventId = null;
+//            modified = 1;
+//        }
+//
+//        if (modified > 0) {
+//            matchedTimeStamp();
+//        }
+//
+//        return modified;
+//    }
 
     public synchronized boolean isPenalties() {
         return this.getMatchStatus() == MatchStatus.PENALTIES;
@@ -897,7 +910,7 @@ public class ScraperEvent
                 final long currentTime = System.currentTimeMillis();
                 if (this.timeStamp > currentTime || this.homeScoreTimeStamp > currentTime || this.awayScoreTimeStamp > currentTime) { // clock jump
                     logger.error("{} scraper clock jump in the past of at least {} {} {} ms detected", objectId, this.timeStamp - currentTime,
-                            this.homeScoreTimeStamp - currentTime, this.awayScoreTimeStamp - currentTime);
+                                 this.homeScoreTimeStamp - currentTime, this.awayScoreTimeStamp - currentTime);
                     this.setTimeStamp(currentTime); // to eliminate the timeJump error
                     this.setHomeScoreTimeStamp(currentTime); // to eliminate the timeJump error
                     this.setAwayScoreTimeStamp(currentTime); // to eliminate the timeJump error
@@ -905,15 +918,15 @@ public class ScraperEvent
                     modified = 0;
                 } else {
                     long maxDifference = Math.max(Math.max(this.homeScoreTimeStamp - thatHomeScoreTimeStamp, this.awayScoreTimeStamp - thatAwayScoreTimeStamp),
-                            this.timeStamp - thatTimeStamp);
+                                                  this.timeStamp - thatTimeStamp);
                     if (maxDifference > 1_000_000L) { // huge difference, likely a score was reset and the update time is 0 now
-                        BlackList.ignoreScraper(this, shortBlackListPeriod);
+                        this.setIgnored(shortBlackListPeriod, currentTime);
                         logger.error("{} score reset detected in ScraperEvent.update: {} {}", objectId, Generic.objectToString(this), Generic.objectToString(scraperEvent));
                         modified = -10000; // blackListed
                     } else {
                         logger.error("{} attempt to update from older object {} {} {} ScraperEvent.update: {} {}", objectId, this.timeStamp - thatTimeStamp,
-                                this.homeScoreTimeStamp - thatHomeScoreTimeStamp, this.awayScoreTimeStamp - thatAwayScoreTimeStamp, Generic.objectToString(this),
-                                Generic.objectToString(scraperEvent));
+                                     this.homeScoreTimeStamp - thatHomeScoreTimeStamp, this.awayScoreTimeStamp - thatAwayScoreTimeStamp, Generic.objectToString(this),
+                                     Generic.objectToString(scraperEvent));
                         modified = 0;
                     }
                 } // end else
@@ -1000,9 +1013,9 @@ public class ScraperEvent
         errors += this.innerErrors(blackListPeriod);
 
         if (blackListPeriod.get() > 0L && errors % 100 == 0 && Generic.isPowerOfTwo(errors / 100)) { // applied for single error only, else standardPeriod
-            BlackList.ignoreScraper(this, blackListPeriod.get());
+            this.setIgnored(blackListPeriod.get());
         } else if (errors >= 100L) {
-            BlackList.ignoreScraper(this, standardBlackListPeriod);
+            this.setIgnored(standardBlackListPeriod);
         } else { // no blackList, at most minor errors
         }
 

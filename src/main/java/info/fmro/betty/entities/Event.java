@@ -4,29 +4,40 @@ import info.fmro.betty.main.LaunchCommandThread;
 import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.ScraperEvent;
 import info.fmro.betty.objects.Statics;
+import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
 import info.fmro.shared.utility.LogLevel;
+import info.fmro.shared.utility.SynchronizedMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Event
+
+
+
+
         extends Ignorable
         implements Serializable, Comparable<Event> {
 
     private static final Logger logger = LoggerFactory.getLogger(Event.class);
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
     private static final long serialVersionUID = -6755870038911915452L;
-    private LinkedHashMap<Class<? extends ScraperEvent>, Long> scraperEventIds; // initialization doesn't work when using Gson
-//    private transient boolean scraperEventsCached;
+    private LinkedHashMap<Class<? extends ScraperEvent>, Long> scraperEventIds; // <class, scraperId>; initialization doesn't work when using Gson
+    //    private transient boolean scraperEventsCached;
 //    private transient LinkedHashSet<ScraperEvent> scraperEvents; // initialization doesn't work when using Gson
     private final String id;
     private String name;
@@ -39,13 +50,14 @@ public class Event
     private String awayName;
     private long timeFirstSeen, timeStamp, matchedTimeStamp;
 
-//    public Event() {
+    //    public Event() {
 //    }
     public Event(String id) {
         this.id = id;
+        this.initializeCollections();
     }
 
-//    // needed for deserialization when you need to initialize transient fields
+    //    // needed for deserialization when you need to initialize transient fields
 //    private void readObject(ObjectInputStream objectInputStream)
 //            throws IOException, ClassNotFoundException {
 //        objectInputStream.defaultReadObject();
@@ -71,6 +83,49 @@ public class Event
         return modified;
     }
 
+    public synchronized int ignoredScrapersCheck() {
+        final int modified;
+        final List<Long> ignoredExpirations = new ArrayList<>(Statics.MIN_MATCHED);
+
+        if (this.scraperEventIds != null) {
+            final Set<Entry<Class<? extends ScraperEvent>, Long>> entrySet = this.scraperEventIds.entrySet();
+            final Iterator<Entry<Class<? extends ScraperEvent>, Long>> iterator = entrySet.iterator();
+            while (iterator.hasNext()) {
+                final Entry<Class<? extends ScraperEvent>, Long> entry = iterator.next();
+                final Class<? extends ScraperEvent> scraperClass = entry.getKey();
+                final Long scraperId = entry.getValue();
+                final SynchronizedMap<Long, ? extends ScraperEvent> scraperEventsMap = Formulas.getScraperEventsMap(scraperClass);
+                final ScraperEvent scraperEvent = scraperEventsMap.get(scraperId);
+                if (scraperEvent == null) {
+                    final long timeSinceLastRemoved = BlackList.timeSinceRemovalFromMap(scraperClass);
+                    if (timeSinceLastRemoved <= Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD) {
+                        logger.info("notExist scraperEvent in getNValidScraperEventIds, timeSinceLastRemoved: {}ms for: {} {} {} {}", timeSinceLastRemoved, scraperClass, scraperId, this.id, this.name);
+                    } else {
+                        logger.error("notExist scraperEvent in getNValidScraperEventIds, timeSinceLastRemoved: {}ms for: {} {} {}", timeSinceLastRemoved, scraperClass, scraperId, Generic.objectToString(this));
+                    }
+                    iterator.remove();
+                    this.matchedTimeStamp(false); // removal of existing matchedScraper
+                } else {
+                    ignoredExpirations.add(scraperEvent.getIgnoredExpiration());
+                }
+            } // end while
+
+            final int size = ignoredExpirations.size();
+            if (size >= Statics.MIN_MATCHED) {
+                Collections.sort(ignoredExpirations);
+                final long newIgnoredExpiration = ignoredExpirations.get(Statics.MIN_MATCHED - 1);
+                modified = this.setIgnored(0L, newIgnoredExpiration);
+            } else { // not enough matched scrapers, nothing to be done
+                modified = 0;
+            }
+        } else {
+            logger.error("null scraperEventIds during ignoredScrapersCheck for: {}", Generic.objectToString(this));
+            modified = 0;
+        }
+
+        return modified;
+    }
+
     @Override
     public synchronized int setIgnored(long period) {
         final long currentTime = System.currentTimeMillis();
@@ -82,14 +137,41 @@ public class Event
         final int modified = super.setIgnored(period, currentTime);
 
         if (modified > 0) {
+            final Collection<MarketCatalogue> marketCataloguesCopy = Statics.marketCataloguesMap.valuesCopy();
+            for (MarketCatalogue marketCatalogue : marketCataloguesCopy) {
+                if (marketCatalogue != null) {
+                    final Event event = marketCatalogue.getEventStump();
+                    if (event != null) {
+                        final String eventId = event.getId();
+                        if (eventId != null) {
+                            if (eventId.equals(this.id)) {
+                                marketCatalogue.setIgnored(period, currentTime);
+                            } else { // nothing to be done
+                            }
+                        } else {
+                            logger.error("STRANGE null eventId during Event.setIgnored for: {}", Generic.objectToString(marketCatalogue));
+                            Statics.marketCataloguesMap.removeValueAll(marketCatalogue);
+                        }
+                    } else {
+                        logger.error("STRANGE null event during Event.setIgnored for: {}", Generic.objectToString(marketCatalogue));
+                        Statics.marketCataloguesMap.removeValueAll(marketCatalogue);
+                    }
+                } else {
+                    logger.error("STRANGE null value in marketCataloguesMap during Event.setIgnored");
+                    Statics.marketCataloguesMap.removeValueAll(marketCatalogue);
+                }
+            } // end for
+
+            // delayed starting of threads might no longer be necessary
             final long realCurrentTime = System.currentTimeMillis();
             final long realPeriod = period + currentTime - realCurrentTime + 500L; // 500ms added to account for clock errors
             final HashSet<Event> eventsSet = new HashSet<>(2);
             eventsSet.add(this);
 
-            logger.info("ignoreEvent to check: {} delay: {} launch: findInterestingMarkets findSafeRunners", this.id, realPeriod);
+            logger.info("ignoreEvent to check: {} delay: {} launch: findInterestingMarkets", this.id, realPeriod);
             Statics.threadPoolExecutor.execute(new LaunchCommandThread("findInterestingMarkets", eventsSet, realPeriod));
-            Statics.threadPoolExecutor.execute(new LaunchCommandThread("findSafeRunners", eventsSet, realPeriod));
+//            Statics.threadPoolExecutor.execute(new LaunchCommandThread("findSafeRunners", eventsSet, realPeriod));
+        } else { // ignored was not modified, likely nothing to be done
         }
 
         return modified;
@@ -104,7 +186,7 @@ public class Event
     }
 
     public synchronized int setName(String name) {
-        int modified;
+        final int modified;
         if (this.name == null) {
             if (name == null) {
                 modified = 0;
@@ -126,7 +208,7 @@ public class Event
     }
 
     public synchronized int setCountryCode(String countryCode) {
-        int modified;
+        final int modified;
         if (this.countryCode == null) {
             if (countryCode == null) {
                 modified = 0;
@@ -148,7 +230,7 @@ public class Event
     }
 
     public synchronized int setTimezone(String timezone) {
-        int modified;
+        final int modified;
         if (this.timezone == null) {
             if (timezone == null) {
                 modified = 0;
@@ -170,7 +252,7 @@ public class Event
     }
 
     public synchronized int setVenue(String venue) {
-        int modified;
+        final int modified;
         if (this.venue == null) {
             if (venue == null) {
                 modified = 0;
@@ -193,7 +275,7 @@ public class Event
     }
 
     public synchronized int setOpenDate(Date openDate) {
-        int modified;
+        final int modified;
         if (this.openDate == null) {
             if (openDate == null) {
                 modified = 0;
@@ -266,7 +348,7 @@ public class Event
     }
 
     public synchronized int setHomeName(String homeName) {
-        int modified;
+        final int modified;
         if (homeName == null) {
             if (this.homeName == null) {
                 modified = 0;
@@ -293,7 +375,7 @@ public class Event
     }
 
     public synchronized int setAwayName(String awayName) {
-        int modified;
+        final int modified;
         if (awayName == null) {
             if (this.awayName == null) {
                 modified = 0;
@@ -316,7 +398,7 @@ public class Event
     }
 
     public synchronized int parseName() {
-        int modified;
+        final int modified;
         if (name.contains(" v ")) {
             int homeModified = this.setHomeName(name.substring(0, name.indexOf(" v ")));
             int awayModified = this.setAwayName(name.substring(name.indexOf(" v ") + " v ".length()));
@@ -342,11 +424,10 @@ public class Event
     }
 
     public synchronized int setTimeFirstSeen(long timeFirstSeen) {
-        int modified;
+        final int modified;
         if (this.timeFirstSeen > 0) {
             if (this.timeFirstSeen > timeFirstSeen) {
-                logger.error("changing timeFirstSeen event difference {} from {} to {} for: {}", this.timeFirstSeen - timeFirstSeen, this.timeFirstSeen, timeFirstSeen,
-                        Generic.objectToString(this));
+                logger.error("changing timeFirstSeen event difference {} from {} to {} for: {}", this.timeFirstSeen - timeFirstSeen, this.timeFirstSeen, timeFirstSeen, Generic.objectToString(this));
                 this.timeFirstSeen = timeFirstSeen;
                 modified = 1;
             } else {
@@ -381,16 +462,33 @@ public class Event
 
     public synchronized int setMatchedTimeStamp(long timeStamp) {
         final int modified;
-        if (timeStamp > this.matchedTimeStamp) {
+        if (this.matchedTimeStamp > 0) {
+            if (this.matchedTimeStamp < timeStamp) {
+//                logger.error("changing matchedTimeStamp event difference {} from {} to {} for: {}", timeStamp-this.matchedTimeStamp, this.matchedTimeStamp, timeStamp, Generic.objectToString(this));
+                this.matchedTimeStamp = timeStamp;
+                modified = 1;
+            } else {
+                modified = 0; // values are equal or new value is older
+            }
+        } else if (timeStamp > 0) {
             this.matchedTimeStamp = timeStamp;
             modified = 1;
         } else {
-            modified = 0;
+            modified = 0; // values are both <= 0
         }
         return modified;
     }
 
     public synchronized int matchedTimeStamp() {
+        return matchedTimeStamp(true); // default behavior is true
+    }
+
+    public synchronized int matchedTimeStamp(boolean runIgnoredScrapersCheck) {
+        if (runIgnoredScrapersCheck) {
+            this.ignoredScrapersCheck(); // check at every modification
+        } else { // not running ignoredScrapersCheck, that's likely because this method was invoked from within ignoredScrapersCheck
+        }
+
         final int modified;
         final long currentTime = System.currentTimeMillis();
         if (currentTime > this.matchedTimeStamp) {
@@ -401,142 +499,59 @@ public class Event
         }
         return modified;
     }
-//    public synchronized void cacheScraperEvents() {
-//        this.scraperEvents.clear();
-//
-//        final Iterator<Entry<Class<? extends ScraperEvent>, Long>> iterator = this.scraperEventIds.entrySet().iterator();
-//        while (iterator.hasNext()) {
-//            final Entry<Class<? extends ScraperEvent>, Long> entry = iterator.next();
-//            final Class<? extends ScraperEvent> clazz = entry.getKey();
-//            final Long scraperId = entry.getValue();
-//            final SynchronizedMap<Long, ? extends ScraperEvent> synchronizedMap = Formulas.getScraperEventsMap(clazz);
-//            final ScraperEvent scraperEvent = synchronizedMap.get(scraperId);
-//
-//            if (scraperEvent == null) {
-//                logger.error("null scraperEvent in cacheScraperEvents: {} {} {}", clazz.getSimpleName(), scraperId, Generic.objectToString(this));
-//                iterator.remove();
-//                BlackList.checkEventNMatched(this.id);
-//            } else { // this is for mathching, ignored are added as well
-//                this.scraperEvents.add(scraperEvent);
-//            }
-//        } // end while
-//
-//        this.setScraperEventsCached(true);
-//    }
-//    public synchronized LinkedHashSet<? extends ScraperEvent> getScraperEvents() {
-//        if (!this.isScraperEventsCached()) {
-//            this.cacheScraperEvents();
-//        }
-//        return this.scraperEvents == null ? null : new LinkedHashSet<>(this.scraperEvents);
-//    }
-//    private synchronized int addScraperEvent(ScraperEvent scraperEvent) {
-//        int modified;
-//        if (this.scraperEvents.add(scraperEvent)) { // this is for matching, ignored should be accepted
-//            modified = 1;
-//        } else {
-//            modified = 0;
-//        }
-//
-//        return modified;
-//    }
-//    private synchronized int addScraperEvent(Class<? extends ScraperEvent> clazz, long scraperEventId) {
-//        int modified;
-//
-//        if (this.isScraperEventsCached()) {
-//            final SynchronizedMap<Long, ? extends ScraperEvent> synchronizedMap = Formulas.getScraperEventsMap(clazz);
-//            final ScraperEvent scraperEvent = synchronizedMap.get(scraperEventId);
-//
-//            modified = this.addScraperEvent(scraperEvent); // this is for matching, ignored should be accepted
-//            if (modified <= 0) {
-//                logger.error("scraperEvent not added in addScraperEventId: {} {} {}", clazz.getSimpleName(), scraperEventId, Generic.objectToString(scraperEvent));
-//            } else {
-//                // expected behaviour, nothing to be done
-//            }
-//        } else {
-//            modified = 0;
-//            // values not cached yet, so I won't modify
-//        }
-//
-//        return modified;
-//    }
-//
-//    private synchronized int removeScraperEvent(ScraperEvent scraperEvent) {
-//        int modified;
-//        if (this.scraperEvents.remove(scraperEvent)) {
-//            modified = 1;
-//        } else {
-//            modified = 0;
-//        }
-//
-//        return modified;
-//    }
-//
-//    private synchronized int removeScraperEvent(Class<? extends ScraperEvent> clazz) {
-//        int modified;
-//
-//        if (this.isScraperEventsCached()) {
-//            final Long scraperId = this.scraperEventIds.get(clazz);
-//            final SynchronizedMap<Long, ? extends ScraperEvent> synchronizedMap = Formulas.getScraperEventsMap(clazz);
-//            final ScraperEvent scraperEvent = synchronizedMap.get(scraperId);
-//
-//            modified = this.removeScraperEvent(scraperEvent);
-//            if (modified <= 0) {
-//                logger.error("scraperEvent not removed in removeScraperEventId: {} {} {}", clazz.getSimpleName(), scraperId, Generic.objectToString(scraperEvent));
-//            } else {
-//                // expected behaviour, nothing to be done
-//            }
-//        } else {
-//            modified = 0;
-//            // values not cached yet, so I won't modify
-//        }
-//
-//        return modified;
-//    }
 
-    public synchronized int getNScraperEventIds() {
-        int nScraperEventIds = 0;
+    public synchronized int getNTotalScraperEventIds() {
+        return this.scraperEventIds == null ? 0 : this.scraperEventIds.size();
+    }
+
+    public synchronized int getNValidScraperEventIds() {
+        int nScraperEventIds;
 //        if (!this.isScraperEventsCached()) {
 //            this.cacheScraperEvents();
 //        }
 
 //        final Iterator<ScraperEvent> iterator = this.scraperEvents.iterator();
-        final Set<Entry<Class<? extends ScraperEvent>, Long>> entrySet = this.scraperEventIds.entrySet();
-        final Iterator<Entry<Class<? extends ScraperEvent>, Long>> iterator = entrySet.iterator();
-        while (iterator.hasNext()) {
-            final Entry<Class<? extends ScraperEvent>, Long> entry = iterator.next();
-            final Class<? extends ScraperEvent> scraperClazz = entry.getKey();
-            final Long scraperId = entry.getValue();
-            final boolean notExistOrIgnored = BlackList.notExistOrIgnored(scraperClazz, scraperId);
-            if (notExistOrIgnored) {
-                final boolean notExist = BlackList.notExist(scraperClazz, scraperId);
-                if (notExist) {
-                    final long timeSinceLastRemoved = BlackList.timeSinceRemovalFromMap(scraperClazz);
-                    if (timeSinceLastRemoved <= Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD) {
-                        logger.info("notExist scraperEvent in getNScraperEventIds, timeSinceLastRemoved: {}ms for: {} {} {} {}", timeSinceLastRemoved, scraperClazz, scraperId,
-                                this.id, this.name);
-                    } else {
-                        logger.error("notExist scraperEvent in getNScraperEventIds, timeSinceLastRemoved: {}ms for: {} {} {}", timeSinceLastRemoved, scraperClazz, scraperId,
-                                Generic.objectToString(this));
+        if (this.scraperEventIds != null) {
+            nScraperEventIds = 0;
+            final Set<Entry<Class<? extends ScraperEvent>, Long>> entrySet = this.scraperEventIds.entrySet();
+            final Iterator<Entry<Class<? extends ScraperEvent>, Long>> iterator = entrySet.iterator();
+            while (iterator.hasNext()) {
+                final Entry<Class<? extends ScraperEvent>, Long> entry = iterator.next();
+                final Class<? extends ScraperEvent> scraperClazz = entry.getKey();
+                final Long scraperId = entry.getValue();
+                final boolean notExistOrIgnored = BlackList.notExistOrIgnored(scraperClazz, scraperId);
+                if (notExistOrIgnored) {
+                    final boolean notExist = BlackList.notExist(scraperClazz, scraperId);
+                    if (notExist) {
+                        final long timeSinceLastRemoved = BlackList.timeSinceRemovalFromMap(scraperClazz);
+//                    if (timeSinceLastRemoved <= Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD) {
+//                        logger.info("notExist scraperEvent in getNValidScraperEventIds, timeSinceLastRemoved: {}ms for: {} {} {} {}", timeSinceLastRemoved, scraperClazz, scraperId,
+//                                    this.id, this.name);
+//                    } else {
+                        logger.error("notExist scraperEvent in getNValidScraperEventIds, timeSinceLastRemoved: {}ms for: {} {} {}", timeSinceLastRemoved, scraperClazz, scraperId,
+                                     Generic.objectToString(this));
+//                    }
+                        iterator.remove();
+                        this.matchedTimeStamp(); // removal of existing matchedScraper
+                    } else { // exists but ignored, normal and nothing to be done
                     }
-                    iterator.remove();
-                    this.matchedTimeStamp(); // removal of existing matchedScraper
-                } else { // exists but ignored, normal and nothing to be done
+                } else {
+                    nScraperEventIds++;
                 }
-            } else {
-                nScraperEventIds++;
-            }
 
 //            if (scraperEvent == null) {
 //                iterator.remove();
-//                logger.error("null scraperEvent in getNScraperEventIds for: {}", Generic.objectToString(this));
+//                logger.error("null scraperEvent in getNValidScraperEventIds for: {}", Generic.objectToString(this));
 //            } else {
 //                if (!scraperEvent.isIgnored()) {
 //                    nScraperEventIds++;
 //                }
 //            }
-        } // end while
+            } // end while
+        } else {
+            nScraperEventIds = 0;
+        }
 
-//        return this.scraperEventIds.size();
         return nScraperEventIds;
     }
 
@@ -553,22 +568,23 @@ public class Event
 //        return returnValue;
     }
 
-    public synchronized Long removeScraperEventId(Class<? extends ScraperEvent> clazz) {
-        Long returnValue;
-        if (this.scraperEventIds.containsKey(clazz)) {
-//            this.removeScraperEvent(clazz);
-            returnValue = this.scraperEventIds.remove(clazz);
-            this.matchedTimeStamp(); // removal of existing matchedScraper
-            BlackList.checkEventNMatched(this.id);
-        } else {
-            returnValue = null;
-        }
-
-        return returnValue;
-    }
+    // I don't think removeScraper is necessary; I can ignore the scraper; for maintenance at the end, when event is obsolete, I should remove the Event and all it's scrapers from the maps
+//    public synchronized Long removeScraperEventId(Class<? extends ScraperEvent> clazz) {
+//        Long returnValue;
+//        if (this.scraperEventIds.containsKey(clazz)) {
+////            this.removeScraperEvent(clazz);
+//            returnValue = this.scraperEventIds.remove(clazz);
+//            this.matchedTimeStamp(); // removal of existing matchedScraper
+//            BlackList.checkEventNMatched(this.id);
+//        } else {
+//            returnValue = null;
+//        }
+//
+//        return returnValue;
+//    }
 
     public synchronized int setScraperEventId(Class<? extends ScraperEvent> clazz, long scraperEventId) {
-        int modified;
+        final int modified;
         long existingScraperEventId;
         if (this.scraperEventIds.containsKey(clazz)) {
             existingScraperEventId = this.scraperEventIds.get(clazz);
@@ -606,52 +622,28 @@ public class Event
         return this.scraperEventIds == null ? null : new LinkedHashMap<>(this.scraperEventIds);
     }
 
-    public synchronized int setScraperEventIds(LinkedHashMap<Class<? extends ScraperEvent>, Long> map) {
-        int modified = 0;
-//        Iterator<Class<? extends ScraperEvent>> iterator = this.scraperEventIds.keySet().iterator();
-//        while (iterator.hasNext()) {
-//            Class<? extends ScraperEvent> clazz = iterator.next();
-//            if (!map.containsKey(clazz)) {
-//                iterator.remove();
+//    public synchronized int setScraperEventIds(LinkedHashMap<Class<? extends ScraperEvent>, Long> map) {
+//        int modified = 0;
+//
+//        if (map == null) {
+//            logger.error("trying to set null map in Event.setScraperEventIds for: {}", Generic.objectToString(this));
+//        } else {
+//            if (this.scraperEventIds.keySet().retainAll(map.keySet())) {
 //                modified++;
 //            }
+//            for (Class<? extends ScraperEvent> clazz : map.keySet()) {
+//                modified += setScraperEventId(clazz, map.get(clazz));
+//            }
 //        }
-
-        if (map == null) {
-            logger.error("trying to set null map in Event.setScraperEventIds for: {}", Generic.objectToString(this));
-        } else {
-            if (this.scraperEventIds.keySet().retainAll(map.keySet())) {
-                modified++;
-            }
-            for (Class<? extends ScraperEvent> clazz : map.keySet()) {
-                modified += setScraperEventId(clazz, map.get(clazz));
-            }
-        }
-
-        if (modified > 0) {
-            this.matchedTimeStamp();
-            BlackList.checkEventNMatched(this.id);
-        }
-
-        return modified;
-    }
-
-//    public synchronized boolean isScraperEventsCached() {
-//        return scraperEventsCached;
-//    }
 //
-//    public synchronized int setScraperEventsCached(boolean scraperEventsCached) {
-//        int modified;
-//
-//        if (this.scraperEventsCached != scraperEventsCached) {
-//            this.scraperEventsCached = scraperEventsCached;
-//            modified = 1;
-//        } else {
-//            modified = 0;
+//        if (modified > 0) {
+//            this.matchedTimeStamp();
+//            BlackList.checkEventNMatched(this.id);
 //        }
 //
 //        return modified;
 //    }
+
     public synchronized int update(Event event) {
         int modified;
         if (this == event) {
@@ -683,7 +675,7 @@ public class Event
             } else {
                 modified = 0; // initialized
                 modified += this.setTimeStamp(thatTimeStamp); // count timeFirstSeen modification
-//                modified += this.setTimeFirstSeen(event.getTimeFirstSeen()); // updated on the previous line
+                modified += this.setTimeFirstSeen(event.getTimeFirstSeen()); // it's not always updated on the previous line, as it only updates to smaller stamps
                 modified += this.setName(event.getName());
                 modified += this.setCountryCode(event.getCountryCode());
                 modified += this.setTimezone(event.getTimezone());

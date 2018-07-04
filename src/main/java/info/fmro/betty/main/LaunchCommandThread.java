@@ -2,15 +2,18 @@ package info.fmro.betty.main;
 
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.MarketCatalogue;
-import info.fmro.shared.utility.LogLevel;
 import info.fmro.betty.enums.MatchStatus;
 import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.ScraperEvent;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.utility.Formulas;
-import info.fmro.shared.utility.AlreadyPrintedMap;
 import info.fmro.shared.utility.Generic;
+import info.fmro.shared.utility.LogLevel;
 import info.fmro.shared.utility.SynchronizedMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.helpers.MessageFormatter;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -19,9 +22,8 @@ import java.util.LinkedHashSet;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.helpers.MessageFormatter;
+import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class LaunchCommandThread
         implements Runnable {
@@ -30,7 +32,12 @@ public class LaunchCommandThread
     private final String command;
     private boolean checkAll;
     private long delay;
+    public static final long RECENT_PERIOD = 1_000L;
+    public static final SynchronizedMap<Event, Long> recentlyUsedEvents = new SynchronizedMap<>();
+    public static final SynchronizedMap<String, Long> recentlyUsedMarketIds = new SynchronizedMap<>();
+    public static final AtomicLong lastRecentlyUsedCleanStamp = new AtomicLong();
     private HashSet<Event> eventsSet;
+    private TreeSet<String> marketIdsSet;
     private Set<?> scraperEventsSet;
     private LinkedHashSet<Entry<String, MarketCatalogue>> entrySet;
     private Class<? extends ScraperEvent> clazz;
@@ -42,6 +49,11 @@ public class LaunchCommandThread
     public LaunchCommandThread(String command, boolean checkAll) {
         this.command = command;
         this.checkAll = checkAll;
+    }
+
+    public LaunchCommandThread(String command, TreeSet<String> marketIdsSet) {
+        this.command = command;
+        this.marketIdsSet = marketIdsSet;
     }
 
     public LaunchCommandThread(String command, HashSet<Event> eventsSet) {
@@ -208,9 +220,9 @@ public class LaunchCommandThread
                                     if (totalMatch < Statics.threshold && (homeMatch >= Statics.threshold || awayMatch >= Statics.threshold)) {
                                         // some extra spaces intentionally left in the output, due to removeStrangeChars; those spaces tell me where a char was replaced
                                         String printedString = Generic.alreadyPrintedMap.logOnce(3 * Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO,
-                                                "{} one team matched t:{} h:{} a:{} event: {} scraper: {} / {}", clazz.getSimpleName(), totalMatch, homeMatch, awayMatch,
-                                                Formulas.removeStrangeChars(eventName), Formulas.removeStrangeChars(scraperEvent.getHomeTeam()),
-                                                Formulas.removeStrangeChars(scraperEvent.getAwayTeam()));
+                                                                                                 "{} one team matched t:{} h:{} a:{} event: {} scraper: {} / {}", clazz.getSimpleName(), totalMatch, homeMatch, awayMatch,
+                                                                                                 Formulas.removeStrangeChars(eventName), Formulas.removeStrangeChars(scraperEvent.getHomeTeam()),
+                                                                                                 Formulas.removeStrangeChars(scraperEvent.getAwayTeam()));
                                         oneTeamMatchedPrintStrings.add(printedString);
                                     }
 
@@ -358,13 +370,13 @@ public class LaunchCommandThread
                                                             // some extra spaces intentionally left in the output, due to removeStrangeChars
                                                             // those spaces tell me where a char was replaced
                                                             String printedString = MessageFormatter.arrayFormat("{} matched t:{} h:{} a:{} event: {} scraper: {} / {}",
-                                                                    new Object[]{clazz.getSimpleName(), maxTotalMatch, recordedHomeMatch, recordedAwayMatch,
-                                                                        Formulas.removeStrangeChars(eventName), Formulas.removeStrangeChars(matchedScraperEvent.getHomeTeam()),
-                                                                        Formulas.removeStrangeChars(matchedScraperEvent.getAwayTeam())}).getMessage();
+                                                                                                                new Object[]{clazz.getSimpleName(), maxTotalMatch, recordedHomeMatch, recordedAwayMatch,
+                                                                                                                             Formulas.removeStrangeChars(eventName), Formulas.removeStrangeChars(matchedScraperEvent.getHomeTeam()),
+                                                                                                                             Formulas.removeStrangeChars(matchedScraperEvent.getAwayTeam())}).getMessage();
 
                                                             logger.info(printedString);
                                                             if (maxTotalMatch < Statics.highThreshold &&
-                                                                    (recordedHomeMatch < Statics.highThreshold || recordedAwayMatch < Statics.highThreshold)) {
+                                                                (recordedHomeMatch < Statics.highThreshold || recordedAwayMatch < Statics.highThreshold)) {
                                                                 Statics.matcherSynchronizedWriter.writeAndFlush(Generic.properTimeStamp() + " " + printedString + "\r\n");
                                                             }
                                                         } else { // there was error changing matchedEventId
@@ -372,16 +384,18 @@ public class LaunchCommandThread
                                                             final long timeSinceScraperEventMatched = startTime - matchedScraperEvent.getMatchedTimeStamp();
                                                             final String printedString =
                                                                     MessageFormatter.arrayFormat("{} {} ({} {})ms while setting matched partners {}: {} {} {} {}",
-                                                                            new Object[]{eventModified, scraperEventModified, timeSinceEventMatched, timeSinceScraperEventMatched,
-                                                                                clazz.getSimpleName(), eventId, matchedScraperEventId, Generic.objectToString(event),
-                                                                                Generic.objectToString(matchedScraperEvent)}).getMessage();
+                                                                                                 new Object[]{eventModified, scraperEventModified, timeSinceEventMatched, timeSinceScraperEventMatched,
+                                                                                                              clazz.getSimpleName(), eventId, matchedScraperEventId, Generic.objectToString(event),
+                                                                                                              Generic.objectToString(matchedScraperEvent)}).getMessage();
                                                             if ((eventModified <= 0 && timeSinceEventMatched < 1_000L) ||
-                                                                    (scraperEventModified <= 0 && timeSinceScraperEventMatched < 1_000L)) {
+                                                                (scraperEventModified <= 0 && timeSinceScraperEventMatched < 1_000L)) {
                                                                 logger.warn("warning {}", printedString);
                                                             } else {
                                                                 logger.error("error {}", printedString);
-                                                                event.removeScraperEventId(clazz);
-                                                                matchedScraperEvent.resetMatchedEventId();
+                                                                event.setIgnored(Generic.DAY_LENGTH_MILLISECONDS); // having an error is no joke
+                                                                matchedScraperEvent.setIgnored(Generic.DAY_LENGTH_MILLISECONDS); // having an error is no joke
+//                                                                event.removeScraperEventId(clazz);
+//                                                                matchedScraperEvent.resetMatchedEventId();
                                                             }
                                                         }
                                                     } else if (existingMatchedScraperEventId == null && BlackList.notExist(synchronizedScraperEventsMap, matchedScraperEventId)) {
@@ -390,14 +404,14 @@ public class LaunchCommandThread
                                                         final long timeSinceLastRemoved = currentTime - synchronizedScraperEventsMap.getTimeStampRemoved();
                                                         if (timeSinceLastRemoved < 200L) {
                                                             logger.info("scraperEvent was probably removed just before matching {} {}ms {} {} {} {}", clazz.getSimpleName(),
-                                                                    timeSinceLastRemoved, existingMatchedScraperEventId, matchedScraperEventId, existingMatchedEventId, eventId);
+                                                                        timeSinceLastRemoved, existingMatchedScraperEventId, matchedScraperEventId, existingMatchedEventId, eventId);
                                                         } else if (timeSinceLastRemoved < 1_000L) {
                                                             logger.warn("scraperEvent was probably removed just before matching {} {}ms {} {} {} {}", clazz.getSimpleName(),
-                                                                    timeSinceLastRemoved, existingMatchedScraperEventId, matchedScraperEventId, existingMatchedEventId, eventId);
+                                                                        timeSinceLastRemoved, existingMatchedScraperEventId, matchedScraperEventId, existingMatchedEventId, eventId);
                                                         } else {
                                                             logger.error("scraperEvent was probably removed just before matching {} {}ms {} {} {} {}: {} {}", clazz.getSimpleName(),
-                                                                    timeSinceLastRemoved, existingMatchedScraperEventId, matchedScraperEventId, existingMatchedEventId, eventId,
-                                                                    Generic.objectToString(event), Generic.objectToString(matchedScraperEvent));
+                                                                         timeSinceLastRemoved, existingMatchedScraperEventId, matchedScraperEventId, existingMatchedEventId, eventId,
+                                                                         Generic.objectToString(event), Generic.objectToString(matchedScraperEvent));
                                                         }
                                                     } else if (existingMatchedEventId == null && BlackList.notExist(Statics.eventsMap, eventId)) {
                                                         // probably normal behaviour, eventId doesn't exist in map, so it was just removed
@@ -405,33 +419,38 @@ public class LaunchCommandThread
                                                         final long timeSinceLastRemoved = currentTime - Statics.eventsMap.getTimeStampRemoved();
                                                         if (timeSinceLastRemoved < 200L) {
                                                             logger.info("event was probably removed just before matching {} {}ms {} {} {} {}", clazz.getSimpleName(),
-                                                                    timeSinceLastRemoved, existingMatchedScraperEventId, matchedScraperEventId, existingMatchedEventId, eventId);
+                                                                        timeSinceLastRemoved, existingMatchedScraperEventId, matchedScraperEventId, existingMatchedEventId, eventId);
                                                         } else if (timeSinceLastRemoved < 1_000L) {
                                                             logger.warn("event was probably removed just before matching {} {}ms {} {} {} {}", clazz.getSimpleName(),
-                                                                    timeSinceLastRemoved, existingMatchedScraperEventId, matchedScraperEventId, existingMatchedEventId, eventId);
+                                                                        timeSinceLastRemoved, existingMatchedScraperEventId, matchedScraperEventId, existingMatchedEventId, eventId);
                                                         } else {
                                                             logger.error("event was probably removed just before matching {} {}ms {} {} {} {}: {} {}", clazz.getSimpleName(),
-                                                                    timeSinceLastRemoved, existingMatchedScraperEventId, matchedScraperEventId, existingMatchedEventId, eventId,
-                                                                    Generic.objectToString(event), Generic.objectToString(matchedScraperEvent));
+                                                                         timeSinceLastRemoved, existingMatchedScraperEventId, matchedScraperEventId, existingMatchedEventId, eventId,
+                                                                         Generic.objectToString(event), Generic.objectToString(matchedScraperEvent));
                                                         }
                                                     } else { // at least one matched and not matched to same partner
                                                         logger.error("error at least one matched and not matched to same partner {} {} {} {} {}: {} {}", clazz.getSimpleName(),
-                                                                existingMatchedScraperEventId, matchedScraperEventId, existingMatchedEventId, eventId, Generic.objectToString(event),
-                                                                Generic.objectToString(matchedScraperEvent));
-                                                        event.removeScraperEventId(clazz);
-                                                        matchedScraperEvent.resetMatchedEventId();
+                                                                     existingMatchedScraperEventId, matchedScraperEventId, existingMatchedEventId, eventId, Generic.objectToString(event),
+                                                                     Generic.objectToString(matchedScraperEvent));
+                                                        event.setIgnored(Generic.DAY_LENGTH_MILLISECONDS); // having an error is no joke
+                                                        matchedScraperEvent.setIgnored(Generic.DAY_LENGTH_MILLISECONDS); // having an error is no joke
+//                                                        event.removeScraperEventId(clazz);
+//                                                        matchedScraperEvent.resetMatchedEventId();
+
                                                         if (existingMatchedScraperEventId != null && !Objects.equals(matchedScraperEventId, existingMatchedScraperEventId)) {
                                                             ScraperEvent existingScraperEvent = synchronizedScraperEventsMap.get(existingMatchedScraperEventId);
-                                                            existingScraperEvent.resetMatchedEventId();
+                                                            existingScraperEvent.setIgnored(Generic.DAY_LENGTH_MILLISECONDS); // having an error is no joke
+//                                                            existingScraperEvent.resetMatchedEventId();
                                                         }
                                                         if (existingMatchedEventId != null && !Objects.equals(eventId, existingMatchedEventId)) {
                                                             Event existingEvent = Statics.eventsMap.get(existingMatchedEventId);
-                                                            existingEvent.removeScraperEventId(clazz);
+                                                            existingEvent.setIgnored(Generic.DAY_LENGTH_MILLISECONDS); // having an error is no joke
+//                                                            existingEvent.removeScraperEventId(clazz);
                                                         }
                                                     }
                                                 } else {
                                                     logger.info("{} event too recent to be matched: {}({}) ms event: {} scraper: {}/{}", clazz.getSimpleName(), timeDifference,
-                                                            Statics.INITIAL_EVENT_SAFETY_PERIOD, eventName, matchedScraperEvent.getHomeTeam(), matchedScraperEvent.getAwayTeam());
+                                                                Statics.INITIAL_EVENT_SAFETY_PERIOD, eventName, matchedScraperEvent.getHomeTeam(), matchedScraperEvent.getAwayTeam());
                                                     tooRecentMatchedEvents.add(event);
                                                     minTimeDifference = Math.min(minTimeDifference, Statics.INITIAL_EVENT_SAFETY_PERIOD - timeDifference);
                                                 }
@@ -439,21 +458,21 @@ public class LaunchCommandThread
 //                                                if (clazz.equals(CoralEvent.class) && matchStatus == null) { // normal, nothing will be done
 //                                                } else {
                                                 logger.error("STRANGE {} matchStatus {} on matched event: {} scraper: {}/{}", clazz.getSimpleName(), matchStatus, eventName,
-                                                        matchedScraperEvent.getHomeTeam(), matchedScraperEvent.getAwayTeam());
-                                                BlackList.ignoreScraper(matchedScraperEvent, Generic.MINUTE_LENGTH_MILLISECONDS * 2L);
+                                                             matchedScraperEvent.getHomeTeam(), matchedScraperEvent.getAwayTeam());
+                                                matchedScraperEvent.setIgnored(Generic.MINUTE_LENGTH_MILLISECONDS * 2L);
 //                                                }
                                             }
                                         } else {
                                             final int listSize = errTotalMatchList.size();
                                             // some extra spaces intentionally left in the output, due to removeStrangeChars; those spaces tell me where a char was replaced
                                             if (Generic.alreadyPrintedMap.logOnce(3 * Generic.HOUR_LENGTH_MILLISECONDS, Statics.matcherSynchronizedWriter, logger, LogLevel.WARN,
-                                                    "{} {} twoPotentialMatches not matched {} event: {} to {} / {}", clazz.getSimpleName(), listSize + 1, maxTotalMatch,
-                                                    Formulas.removeStrangeChars(eventName), Formulas.removeStrangeChars(matchedScraperEvent.getHomeTeam()),
-                                                    Formulas.removeStrangeChars(matchedScraperEvent.getAwayTeam())) != null) {
+                                                                                  "{} {} twoPotentialMatches not matched {} event: {} to {} / {}", clazz.getSimpleName(), listSize + 1, maxTotalMatch,
+                                                                                  Formulas.removeStrangeChars(eventName), Formulas.removeStrangeChars(matchedScraperEvent.getHomeTeam()),
+                                                                                  Formulas.removeStrangeChars(matchedScraperEvent.getAwayTeam())) != null) {
                                                 for (int i = 0; i < listSize; i++) {
                                                     final ScraperEvent localScraperEvent = errScraperEventList.get(i);
                                                     logger.warn("{} twoPotentialMatches other match {} for {} / {}", clazz.getSimpleName(), errTotalMatchList.get(i),
-                                                            localScraperEvent.getHomeTeam(), localScraperEvent.getAwayTeam());
+                                                                localScraperEvent.getHomeTeam(), localScraperEvent.getAwayTeam());
                                                 } // end for
                                             } else { // printed already
                                             }
@@ -469,15 +488,15 @@ public class LaunchCommandThread
                                     if (matchedScraperEvent != null) {
                                         if (Statics.debugLevel.check(2, 149)) { // only print in this case
                                             Generic.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "{} not matched, closest was {} event: {} scraper: {} / {}", clazz.
-                                                    getSimpleName(),
-                                                    maxTotalMatch, eventName, matchedScraperEvent.getHomeTeam(), matchedScraperEvent.getAwayTeam());
+                                                                                                                                                                               getSimpleName(),
+                                                                              maxTotalMatch, eventName, matchedScraperEvent.getHomeTeam(), matchedScraperEvent.getAwayTeam());
                                         }
 
                                         if (!oneTeamMatchedPrintStrings.isEmpty()) {
                                             for (final String printedString : oneTeamMatchedPrintStrings) {
                                                 if (printedString != null) {
                                                     Statics.matcherSynchronizedWriter.
-                                                            writeAndFlush(Generic.properTimeStamp() + " " + printedString + "\r\n");
+                                                                                             writeAndFlush(Generic.properTimeStamp() + " " + printedString + "\r\n");
                                                 } else { // likely already printed, nothing to be done
                                                 }
                                             } // end for
@@ -503,12 +522,16 @@ public class LaunchCommandThread
                         for (int i = 0; i < twoPotentialMatchesEventsSize; i++) {
                             final Event event = twoPotentialMatchesEvents.get(i);
                             final Long matchedScraperId = event.getScraperEventId(clazz);
-                            event.removeScraperEventId(clazz);
+
+                            event.setIgnored(Generic.DAY_LENGTH_MILLISECONDS); // having an error is no joke
+//                            event.removeScraperEventId(clazz);
                             if (matchedScraperId != null) {
                                 logger.error("{} matchedScraperId {} found while removing twoPotentialMatches for event: {}", clazz.getSimpleName(), matchedScraperId,
-                                        Generic.objectToString(event));
+                                             Generic.objectToString(event));
                                 final ScraperEvent matchedScraperEvent = synchronizedScraperEventsMap.get(matchedScraperId);
-                                matchedScraperEvent.resetMatchedEventId();
+
+                                matchedScraperEvent.setIgnored(Generic.DAY_LENGTH_MILLISECONDS); // having an error is no joke
+//                                matchedScraperEvent.resetMatchedEventId();
                             }
                         } // end for
                     }
@@ -519,12 +542,16 @@ public class LaunchCommandThread
                         for (int i = 0; i < twoPotentialMatchesScraperEventsSize; i++) {
                             final ScraperEvent scraperEvent = twoPotentialMatchesScraperEvents.get(i);
                             final String matchedEventId = scraperEvent.getMatchedEventId();
-                            scraperEvent.resetMatchedEventId();
+
+                            scraperEvent.setIgnored(Generic.DAY_LENGTH_MILLISECONDS); // having an error is no joke
+//                            scraperEvent.resetMatchedEventId();
                             if (matchedEventId != null) {
                                 logger.error("matchedEventId {} found while removing twoPotentialMatches for {} scraperEvent: {}", matchedEventId, clazz.getSimpleName(),
-                                        Generic.objectToString(scraperEvent));
+                                             Generic.objectToString(scraperEvent));
                                 final Event matchedEvent = Statics.eventsMap.get(matchedEventId);
-                                matchedEvent.removeScraperEventId(clazz);
+
+                                matchedEvent.setIgnored(Generic.DAY_LENGTH_MILLISECONDS); // having an error is no joke
+//                                matchedEvent.removeScraperEventId(clazz);
                             }
                         } // end for
                     }
@@ -548,7 +575,7 @@ public class LaunchCommandThread
                     final int notIgnoredSize = notIgnoredToCheckEvents.size();
                     if (notIgnoredSize > 0) {
                         final String printedString = MessageFormatter.arrayFormat("{} mapEventsToScraperEvents {}{}toCheckEvents: {} launch: findInterestingMarkets",
-                                new Object[]{clazz.getSimpleName(), checkAllString, fullRunString, notIgnoredSize}).getMessage();
+                                                                                  new Object[]{clazz.getSimpleName(), checkAllString, fullRunString, notIgnoredSize}).getMessage();
                         if (checkAll || fullRun) {
                             logger.warn(printedString); // it sometimes happens if a regular run is scheduled very close (sometimes a delayed run)
                         } else {
@@ -563,14 +590,71 @@ public class LaunchCommandThread
                     // minimal delay
                     minTimeDifference = Math.max(minTimeDifference, scraperThread.DELAY_GETSCRAPEREVENTS);
                     logger.info("{} mapEventsToScraperEvents {}{}tooRecentMatchedEvents: {} launch: mapEventsToScraperEvents smallDelay {}ms", clazz.getSimpleName(),
-                            checkAllString, fullRunString, sizeRecent, minTimeDifference);
+                                checkAllString, fullRunString, sizeRecent, minTimeDifference);
                     Statics.threadPoolExecutor.execute(new LaunchCommandThread("mapEventsToScraperEvents", tooRecentMatchedEvents, minTimeDifference));
                 }
 
                 logger.info("{} mapEventsToScraperEvents {}{}size: {} not matched: {} finished in {} ms", clazz.getSimpleName(), checkAllString, fullRunString,
-                        Statics.eventsMap.size(), counterNotMatched, System.currentTimeMillis() - startTime);
+                            Statics.eventsMap.size(), counterNotMatched, System.currentTimeMillis() - startTime);
             } // end else
         } // end else clazz == null
+    }
+
+    public static void checkRecentlyUsed(HashSet<Event> eventsSet) {
+        final long currentTime = System.currentTimeMillis();
+        cleanRecentlyUsed(currentTime);
+
+        final Iterator<Event> iterator = eventsSet.iterator();
+        while (iterator.hasNext()) {
+            final Event event = iterator.next();
+            final Long lastUsedTime = recentlyUsedEvents.get(event);
+            final long lastUsedTimePrimitive = lastUsedTime == null ? 0 : lastUsedTime;
+            if (currentTime - lastUsedTimePrimitive <= RECENT_PERIOD) {
+                iterator.remove();
+            } else {
+                recentlyUsedEvents.put(event, currentTime, true);
+            }
+        } // end while
+    }
+
+    public static void checkRecentlyUsed(TreeSet<String> marketIdsSet) {
+        final long currentTime = System.currentTimeMillis();
+        cleanRecentlyUsed(currentTime);
+
+        final Iterator<String> iterator = marketIdsSet.iterator();
+        while (iterator.hasNext()) {
+            final String marketId = iterator.next();
+            final Long lastUsedTime = recentlyUsedMarketIds.get(marketId);
+            final long lastUsedTimePrimitive = lastUsedTime == null ? 0 : lastUsedTime;
+            if (currentTime - lastUsedTimePrimitive <= RECENT_PERIOD) {
+                iterator.remove();
+            } else {
+                recentlyUsedMarketIds.put(marketId, currentTime, true);
+            }
+        } // end while
+    }
+
+    public static <T extends Long> void cleanRecentlyUsedMap(SynchronizedMap<?, T> synchronizedMap) {
+        final Collection<T> valuesCopy = synchronizedMap.valuesCopy();
+        final long currentTime = System.currentTimeMillis();
+        for (T recentTimeStamp : valuesCopy) {
+            if (recentTimeStamp == null || currentTime - recentTimeStamp.longValue() > RECENT_PERIOD) {
+                synchronizedMap.removeValueAll(recentTimeStamp);
+            }
+        }
+    }
+
+    public static void cleanRecentlyUsed() {
+        cleanRecentlyUsed(System.currentTimeMillis());
+    }
+
+    public static void cleanRecentlyUsed(long currentTime) {
+        if (currentTime - lastRecentlyUsedCleanStamp.get() > Generic.MINUTE_LENGTH_MILLISECONDS * 10L) {
+            lastRecentlyUsedCleanStamp.set(currentTime);
+            cleanRecentlyUsedMap(recentlyUsedEvents);
+            cleanRecentlyUsedMap(recentlyUsedMarketIds);
+        } else { // no yet the time for cleaning, nothing to be done
+        }
     }
 
     @Override
@@ -579,6 +663,9 @@ public class LaunchCommandThread
         // Statics.launchCommandThreadsSet.add(this);
         switch (command) {
             case "mapEventsToScraperEvents":
+                if (!Statics.safeBetModuleActivated) {
+                    logger.error("mapEventsToScraperEvents without safeBetModuleActivated: {} {} {} {}", delay, checkAll, Generic.objectToString(this.eventsSet), Generic.objectToString(this.scraperEventsSet));
+                }
                 if (Statics.debugLevel.check(2, 152)) {
                     logger.info("Running mapEventsToScraperEvents");
                 }
@@ -608,13 +695,20 @@ public class LaunchCommandThread
                     if (checkAll) {
                         FindInterestingMarkets.findInterestingMarkets(true);
                     } else if (this.eventsSet != null) {
+                        checkRecentlyUsed(this.eventsSet);
                         FindInterestingMarkets.findInterestingMarkets(this.eventsSet);
+                    } else if (this.marketIdsSet != null) {
+                        checkRecentlyUsed(this.marketIdsSet);
+                        FindInterestingMarkets.findInterestingMarkets(this.marketIdsSet);
                     } else {
                         FindInterestingMarkets.findInterestingMarkets(); // full run
                     }
                 }
                 break;
             case "findSafeRunners":
+                if (!Statics.safeBetModuleActivated) {
+                    logger.error("findSafeRunners without safeBetModuleActivated: {} {} {}", delay, Generic.objectToString(this.eventsSet), Generic.objectToString(this.entrySet));
+                }
                 if (Statics.debugLevel.check(2, 154)) {
                     logger.info("Running findSafeRunners");
                 }

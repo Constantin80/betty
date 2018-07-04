@@ -93,7 +93,7 @@ public class CurrentOrderSummary
     public synchronized void createEventId() {
         this.setEventId(Formulas.getEventIdOfMarketId(this.marketId));
         if (this.eventId == null) {
-            logger.error("null eventId after creation in CurrentOrderSummary: {}", Generic.objectToString(this));
+            logger.info("null eventId after creation in CurrentOrderSummary: {}", Generic.objectToString(this));
         }
     }
 

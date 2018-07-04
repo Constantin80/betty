@@ -1,0 +1,1191 @@
+scores info:
+betradarEventsMap
+coralEventsMap
+
+base betfair data:
+eventsMap
+marketCataloguesMap
+
+prelucrated betfair data:
+safeMarketsMap
+safeMarketsImportantMap (temporary very high priority elements)
+safeMarketBooksMap (little use so far)
+
+actual bets:
+safeBetsMap (bets being placed)
+
+being implemented:
+IgnorableDatabase (part of Ignorable class, extended by ScraperEvent, Event, MarketCatalogue); abandoned
+----------
+
+﻿impossible:
+bet365.com
+	-I could only find flash version
+888sport.com
+	-I could only find flash version
+unibet.com
+	-I could only find flash version
+stanjames.com
+	-was during maintenance last time I checked, with 5h 34min left; would have ended at approx 6am UTC; was up and running much faster than that
+	-had no live football when I checked at 2:51 UTC
+	-I could only find flash version
+betfred.com
+	-http://www.betfred.com/sport
+		-will check lower-right corner for javascript scores when events in play (none at 06:44 UTC)
+		-no javascript scores to be found
+	-doesn't get scores from betradar; some events not present on betradar and also has corner statistics
+	-I could only find flash version
+totesport.com
+	-I could only find flash version
+	-http://www.totesport.com/portal?action=GoCategory&category=Football
+		-will check this for javascript scores when events in play (none at 06:47 UTC)
+		-only flash scores found
+nitrogensports.eu
+	-doesn't seem to have live betting
+	-uses bitcoin currency only
+sportsinteraction.com
+	-I could only find flash version
+bovada.lv
+	-sports.bovada.lv/sports-betting/todays-soccer.jsp
+		-no live events last I checked (10:18 UTC)
+	-bodog.eu: -partner of bovada.lv, has the same design, matches and everything
+	-I can only see flash for live events
+
+not considered yet:
+betfair.com
+	-is pretty good, but I'm counting on its mistakes, so I shouldn't scrape from it
+pinnaclesports.com
+	-doesn't seem to get scores from betradar; it offers corners markets
+	-it has separate pages
+		-no info on the single page
+		-I could see the period/time/corners on the corners betting page
+		-I could see the score (no time/period etc, just "Live") on the odds betting page
+	-due to the limited info and strange design, postponed
+skybet.com
+	-RDS ip blocked!!!
+	-doesn't get scores from betradar; some events not on betradar, detailed statistics
+	-only scores on single page; separate pages for details
+		-ht score has to be calculated
+		-some details found by clicking on the stats icon just above the ingame field animation
+	-postponed due to IP block
+smarkets.com
+	-I can only get the score and only on separate pages
+	-due to the limited info and strange design, postponed
+betdaq.com
+	-I can't find the scores anywhere; it seems to have live betting with no scores
+	-during recheck it had only unmanaged live markets with no scores (22:37 UTC)
+	-no live events during recheck at 14:53 UTC
+	-unmanaged live markets have no score; managed ones have only score, no other details
+	-due to very limited info and number of events, postponed
+cloudbet.com
+	-www.cloudbet.com/en/sports/?livecenter
+		-I can only see time/score on separate page
+	-average number of events
+	-uses bitcoin currency only
+	-due to very limited and hard to get match info, postponed
+matchbook.com
+	-I can't find the scores anywhere; it seems to have live betting with no scores
+	-no live events during recheck at 22:33 UTC
+	-no live events during recheck at 14:52 UTC
+	-no live events during recheck at 17:24 UTC
+	-due to low number of live events, I won't bother checking further, postponed
+wbx.com
+	-I can't find the scores anywhere; it seems to have live betting with no scores
+	-no live events during recheck at 22:39 UTC
+	-no live events during recheck at 14:56 UTC
+	-no live events during recheck at 17:30 UTC
+	-due to low number of live events, I won't bother checking further, postponed
+sportsbook.ag
+	-I couldn't find live soccer (UTC 02:03)
+	-has javascript, but maybe no scores
+	-I couldn't find live soccer during recheck (UTC 23:29); they have a limited number of live events
+	-no live events during recheck at 17:42 UTC
+	-carbongaming.ag
+		-included with sportsbook.ag due to similarities, they're almost identical
+	-due to low number of live events, I won't bother checking further, postponed
+betonline.ag
+	-www.betonline.ag/sports/Home/LiveBetting
+		-no live events last I checked (10:29 UTC)
+		-no live events last I checked (15:24 UTC)
+		-no live events last I checked (17:56 UTC)
+	-site slow
+	-due to low number of live events, I won't bother checking further, postponed
+thegreek.com
+	-www.thegreek.com/sportsbook/bet/quick-search/in-progress
+		-no live events last I checked (11:14 UTC)
+	-due to low number of live events, I won't bother checking further, postponed
+betus.com.pa
+	-www.betus.com.pa/sportsbook/live-betting-odds.aspx
+		-no live events last I checked (11:48 UTC)
+	-due to low number of live events, I won't bother checking further, postponed
+topbet.eu
+	-topbet.eu/sportsbook/
+		-no live events last I checked (11:55 UTC)
+	-due to low number of live events, I won't bother checking further, postponed
+sportingbet.com.au
+	-www.sportingbet.com.au/live-betting/#offcanvas
+		-no live soccer when I checked (13:04 UTC)
+		-I couldn't see live results for the tennis events
+	-top banner reads "Powered by William Hill"
+	-due to low number of live events, I won't bother checking further, postponed
+centrebet.com
+	-centrebet.com/#Sports/Live
+		-no live soccer when I checked (13:04 UTC)
+		-I couldn't see live results for the tennis events
+	-top banner reads "Powered by William Hill"
+	-due to low number of live events, I won't bother checking further, postponed
+
+low priority:
+bwin.com
+	-has mostly flash version
+	-has non-flash at https://sports.bwin.com/en/sports/4/betting/football#sportId=4
+		-lower-right corner
+			-it shows at least 1+4 events, don't know if all
+			-1+4 seems to be max
+			-shows only score/time/period
+	-doesn't take scores from betradar
+	-due to limited number of events and available info, low priority
+betinternet.com
+	-has only time(HT for break) & scores on one page at:
+		-http://www.betinternet.com/en/Sports.bet
+	-has only score on one page at:
+		-http://www.betinternet.com/en/InPlayConsole.bet
+	-you have to click on a javascript element for details
+		-ht score not available by itself, but can be calculated from incidents
+		-not all events have incidents bar; individual click on each incident
+	-time is very innacurate, both on single page and on separate
+	-doesn't get scores from betradar; some events not on betradar, some incidents not present on betradar
+	-due to limited info, or harder to get details, low priority
+sbgglobal.eu
+	-gaming2.sbgglobal.eu/login/Lobby?servmod=2-1#
+		-needs login
+		-no live events last I checked (10:39 UTC)
+		-time/period/score on single page
+		-detailed statistics on separate page, including ht score
+			-has a strange refresh every minute, refreshing the whole page
+	-has small number of events
+	-minutes match those on betradar, though I did limited checking; however it has corners statistics
+	-due to low number of events, low priority
+
+average priority:
+rivalo.com
+	-www.rivalo.com/en/sportsbook/
+		-minute/score
+		-doesn't always include all events (the missing event dissapeared from the other link as well soon after)
+	-www.rivalo.com/en/live-betting/
+		-minute/score/period
+		-doesn't offer further info than this page
+		-can't calculate ht score
+	-average number of events
+	-doesn't take scores from betradar; events are different
+	-some events keep dissapearing before they're finished
+	-4 events on betfair (3 of them on betradar): this has exactly all 4 + 1 extra (same events as ladbrokes.com)
+		-the one 1 extra as ladbrokes sometimes dissapears
+		-one more sometimes disapeares
+	-events seem to dissapear from list if no markets available, but do show up if an event happens
+		-they might simply be hidden; or might dissapear completely
+	-due to events dissapearing before finished, average priority
+dafabet.com(dafadealer.com, sportdafa.com)
+	-sportsbook.dafabet.com/en
+		-score/period/time on a single page, no further pages available
+	-many events
+	-site slow
+	-doesn't take scores from betradar; events are different
+	-4 events on betfair (3 of them on betradar): this has 4 (3 from betradar + 1 extra from ladbrokes.com)
+	-due to slowness, average priority
+28cash.com
+	-www.28cash.com/en/sportsbook/euro
+		-score/time/period
+		-no further info on separate pages
+	-many events
+	-doesn't take scores from betradar; events are different
+	-4 events on betfair (3 of them on betradar): this has 4 (3 from betradar + 1 extra from ladbrokes.com) (same dafabet.com)
+	-due to slowness, average priority
+
+----------
+
+ladbrokes.com
+	-can be scraped, but not enough info without scraping events in separate windows
+	-sports.ladbrokes.com/en-gb/BetInPlay
+		-without refreshing, it doesn't seem to show some new events
+		-only score on single page
+		-detailed info on separate pages, including ht score
+	-doesn't take scores from betradar
+	-good, detailed statistics
+	-4 events on betfair (3 of them on betradar): this has exactly all 4 + 1 extra
+guts.com
+	-www.guts.com/ca/Sports/Live
+		-show score/period/time on single page; click on script for separate pages
+		-on separate page cards(y & r)/corners/goals; not always including all these statistics
+		-on some matches with detailed statistics, separate page is flash
+	-doesn't take scores from betradar; events are different
+	-I've seen the yellow cards stats off (3-3 instead of 2-2)
+	-4 events on betfair (3 of them on betradar): this has exactly all 4 + 1 extra (same events as ladbrokes.com)
+betsson.com
+	-sportsbooklive.betsson.com/en/
+		-frame: https://sb.bpsgameserver.com/LiveClient2/?token=01676e25-1378-48b1-9b17-88752ccdb2cf&sid=601&lc=en&tz=GMT+Standard+Time&dc=GBP&c=en-GB&pagemenuheaderurl=https%3a%2f%2fsportsbooklive.betsson.com%2fen%2fPageMenuHeader.aspx&mainpromourl=https%3a%2f%2fsportsbooklive.betsson.com%2fen%2fMainPromo.aspx&articleurl=https%3a%2f%2fsportsbooklive.betsson.com%2fen%2f&sidebarpromourl=https%3a%2f%2fsportsbooklive.betsson.com%2fen%2fSidebarPromo.aspx&proxyurl=https%3a%2f%2fsportsbooklive.betsson.com%2fScript%2fCross-frame%2fproxy.html&minigamesurl=https%3a%2f%2fsportsbooklive.betsson.com%2fen%2fMiniGameLauncher.aspx#/event/1303260
+		-show score/period/time on single page
+		-separate pages:
+			-cards(y & r)/corners/goals/penalties
+			-can't find way of calculating ht score
+			-details are not always available (as show as "0", which doesn't clearly indicate that)
+	-doesn't take scores from betradar; events are different
+	-4 events on betfair (3 of them on betradar): this has exactly all 4 + 1 extra (same events as ladbrokes.com)
+sportingbet.com
+	-score/time/period on a single page; no additional info after click on javascript element
+		-http://www.sportingbet.com/sports-bet-in-play/5-0-1.html
+		-http://www.sportingbet.com/sports-bet-in-play/5.html
+			-time is really screwed up, eg. min. 103 & 1st half, instead of 88' 2nd half
+	-I can't find ways to calculate ht score
+	-many events
+	-doesn't get scores from betradar; some events not on betradar
+	-4 events on betfair (3 of them on betradar): this has exactly all 4 + 1 extra (same events as ladbrokes.com)
+10bet.com
+	-en.10bet.com/live-betting/
+		-score/time/period on single page
+		-no extra info on separate page
+		-quite many events
+		-on some events the time is so wrong, it might be left running during half time break
+	-comeon.com, included with 10bet.com, as they're almost identical
+		-www.comeon.com/livebetting/
+	-doesn't take scores from betradar; events are different
+	-4 events on betfair (3 of them on betradar): this has exactly all 4 + 1 extra (same events as ladbrokes.com)
+williamhill.com
+	-can be scraped, but not enough info without scraping events in separate windows
+	-http://sports.williamhill.com/bet/en-gb/betlive/9
+		-time/score on single page
+			-period present as hidden field, but needs refresh to update
+		-detailed statistics on separate pages, ht score can be calculated
+	-doesn't take scores from betradar
+	-I saw a strange error, not fixed for a very long time, with score not updated, but time running way out of bounds for that period (min 110+ for 2nd half)
+	-strange case of event re-appearing in the list, several minutes after it had ended and dissapeared
+	-sometimes the page stop working completely or partially and needs refresh; refresh link is worthless in that case
+		-refresh link also does not update hidden period field
+		-clicking on a different list option, eg. "Show me only Football" or "Show me only All sports" refreshes all details
+			-this seems to be a real refresh, with link change
+	-a lot of times it does not add new evets without refresh
+	-codes: null, 1h, ht, 2h, fin
+	-timer on the single page sometimes lags behind a bit; refreshing page fixes it for some events, doesn't for others
+		-refresh link does nothing
+	-timer reset for half time/full time seems to be instant between separate and single pages
+	-betting odds are sometimes not updated either; refresh link doesn't do anything
+	-score can be GOAL! or something
+	<a id="ip_6642763_start" class="liveat">Live In</a> ; live in marker
+	marker for "Live" instead of timer, happened during ht:
+	<a id="ip_6710515_start" class="Score">
+				Live
+			</a>
+	font color red 2 ; for newly changed score (only for team that scores)
+	-good, detailed statistics
+	-4 events on betfair (3 of them on betradar): this has exactly all 4
+coral.co.uk
+	-sports.coral.co.uk/betinplay
+	-sports.coral.co.uk/football
+	-sports.coral.co.uk/betinplay/list/now/football
+		-scores/current period/time on one page; separate page for details, ht score has to be calculated
+		-a lot of details, a lot of matches, ht score can rather easily be calculated
+		-a minority of the events don't have details
+		-events seem to dissapear near the end, when markets closed
+		-sometimes new events score/time/period not updated, no minute/period appears
+			-odds seem to keep updating
+			-needs refresh
+			-one of the scripts seems to be broken in that case
+				-no minute/period is a good indication
+	-doesn't get scores from betradar; some events not on betradar, detailed statistics
+	-good, detailed statistics
+	-4 events on betfair (3 of them on betradar): this has exactly all 4 (same events as williamhill.com)
+betvictor.com
+	-scores and current period on one page; javascript element click for details, ht score available
+	-stoppage time not displayed in the details, so half time score can't be calculated properly; thankfully it is displayed
+	-doesn't get scores from betradar; some events not on betradar, corners statistics
+	-4 events on betfair (3 of them on betradar): this has exactly all 4 (same events as williamhill.com)
+paddypower.com
+	-can be scraped, but not enough info
+	-scraping events in separate windows has score in flash
+		-and it only has score/time/period, nothing else, same as the info on the single page
+	-can't find HT score at all
+	-has 2 different pages for scraping:
+		-http://www.paddypower.com/bet/live
+			-simpler, sometimes needs refreshing when it doesn't show changed playtime interval
+		-http://www.paddypower.com/football/football-matches/live-match-coupon
+			-sometimes doesn't show all events
+	-can't see stoppage time; at the end of first half, timer keeps running, for example 47:32, instead of 45+2:32
+	-many events
+	-doesn't get scores from betradar; there are events that don't exist on betradar; it suspends markets when danger happens and updates score sometimes faster than betradar
+	-4 events on betfair (3 of them on betradar): this has exactly all 4 (same events as williamhill.com)
+sportsbet.com.au
+	-www.sportsbet.com.au/live-betting?QuickLinks
+		-show score/time/period on single page
+		-separate pages:
+			-score/time/period
+			-can't calculate ht score
+	-long downtime during upgrade
+	-doesn't take scores from betradar; events are different
+	-4 events on betfair (3 of them on betradar): this has exactly all 4 (same events as williamhill.com)
+188bet.com
+	-www.188bet.com/en-gb/sports
+	-www.188bet.com/en-gb/sports/825946/in-play
+	-www.188bet.com/en-gb/sports/all/in-play
+		-score/time/period
+		-further info only in flash
+		-has auto refresh at 30 seconds; can be refreshed manually as well
+	-doesn't take scores from betradar; events are different
+	-good, detailed statistics
+	-4 events on betfair (3 of them on betradar): this has 4 (3 from betradar + 1 extra from ladbrokes.com) (same dafabet.com)
+winner.com
+	-can be scraped, but no half time score
+		-sports.winner.com/en/football
+			-time/period/score
+	-separate pages are in flash
+	-titanbet.com ; identical to winner.com, included here
+		-http://sports.titanbet.com/en/football
+	-doesn't get scores from betradar
+	-4 events on betfair (3 of them on betradar): this has exactly the 3 from betradar
+sbobet.com
+	-www.sbobet.com/euro/live-betting/football
+		-score/time/period
+		-no further info on separate page
+		-has auto refresh at 60 seconds; can be refreshed manually as well
+		-to show some events you also click on "Asian handicap"; not all present on under 1x2
+	-doesn't take scores from betradar; events are different
+	-4 events on betfair (3 of them on betradar): this has 2, present on betradar (as betway.com) and 1 extra (from ladbrokes.com)
+youwin.com
+	-www.youwin.com/en/bet-live
+		-time/score(or just "live") on one page
+		-additional info on separate pages
+			-time/period/score, no ht score
+			-detailed statistics with additional clicks
+			-not all matches have details
+	-doesn't get scores from betradar; some events not on betradar
+	-4 events on betfair (3 of them on betradar): this has 2, present on betradar (same events as betway.com)
+betway.com
+	-has score/period/time on a single page, javascript element for the rest, no ht score available but could be calculated
+		-inplay.betway.com
+	-doesn't get scores from betradar; some events not on betradar, detailed statistics
+	-4 events on betfair (3 of them on betradar): this has 2, present on betradar
+bet-at-home.com
+	-score/time/period on a single page; additional info after click on javascript element, has ht score
+		-https://www.bet-at-home.com/en/sport/live
+	-doesn't get scores from betradar; some events not on betradar
+	-4 events on betfair (3 of them on betradar): this has 2, present on betradar (same events as betway.com)
+en.betclic.com
+	-only score/period on single page:
+		-https://en.betclic.com/calendar/football-s1i1
+	-score/time on a single page
+		-https://en.betclic.com/multiplex
+	-details on separate page; seems to include ht score
+	-has interesting option to include javascript frames with more events on a single page
+		-at most 4 events per page
+	-has average number of events
+	-doesn't get scores from betradar; some events not on betradar
+	-4 events on betfair (3 of them on betradar): this has 2, present on betradar (same events as betway.com)
+betcoin.ag(betcoinsports.com)
+	-http://www.betcoinsports.com/Live
+		-I can see score/period/time on single page, no further details available
+	-doesn't seem to take scores from betradar, as events are different
+	-uses bitcoin currency only
+	-4 events on betfair (3 of them on betradar): this has 2, present on betradar (same events as betway.com)
+
+----------
+
+https://forums.digitalpoint.com/threads/where-i-can-get-live-score-xml-feeds.314899/
+	-sometimes, when goals seem to be scored, several scrapers can be wrong at the same time, this problems being even worse with non-bookie scrapers, eliminating their usefulness
+	-interesting score sources
+	-http://www.scorespro.com/soccer/
+		-seems to not get scores from betradar (some events not on betradar and rare details differences)
+		-scoreline only has 10 events max; the entire list is further down
+		-shows UK scores on UK ip, not like betradar!
+http://www.sportsbookreview.com/forum/handicapper-think-tank/73021-deconstructing-matchbook.html
+	-some bookies offer XML feeds that may include score(pinnacle)
+very detailed statistics sites: 188bet.com, williamhill.com, coral.co.uk
+betradar doesn't show UK scores on UK ip, which reduces its usefulness
+	-checked on coral's betradar as well, same situation; layout is somewhat different, probaly a bit worse
+
+----------
+//placing orders is disabled in the program; program won't be run until I realise what was wrong; until I add a second scraper
+	//-I saw what happened; the away score was reduced from 2 to 1; error in the feeder website score
+	//-a goal that was cancelled appears for minute 81' on another website(livegoals.com), so it might have been refree decision
+		//-but they might have had an identical source
+		//-I didn't see the market suspended on betfair
+	//-score was moved back after 41 seconds
+	//-betradar not reliable; I have to use betfair.com and maybe bet365/williamhill/ladbrokes etc as backup; coral used for now
+		//-list of large companies: http://www.statista.com/statistics/270757/revenue-sports-betting-companies/
+		//-according to forum posts, betfair is not reliable either; plus I need their errors to make profit; won't be used
+		//-I should get 2 big betting sites and only bet when both scores identical
+	//-in the beginning 1 more bookie who doesn't get bets from betradar should suffice, in parallel with betradar
+	//-when one scraper finds safe market (or just OPEN with safe bets safemarket?)
+		//-the scrapers that don't agree should enter speed mode, untill 1 agrees
+			//-during that time, the other scrapers should slow down to accomodate; probably no slow down needed
+	//-after I add a second scraper, reduce the blackList times and maybe only remove that particular scraper, not everything; obsolete now with ignore support
+		//-quite important as I will add 3rd scraper, not so important with the 2nd
+	//-there will be a mechanism to refresh betradar if it differs by at least 2 events and hasn't been updated in a few minutes
+
+//caractere ciudate in matcher.txt; in fisier trebuie scrise numele parsuite de caractere ciudate:
+//printarea in matcher.txt, timeout mai mare pentru protectie printare dubla; 3 hours
+//pus in matcher.txt scorul potrivirii pt home/away si atunci cand este facut match, nu numai la fail match
+//intrare in matcher.txt la sub 0.88; 0.82 insa?; cel mai bine flag privitor la tipul de match; inca nu, .95**2=0.9025
+//mesaj eroare dublura la citire aliases[full].txt, cu timp lung de neprintare dublura
+//limit for first 2 minutes has to be reduced alot, probably from 37.5% to 10%
+
+//removal of scraperEvent/event/market results in purge(without timer); obsolete now with ignored support
+//in some cases, purge only if no longer 2(default static final value) matched scrapers?; obsolete now with ignored support
+//remove from marketCatalogues[Important] and safeMarketBooks if no longer 2 matched scrapers(nMin final value); obsolete now with ignored support
+//remove safeRunners after more complex check on each; obsolete now with ignored support
+	//-if timed ban, maybe place on ignore anyway for a while, even if enough matched scrapers left
+	//-else only remove if no longer enough matched remain
+//in case of purgeEvent, all associated markets are purged (this should be rare)
+//in case of purgeScraper, don't purge event, but only remove scraper from matched list, and continue with checking markets and bets for that particular scraper; obsolete now with ignored support
+//purgeEvent takes the matched event out of matchedScrapers
+
+//atomicLong approximateTime value, updated in a thread every 100ms, to avoid too often calls to System.timeMillis; likely not needed, currentTimeMillis is fast enough
+
+//static AtomicBoolean flag allowing betting (can be modified manually, by command line flag or by socket command)
+
+//a lot of errors in coral from the same scraperEvent; related to the fact ignoraing doesn't work yet; will stay this way untill ignoring works properly
+//added checks in betradarscraper for the other 2 click (especially the ordering one), and maybe reduce the delay between clicks to 1 second
+//why doesn't the program die ?; hang during socket close ?; more info output was added to diagnose
+//"will not set new ignoredExpiration" info filling logs
+//use gson-fire for some timeStamps; too complicated, best not
+
+//should review new markets
+	//-ANYTIME_SCORE has to be implemented
+
+//create a marketsUnderTesting set of markets that won't have runners added to safeRunners in FindSafeRunners
+//scraperEvent.resetMatchedEventId(); I'm not convinced that is necessary for ignore -> commented out
+
+//SynchronizedMap remove methods replaced with BlackList methods; leave maintenance thread for last
+
+//what happens with scraperEvents and events with errors when ignore expires?
+	//-revizuit motivele pentru care se aplica ignore; sometimes remove might be an option; or the other way around; it's probably good in general, I might review at a later date after testing
+
+//verificare folosire .isIgnored(), pentru a fi sigur ca se foloseste varianta corecta
+
+//maintenance: verificare toate eventurile care au scraperEvents cached, daca mai exista acele event-uri in map-uri
+
+//scraperEvent was purged (ignored); what happens when ignore expires ? (if associated event gets enough nMatched, readd the markets); might review after testing
+	//-removing the markets breaks the contract of not removing; ignoring the markets doesn't work in the case of >2 scrapers; so remove might stay; might review after testing
+
+//when I use .add in the maps, and a new element is added, I should check for ignore and existance on that elements parent; parent is one of the 3 ignorable elements
+//check for ignore on all existing elements should also be done in maintenance
+
+//ignoreList keeps the ignored elements in the main lists (event, scraper, maybe market if still minMatched), but removes from secondary and doesn't readd while ignored
+
+//ScraperEvent.errors() can receive an added value at the end of the method if ignored; this would simplify things; best not, error is different from ignore
+
+//no longer need for lists if an internal ignore timed flag is set in the object
+	//-the problem is the way this flag is used, internally; likely can't be used just internally
+	//-the flag will be checked externally
+	//-flag will be present in scraperEvent and Event, and probably MarketCatalogue
+	//-flag will be a simple boolean and also long expiry time
+		//-if boolean false, nothing to be done
+		//-if boolean true, check time and if expired, set to false
+//ignored should be used for matching, else this would lead to an error regarding twoPotentialMatches; this means auto purging for ignored should be very limited
+	//-purging should not be done for matched partners variable, except for specific and rare cases
+//ignored should be checked when adding interesting markets, so purging should be done from market down
+	//-ignored should be checked for any operation further down the line from interesting market, like safe bet, mostly for the case of objects already being accessed
+		//-checking for existing object in maps, coresponding to the accessed object, should get rid of this necessity of checking for ignored
+	//-actually marketCatalogues are Ignorable, so they don't need to be purged, just set the ignore flag
+
+//in twoPotentialMatches, errTotalMatchList & errScraperEventList transformed into lists of lists
+	//-in the end, these lists will have their matching partners removed (which should very rarely exist and their existance should be printed as error)
+	//-the matching logic has to be reviewed
+
+//verificare notExistOrIgnored atat inainte cat si dupa adaugare (sau modificari care adauga); am facut verificare notExist mai buna cu putIfAbsent
+//if ignored is checked, is false, then it becomes true in another thread removing from secondary maps, then putIfAbsent is called, an ignored associated secondary element can be added
+	//-permanent ignore added for secondaries; during update, ignore check and if ignored and main parent not ignored, then reset ignore
+	//-permanent ignore added in Ignorable, MAX_LONG; setPermanentIgnore, resetPermanentIgnore, isPermanentIgnored
+	//-permanentIgnore now is supported by the objects, but not implemented in the program; an additional check after add seems sufficient for now
+//in case a scraperEvent is removed or ignored, but the matched event still has enough scrapers, check the safe* (safeRunners mostly) that they have enough scrapers and update the situation on them
+	//-verificare ignore la update/add safe*
+
+//coral no ht scores problem has to be solved
+	//-is it safe to let them exist without HT score? (check safeRunners)
+	//-together with lower ignore times for coral right after the update, this will solve the Coral issue and I'll remove the extra delay after getPage for coral
+	//-events shouldn't be ignored at all, as they'll be attached to many scrapers
+		//-event update should probably not update the list of matched scrapers at all, or do it in some synchronized way to avoid problems with it being updated in a parallel thread
+		//-this will solve these kind of problems: betradar null event in map, timeSinceLastRemoved: 8644 for matchedEventId:
+	//-ignored events and scraper events should still be considered for matching, else matching errors
+	//-purging an event creates this problem as well
+		//-alternative to purging; not easy; maybe simply reduce the situations where purge happens
+			//-in most cases, just ignore that event for a while
+			//-blackList transformed into tempIgnore list
+				//-still removed from the secondary lists, but only if that particular scraper was used for matching
+				//-betradar null event in map, timeSinceLastRemoved: 9483
+					//-this should be fixed after blackList transformed into ignoreList
+					//-it's caused by the event being purged by the other scraper's error
+				//-ignoreList will continue being updated; the event/marketCatalogue and scraperEvent will simply be moved to ignore list and then back
+					//-error check if the object is already present in the regular list when it is returned from the ignoreList
+					//-when an object is attempted to be modified in a way that would blacklist it, the modification should go ahead (or be ignored in some cases, like coral)
+						//-in coral case however, for example, there is a case when period stays HT, not updated, and score changes, leading to a nasty error with no fix
+							//-such cases of variables that are generated artificially and not updated for the remainder of the game should be treated differently
+								//-in coral case, for example, after such an error, HT score could be removed completely for that event
+						//-actually even in cases like coral errors, modification should go ahead, as it's not possible to distinguish from real errors
+						//-modification not only inside the ScraperEvent and overriden methods, but also in the outside methods where an error situation now stops update
+						//-removal seems to be necessary only for the 4 safe* maps, and only if that scraper was used for making them safe
+							//-I should record which scrapers were used for safe; if less than 2 (MinMatch) remain unignored, then remove from safe
+								//-if removed from safe, start check on those markets
+								//-events don't need checking, as the only condition for them is to have matched scrapers
+									//-unless extremely rare errors affect that
+								//-simple solution:
+									//-a set of clazz/scraperId pairs that were used for matching will be attached to the safe object
+									//-set will contain clazz/scraperId pairs used for any details needed for that safe object
+										//-for example some markets will need matchStatus + score , others might also need htScore etc
+											//-all the scraperId/clazz pairs used for that particular safe object will be added to the set
+											//-if a single such pair is affected, the object is no longer safe
+											//-however, sometimes there might be more than 2 scrapers contributing
+												//-so I should have sets for each attribute used, like score/matchStatus/htScore etc
+													//-if the set associated with any attribute has < 2 scrapers, object no longer safe
+													//-more scrapers can be added over time to those sets
+														//-this might need checkAll findsafe run
+													//-every safeRunner will have such sets associated
+													//-scraper info no longer needs be equal, it needs to satisfy runner's attribute requirement
+														//-this leads to an extremely dangerous modification of findSafeRunners
+															//-needs testing before it is allowed to place bets
+	//-very new safeRunners, in their first 20 seconds of existance, might get temporary ignore if 1 attached scraper gets ignored, even if they have enough scrapers left
+		//-this addresses the problem of situations that look like a goal and might result in error on several scrapers at same time
+			//-hopefully betfair will have the markets suspended until 1 of the scrapers realises the error and takes the score back
+//the way findSafeRunners uses the scrapers is a good way to start the modification, as it's too basic right now
+	//-still to go, checkAll version; it might work the wat it is, I'm not sure
+	//-posibility of modifying the attached scrapers in findSafeRunners
+
+//-ScraperEventMaps containing all scraper event maps; idea is scrapped for now, as I'm not convinced there would be benefits, and I could get a performance hit
+	//-fully synchronized and encapsulated, with no direct outside actions on the maps
+	//-serialized, will be read/saved to disk instead of individual maps
+	//-modification is pretty big and it will be followed by project wide search for "etradarEvent" and "oralEvent"
+	//-similar thing done for an object containing the ScraperThreads
+//listCurrentOrders/listClearedOrders support for moreAvailable
+
+//complicated issue regarding SafeRunner ignore support
+
+//during update values are added in both temp and non-temp; as update completes, temp values + current/cleared orders replace the non-temp
+
+//system that holds the amounts placed per event and per market
+	//-taking the values from PlacedInstructionsList, CurrentOrderSummary and ClearedOrderSummary is left
+	//-a static object will be created to hold all values
+		//-I can't keep the object locked while the amounts are checked
+		//-the object will hold the entire sets of ClearedOrders and CUrrentOrders in a temp value; no need
+			//-also in a temp value the orders placed during the check; same orders are also added to the non-temp values
+			//-after the online check is completed, the Orders are parsed and orders placed during the check will be added, in a synchronized way
+			//-there will be a boolean that holds whether an Orders check is in progress
+			//-I need to add eventId to CurrentOrderSummary
+				//-problem is removeMarkets in case of no longer enough matched scrapers eliminates the ability to find the eventId
+	//-values from CurrentOrders & ClearedOrders are added
+	//-values placed from the last check attempt are also added
+	//-amounts are checked periodically, best in a dedicated thread
+	//-cancelOrders causes amounts to be rechecked (a variable needsPlacedAmountsCheck will be activated)
+
+//remove most bugs, then put program into production
+
+//timedLogOnce map should print a message when the string is removed from map
+	//-time stamp of first appearance, in regular time format, for finding the original message (this actually might not be good enough as clock might not be accurate enough)
+	//-how many times has the message appeared, and what was the total time the message was in the map
+	//-for this to work, total time in map can no longer be 24h, it hsould be 3h or less
+//betradar scraperEvent scraperErrors: 52428800
+	//-print much less, or nothing, when scraper, and other ignorables are already ignored; 5 minute timed logOnce used
+//ignored set seems to be printed twice
+//2016-05-11 14:31:48.722 CoralEvent matched t:0.8938439450185323 h:0.9120856581821758 a:0.98 event: fc vereya sz u19 v litex lovech u19 scraper: fc vereya stara zagora u19 / pfc litex lovech u19
+	//-maybe not print the cases where matched < 0.9 and both h&a > 0.9
+//maybe increase reserve from .25 to .5; once I add unsafe Betting, .5 reserve might be a better idea
+//canceled orders without order being placed; normal behavior when not enough funds
+//betradar bad error; filling with saved pages might be ok
+//matched stamp support (implemented in classes already, now use it)
+//info.fmro.betty.utility.WebScraperMethods - coral 0 htmlElements found for; solved, will no longer fill logs
+//elements in linkedBlockingQueue:; load was simply big on the server, related are the delays applies to coral scraper; this might be reviewed later, when I optimize the program
+
+//replace null and negative returns from functions, that mean error, with exceptions, and handle those exceptions; uhh, maybe not
+
+//U19, U21, II etc are suffixes, that will be cut, then string compared to aliasesfull, then suffix pasted back; same can be done with prefixes like FK
+	//-modificare in aliases[full].txt
+	//-faptul ca prefixele si sufixele nu mai sunt luate in considerare va elimina o parte a problemelor de matching, dar poate genera altele
+		//-vor fi luate in considerare la matching de stringuri, nu vor fi luate in considerare doar pentru aliases
+//somewhat readable team names in matches.txt
+//deadlock again !!!
+	//-check synchronized blocks
+	//-compareTo, equals and hashCode on final (or immutable?) objects
+	//-check synchronized methods
+	//-BlackList purgeScraper & purgeEvent (3 methods)
+		//-dupa, incercat lambda
+
+//limit per betfair event implemented
+	//-this is arguable and it would reduce profit
+	//-high odds lay bets would no longer be accessible
+	//-with more matched scrapers, this problem will partially get solved
+	//-I could set the limit for runners less than 2 minutes old for a particular event
+		//-limit should be lower for more matched scores scrapers
+			//-number of scrapers matching that particular runner should be kept in a variable
+				//-matching score, htscore, period etc; minimal value is important
+	//-can be offset by reducing the overall limit to 25% of total and having the first 2 minutes limit at 50% of remainder (or another value)
+	//-first 2 minutes limit needs to be applied for scores, but probably not for htscores and period
+	//-with 3+ scrapers matched for those particular runners, no limit
+	//-print runner limit as well when a bet can't be placed due to insufficient funds
+//map of eventIds to map of timeStamps and amounts (if same timeStamp, amount is added to current entry)
+	//-cleaned every minute or some other interval in maintenance
+	//-also accessed value is cleaned/updated when used (best with SynchronizedMaps)
+	//-amount entries expire after 2 minutes from timeStamp
+	//-best is to replace timeStamp with expiryTime, which will be SafeRunner timeStamp + 2 minutes
+//SafeRunners should keep the timeStamp of them being added, and the minimum number of matched scrapers for score, where score is used, else -1 to imply value not needed
+		//-can the number be obtained from the maps in SafeRunners ? or is that too expensive?
+			//-if too expansive, the value should be updated every time there's a modification (method for update)
+	//-timeStamp will only be important if minimum matched score scrapers is 2 (-1 or >=3 results is no additional limit, 0 or 1 implies error and should not exist)
+	//-then amount should be kept in SafeRunners as well
+
+//AGF Fudbold
+//2014-11-27 20:36:49.634 CoralEvent twoPotentialMatches not matched 0.98 event: Estoril v PSV to Estoril-Praia / PSV
+//2014-12-06 12:05:13.853 CoralEvent matched 0.8357915439117723 event: ASO Chlef U21 v USM Bel Abbes U21 scraper: ASO CHIEF / USM BEL ABBES
+	//-only 1 letter is different, there should be an additional check to skip letters from both strings
+		//-tests, as this could lead to new matches
+//Important Changes to Correct Score (Market Type)
+//double error resulting in large loss:
+	//-14:13:07.320 [pool-1-thread-1164691] INFO  info.fmro.betty.main.FindSafeRunners - Safe market 1.116564925
+	//-14:13:07.373 [pool-2-thread-8213219] INFO  i.fmro.betty.main.QuickCheckThread - safe bet in not active market: 1.116564965
+	//-14:13:28.210 [pool-2-thread-8213428] INFO  i.fmro.betty.main.QuickCheckThread - safe bet in market: 1.116565015 marketStatus: OPEN
+	//-14:14:57.431 [Thread-6] ERROR info.fmro.betty.objects.ScraperEvent - REVIEW betradar homeScore 1 reduced to 0
+	//-14:17:48.898 [Thread-7] INFO  info.fmro.betty.main.ScraperThread - coral scraper page finished executing
+	//-14:17:49.369 [Thread-7] ERROR info.fmro.betty.objects.ScraperEvent - REVIEW coral homeScore 1 reduced to 0
+	//-check for other blacklisted safebets saved in file
+//program doesn't exit
+	//-updated program version which supposedly solves deadlocks had not been uploaded; there was only partial solving
+	//-additional superficial anti deadlock check
+	//-which thread didn't die?
+	//-java.lang.OutOfMemoryError: Java heap space
+		//-still alive thread might have memory leak; actually htmlunit might have leak
+//bets that are exactly size 2.0, don't get the extra .01 ?; they actually do, those with 2.0 size were undersized bets
+//many ERROR messages problem
+	//-obviously nMatched is sometimes 0 and sometimes 1(??!); why 1???, probably because 1 has the default value; 0 when none has default value but they're different
+	//-obviously only the relevant sets will be used in creating the safeRunner, not all of them as it is done now
+	//-the check against default values will probably be dropped
+//04:27:12.161 [Thread-7] ERROR info.fmro.betty.main.ScraperThread - coral threadSave still alive: won't refresh yet
+	//-strange why only printed once, though expiry time for message was 5 minutes; Formulas.logOnce seems to work properly, there might not be an issue in general
+//aliasesfull tests for problem; problem in Formulas found and fixed
+//tests logging problem; no solution, logging is broken during testing
+//no marketIds found for: 27302132
+	//-is it normal, or will be kept as ERROR ?; happens many times
+//11:32:17.753 [Thread-6] ERROR i.f.betty.main.BetradarScraperThread - betradar null event in map
+//abnormally large number of score reset errors; betradar or coral related?
+//buffers in memory for matchTeams method results
+	//-parseTeamString buffer is probably not needed
+	//-unfortunately buffer will probably be reset with every modification of the 2 static maps
+		//-from command input or read from disk
+		//-this means saving the buffer to disk would be of no use
+	//-buffer entries could still expire after a while, in case of very long periods of program running
+	//-this will allow better forbidden characters check on the string (a-z 0-9 " ")
+//2014-11-11 19:04:38.562 safeBet seenFor 0ms
+	//-no bet attempt visible on betfair
+	//-they do appear now; cancelled orders appear in betfair website logs after market settle
+//04:56:13.747 [Thread-7] ERROR i.fmro.betty.main.CoralScraperThread - coral scraperEvent scraperErrors: 819200
+	//-no ht score error happening although program had been running for a long time
+//coral updates every time from seconds?; yeah, now fixed
+//coral only needs 1 average logger
+//program deadlock !!!!!!
+	//-program was still running at high load after stop, with htmlunit errors still appearing
+	//-clock jumps a lot into the future
+	//-sending commands takes very long
+
+//create new class and start scraping tests
+//timeStamp for when bet first became safe; can be used for safe bets even with 1 scraper (but is still risky, so better not; error can last most of the match)
+//make a simple single browser scraper work and integrate it into the program, the more complex solutions will be added later
+//coral: sometimes auto-choosing football only doesn't seem to work
+	//-in browser either
+	//-needs support for this case
+	//-related with support for selecting only football that is needed anyway
+		//-sometimes new events don't appear without refresh; refresh time reduced to 5 minutes
+		//-sometimes new categories appear
+		//-sometimes all football matches are gone
+		//-scripts related to some events might be working, while those related to others not, at the same time
+			//-usually the script that updates time/period breaks; score doesn't seem to update either
+				//-sometimes the time/period doesn't appear, other times the time keeps running
+			//-it seems I need to refresh the page once in a while, to be sure
+				//-refresh every 15 minutes
+					//-new page being loaded, threaded
+					//-during load, the previous page keep scraping
+					//-after load, the webclient is shutdown and replaced with the new one
+
+//add averageLogger support for Coral
+	//-average logger transformed into an object that takes an N number of long variables and puts them into N List<Long>
+		//-it will work for any number N
+	//-the logger pattern string is a final variable of the averagelogger
+	//-2 loggers so far, 1 in getmarketbooks and 1 in scraperThread
+	//-expected runs method will be put in the declaring class and will be transmitted via constructor as a Method
+//ways to implement multiple matched scraperEvents in Event.class
+	//-applied later in matchedEvent method
+	//-the multiple versions of matchevent run timed
+//version for getting maxMultiple for other values than 2; it will have nMinMatched as argument
+//LaunchCommandThread("mapEventsToScraperEvents" will have to have an added class argument
+//ht score set when seeing ht in coralEvent
+//findSafeRunners will use ScraperEvent
+	//-at least 2 matched scrapers have to agree
+		//-not easy to implement
+		//-fairly unsafe if the other scrapers don't agree, but I'll think about that after 3rd scraper
+//findInterestingMarkets, only if at least 2 scrapers matched
+
+//aliases file update does not launch matcher; should launch at least full, maybe checkAll
+//reduce number of logging: "betradar found started game after not started"; stopped completely
+//sometimes coral has no time/period for an event; same in details (match is going and the score is updated)
+//scheduled maintenance: http://content.coral.co.uk/500/500-4.html
+//coral timer script is extremely imprecise in htmlunit
+//get divisionFootball just like betradar scraper, with refresh if not found, but also with timer for not refreshing too often
+//check for site under maintenance error, with refresh option , but also with timer for not refreshing too often; not needed
+//same bookmark system as betradar thread
+
+//transform aliases maps (3 of them) into list + map or treemap or some other fast iteration solution; linkedHashMap
+	//-list/treemap are also important because of ordering, which is needed
+	//-contain for fullMap
+//aliasesMap & fullAliasesMap into files
+	//-read at start of program
+	//-disk file lastUpdateTime memorized in static variable
+	//-maintenance check file for lastUpdateTime every minute
+	//-command added for immediate file update
+	//-error in case new map smaller
+	//-strings surrounded by ""
+	//-separator is of no importance, as the chars between 2nd and 3rd " get ignored
+	//-command to print aliases maps, for debug
+//not including NOT_STARTED/POSTPONED betradar events in matching
+	//-only doable if I know betradar event and betfair event started at rouglhy the same time
+		//-which means I've seen them from the start
+		//-algorithm for this is mandatory
+	//-not_started/postponed betradar not scraped at all
+		//-if found removed
+			//-support for when matchStatus is changed; maybe support in the errors method too
+	//-events in their first minute of play not matched
+		//-openDate is just an approximation, can't be used for the exact time
+		//-I have to create a variable firstSeenLiveStamp, which will be used
+			//-it can only update to older
+			//-try to update to more recent has no efect
+		//-their start time will be checked against last scraper update time
+			//-scraper update at least 1 minute more recent
+			//-I think scraperEvent timeStamp can be used; no, it only updates on "status_recentChange"
+		//-matcher to run 1 minute after first seen
+//LaunchCommandThread split, or some way of handling sets with different elements as arguments
+//http://stackoverflow.com/questions/25481381/why-webclient-in-htmlunit-consuming-more-execution-time
+//install everything on server
+	//-dovecot + postfix settings
+	//-ftp
+	//-sockd
+	//-vnstat
+	//-timesynch
+	//-user.sh for environment variables, srm script
+	//-c utils
+	//-java
+	//-secure everything else
+	//-diskcheck
+	//-backup keys and config files
+	//yum-config-manager --add-repo http://apt.sw.be/redhat/el6/en/x86_64/rpmforge
+	//http://apt.sw.be/RPM-GPG-KEY.dag.txt
+	//iptables -A INPUT -p tcp --dport 995 -j ACCEPT
+	///etc/init.d/iptables save
+	///etc/init.d/iptables restart
+
+//start running java prog on the server
+	//-input file needs to be encrypted
+	//-not all key files need to be uploaded
+//solve the auth error in the program
+	//-with anti-throttle
+//open port 5734 on the server
+	//-why not using it ?
+	//-error management in the program when it can't open a certain port
+//there's an obvious encrypt problem, as it doesn't work locally either
+//"x" script doesn't work locally !?!? ; added something similar on the server
+	//-local x not added to path; add to path
+//support for the case betradar page no longer gets updated
+	//-when there are live events, minutes keep changing, but events don't get updated just for that
+		//-events actually do get updated even for that during fullRun and checkAll
+		//-a variable should keep last update time of an event, easy solution
+	//-fairly difficult for the case when there are no live events
+		//-I could simply refresh once in a while when there's nothing live and nothing has changed
+			//-NOT_STARTED events are not scraped so they don't change at all
+//reuse SSL sockets
+	//-CloseableHttpClient not getting closed in my program ?
+	//-http://www.baeldung.com/httpclient-connection-management
+	//-http://hc.apache.org/httpcomponents-client-ga/tutorial/html/connmgmt.html
+	//-https://wiki.apache.org/HttpComponents/HttpClientConfiguration
+	//-http://stackoverflow.com/questions/21237391/apache-httpclient-4-3-setting-connection-idle-timeout
+	//-add this to auth too; I don't think that's possible, due to special SSL auth being used
+//firefox 31 tests on pages that didn't load on coral and whill; done, no real improvements
+
+//update activated at minute change ? if not, why not ?; it should trigger updated; it does trigger updated
+//betradar events are probably not scraped when period changes, or are they?; they are
+	//-1st minute 1st half does activate recentchange
+	//-Ended seems to activate it too; it does
+	//-seems to work with Half time too, though it also activates recent change on the away team name
+//recentlyended status to be checked too?, in both errors and scraper; if recently modified is not activated as well; not needed
+	//-match filterable  status_result status_recentlyended status_next
+	//-this should be scraped only once per event, unless it's too processor expensive to implement this
+//warning if scraperevent modified during fullRun, with enough details to see what was modified; not needed
+
+//nScraped 0, many(most of) times, and I can see the "recentChange" on the pages!; modification made, testing now; seems to work
+//check all sites to see which don't get scores from betradar; build a shortlist
+
+//make timeJumpDetector detect all jumps; right now it has a blind spot between timeAfterSleep and timeBeforeSleep
+//smaller or no blacklist in case of update from older object; maybe just in case of jump ? that would require very good jump detection
+	//-strange: ERROR info.fmro.betty.objects.ScraperEvent - attempt to update from older object
+		//-proper jump detection with all 3 timestamps checked for scraperEvent; the error still seems strange
+//slightly improved nMaxLive for the case of fullRun
+	//-sometimes ~10 events after not started
+//improved scraperErrors log messages from inside ScraperEvent class
+	//-this will also allow scraperBanTime to be set for each individual error; a significant improvement
+//in QuickCheckThread ensure at least 1 marketBook fullRun every 2000ms; I'm not sure if this is necessary; it IS necessary
+//solve this error and support for not filling my logs:ERROR info.fmro.betty.main.JsonConverter; ERROR i.f.b.main.RescriptResponseHandler
+//many of this kind of errors, I should see what the problem is:
+//14:40:36.886 [pool-2-thread-281351] ERROR info.fmro.betty.objects.SafeBetStats - attempt to set older by 1465 ms timeLastAppear for: (timeFirstAppear=1413643227079 timeMarketBookCheckBeforeAppear=1413643226548 timeScraperEventCheckBeforeAppear=1413643225036 timeLastAppear=1413643236870 timeFirstNotAppeared=0 nAppeared=41)
+//filling my logs:
+//14:42:20.836 [pool-2-thread-282796] ERROR info.fmro.betty.entities.MarketBook - attempt to update MarketBook from older by 2338 ms object:
+//around the same time, wow:
+//14:42:22.021 [Thread-5] ERROR i.fmro.betty.main.WebScraperThread - reducing neededExtraDelay from 8012ms to 1000ms
+//listMarketCatalogue not part of a pool?; it's not:
+//14:42:26.216 [Thread-1815] ERROR info.fmro.betty.main.HttpUtil - finishing sendPostRequest with errorCounter: 11, isPlacingOrder: false, operationString: listMarketCatalogue
+//14:42:26.434 [pool-2-thread-282842] ERROR info.fmro.betty.main.HttpUtil - finishing sendPostRequest with errorCounter: 11, isPlacingOrder: false, operationString: listMarketBook
+
+//improvement of betradar scraper so it only takes first few events (live ones)
+	//-checkAll version added
+	//-checkAll will see if live events further than last live event exist
+		//-will prin error message
+		//-will disable improvement, until error no longer persists
+
+//groups of 11 safemarkets to get marketbooks non-stop, with 200ms anti throttle
+	//-smaller timeouts in httputil possible, but what if lag?, support for lag case with increased timeout
+	//-also the entire safemarkets method might be threaded out and run in parallel (launched every 210ms)
+	//-Statics.timeStamps.safeMarketsMapLastAddedStamp() might help me deciding when modified safemarkets ? or not?
+	//-when findSafeRunners gets new markets, run thread for those right away somehow
+
+//1: i can't have unlimited potential threads running
+	//-http://tutorials.jenkov.com/java-concurrency/creating-and-starting-threads.html
+	//-http://tutorials.jenkov.com/java-util-concurrent/threadpoolexecutor.html
+	//-in the end test for when pool is filled (with max set to 1)
+	//-monitor for number of running threads added in maintenance
+//1b: for scheduled tasks, this is worth checking:
+	//-http://tutorials.jenkov.com/java-util-concurrent/scheduledexecutorservice.html
+	//-not required right now
+//1c: callable instead of runnable might be best:
+	//-http://tutorials.jenkov.com/java-util-concurrent/executorservice.html
+	//-Use case of not using Callable: ScheduledExecutorService.scheduleAtFixedRate and scheduleWithFixedDelay accept only Runnable
+	//-will use Runnable for now; Callable not needed
+//2: some getmarketbooks don't run and don't die, probably due to some httputil error? or synch lock?
+	//-in httputil, after error many times, start printing error messages
+
+//placing in events and scraperevents fields pointing to the Id of the matched partner (also in individual markets??or just event?)
+	//-error for attempted match of an already matched partner; not implemented, just warn
+	//-in case of postponed matches, this is normal
+	//-for speed, rematching of already matched should not be attempted
+		//-what about postponed ?
+		//-rematching of all can be attempted once in a while (ex: 10 minutes)
+	//-eventsInfoMap & interestingMarketsMap transformed into sets?
+
+//getMarketBooks affected by high load more than it should ?
+	//-this can be solved by faster code and/or faster processor
+
+//prea multe cancel order; acum sunt la distanta de cel putin 1000ms una de alta
+
+//improved removal from maps so they don't get too big
+
+//problems caused by potential lag or anti-flood protection; both can be local or server-related
+	//-separate threadpool for getmarketbook
+	//-more marketbooks with 1 request; testing with the different options for listmarketbook PriceProjection
+		//-depending on the result of the tests, decision on a full_info_mode for selected markets
+	//-reduction to max 512 threads; obviously 1024 can't be handled by my computer
+	//-why no error message from Httputil? where did limitation come from?; unknown, maybe somewhere in the code
+	//-getScraperEvents safetydelay depending on method runtime
+	//-error when thread limit reached managed; a very simple slow model was implemented and should suffice
+		//-slow down of new thread generation when close to limit or limit reached
+		//-not flooding logs; but counting the errors, with an average like logger
+		//-simplest solution would be a slowmode variable for 1 minute in case thread limit reached
+			//-complication would be:
+				//-various levels of slowmode
+				//-activation of initial slowmode before limit reached
+				//-complex condition and progressive deactivation of slowmode
+				//-slowmode affecting other modules, like the scraper
+	//-change from new module to old module, depending on safeMarketBooks size (size <=110 old, size >110 new)
+	//-dedicated and improved speed thread for listmarketbooks
+	//-submit replaced with execute
+
+//testing result:
+//max possible best offers depth 200 (higher gets too much data); however it only returns max 10 depth
+//limit 0 still does rollup; no rollup set does the same
+//when only <2 size exists, does anything show up on ex best offers ?; nothing below 2 shows up !!!
+
+//strategy after testing:
+	//-keep current module of EX_ALL_OFFERS check, as it might be used in the future with a good server
+	//-EX_BEST_OFFERS with depth=2, every 200ms; any that finds safe bets will be moved to short list
+	//-EX_ALL_OFFERS on short list, every 200ms; marketbooks moved out of shortlist if no amounts for 20 seconds
+		//-shorlist should run in a dedicated threadpool; not needed, an error would affect them all anyway
+	//-EX_ALL_OFFERS on all, every 2 seconds, to check on amounts smaller than 2 EUR
+//for 360 marketbooks:
+	//-previous: 165 threads/second
+	//-current: 20 + 16.5 = 36.5 threads/second
+
+//why instant cancel orders all the time when order placing or whatever: 15:39:10.656
+//cancel order spacing system doesn't work properly; entire system reworked
+//general threadpool got filled; also marketBook pool got to 50%; some modifications and speed improvements were made
+//reserve got maxed for some reason; reserve included tempReserve; crashing of threads due to threadPool maxed caused this
+
+//safe markets don't become unsafe, in the rare case when score is taken back etc, or do they?
+//18:20:39.703 [pool-2-thread-17017] INFO  i.fmro.betty.main.QuickCheckThread - safe bet in market: 1.115729095 marketStatus: OPEN inplay=true betDelay=8 runner: 2 runnerStatus: ACTIVE side: LAY price: 7.0 size: 25.0
+//18:21:48.281 [Thread-5] ERROR info.fmro.betty.objects.ScraperEvent - REVIEW awayScore 1 reduced to 0 in scraperEvent: (eventId=6173546 timeStamp=1412274108281 homeScoreTimeStamp=1412274107562 awayScoreTimeStamp=1412274107562 startTime=(fastTime=1412280000000 cdate=null) classModifiers=match filterable  status_live status_livenow status_next status_recentChange homeTeam=Constantine awayTeam=USM Alger homeScore=1 awayScore=1 homeHtScore=-1 awayHtScore=-1 homeRedCards=0 awayRedCards=0 minutesPlayed=22 stoppageTime=-1 matchStatus=(FIRST_HALF) matchFacts=null matchedEventId=27277344)
+//18:22:22.093 [pool-2-thread-17177] INFO  i.fmro.betty.main.QuickCheckThread - safe bet in market: 1.115729095 marketStatus: OPEN inplay=true betDelay=8 runner: 10 runnerStatus: ACTIVE side: LAY price: 12.5 size: 13.0
+	//-in some of the strange modification or modification attempts, method for clean of all previously associated map entries
+	//-in other cases, not just clean, but also temporary ban of that particular scraper event
+
+//"safe bet in market: " for active markets
+	//-printed only first time
+	//-a statistics object started that will be printed once the safe market no longer appears
+		//-no longer appears check at every parsing of that particular marketbook
+			//-some flag set for that particular marketbook, that it has statistics object attached
+		//-statistics will contain time first appear, time last appear, number of times appeared,
+		//time first not appeared, time marketbook was checked last before first appear
+			//-also time last scraped info before first appear
+	//-transform SafeBet object in 2 sides and the set into map
+	//-check for timeStamps at the end of marketBook parsing
+
+//check for "ERROR" and -1.4124697831433E12 very strange error in out.txt
+//counter for number of cancel orders due to not enough funds, so they're not executed too often
+//less blacklist time for some lists or some other way
+
+//print any safe bets affected by blackList
+//safeBets printed in dedicated file as well, for statistics
+	//-also print seenEvery {}ms which is seenFor / nAppeared , rounded to int
+	//-"seen for" replaced with seenFor
+//important threadpool maxsize 0 although there was an open market with safebet, though no order had been placed (explanation)
+//general threadpool reached 64 size; it's fine, 64 per 10 seconds
+//marketbook threadpool also reached 374 size; it's ok
+//important reached 32 size; it's perfect, at most 32 orders within 10 seconds
+//processor usage is far too high
+	//-mapEventsToScraperEvents might consume a large chunk of it; methods should run only on modified elements to solve this
+//matcher.txt , only "one team matched" that was not also matched and verybaderror
+	//-remove matched, and "one team matched" that found match
+	//-also include matches < .94
+//general check of out.txt, mostly "ERROR"
+//better visibility:
+	//-include expected number for averageLogger, ex: ran 237(240) times
+	//-important threadPool renamed to order threadPool ? not sure; better not
+//scraperEvent modified flag applied for setting values equal to old ones
+	//-timeStamps should still be applied
+	//-check where modified flag is used and why this hasn't generated bigger problems or affected processor usage; see next line
+	//-getScraperEvents scraperEventsMapModified: 1 ; why only 1?; because there's extra checking for equality in update
+	//-also performance problem related to match names check found
+//check for the modified mechanism on the other "update" objects: event, marketCatalogue, marketbook
+//maps transformed into objects with synchronized methods and timestamps, because it's chaos right now
+	//-timeStamp can exist for modification and applied automatically; this means overhead and might not be necessary
+	//-timeStamp can exist on general check and applied manually, but when will this be applied? just for "full" & "checkAll" ?
+//methods should run only on modified elements; with a "full" variant to run periodically
+	//-modifiedElements maps could be static or, likely better, local in the modifiying methods and passed as arguments further
+	//-findInterestingMarkets runs with a period of 1 minute; is that too often for checkAll?
+	//-there should be a warning when a checkAll method modifies something (or even error)
+		//-includes existing timedMapEventsToScraperEvents/timedFindInterestingMarkets
+	//-all checkAll method should run from the same class (GetLiveMarketsThread), for easier management
+	//-actually there are 3 versions:
+		//-regular, checking only elements given in the argument
+		//-full, checking all elements
+		//-checkAll, checking even elements already matched (applies to events/scraperEvents matching)
+	//-very simple warn if full or checkAll that shouldn't find new stuff, do so
+		//-only simple, listing number of "new stuff" found, or other simple message
+		//-this can happen if full or checkAll are run at almost the same time with regular
+	//-mapEventsToScraper should be run with full (not checkAll) when scraper removed (for badError double match cases)
+		//-not in case of removal because of errors or blackList; not even removal after matched event was removed
+//blackList removal activate eventMap(for eventId) and marketCatalogue(for marketId) grabbing methods
+	//-this refers to reinstating previously blackList scraperId/eventId/marketId
+	//-scraper/event/marketCatalogue, to be run with "full"
+//attempt on version of scraper that get only recently modified, whith also a periodic "fullRun"
+	//-print speed of both, to make comparison
+	//-might be switched on and off depending on load(or method run time) ?; no need
+	//-this may present a problem with scraperEvent last update times (as they won't update as often)
+		//-extra check on method lastRunTime could solve this; there are plenty of fullRun though
+	//-blackListed scraperEvents should not be scraped at all; after Id is scraped, move on; else can fill logs with errors
+//ScraperEvent.errors needs a test built; there's no way I can test for all the cases
+
+//cancelorders first run 2 of them; only happened once, might have been some server lag; made a modification and will monitor
+//orderPrice diminished but not removed -> warn; better not, keep error for now
+//ERROR -> WARN for "attempt to set older by "; I don't know, it might be error, why does that code take so long?
+//adding order to cancel with delay, many times; support to avoid double posting doesn't work over high concurrency
+//safeBet visuals printing
+	//-runnerId translation
+	//-marketType
+	//-scraper important details (teamNames, matchstatus, score/htscore, minute+stoppage, redcards if any)
+//new marketType found: & new marketName found: ; printed only once and also in special file
+//marketNullTypes.add("Half Time Score 2")
+//marketNullTypes.add("Correct Score 3 Home");
+//one team matched 0.7461678485645163 0.98 0.7613957638413432 event: Dinamo St Petersburg v Luch-Energiya to: Dinamo St / Luch-E. Vladivostok
+//java total memory decrease; I'm reducing maxMemory to 1Gb to improve my system's stablity
+	//-how ? can it be done manually ?; no idea
+	//-also what objects where cleaned/reduced when this massive memory shrinkage happened; no clue
+	//-potential memory leak related to maps cleaned after 24h; none found
+//marketBooks limit doesn't work; no error discovered, modifications made, constant modified to 5 for further testing; solved
+//I removed some logging from newmarket.txt; further checking of out.txt required
+	//-recheck the very strange error
+//LaunchCommandThread has to be split into smaller files
+//add support for markets that are supposed to be suspended/closed when impossible
+//remove unnecessary debug messages
+//general clean-up of the program
+
+//place smaller orders
+	//-takes 3 delayed steps, so it's slow
+	//-makes all your amount unavailable until market close, for a very small profit
+	//-the module wouldn't be profitable without support for checking how long till market close
+	//-would take too long to build and has too small advantages
+	//-postponed indefinetly
+//competition matching
+	//-not a priority
+	//-adds overhead
+	//-applied to all matches, eliminates some good matches, so it's not an option
+	//-can be used in the case of teams with almost identical name (usually senior + youth) playing at the same time
+		//-in this case, the full nameof the teams, prior to alias parsing, can sometimes be used to help (only sometimes)
+			//-applies to suffixes like "U21", but these don't always exist
+		//-limited use and risky, low priority
+	//-postponed indefinitely
+//not all matches are found on the scraped site, but adding a second scraper need better processing power
+//migrate to JUnit 5, with fork; migrated, but parallel testing doesn't work now, it might work on future versions
+//add tests for Ignorable.java, after I finish editing it
+//document lock order for interconnected synchronized objects; logical order is ScraperEvent > Event > MarketCatalogue
+
+//limita 10% initial per safeRunner si 20% permanent pe event (20% este protectie impotriva bad matching si asemeni pentru unSafeRunners)
+//limita permanenta pe event inseamna ca bet-urile matched si settled trebuie verificate din cand in cand pentru fiecare event
+	//-daca limita este mai mare decat settled+matched+placed in past 20 seconds, atunci limita este redusa
+
+//no temp remove, just ignored boolean
+//all methods that remove from scraperEvent maps, or event map or marketCatalogue map will be private to the cleanup thread
+    //-din pacate remove se face nu doar in maintenance, ci si potential atunci cand este descoperita o eroare
+        //-se poate sa nu mai fac remove la erori si doar sa printez mesaj eroare
+    // -din pacate isIgnored (currentTime) este o metoda de a reseta isIgnored, daca currentTime este bogus
+        // -chiar si fara currentTime ca argument, o modificare de ceas poate genera probleme temporare; nu cred ca-i mare lucru de facut in privinta asta
+        // -pot returna isIgnored in functie de timpul din argument, dar resetare in functie de currentTime calculat in metoda
+            // -cand folosesc metoda cu argument, verificare in functie de ignoredExpiration chiar si cand isIgnored boolean este fals
+//mechanism to add ignore to event, depending on the ignore of the associated scraperEvents
+    //-MIN_MATCHED scraperEvents with the smallest ignore are taken, and the one with largest ignore out of them gives the ignore to the event
+    //-ignore on event should likely propagate lower to markets
+    //-ignore on markets should likely propagate to runners
+//teste pentru methodele update, cu obiect cu campuri generate random si reflectie
+//in the future, making one single object that contains events, marketCatalogues and runners might be advantageous
+	//-it would reduce bugs, but might add overhead if not done properly
+	//-modification is difficult and it would take at least 1 week; postponed indefinitely, as it might not be useful, and some better idea might come
+//live betting
+	//-tennis bets on individual games are sometimes expecting for the favourite to make a break with the odds quite off
+		//-matches with lots of liquidity are necessary
+		//-making the decission needs to happen quite fast, but has to be manual, with bot help
+        //-likely a bad idea, as the bot can't see the live match and might make bad decisions; the fact I need to act fast means I might make mistakes as well
+        //-I would need to watch the matches, which means time investment
+        //-betting where I need to watch the match will likely never be implemented
+//modularizare acest fisier text
+//eliminare erori CurrentOrderSummary; sume plasate in piete/event care nu apar in maps
+//rulare program pe server(fara betting) si vazut ce erori apar
+//new "Goal Lines" market; gets suspended and then settled when all goals affecting it are scored (ex: 1st goal->0.5; 2nd goal->0.75, 1.0, 1.25, 1.5; 3rd goal->1.75, 2.0, 2.25, 2.5; etc)
+    //-handicap 0.5 - 8.5; all runners seem to remain even after they no longer appear on the web page
+    //-this market is a combination of other markets; it usually has bad odds and should be ignored
+//modularizare, creare variabila safeBetModule, care sa suprinda rularea threadurilor de scrape si probabil alte lucruri
+
+bets with very good odds on non live markets, especially ones that have a long time till beginning or a rather short time+good liquidity
+	-I can safely take such bets, even if there's risk of match fixing, as I can trade out some of the amount to be safe
+
+cancel all orders is incompatible with trading
+	-cancel all methods should be removed, or kept with an error message if used
+	-orders should be canceled based on their ID
+		-the queue for cancelling orders has to be executed even if the program is stopping
+		-if there's an error cancelling, the ID should be added to a list that is saved to disk, and checked in the list of unmatched orders later
+
+competition support with flags (friendly, women, youth, low quality, cup)
+
+when amounts listed on the market are important for making decisions (present amounts, matched etc)
+	-check that the currency is right; sometimes there's an error regarding currency between RON and EUR
+	-sometimes the market has lag, and the amounts listed might no longer exist
+
+Betfair Stream API looks interesting; might be faster than regular exchange API, but requires major modifications to program; speed and reliability testing
+tennis module
+
+trading bot
+	-sleep/awake settings
+		-activated with a command, or with a scheduler
+		-during sleep, getting into the market bets should be moved to safe locations
+	-settings for getting out of the market
+	-client with GUI
+	-client for phone with alert sounds
+	-sometimes, when makets are created, odds can be way off from what bookies offer (seen in OU 4.5/5.5/6.5/7.5 markets)
+	-placing amounts on some low liquidity markets, with variable odds, depending the the other amounts
+		-ex: amounts at 1.79 back and 7 lay; set limits of 2.8 back and 4.5 lay; amounts initially will be at 1.78 and 6.9, but this will also depend on the amounts on the market and amounts being placed
+	//-amount traded on a runner is counted twice, once for the amount backed and once for layed (ex: 100 EUR matched at any odds, from 1.01 to 1000, will result in 200 EUR matched)
+	-main ways to make profit:
+		-scalping, based on the amount of liquidity on the market, amount of time left, and market stability
+			-by watching the market with a fairly quick frequency, you can estimate quite well how close to the beginning of the queue your placed amount gets
+				-you can see the amounts getting placed, matched, widhrawn, so the estimation is not difficult
+					-sometimes the matched amount decreases, which complicates the calculation and introduces a small uncertainty
+						-is this because of currency exchange rate changes ?; does this happen at exact hours ?
+							-in the case of poker, currency exchange rate seems to change only once per day
+							-however, the change seems to happen on all odds at the same time, and maybe at fixed hours
+		-finding opportunities, with markets shifted a lot from proper position
+		-making predictions on the way market will move based on statistics
+		-placing bets on markets where the distance between the back and lay odds is big
+            -time left matters
+            -total amount matched on the event matters
+            -total amount matched on market
+                -as secondary method, markets should have a preset importance, and that importance should be multiplied with the total matched on the event
+                -runners should have an importance attached as well, for markets with multiple runners
+                        -a preset importance
+                        -an importance based on the main odds market, considering the favourite/underdog
+                        -there could be an importance based on the existing odds of that runner
+bot for 100%+ lay markets or -100% back markets, when win only
+	-with AI on what to do when matching fails
+	-some markets might have runners added at a later date
+		-in this case back bot can't be used, but lay bot is unaffected (empty or absent runners have value 100% for back and 0% for lay)
+	-only when market non live and win only, one winner, cash out enabled
+	-for amounts smaller than 2 EUR, either 2 step trick, or it might work without on new versions of their software
+	-although the number of markets is huge, the interesting ones that should be checked often are not that many
+	-1 cent rounding is important at high odds, like 1000, and this imposes a lower limit when betting at those high odds; market might still be profitable even without the extremely high odds
+	//-what happens when I match my own amount? -> it seems I match my own amount just fine
+finding recently opened events from major leagues and competitions in order to manually seed them
+	-the bot can recommend odds and amounts for seeding as default values
+	-the amounts can be spread out over different odds, for example $100 at 2.5, $500 at 2.4, $2000 at 2.3 etc, which would catch small and large jolts
+arbitrage bot for exchange markets
+	-low priority, as it blocks a lot of liquidity for tiny profit
+	-regular comission, minus discount, has to be considered in the calculation, which drastically reduces the amount of opportunities
+	-main reason for arbing is avoiding large amounts of premium charge; this is mostly the case in the 40-60% premium charge range, when even taking tiny losses might be acceptable
+		-no, actually taking losses is not acceptable, as you'll probably move up and down in the 40-60% premium charge range and it will end up being a bad deal
+		-however you only need to break even, and you don't have to consider the comission
+		-if you have any premium charge, even the 20%, regular comission shouldn't count in profit calculation, you just don't care about it
+	-only non live markets, as you need to match all bets at the same time, and having delay can be a disaster
+	-can be simple arbing, or maybe some with more complex algorithm, with combinations of runners
+	-you can imagine the case where only one of the markets gets settled, while the other one get canceled, or runner gets removed, or your bet get canceled for whatever reason
+		-it's unclear if this case ever happens, as with linked markets both should be either settled or anulled
+		-betfair might however take such an exceptionally rare decision, so this might call for implementing limits on the amounts being arbed, as a precaution
+	-arbing can often be done with combinations, like "The Draw" = "0 - 0" + "1 - 1" + "2 - 2" + "3 - 3" + "Any Other Draw"; similar situation for Over/Under markets
+	-in profitable cases, arbing and opportunity might happen at the same time
+		-in such case opportunity should probably take precedence, depending on potential profit
+----------
+modificari nefolositoare pentru modulul curent (trade):
+REVIEW errors fix:
+	-errors(or warn) with small ignore when first value read after page update, else errors with large ignore
+	-errors with small ignore reset when score returns to previous value, else they stay for as much as the large ignore
+	-for a market like ANYTIME_SCORE, it's important to not remove the safeRunners, but simply ignore them (remove if error evolves into large ignore?)
+
+limita 10% totdeauna pentru unSafeRunner (same 20% permanent event limit will apply)
+match fixing is possible at half time if favourite hasn't yet scored in second half
+
+fixed limit for safeRunners ?
+	-in case I implement this, no repeated error messages when bet is not taken because of the limit
+
+create unsafeRunner, similar to safeRunner, with own safetyLimits (it might not need an initial safety period)
+	-the split will probably happen at (un)safeRunner level
+	-FindInteresting markets might remain in a single piece
+add unsafeRunner for something simple initially (like match odds for 3+ goal difference) and get it to work
+
+
+same mechanism as coral ht score can be used for betfair/coral ET score
+	-support for ET score and cards, by knowing the score/cards at awaiting_et
+	-means adding 90minuteScore, ETHTScore and 120minutescore fields to ScraperEvent
+	-postponed, low priority, as ET is quite rare and Coral probably can't support this (it only has "ET" period, covering everything that's OVERTIME)
+addon pentru plasarea temporara a unor beturi unmatched pe pietele sigure care, desi eventul s-a terminat, nu au fost inca suspendate
+	-cu limita folosita pentru beturi sigure
+	-e destul de greu de realizat, deoarece inca nu exista suport pentru bet-uri unmatched, si se foloseste "cancell all unmatched" foarte des
+	-postponed until after proper unmatched bets management
+add proper debugging to webscraper, probably with an additional method for getting the element; postponed probably until 3rd scraper, as it's complicated and benefits right now seem small
+	-maybe not a priority, as errors appear anyway
+
+safe bets, markets that are not suspended during goal, unrealistic odds
+underdogs coming back
+markets with no 1.01 layed against the obvious score
+warning when goal being scored
+right after goal, there are seeds at very low odds that are taken very very fast
+immediately after the bet becomes safe, placing bets on it, to get money from those who withdraw faster
+3 goal difference games; lay on draw is usually better; same for 2 goal + red card
+sometimes there are low amounts backed/laid on 1.01 although there's a lot of liquidity on the market and the bet is safe
+skybet and probably other bookies have barely any delay at showing score
+safe bet back/lay on 1x2; just a check to see how long it lasts; it's mostly on offline markets
+site alternative de scoruri xscores.com ; de asemeni, multe altele; event details are slightly different than betradar
+ScraperMatchFacts support postponed as it adds overhead and might not be necessary
+    -only necessary for cases with extratime and penalties
+consider replacing htmlunit with chromium ? jcef ? Ui4j ?

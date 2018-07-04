@@ -1,29 +1,12 @@
 package info.fmro.betty.main;
 
-import info.fmro.betty.objects.Statics;
-import static org.junit.Assert.assertEquals;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TestRule;
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.junit.jupiter.api.Test;
 
-public class FindSafeRunners {
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-    private static final Logger logger = LoggerFactory.getLogger(FindSafeRunners.class);
-    @Rule
-    @SuppressWarnings("PublicField")
-    public TestRule watchman = new TestWatcher() {
-        @Override
-        public void starting(Description description) {
-            logger.info("{} being run...", description.getMethodName());
-        }
-    };
-
+public class FindSafeRunnersTest {
     @Test
-    public void testMarketSafeRunners() {
+    void marketSafeRunners() {
         // ANYTIME_SCORE
         for (int homeScore = 0; homeScore < 10; homeScore++) {
             for (int awayScore = 0; awayScore < 10; awayScore++) {
@@ -44,7 +27,7 @@ public class FindSafeRunners {
                     additionalLay = 0;
                 }
                 final int nSafeRunners = 1 + additionalBack + additionalLay +
-                        Math.min(homeScore, 4) * (3 - Math.min(awayScore, 3)) + Math.min(awayScore, 4) * (3 - Math.min(homeScore, 3));
+                                         Math.min(homeScore, 4) * (3 - Math.min(awayScore, 3)) + Math.min(awayScore, 4) * (3 - Math.min(homeScore, 3));
 
                 if (homeScore == 0 && awayScore >= 1) {
                     foundSafeRunners++;
@@ -138,7 +121,7 @@ public class FindSafeRunners {
                     foundSafeRunners++;
                 }
 
-                assertEquals(homeScore + " - " + awayScore, nSafeRunners, foundSafeRunners);
+                assertEquals(nSafeRunners, foundSafeRunners, homeScore + " - " + awayScore);
             } // end for awayScore
         } // end for homeScore
     }

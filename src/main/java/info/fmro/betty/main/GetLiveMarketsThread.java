@@ -2,16 +2,15 @@ package info.fmro.betty.main;
 
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.EventResult;
-import info.fmro.shared.utility.LogLevel;
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.utility.Formulas;
-import info.fmro.shared.utility.AlreadyPrintedMap;
 import info.fmro.shared.utility.Generic;
+import info.fmro.shared.utility.LogLevel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class GetLiveMarketsThread
         extends Thread {
@@ -88,8 +87,10 @@ public class GetLiveMarketsThread
 
             int sizeAdded = addedEvents.size();
             if (sizeAdded > 0) { // only added; modified will be checked during fullRun
-                logger.info("parseEventResultList addedEvents: {} launch: mapEventsToScraperEvents delayed", sizeAdded);
-                Statics.threadPoolExecutor.execute(new LaunchCommandThread("mapEventsToScraperEvents", addedEvents, Generic.MINUTE_LENGTH_MILLISECONDS));
+                if (Statics.safeBetModuleActivated) {
+                    logger.info("parseEventResultList addedEvents: {} launch: mapEventsToScraperEvents delayed", sizeAdded);
+                    Statics.threadPoolExecutor.execute(new LaunchCommandThread("mapEventsToScraperEvents", addedEvents, Generic.MINUTE_LENGTH_MILLISECONDS));
+                }
             }
         } else {
             logger.error("eventResultList null in parseEventResultList");
@@ -100,7 +101,7 @@ public class GetLiveMarketsThread
             }
         }
         logger.info("parseEventResultList finished in {} ms eventResultList size: {}", System.currentTimeMillis() - startTime,
-                eventResultList == null ? null : eventResultList.size());
+                    eventResultList == null ? null : eventResultList.size());
     }
 
     public static long timedParseEventResultList() {
@@ -195,9 +196,13 @@ public class GetLiveMarketsThread
                 long timeToSleep;
 
                 timeToSleep = timedParseEventResultList();
-                timeToSleep = Math.min(timeToSleep, timedMapEventsToScraperEvents());
+                if (Statics.safeBetModuleActivated) {
+                    timeToSleep = Math.min(timeToSleep, timedMapEventsToScraperEvents());
+                }
                 timeToSleep = Math.min(timeToSleep, timedFindInterestingMarkets());
-                timeToSleep = Math.min(timeToSleep, timedFindSafeRunners());
+                if (Statics.safeBetModuleActivated) {
+                    timeToSleep = Math.min(timeToSleep, timedFindSafeRunners());
+                }
 
                 Generic.threadSleepSegmented(timeToSleep, 100L, Statics.mustStop);
             } catch (Throwable throwable) { // safety net

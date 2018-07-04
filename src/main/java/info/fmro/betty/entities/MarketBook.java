@@ -3,13 +3,14 @@ package info.fmro.betty.entities;
 import info.fmro.betty.enums.MarketStatus;
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MarketBook
         implements Serializable, Comparable<MarketBook> {
@@ -36,7 +37,7 @@ public class MarketBook
     private List<Runner> runners;
     private long timeStamp;
 
-//    public MarketBook() {
+    //    public MarketBook() {
 //    }
     public MarketBook(String marketId) {
         this.marketId = marketId;
@@ -51,7 +52,7 @@ public class MarketBook
     }
 
     public synchronized int setIsMarketDataDelayed(Boolean isMarketDataDelayed) {
-        int modified;
+        final int modified;
         if (this.isMarketDataDelayed == null) {
             if (isMarketDataDelayed == null) {
                 modified = 0;
@@ -73,7 +74,7 @@ public class MarketBook
     }
 
     public synchronized int setStatus(MarketStatus status) {
-        int modified;
+        final int modified;
         if (this.status == null) {
             if (status == null) {
                 modified = 0;
@@ -95,7 +96,7 @@ public class MarketBook
     }
 
     public synchronized int setBetDelay(Integer betDelay) {
-        int modified;
+        final int modified;
         if (this.betDelay == null) {
             if (betDelay == null) {
                 modified = 0;
@@ -117,7 +118,7 @@ public class MarketBook
     }
 
     public synchronized int setBspReconciled(Boolean bspReconciled) {
-        int modified;
+        final int modified;
         if (this.bspReconciled == null) {
             if (bspReconciled == null) {
                 modified = 0;
@@ -139,7 +140,7 @@ public class MarketBook
     }
 
     public synchronized int setComplete(Boolean complete) {
-        int modified;
+        final int modified;
         if (this.complete == null) {
             if (complete == null) {
                 modified = 0;
@@ -161,7 +162,7 @@ public class MarketBook
     }
 
     public synchronized int setInplay(Boolean inplay) {
-        int modified;
+        final int modified;
         if (this.inplay == null) {
             if (inplay == null) {
                 modified = 0;
@@ -183,7 +184,7 @@ public class MarketBook
     }
 
     public synchronized int setNumberOfWinners(Integer numberOfWinners) {
-        int modified;
+        final int modified;
         if (this.numberOfWinners == null) {
             if (numberOfWinners == null) {
                 modified = 0;
@@ -205,7 +206,7 @@ public class MarketBook
     }
 
     public synchronized int setNumberOfRunners(Integer numberOfRunners) {
-        int modified;
+        final int modified;
         if (this.numberOfRunners == null) {
             if (numberOfRunners == null) {
                 modified = 0;
@@ -227,7 +228,7 @@ public class MarketBook
     }
 
     public synchronized int setNumberOfActiveRunners(Integer numberOfActiveRunners) {
-        int modified;
+        final int modified;
         if (this.numberOfActiveRunners == null) {
             if (numberOfActiveRunners == null) {
                 modified = 0;
@@ -249,7 +250,7 @@ public class MarketBook
     }
 
     public synchronized int setLastMatchTime(Date lastMatchTime) {
-        int modified;
+        final int modified;
         if (this.lastMatchTime == null) {
             if (lastMatchTime == null) {
                 modified = 0;
@@ -271,7 +272,7 @@ public class MarketBook
     }
 
     public synchronized int setTotalMatched(Double totalMatched) {
-        int modified;
+        final int modified;
         if (this.totalMatched == null) {
             if (totalMatched == null) {
                 modified = 0;
@@ -293,7 +294,7 @@ public class MarketBook
     }
 
     public synchronized int setTotalAvailable(Double totalAvailable) {
-        int modified;
+        final int modified;
         if (this.totalAvailable == null) {
             if (totalAvailable == null) {
                 modified = 0;
@@ -315,7 +316,7 @@ public class MarketBook
     }
 
     public synchronized int setCrossMatching(Boolean crossMatching) {
-        int modified;
+        final int modified;
         if (this.crossMatching == null) {
             if (crossMatching == null) {
                 modified = 0;
@@ -337,7 +338,7 @@ public class MarketBook
     }
 
     public synchronized int setRunnersVoidable(Boolean runnersVoidable) {
-        int modified;
+        final int modified;
         if (this.runnersVoidable == null) {
             if (runnersVoidable == null) {
                 modified = 0;
@@ -359,7 +360,7 @@ public class MarketBook
     }
 
     public synchronized int setVersion(Long version) {
-        int modified;
+        final int modified;
         if (this.version == null) {
             if (version == null) {
                 modified = 0;
@@ -381,7 +382,7 @@ public class MarketBook
     }
 
     public synchronized int setRunners(List<Runner> runners) {
-        int modified;
+        final int modified;
         if (this.runners == null) {
             if (runners == null) {
                 modified = 0;

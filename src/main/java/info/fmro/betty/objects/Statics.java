@@ -11,8 +11,17 @@ import info.fmro.betty.main.LoggerThread;
 import info.fmro.betty.main.ScraperThread;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.SynchronizedMap;
-import info.fmro.shared.utility.SynchronizedSet;
+import info.fmro.shared.utility.SynchronizedSafeSet;
 import info.fmro.shared.utility.SynchronizedWriter;
+import org.apache.commons.collections.comparators.NullComparator;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -31,46 +40,35 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import org.apache.commons.collections.comparators.NullComparator;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.SocketConfig;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Statics {
 
     private static final Logger logger = LoggerFactory.getLogger(Statics.class);
-    public static final boolean notPlacingOrders = false; // hard stop for order placing; true for testing, false enables order placing
+    public static final boolean notPlacingOrders = true; // hard stop for order placing; true for testing, false enables order placing
+    public static final boolean safeBetModuleActivated = false; // false for now, I won't be using this module for quite a while
     public static final NullComparator nullComparator = new NullComparator(false);
     public static final double threshold = .8d, highThreshold = .9d;
-    public static final int ENCRYPTION_KEY = 0, DECRYPTION_KEY = 2, SOCKET_CONNECT_TIMEOUT = 30_000, SOCKET_READ_TIMEOUT = 30_000, PAGE_GET_TIMEOUT = 120_000, N_BEST = 100,
-            N_ALL = 11, N_MARKETBOOK_THREADS_LIMIT = 50, MIN_MATCHED = 2;
-    public static final long DELAY_GETMARKETBOOKS = 200L, EXECUTOR_KEEPALIVE = 10_000L, DELAY_PRINTAVERAGES = 20_000L, DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD = 1_000L,
-            N_MARKETBOOK_THREADS_INTERVAL = 2_000L, INITIAL_EVENT_SAFETY_PERIOD = Generic.MINUTE_LENGTH_MILLISECONDS, PROGRAM_START_TIME = System.currentTimeMillis();
-    public static final String VARS_FILE_NAME = "input/vars.txt", STDOUT_FILE_NAME = "out.txt", STDERR_FILE_NAME = "err.txt", MATCHER_FILE_NAME = "matcher.txt",
-            SAFEBETS_FILE_NAME = "safebets.txt", NEWMARKET_FILE_NAME = "newmarket.txt", AUTH_URL = "https://identitysso.betfair.com/api/certlogin",
-            KEY_STORE_FILE_NAME = "input/client-2048.p12", KEY_STORE_PASSWORD = "", KEY_STORE_TYPE = "pkcs12", APING_URL = "https://api.betfair.com/exchange/betting/",
-            RESCRIPT_SUFFIX = "rest/v1.0/", APPLICATION_JSON = "application/json", ACCOUNT_APING_URL = "https://api.betfair.com/exchange/account/",
-            ALIASES_FILE_NAME = "input/aliases.txt", FULL_ALIASES_FILE_NAME = "input/aliasesfull.txt", PROJECT_PREFIX = "info.fmro", LOGS_FOLDER_NAME = "logs",
-            DATA_FOLDER_NAME = "data";
+    public static final int ENCRYPTION_KEY = 0, DECRYPTION_KEY = 2, SOCKET_CONNECT_TIMEOUT = 30_000, SOCKET_READ_TIMEOUT = 30_000, PAGE_GET_TIMEOUT = 120_000, N_BEST = 100, N_ALL = 11, N_MARKETBOOK_THREADS_LIMIT = 50,
+            MIN_MATCHED = safeBetModuleActivated ? 2 : 0;
+    public static final long DELAY_GETMARKETBOOKS = 200L, EXECUTOR_KEEPALIVE = 10_000L, DELAY_PRINTAVERAGES = 20_000L, DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD = 1_000L, N_MARKETBOOK_THREADS_INTERVAL = 2_000L, INITIAL_EVENT_SAFETY_PERIOD =
+            Generic.MINUTE_LENGTH_MILLISECONDS, PROGRAM_START_TIME = System.currentTimeMillis(), MINIMUM_BAD_STUFF_HAPPENED_IGNORE = 2L * Generic.MINUTE_LENGTH_MILLISECONDS;
+    public static final String VARS_FILE_NAME = "input/vars.txt", STDOUT_FILE_NAME = "out.txt", STDERR_FILE_NAME = "err.txt", MATCHER_FILE_NAME = "matcher.txt", SAFEBETS_FILE_NAME = "bets.txt", NEWMARKET_FILE_NAME = "newmarket.txt", AUTH_URL =
+            "https://identitysso.betfair.ro/api/certlogin", KEY_STORE_FILE_NAME = "input/client-2048.p12", KEY_STORE_PASSWORD = "", KEY_STORE_TYPE = "pkcs12", APING_URL = "https://api.betfair.com/exchange/betting/", RESCRIPT_SUFFIX = "rest/v1.0/",
+            APPLICATION_JSON = "application/json", ACCOUNT_APING_URL = "https://api.betfair.com/exchange/account/", ALIASES_FILE_NAME = "input/aliases.txt", FULL_ALIASES_FILE_NAME = "input/aliasesfull.txt", PROJECT_PREFIX = "info.fmro", LOGS_FOLDER_NAME =
+            "logs", DATA_FOLDER_NAME = "data";
+    public static final String[] supportedEventTypes = {"1"}; // "1" = soccer
 
     //    public static AtomicBoolean closeStandardStreams = new AtomicBoolean(true); // modified by reflection for tests
-    private static boolean closeStandardStreamsNotInitialized; // modified by reflection for tests; can't initialize, as that inlines the value and it can no longer be modified
-    @SuppressWarnings("StaticNonFinalUsedInInitialization")
-    public static final ArrayList<? extends OutputStream> standardStreamsList =
-            Generic.replaceStandardStreams(STDOUT_FILE_NAME, STDERR_FILE_NAME, LOGS_FOLDER_NAME, !closeStandardStreamsNotInitialized); // negated boolean, as it's not initialized
+    public static final boolean closeStandardStreamsNotInitialized = false; // modified by reflection for tests; can't initialize, as that inlines the value and it can no longer be modified; no longer modified in tests, now I initialize it
+    public static ArrayList<? extends OutputStream> standardStreamsList;
+    //    public static final ArrayList<? extends OutputStream> standardStreamsList = Generic.replaceStandardStreams(STDOUT_FILE_NAME, STDERR_FILE_NAME, LOGS_FOLDER_NAME, !closeStandardStreamsNotInitialized); // negated boolean, as it's not initialized
     public static final Set<Class<? extends ScraperEvent>> scraperEventSubclassesSet = Generic.getSubclasses(PROJECT_PREFIX, ScraperEvent.class);
     public static final Set<Class<? extends ScraperThread>> scraperThreadSubclassesSet = Generic.getSubclasses(PROJECT_PREFIX, ScraperThread.class);
-    public static final AtomicBoolean mustStop = new AtomicBoolean(), mustSleep = new AtomicBoolean(), needSessionToken = new AtomicBoolean(),
-            mustWriteObjects = new AtomicBoolean(), fundsQuickRun = new AtomicBoolean(), denyBetting = new AtomicBoolean();
+    public static final AtomicBoolean mustStop = new AtomicBoolean(), mustSleep = new AtomicBoolean(), needSessionToken = new AtomicBoolean(), mustWriteObjects = new AtomicBoolean(), fundsQuickRun = new AtomicBoolean(), denyBetting = new AtomicBoolean(),
+            programIsRunningMultiThreaded = new AtomicBoolean();
     public static final AtomicInteger inputServerPort = new AtomicInteger();
-    public static final AtomicReference<String> appKey = new AtomicReference<>(), delayedAppKey = new AtomicReference<>(), bu = new AtomicReference<>(),
-            bp = new AtomicReference<>(), orderToPrint = new AtomicReference<>();
-    public static final AtomicLong timeLastFundsOp = new AtomicLong(), timeLastSaveToDisk = new AtomicLong(), aliasesTimeStamp = new AtomicLong(),
-            fullAliasesTimeStamp = new AtomicLong();
+    public static final AtomicReference<String> appKey = new AtomicReference<>(), delayedAppKey = new AtomicReference<>(), bu = new AtomicReference<>(), bp = new AtomicReference<>(), orderToPrint = new AtomicReference<>();
+    public static final AtomicLong timeLastFundsOp = new AtomicLong(), timeLastSaveToDisk = new AtomicLong(), aliasesTimeStamp = new AtomicLong(), fullAliasesTimeStamp = new AtomicLong();
     public static final Set<ServerSocket> inputServerSocketsSet = Collections.synchronizedSet(new HashSet<ServerSocket>(2));
     public static final Set<Socket> inputConnectionSocketsSet = Collections.synchronizedSet(new HashSet<Socket>(2));
     public static final Set<InputConnectionThread> inputConnectionThreadsSet = Collections.synchronizedSet(new HashSet<InputConnectionThread>(2));
@@ -84,8 +82,7 @@ public class Statics {
     public static final LinkedBlockingQueue<Runnable> linkedBlockingQueue = new LinkedBlockingQueue<>();
     public static final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(64, 64, EXECUTOR_KEEPALIVE, TimeUnit.MILLISECONDS, linkedBlockingQueue);
     public static final LinkedBlockingQueue<Runnable> linkedBlockingQueueMarketBooks = new LinkedBlockingQueue<>();
-    public static final ThreadPoolExecutor threadPoolExecutorMarketBooks = new ThreadPoolExecutor(512, 512, EXECUTOR_KEEPALIVE, TimeUnit.MILLISECONDS,
-            linkedBlockingQueueMarketBooks);
+    public static final ThreadPoolExecutor threadPoolExecutorMarketBooks = new ThreadPoolExecutor(512, 512, EXECUTOR_KEEPALIVE, TimeUnit.MILLISECONDS, linkedBlockingQueueMarketBooks);
     public static final LinkedBlockingQueue<Runnable> linkedBlockingQueueImportant = new LinkedBlockingQueue<>();
     public static final ThreadPoolExecutor threadPoolExecutorImportant = new ThreadPoolExecutor(64, 64, EXECUTOR_KEEPALIVE, TimeUnit.MILLISECONDS, linkedBlockingQueueImportant);
     public static final PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
@@ -93,8 +90,7 @@ public class Statics {
     public static final RequestConfig accountsApiConfig = RequestConfig.custom().setConnectionRequestTimeout(10_000).setConnectTimeout(1_000).setSocketTimeout(2_000).build();
     public static final RequestConfig placingOrdersConfig = RequestConfig.custom().setConnectionRequestTimeout(10_000).setConnectTimeout(1_000).setSocketTimeout(20_000).build();
     public static final SocketConfig socketConfig = SocketConfig.custom().setSoKeepAlive(true).setSoReuseAddress(true).setTcpNoDelay(true).build();
-    public static final CloseableHttpClient client = HttpClients.custom().setDefaultSocketConfig(socketConfig).setDefaultRequestConfig(placingOrdersConfig).
-            setConnectionManager(connManager).build();
+    public static final CloseableHttpClient client = HttpClients.custom().setDefaultSocketConfig(socketConfig).setDefaultRequestConfig(placingOrdersConfig).setConnectionManager(connManager).build();
     public static final BetradarScraperThread betradarScraperThread = new BetradarScraperThread();
     public static final CoralScraperThread coralScraperThread = new CoralScraperThread();
     public static final LoggerThread loggerThread = new LoggerThread();
@@ -113,9 +109,8 @@ public class Statics {
     public static final SynchronizedMap<String, MarketCatalogue> marketCataloguesMap = new SynchronizedMap<>(128); // <marketId, MarketCatalogue>
 
     // safeMarketsMap contains the safeRunners and marketIds of their markets; these markets are being quickly rechecked; added to in FindSafeRunners
-    public static final SynchronizedMap<String, SynchronizedSet<SafeRunner>> safeMarketsMap = new SynchronizedMap<>(64); // <marketId, HashSet<SafeRunner>>
-    // safeMarketsImportantMap contains marketIds of markets with safeRunners that have available amounts on them; these are rechecked very quicly, until the safeBet dissapears
-    // added to in QuickCheckThread
+    public static final SynchronizedMap<String, SynchronizedSafeSet<SafeRunner>> safeMarketsMap = new SynchronizedMap<>(64); // <marketId, HashSet<SafeRunner>>
+    // safeMarketsImportantMap contains marketIds of markets with safeRunners that have available amounts on them; these are rechecked very quicly, until the safeBet dissapears; added to in QuickCheckThread
     public static final SynchronizedMap<String, Long> safeMarketsImportantMap = new SynchronizedMap<>(); // <marketId, Long timestamp>
     // safeMarketBooksMap contains the marketBooks associated with the safeMarkets; of lesser importance so far; added to in QuickCheckThread
     public static final SynchronizedMap<String, MarketBook> safeMarketBooksMap = new SynchronizedMap<>(64); // <marketId, MarketBook>
@@ -127,6 +122,10 @@ public class Statics {
 
     private Statics() {
     }
+
+//    public Statics(boolean dontCloseStandardStreams) {
+//        Statics.closeStandardStreamsNotInitialized = dontCloseStandardStreams;
+//    }
 
     static {
         connManager.setMaxTotal(32768);
@@ -156,10 +155,11 @@ public class Statics {
         privateObjectFileNamesMap.put("safeMarketsMap", Statics.DATA_FOLDER_NAME + "/safemarkets.txt");
         privateObjectFileNamesMap.put("safeMarketBooksMap", Statics.DATA_FOLDER_NAME + "/safemarketbooks.txt");
 
-        privateObjectFileNamesMap.put("alreadyPrintedMap", Statics.DATA_FOLDER_NAME + "/alreadyprinted.txt");
+//        privateObjectFileNamesMap.put("alreadyPrintedMap", Statics.DATA_FOLDER_NAME + "/alreadyprinted.txt");
         privateObjectFileNamesMap.put("timedWarningsMap", Statics.DATA_FOLDER_NAME + "/timedwarnings.txt");
-        privateObjectFileNamesMap.put("ignorableDatabase", Statics.DATA_FOLDER_NAME + "/ignorabledatabase.txt");
+//        privateObjectFileNamesMap.put("ignorableDatabase", Statics.DATA_FOLDER_NAME + "/ignorabledatabase.txt");
     }
+
     public static final Map<String, String> objectFileNamesMap = Collections.unmodifiableMap(privateObjectFileNamesMap);
 
     static { // marketTypes set
@@ -241,6 +241,7 @@ public class Statics {
         marketTypes.add("FIRST_CORNER"); // 3 options match odds for first corner, after 2nd half; hard to code and might get closed when impossible
         marketTypes.add("MATCH_BET"); // Season Match Bets, 2 options, which team will finish higher in the league; league table positions are not going to be implemented
         marketTypes.add("ACCA"); // accumulator bet on a selection of more than 1 team winning; more than 1 event is involved, too complicated to implement for now and it's very rare
+        marketTypes.add("ALT_TOTAL_GOALS"); // Goal Lines, asian handicap double line betting; this market is a combination of over/under markets, so there's little reason to use it
         // next are never impossible
         marketTypes.add("NEXT_GOAL"); // team that scores next goal, 3 options; when a goal is scored, market is closed/settled and opened again; never impossible
         marketTypes.add("ET_NEXT_GOAL"); // team that scores next goal, during ET, 3 options; when a goald is scored, market is closed/settled and opened again; never impossible

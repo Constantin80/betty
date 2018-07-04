@@ -2,11 +2,12 @@ package info.fmro.betty.objects;
 
 import info.fmro.betty.enums.MatchStatus;
 import info.fmro.shared.utility.Generic;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class BetradarEvent
         extends ScraperEvent
@@ -18,7 +19,7 @@ public class BetradarEvent
     private String classModifiers;
     // private ScraperMatchFacts matchFacts; // removed support for now; might be added later
 
-//    public BetradarEvent(long eventId) {
+    //    public BetradarEvent(long eventId) {
 //        super("betradar", eventId);
 //    }
     public BetradarEvent(long eventId, long timeStamp) {
@@ -35,7 +36,7 @@ public class BetradarEvent
             if (this.startTime == null) {
                 modified = 0;
             } else {
-                BlackList.ignoreScraper(this, minimalBlackListPeriod); // avoid filling logs
+                this.setIgnored(minimalBlackListPeriod); // avoid filling logs
                 logger.error("reset startTime {} to null in betradarEvent: {}", this.startTime, Generic.objectToString(this));
 //                modified = -10000; // blackListed
 
@@ -57,7 +58,7 @@ public class BetradarEvent
                 this.startTime = (Date) startTime.clone();
                 modified = 1;
             } else {
-                BlackList.ignoreScraper(this, minimalBlackListPeriod); // avoid filling logs
+                this.setIgnored(minimalBlackListPeriod); // avoid filling logs
                 logger.error("change startTime {} to {} in betradarEvent: {}", this.startTime, startTime, Generic.objectToString(this));
 //                modified = -10000; // blackListed
 
@@ -80,7 +81,7 @@ public class BetradarEvent
             if (this.classModifiers == null) {
                 modified = 0;
             } else {
-                BlackList.ignoreScraper(this, minimalBlackListPeriod); // avoid filling logs
+                this.setIgnored(minimalBlackListPeriod); // avoid filling logs
                 logger.error("reset classModifiers {} to null in betradarEvent: {}", this.classModifiers, Generic.objectToString(this));
 //                modified = -10000; // blackListed
 
@@ -115,7 +116,7 @@ public class BetradarEvent
     //     this.matchFacts = matchFacts;
     // }
     public synchronized int adjustStartTimeMatchPlayed() { // for events that started in the previous day and continue this day
-        int modified;
+        final int modified;
         final long currentTime = System.currentTimeMillis(), startTimeMillis = this.startTime.getTime();
 
         if (startTimeMillis - currentTime >= Generic.HOUR_LENGTH_MILLISECONDS * 4) {

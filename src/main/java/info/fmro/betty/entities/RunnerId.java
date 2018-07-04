@@ -1,5 +1,7 @@
 package info.fmro.betty.entities;
 
+import java.util.Objects;
+
 public class RunnerId {
 
     private String marketId; // MarketId alias String
@@ -31,5 +33,24 @@ public class RunnerId {
 
     public synchronized void setHandicap(Double handicap) {
         this.handicap = handicap;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        RunnerId runnerId = (RunnerId) o;
+        return Objects.equals(marketId, runnerId.marketId) &&
+               Objects.equals(selectionId, runnerId.selectionId) &&
+               Objects.equals(handicap, runnerId.handicap);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(marketId, selectionId, handicap);
     }
 }
