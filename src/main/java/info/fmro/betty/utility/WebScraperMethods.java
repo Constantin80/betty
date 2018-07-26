@@ -3,24 +3,23 @@ package info.fmro.betty.utility;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.Cache;
 import com.gargoylesoftware.htmlunit.CollectingAlertHandler;
-import com.gargoylesoftware.htmlunit.CookieManager;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.TopLevelWindow;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebClientOptions;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.gargoylesoftware.htmlunit.util.Cookie;
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.SerialClone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class WebScraperMethods {
 
@@ -32,24 +31,24 @@ public class WebScraperMethods {
     private WebScraperMethods() {
     }
 
-    public static boolean addSsoidCookie(WebClient webClient, String threadId) { // likely only needed for betfair scraper
-        boolean success;
-
-        while (Statics.needSessionToken.get() && !Statics.mustStop.get()) {
-            logger.info("{} web scraper waiting for sessionToken...", threadId);
-            Generic.threadSleep(100);
-        }
-        if (!Statics.needSessionToken.get()) {
-            final CookieManager cookieManager = webClient.getCookieManager();
-            final Cookie cookie = new Cookie(".betfair.com", "ssoid", Statics.sessionTokenObject.getSessionToken());
-            cookieManager.addCookie(cookie);
-            success = true;
-        } else {
-            success = false;
-        }
-
-        return success;
-    }
+//    public static boolean addSsoidCookie(WebClient webClient, String threadId) { // likely only needed for betfair scraper
+//        boolean success;
+//
+//        while (Statics.needSessionToken.get() && !Statics.mustStop.get()) {
+//            logger.info("{} web scraper waiting for sessionToken...", threadId);
+//            Generic.threadSleep(100);
+//        }
+//        if (!Statics.needSessionToken.get()) {
+//            final CookieManager cookieManager = webClient.getCookieManager();
+//            final Cookie cookie = new Cookie(".betfair.com", "ssoid", Statics.sessionTokenObject.getSessionToken());
+//            cookieManager.addCookie(cookie);
+//            success = true;
+//        } else {
+//            success = false;
+//        }
+//
+//        return success;
+//    }
 
     public static boolean savePage(HtmlPage htmlPage, AtomicBoolean mustSavePage, String threadId) {
         return savePage(htmlPage, mustSavePage, "pages/", "page", ".html", threadId);
@@ -114,7 +113,7 @@ public class WebScraperMethods {
         }
     }
 
-//    public static boolean refreshPage(HtmlPage htmlPage, AtomicBoolean mustRefreshPage, AtomicBoolean mustSavePage) {
+    //    public static boolean refreshPage(HtmlPage htmlPage, AtomicBoolean mustRefreshPage, AtomicBoolean mustSavePage) {
 //        return refreshPage(htmlPage, mustRefreshPage, mustSavePage, defaultInitialWaitForScripts, true, true);
 //    }
 //
@@ -158,19 +157,19 @@ public class WebScraperMethods {
 //        return success;
 //    }
     public static HtmlPage getPage(WebClient webClient, String savePrefix, AtomicBoolean mustRefreshPage, AtomicBoolean mustSavePage, String url, String threadId,
-            String... expressionXPaths) {
+                                   String... expressionXPaths) {
         return getPage(webClient, savePrefix, mustRefreshPage, mustSavePage, defaultInitialWaitForScripts, defaultSecondaryWaitForScripts, defaultFinalWaitForScripts, url, threadId,
-                expressionXPaths);
+                       expressionXPaths);
     }
 
     public static HtmlPage getPage(WebClient webClient, String savePrefix, AtomicBoolean mustRefreshPage, AtomicBoolean mustSavePage, long waitForScripts, String url,
-            String threadId, String... expressionXPaths) {
+                                   String threadId, String... expressionXPaths) {
         return getPage(webClient, savePrefix, mustRefreshPage, mustSavePage, waitForScripts, defaultSecondaryWaitForScripts, defaultFinalWaitForScripts, url, threadId,
-                expressionXPaths);
+                       expressionXPaths);
     }
 
     public static HtmlPage getPage(WebClient webClient, String savePrefix, AtomicBoolean mustRefreshPage, AtomicBoolean mustSavePage, long waitForScripts,
-            long secondaryWaitForScripts, long finalWaitForScripts, String url, String threadId, String... expressionXPaths) {
+                                   long secondaryWaitForScripts, long finalWaitForScripts, String url, String threadId, String... expressionXPaths) {
         HtmlPage htmlPage;
         final long beginLoadPageTime = System.currentTimeMillis();
         try {
@@ -205,13 +204,13 @@ public class WebScraperMethods {
     }
 
     public static HtmlPage clickElement(WebClient webClient, AtomicBoolean mustRefreshPage, HtmlPage htmlPage, String expressionXPath, String threadId, String savePrefix,
-            AtomicBoolean mustSavePage) {
+                                        AtomicBoolean mustSavePage) {
         return clickElement(webClient, mustRefreshPage, htmlPage, defaultSecondaryWaitForScripts, expressionXPath, threadId, savePrefix, mustSavePage);
     }
 
     @SuppressWarnings("AssignmentToMethodParameter")
     public static HtmlPage clickElement(WebClient webClient, AtomicBoolean mustRefreshPage, HtmlPage htmlPage, long secondaryWaitForScripts, String expressionXPath, String threadId,
-            String savePrefix, AtomicBoolean mustSavePage) {
+                                        String savePrefix, AtomicBoolean mustSavePage) {
         // clicks only the first found element
 
         final boolean onlyPrintInfoIfFail;
@@ -247,13 +246,13 @@ public class WebScraperMethods {
     }
 
     public static HtmlPage clickElements(WebClient webClient, AtomicBoolean mustRefreshPage, HtmlPage htmlPage, String expressionXPath, String threadId, String savePrefix,
-            AtomicBoolean mustSavePage) {
+                                         AtomicBoolean mustSavePage) {
         return clickElements(webClient, mustRefreshPage, htmlPage, defaultSecondaryWaitForScripts, expressionXPath, threadId, savePrefix, mustSavePage);
     }
 
     @SuppressWarnings("AssignmentToMethodParameter")
     public static HtmlPage clickElements(WebClient webClient, AtomicBoolean mustRefreshPage, HtmlPage htmlPage, long secondaryWaitForScripts, String expressionXPath,
-            String threadId, String savePrefix, AtomicBoolean mustSavePage) {
+                                         String threadId, String savePrefix, AtomicBoolean mustSavePage) {
         // clicks all found elements
 
         final boolean onlyPrintInfoIfFail;
@@ -307,7 +306,7 @@ public class WebScraperMethods {
             final long beginExecuteScriptsTime = System.currentTimeMillis();
             final int jobsStillActive = webClient.waitForBackgroundJavaScriptStartingBefore(waitForScripts);
             logger.info("{} waitForBackgroundJavaScriptStartingBefore({}) finished in {} ms , {} jobsStillActive", threadId, waitForScripts,
-                    System.currentTimeMillis() - beginExecuteScriptsTime, jobsStillActive);
+                        System.currentTimeMillis() - beginExecuteScriptsTime, jobsStillActive);
         }
     }
 
@@ -365,13 +364,13 @@ public class WebScraperMethods {
         return cache;
     }
 
-//    @SuppressWarnings("deprecation")
+    //    @SuppressWarnings("deprecation")
     public static WebClient getNewWebClient(String threadId) {
         // return getNewWebClient(BrowserVersion.INTERNET_EXPLORER_8, threadId);
         return getNewWebClient(BrowserVersion.FIREFOX_52, threadId);
     }
 
-//    @SuppressWarnings("deprecation")
+    //    @SuppressWarnings("deprecation")
     public static WebClient getNewWebClient(BrowserVersion browserVersion, String threadId) {
 //        browserVersion.setApplicationCodeName(BrowserVersion.INTERNET_EXPLORER_8.getApplicationCodeName());
 //        browserVersion.setApplicationMinorVersion(BrowserVersion.INTERNET_EXPLORER_8.getApplicationMinorVersion());

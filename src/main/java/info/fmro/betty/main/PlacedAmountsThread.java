@@ -65,7 +65,6 @@ public class PlacedAmountsThread
     public synchronized void timeStamp() {
         this.timeStamp = System.currentTimeMillis();
     }
-
 }
 
 //public class CancelOrdersThread

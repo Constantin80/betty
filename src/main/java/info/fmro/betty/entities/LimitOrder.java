@@ -64,7 +64,7 @@ public class LimitOrder
             returnValue = null;
         } else {
             try {
-                returnValue = new Double(this.size);
+                returnValue = Double.valueOf(this.size);
             } catch (NumberFormatException numberFormatException) {
                 returnValue = null;
                 logger.error("NumberFormatException in LimitOrder.getSize for: {}", this.size, numberFormatException);
@@ -112,5 +112,4 @@ public class LimitOrder
     public synchronized void setPersistenceType(PersistenceType persistenceType) {
         this.persistenceType = persistenceType;
     }
-
 }

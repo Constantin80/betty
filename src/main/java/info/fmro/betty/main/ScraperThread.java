@@ -146,7 +146,6 @@ public class ScraperThread
 
             try {
                 getScraperEventsInner(startTime, fullRun, checkAll, autoPilot, vtdNav, listSize, scrapedEventsCounter);
-
             } catch (XPathParseException xPathParseException) {
                 logger.error("{} xPathParseException in autoPilot", threadId, xPathParseException);
             } catch (XPathEvalException xPathEvalException) {

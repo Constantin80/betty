@@ -28,15 +28,7 @@ public class ApiNGJRescriptDemo {
     private ApiNGJRescriptDemo() {
     }
 
-    public static List<EventResult> getLiveEventResultList(String appKeyString) {
-//        final HashSet<String> eventTypeIdsSet = new HashSet<>(2, 0.75f);
-//        eventTypeIdsSet.add("1"); // soccer
-//
-//        final MarketFilter marketFilter = new MarketFilter();
-//        marketFilter.setInPlayOnly(true);
-//        marketFilter.setTurnInPlayEnabled(true);
-//        marketFilter.setEventTypeIds(eventTypeIdsSet);
-
+    public static List<EventResult> getEventList(String appKeyString) {
         final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
         final List<EventResult> eventResultList = ApiNgRescriptOperations.listEvents(marketFilter, appKeyString, rescriptResponseHandler);
 

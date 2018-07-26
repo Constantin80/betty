@@ -206,5 +206,4 @@ public class BetradarMatchFacts
         hash = 43 * hash + Objects.hashCode(this.awaySubstitutionsList);
         return hash;
     }
-
 }

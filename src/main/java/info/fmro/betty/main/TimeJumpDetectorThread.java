@@ -77,7 +77,6 @@ public class TimeJumpDetectorThread
                 } else if (Statics.debugLevel.check(3, 176)) {
                     logger.info("(a)perfect timing in TimeJumpDetectorThread");
                 }
-
             } catch (Throwable throwable) {
                 logger.error("STRANGE ERROR inside TimeJumpDetectorThread loop", throwable);
             }

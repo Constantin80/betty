@@ -4,6 +4,7 @@ import com.gargoylesoftware.htmlunit.BrowserVersion;
 import info.fmro.betty.entities.SessionToken;
 import info.fmro.betty.objects.SessionTokenObject;
 import info.fmro.betty.objects.Statics;
+import info.fmro.betty.stream.client.ClientCommands;
 import info.fmro.betty.utility.UncaughtExceptionHandler;
 import info.fmro.shared.utility.Generic;
 import org.apache.http.HttpEntity;
@@ -149,7 +150,6 @@ public class Betty {
             } else {
                 coralThread = new Thread();
             }
-            // QuickCheckThread quickCheckThread = new QuickCheckThread();
             Betty.quickCheckThread.start();
             final Thread cancelOrdersThread = new Thread(new CancelOrdersThread());
             cancelOrdersThread.start();
@@ -159,6 +159,9 @@ public class Betty {
             timeJumpDetectorThread.start();
             final Thread idleConnectionMonitorThread = new Thread(new IdleConnectionMonitorThread(Statics.connManager));
             idleConnectionMonitorThread.start();
+            for (int i = 0; i < Statics.streamClients.length; i++) {
+                Statics.streamClients[i].start();
+            }
 
             if (Statics.safeBetModuleActivated) {
                 if (!BrowserVersion.BEST_SUPPORTED.equals(BrowserVersion.FIREFOX_52)) {
@@ -166,6 +169,47 @@ public class Betty {
                     logger.error("HtmlUnit BrowserVersion.BEST_SUPPORTED has changed, a review of BrowserVersion usage is necessary");
                 }
             }
+
+
+            try {
+//                for (int i = 0; i < Statics.streamClients.length - 5; i++) {
+//                    ClientCommands.subscribeOrders(Statics.streamClients[i]);
+//                }
+//                Thread.sleep(180_000L);
+//                for (int i = Statics.streamClients.length - 5; i < Statics.streamClients.length; i++) {
+//                    ClientCommands.subscribeOrders(Statics.streamClients[i]);
+//                }
+
+                ClientCommands.subscribeOrders(Statics.streamClients[0]);
+                ClientCommands.traceOrders();
+//                ClientCommands.marketFirehose(Statics.streamClients[0]);
+
+//                ClientCommands.subscribeMarkets(Statics.streamClients[0], "1.145787541");
+                ClientCommands.subscribeMarkets(Statics.streamClients[1], "1.145951907");
+//                ClientCommands.subscribeMarkets(Statics.streamClients[2], "1.145787603");
+//                ClientCommands.subscribeMarkets(Statics.streamClients[3], "1.145787568");
+//                ClientCommands.subscribeMarkets(Statics.streamClients[4], "1.145787560");
+//
+//                ClientCommands.subscribeMarkets(Statics.streamClients[5], "1.145787559");
+//                ClientCommands.subscribeMarkets(Statics.streamClients[6], "1.145787557");
+//                ClientCommands.subscribeMarkets(Statics.streamClients[7], "1.145787555");
+//                ClientCommands.subscribeMarkets(Statics.streamClients[8], "1.145787569");
+//                ClientCommands.subscribeMarkets(Statics.streamClients[9], "1.145806114");
+//                ClientCommands.subscribeMarkets(Statics.streamClients[10], "1.145787606");
+//                ClientCommands.subscribeMarkets(Statics.streamClients[11], "1.145787605");
+//                ClientCommands.subscribeMarkets(Statics.streamClients[12], "1.145787608");
+//                ClientCommands.subscribeMarkets(Statics.streamClients[13], "1.145806103");
+//                ClientCommands.subscribeMarkets(Statics.streamClients[14], "1.145806085");
+//                ClientCommands.subscribeMarkets(Statics.streamClients[15], "1.145806101");
+//                ClientCommands.subscribeMarkets(Statics.streamClients[16], "1.145787603");
+//                ClientCommands.subscribeMarkets(Statics.streamClients[17], "1.145787628");
+//                ClientCommands.subscribeMarkets(Statics.streamClients[18], "1.145787616");
+//                ClientCommands.subscribeMarkets(Statics.streamClients[19], "1.145806091");
+                ClientCommands.traceMarkets();
+            } catch (Throwable throwable) {
+                logger.error("throwable during initial clientCommands:", throwable);
+            }
+
 
             while (!Statics.mustStop.get()) {
                 try {
@@ -181,6 +225,10 @@ public class Betty {
                     logger.error("STRANGE ERROR inside Betty loop", throwable);
                 }
             } // end while
+
+//            ClientCommands.listOrders();
+//            ClientCommands.listMarkets();
+//            Statics.streamClient.stopClient(); // stopClient should be called by Statics.mustStop
 
             Statics.threadPoolExecutor.shutdown();
             Statics.threadPoolExecutorMarketBooks.shutdown();
@@ -211,18 +259,6 @@ public class Betty {
                 }
             } // end for
 
-            // for (RescriptOpThread<?> rescriptOpThread : Statics.rescriptOpThreadsSet) {
-            //     if (rescriptOpThread.isAlive()) {
-            //         logger.info("joining rescriptOpThread");
-            //         rescriptOpThread.join();
-            //     }
-            // }
-            // for (LaunchCommandThread launchCommandThread : Statics.launchCommandThreadsSet) {
-            //     if (launchCommandThread.isAlive()) {
-            //         logger.info("joining launchCommandThread");
-            //         launchCommandThread.join();
-            //     }
-            // }
             if (getFundsThread.isAlive()) {
                 logger.info("joining getFunds thread");
                 getFundsThread.join();
@@ -267,26 +303,32 @@ public class Betty {
                 logger.info("joining logger thread");
                 loggerThread.join();
             }
+            for (int i = 0; i < Statics.streamClients.length; i++) {
+                if (Statics.streamClients[i].isAlive()) {
+                    logger.info("joining streamClient {}", i);
+                    Statics.streamClients[i].join();
+                }
+            }
 
             if (!Statics.threadPoolExecutor.awaitTermination(10L, TimeUnit.MINUTES)) {
-                logger.info("threadPoolExecutor hanged: {}", Statics.threadPoolExecutor.getActiveCount());
-                List<Runnable> runnableList = Statics.threadPoolExecutor.shutdownNow();
+                logger.error("threadPoolExecutor hanged: {}", Statics.threadPoolExecutor.getActiveCount());
+                final List<Runnable> runnableList = Statics.threadPoolExecutor.shutdownNow();
                 if (!runnableList.isEmpty()) {
-                    logger.info("threadPoolExecutor not commenced: {}", runnableList.size());
+                    logger.error("threadPoolExecutor not commenced: {}", runnableList.size());
                 }
             }
             if (!Statics.threadPoolExecutorMarketBooks.awaitTermination(10L, TimeUnit.MINUTES)) {
-                logger.info("threadPoolExecutorMarketBooks hanged: {}", Statics.threadPoolExecutorMarketBooks.getActiveCount());
-                List<Runnable> runnableList = Statics.threadPoolExecutorMarketBooks.shutdownNow();
+                logger.error("threadPoolExecutorMarketBooks hanged: {}", Statics.threadPoolExecutorMarketBooks.getActiveCount());
+                final List<Runnable> runnableList = Statics.threadPoolExecutorMarketBooks.shutdownNow();
                 if (!runnableList.isEmpty()) {
-                    logger.info("threadPoolExecutorMarketBooks not commenced: {}", runnableList.size());
+                    logger.error("threadPoolExecutorMarketBooks not commenced: {}", runnableList.size());
                 }
             }
             if (!Statics.threadPoolExecutorImportant.awaitTermination(10L, TimeUnit.MINUTES)) {
-                logger.info("threadPoolExecutorImportant hanged: {}", Statics.threadPoolExecutorImportant.getActiveCount());
-                List<Runnable> runnableList = Statics.threadPoolExecutorImportant.shutdownNow();
+                logger.error("threadPoolExecutorImportant hanged: {}", Statics.threadPoolExecutorImportant.getActiveCount());
+                final List<Runnable> runnableList = Statics.threadPoolExecutorImportant.shutdownNow();
                 if (!runnableList.isEmpty()) {
-                    logger.info("threadPoolExecutorImportant not commenced: {}", runnableList.size());
+                    logger.error("threadPoolExecutorImportant not commenced: {}", runnableList.size());
                 }
             }
 
@@ -303,9 +345,6 @@ public class Betty {
                 logger.error("final programMultithreaded state is false");
             }
 
-//            Statics.matcherSynchronizedWriter.close();
-//            Statics.safebetsSynchronizedWriter.close();
-//            Statics.newMarketSynchronizedWriter.close();
             VarsIO.writeObjectsToFiles();
             Generic.alreadyPrintedMap.clear(); // also prints the important properties
         } catch (FileNotFoundException | NumberFormatException | InterruptedException exception) {
@@ -314,15 +353,14 @@ public class Betty {
             logger.error("EVEN STRANGER ERROR inside Betty", throwable);
         } finally {
             logger.info("Program ends"); // after this point, streams are getting closed, so logging might no longer work
-//            logger.info("closing standard streams");
+
             Generic.closeStandardStreams();
-//            logger.info("closing final objects");
+
             Generic.closeObjects(outPrintStream, outFileOutputStream, errPrintStream, errFileOutputStream, Statics.matcherSynchronizedWriter, Statics.safebetsSynchronizedWriter, Statics.newMarketSynchronizedWriter);
         }
     }
 
-    public static boolean authenticate(String authURL, AtomicReference<String> bu, AtomicReference<String> bp, SessionTokenObject sessionTokenObject, AtomicBoolean needSessionToken, String keyStoreFileName, String keyStorePassword, String keyStoreType,
-                                       AtomicReference<String> appKey) {
+    public static boolean authenticate(String authURL, AtomicReference<String> bu, AtomicReference<String> bp, SessionTokenObject sessionTokenObject, String keyStoreFileName, String keyStorePassword, String keyStoreType, AtomicReference<String> appKey) {
         boolean success = false;
         long beginTime = System.currentTimeMillis();
         HttpClientBuilder httpClientBuilder = HttpClients.custom();
@@ -357,7 +395,7 @@ public class Betty {
 
                 try {
                     closeableHttpResponse = closeableHttpClient.execute(httpPost);
-                    HttpEntity httpEntity = closeableHttpResponse.getEntity();
+                    final HttpEntity httpEntity = closeableHttpResponse.getEntity();
 
                     logger.info("authenticate response status line: {}", closeableHttpResponse.getStatusLine());
                     if (httpEntity != null) {
@@ -376,7 +414,7 @@ public class Betty {
                         if (sessionToken != null && sessionToken.getSessionTokenLength() > 0) {
                             sessionTokenObject.setSessionToken(sessionToken.getSessionToken());
                             sessionTokenObject.timeStamp();
-                            needSessionToken.set(false);
+                            Statics.needSessionToken.set(false);
                             success = true;
                         } else {
                             logger.error("authentication failed, sessionToken: {}", Generic.objectToString(sessionToken));

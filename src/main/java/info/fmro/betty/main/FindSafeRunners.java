@@ -578,6 +578,49 @@ public class FindSafeRunners {
                                                 // market not safe
                                             }
                                             break;
+                                        case MATCH_ODDS_AND_OU_35:
+                                            if (during90Minutes(matchStatus) && homeScore + awayScore >= 4) {
+                                                final int nSafeRunners = 3;
+                                                final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
+                                                for (final ParsedRunner parsedRunner : parsedRunnersSet) {
+                                                    final ParsedRunnerType parsedRunnerType = parsedRunner.getParsedRunnerType();
+                                                    final Long selectionId = parsedRunner.getSelectionId();
+                                                    SafeRunner safeRunner = null;
+                                                    switch (parsedRunnerType) {
+                                                        case HOME_AND_OVER:
+                                                            // never safe
+                                                            break;
+                                                        case AWAY_AND_OVER:
+                                                            // never safe
+                                                            break;
+                                                        case DRAW_AND_OVER:
+                                                            // never safe
+                                                            break;
+                                                        case HOME_AND_UNDER:
+                                                            if (homeScore + awayScore >= 4) {
+                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
+                                                            }
+                                                            break;
+                                                        case AWAY_AND_UNDER:
+                                                            if (homeScore + awayScore >= 4) {
+                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
+                                                            }
+                                                            break;
+                                                        case DRAW_AND_UNDER:
+                                                            if (homeScore + awayScore >= 4) {
+                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
+                                                            }
+                                                            break;
+                                                        default:
+                                                            defaultParsedRunnerTypeError(parsedRunnerType, marketCatalogue);
+                                                            break;
+                                                    }
+                                                    addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
+                                                }
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                            } else { // market not safe
+                                            }
+                                            break;
                                         case HALF_TIME_FULL_TIME:
                                             if (during90MinutesWithoutFirstHalf(matchStatus) && homeHtScore >= 0 && awayHtScore >= 0) {
                                                 final int nSafeRunners = 6;
@@ -2875,6 +2918,180 @@ public class FindSafeRunners {
                                                                         modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
+                                            }
+                                            break;
+                                        case TEAM_A_OVER_UNDER_05:
+                                            if (during90Minutes(matchStatus) && homeScore > 0) {
+                                                final int nSafeRunners = 2;
+                                                final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
+                                                for (final ParsedRunner parsedRunner : parsedRunnersSet) {
+                                                    final ParsedRunnerType parsedRunnerType = parsedRunner.getParsedRunnerType();
+                                                    final Long selectionId = parsedRunner.getSelectionId();
+                                                    SafeRunner safeRunner = null;
+                                                    switch (parsedRunnerType) {
+                                                        case GOALS_UNDER_05:
+                                                            if (homeScore > 0) {
+                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
+                                                            }
+                                                            break;
+                                                        case GOALS_OVER_05:
+                                                            if (homeScore > 0) {
+                                                                safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
+                                                            }
+                                                            break;
+                                                        default:
+                                                            defaultParsedRunnerTypeError(parsedRunnerType, marketCatalogue);
+                                                            break;
+                                                    }
+                                                    addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
+                                                }
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                            } else { // market not safe
+                                            }
+                                            break;
+                                        case TEAM_A_OVER_UNDER_15:
+                                            if (during90Minutes(matchStatus) && homeScore > 1) {
+                                                final int nSafeRunners = 2;
+                                                final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
+                                                for (final ParsedRunner parsedRunner : parsedRunnersSet) {
+                                                    final ParsedRunnerType parsedRunnerType = parsedRunner.getParsedRunnerType();
+                                                    final Long selectionId = parsedRunner.getSelectionId();
+                                                    SafeRunner safeRunner = null;
+                                                    switch (parsedRunnerType) {
+                                                        case GOALS_UNDER_15:
+                                                            if (homeScore > 1) {
+                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
+                                                            }
+                                                            break;
+                                                        case GOALS_OVER_15:
+                                                            if (homeScore > 1) {
+                                                                safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
+                                                            }
+                                                            break;
+                                                        default:
+                                                            defaultParsedRunnerTypeError(parsedRunnerType, marketCatalogue);
+                                                            break;
+                                                    }
+                                                    addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
+                                                }
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                            } else { // market not safe
+                                            }
+                                            break;
+                                        case TEAM_A_OVER_UNDER_25:
+                                            if (during90Minutes(matchStatus) && homeScore > 2) {
+                                                final int nSafeRunners = 2;
+                                                final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
+                                                for (final ParsedRunner parsedRunner : parsedRunnersSet) {
+                                                    final ParsedRunnerType parsedRunnerType = parsedRunner.getParsedRunnerType();
+                                                    final Long selectionId = parsedRunner.getSelectionId();
+                                                    SafeRunner safeRunner = null;
+                                                    switch (parsedRunnerType) {
+                                                        case GOALS_UNDER_25:
+                                                            if (homeScore > 2) {
+                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
+                                                            }
+                                                            break;
+                                                        case GOALS_OVER_25:
+                                                            if (homeScore > 2) {
+                                                                safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
+                                                            }
+                                                            break;
+                                                        default:
+                                                            defaultParsedRunnerTypeError(parsedRunnerType, marketCatalogue);
+                                                            break;
+                                                    }
+                                                    addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
+                                                }
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                            } else { // market not safe
+                                            }
+                                            break;
+                                        case TEAM_B_OVER_UNDER_05:
+                                            if (during90Minutes(matchStatus) && awayScore > 0) {
+                                                final int nSafeRunners = 2;
+                                                final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
+                                                for (final ParsedRunner parsedRunner : parsedRunnersSet) {
+                                                    final ParsedRunnerType parsedRunnerType = parsedRunner.getParsedRunnerType();
+                                                    final Long selectionId = parsedRunner.getSelectionId();
+                                                    SafeRunner safeRunner = null;
+                                                    switch (parsedRunnerType) {
+                                                        case GOALS_UNDER_05:
+                                                            if (awayScore > 0) {
+                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
+                                                            }
+                                                            break;
+                                                        case GOALS_OVER_05:
+                                                            if (awayScore > 0) {
+                                                                safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
+                                                            }
+                                                            break;
+                                                        default:
+                                                            defaultParsedRunnerTypeError(parsedRunnerType, marketCatalogue);
+                                                            break;
+                                                    }
+                                                    addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
+                                                }
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                            } else { // market not safe
+                                            }
+                                            break;
+                                        case TEAM_B_OVER_UNDER_15:
+                                            if (during90Minutes(matchStatus) && awayScore > 1) {
+                                                final int nSafeRunners = 2;
+                                                final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
+                                                for (final ParsedRunner parsedRunner : parsedRunnersSet) {
+                                                    final ParsedRunnerType parsedRunnerType = parsedRunner.getParsedRunnerType();
+                                                    final Long selectionId = parsedRunner.getSelectionId();
+                                                    SafeRunner safeRunner = null;
+                                                    switch (parsedRunnerType) {
+                                                        case GOALS_UNDER_15:
+                                                            if (awayScore > 1) {
+                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
+                                                            }
+                                                            break;
+                                                        case GOALS_OVER_15:
+                                                            if (awayScore > 1) {
+                                                                safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
+                                                            }
+                                                            break;
+                                                        default:
+                                                            defaultParsedRunnerTypeError(parsedRunnerType, marketCatalogue);
+                                                            break;
+                                                    }
+                                                    addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
+                                                }
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                            } else { // market not safe
+                                            }
+                                            break;
+                                        case TEAM_B_OVER_UNDER_25:
+                                            if (during90Minutes(matchStatus) && awayScore > 2) {
+                                                final int nSafeRunners = 2;
+                                                final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
+                                                for (final ParsedRunner parsedRunner : parsedRunnersSet) {
+                                                    final ParsedRunnerType parsedRunnerType = parsedRunner.getParsedRunnerType();
+                                                    final Long selectionId = parsedRunner.getSelectionId();
+                                                    SafeRunner safeRunner = null;
+                                                    switch (parsedRunnerType) {
+                                                        case GOALS_UNDER_25:
+                                                            if (awayScore > 2) {
+                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
+                                                            }
+                                                            break;
+                                                        case GOALS_OVER_25:
+                                                            if (awayScore > 2) {
+                                                                safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
+                                                            }
+                                                            break;
+                                                        default:
+                                                            defaultParsedRunnerTypeError(parsedRunnerType, marketCatalogue);
+                                                            break;
+                                                    }
+                                                    addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
+                                                }
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                            } else { // market not safe
                                             }
                                             break;
                                         case ET_CORRECT_SCORE:

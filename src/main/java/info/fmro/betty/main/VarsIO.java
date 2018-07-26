@@ -73,14 +73,29 @@ public class VarsIO {
 //                synchronized (map) {
 //                newMap.clear(); // clear previous values
                 while (fileLine != null) {
-                    fileLine = fileLine.trim();
+                    fileLine = fileLine.trim(); // only whole line is trimmed, not the individual aliases
+                    fileLine = fileLine.toLowerCase(Locale.ENGLISH);
                     if (!fileLine.isEmpty() && !fileLine.startsWith("#")) {
                         final List<String> stringList = getUnescapedSplits(fileLine, '"', 3);
                         final int size = stringList.size();
                         if (size == 2 || size == 3) {
-                            final String previousValue = newMap.put(stringList.get(0), stringList.get(size - 1));
+                            final String newKey = stringList.get(0);
+                            final boolean newKeyIsStrange = Formulas.containsStrangeChars(newKey);
+                            if (newKeyIsStrange) {
+                                logger.error("strange key in aliases file {}: {}", fileName, fileLine);
+                            }
+                            final String newValue = stringList.get(size - 1);
+                            final boolean newValueIsStrange = Formulas.containsStrangeChars(newValue);
+                            if (newValueIsStrange) {
+                                logger.error("strange value in aliases file {}: {}", fileName, fileLine);
+                            }
+
+                            final String previousValue = newMap.put(newKey, newValue);
                             if (previousValue != null) {
                                 logger.error("double key in aliases file {}: {}", fileName, fileLine);
+                            }
+                            if (newMap.containsValue(newKey)) {
+                                logger.error("key already contained in values in aliases file {}: {}", fileName, fileLine);
                             }
                         } else {
                             logger.error("Bogus line in aliases file {}: {} listSize={} list:{}", fileName, fileLine, size, Generic.objectToString(stringList));

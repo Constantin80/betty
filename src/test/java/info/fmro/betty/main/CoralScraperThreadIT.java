@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 public class CoralScraperThreadIT {
     //    @Test
 //    public void testGetScraperEvents() {
-//        System.out.println("getScraperEvents");
 //        HtmlPage htmlPage = null;
 //        CoralScraperThread.getScraperEvents(htmlPage);
 //        fail("The test case is a prototype.");
@@ -13,7 +12,6 @@ public class CoralScraperThreadIT {
 //
 //    @Test
 //    public void testTimedGetScraperEvents() {
-//        System.out.println("timedGetScraperEvents");
 //        HtmlPage htmlPage = null;
 //        long expResult = 0L;
 //        long result = CoralScraperThread.timedGetScraperEvents(htmlPage);

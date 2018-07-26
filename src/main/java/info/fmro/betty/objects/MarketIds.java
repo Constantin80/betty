@@ -2,11 +2,13 @@ package info.fmro.betty.objects;
 
 import com.google.common.collect.Lists;
 import info.fmro.betty.entities.MarketCatalogue;
+import info.fmro.shared.utility.Generic;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MarketIds {
 
@@ -46,6 +48,22 @@ public class MarketIds {
     }
 
     public synchronized List<HashSet<String>> getMarketIdsSetsList() {
-        return this.marketIdsSetsList == null ? null : new ArrayList<>(this.marketIdsSetsList);
+        final List<HashSet<String>> result;
+
+        if (this.marketIdsSetsList == null) {
+            result = null;
+        } else {
+            result = new ArrayList<>(this.marketIdsSetsList.size());
+            for (final HashSet<String> set : this.marketIdsSetsList) {
+                if (set == null) {
+                    logger.error("null element found in marketIdsSetsList during getMarketIdsSetsList for: {}", Generic.objectToString(this));
+                    result.add(null);
+                } else {
+                    result.add(new HashSet<>(set));
+                }
+            }
+        }
+
+        return result;
     }
 }

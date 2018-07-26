@@ -128,7 +128,6 @@ public class SafeRunner
 
     public synchronized int getMinScoreScrapers() {
         return Math.min(this.getMatchedScrapers(ScrapedField.HOME_SCORE), this.getMatchedScrapers(ScrapedField.AWAY_SCORE));
-
     }
 
     public synchronized long getAddedStamp() {

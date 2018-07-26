@@ -31,7 +31,6 @@ class CoralEventTest {
                 assertEquals(0L, firstObject.getIgnoredExpiration(), "ignoredExpiration ignored=false");
                 assertEquals(0L, firstObject.getSetIgnoredStamp(), "setIgnoredStamp ignored=false");
             }
-
         } catch (IllegalAccessException e) {
             fail("IllegalAccessException");
             e.printStackTrace();

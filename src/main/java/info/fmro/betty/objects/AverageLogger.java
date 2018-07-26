@@ -69,5 +69,4 @@ public class AverageLogger {
             logger.info(errorPattern, nRecords, expectedRuns);
         }
     }
-
 }

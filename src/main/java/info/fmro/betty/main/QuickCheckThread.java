@@ -51,8 +51,7 @@ public class QuickCheckThread
     public static final HashSet<PriceData> priceDataSetBest = new HashSet<>(2);
     public static final PriceProjection priceProjectionBest = new PriceProjection();
     public static final ExBestOffersOverrides exBestOffersOverrides = new ExBestOffersOverrides();
-    public final AverageLogger averageLogger = new AverageLogger(this,
-                                                                 "getMarketBooks ran {}({}) times average/max: listSize {}/{} took {}/{} ms of which {}/{} ms waiting for threads", "getMarketBooks ran {}({}) times", 3);
+    public final AverageLogger averageLogger = new AverageLogger(this, "getMarketBooks ran {}({}) times average/max: listSize {}/{} took {}/{} ms of which {}/{} ms waiting for threads", "getMarketBooks ran {}({}) times", 3);
 
     static {
         priceDataSetAll.add(PriceData.EX_ALL_OFFERS);

@@ -790,7 +790,7 @@ public class SafetyLimits
     public synchronized boolean startingGettingOrders() {
         final boolean modified;
         if (this.startedGettingOrders) {
-            logger.error("startedGettingOrders not modified in SafetyLimits");
+            logger.error("startedGettingOrders already true in SafetyLimits ... normal in the beginning, and only if previous program run didn't end normally");
             modified = false;
         } else {
             modified = true;

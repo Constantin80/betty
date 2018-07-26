@@ -14,17 +14,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class GetLiveMarketsThread
         extends Thread {
-
     private static final Logger logger = LoggerFactory.getLogger(GetLiveMarketsThread.class);
     public static final AtomicInteger timedMapEventsCounter = new AtomicInteger(), timedFindInterestingMarketsCounter = new AtomicInteger();
 
     public static void parseEventResultList() {
         final long startTime = System.currentTimeMillis();
-        final List<EventResult> eventResultList = ApiNGJRescriptDemo.getLiveEventResultList(Statics.appKey.get());
+        final List<EventResult> eventResultList = SafeBetModuleMethods.getLiveEventResultList(Statics.appKey.get());
         if (eventResultList != null) {
             // Statics.timeStamps.lastParseEventResultListStamp(Generic.MINUTE_LENGTH_MILLISECONDS);
-            HashSet<Event> addedEvents = new HashSet<>(0);
-            HashSet<Event> modifiedEvents = new HashSet<>(0);
+            final HashSet<Event> addedEvents = new HashSet<>(0);
+            final HashSet<Event> modifiedEvents = new HashSet<>(0);
             for (final EventResult eventResult : eventResultList) {
                 final Event event = eventResult.getEvent();
                 if (event.parseName() > 0) {
@@ -34,7 +33,6 @@ public class GetLiveMarketsThread
                         if (Statics.eventsMap.containsKey(eventId)) {
                             existingEvent = Statics.eventsMap.get(eventId);
                         } else {
-//                                if (BlackList.dummyEvent.equals(BlackList.checkedPutEvent(Statics.eventsMap, eventId, event, startTime))) {
                             if (event.isIgnored(startTime)) { // these events don't already exist in map, so they can't be ignored already; this would be an error
                                 logger.error("blackListed event added: {}", eventId);
                             } else {
@@ -42,17 +40,14 @@ public class GetLiveMarketsThread
 
                             existingEvent = Statics.eventsMap.putIfAbsent(eventId, event);
                             if (existingEvent == null) { // event was added, no previous event existed, double check to avoid racing issues
-//                                existingEvent = null;
                                 addedEvents.add(event);
                             } else {
                                 logger.error("existingEvent found during put double check: {} {}", Generic.objectToString(existingEvent), Generic.objectToString(event));
-//                                existingEvent = inMapEvent;
                             }
                         }
                     } // end synchronized
 
                     if (existingEvent != null) {
-//                        event.setScraperEventIds(existingEvent.getScraperEventIds()); // placed before update, else there will be error in update
                         int update = existingEvent.update(event);
                         if (update > 0) {
                             modifiedEvents.add(existingEvent);
@@ -61,13 +56,6 @@ public class GetLiveMarketsThread
                 } else {
                     Generic.alreadyPrintedMap.logOnce(logger, LogLevel.WARN, "parseEventResultList ignoring unparsed event name: {}", event.getName());
                 }
-
-                // synchronized (Statics.eventsInfoMap) {
-                //     if (!Statics.eventsInfoMap.containsKey(eventId)) {
-                //         Statics.eventsInfoMap.put(eventId, null);
-                //         eventsInfoMapAddedKey++;
-                //     }
-                // } // end synchronized
             } // end for
             Statics.eventsMap.timeStamp();
 

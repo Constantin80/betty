@@ -39,7 +39,6 @@ class EventTest {
                 assertEquals(timeFirstSeen, firstObject.getTimeFirstSeen(), "timeFirstSeen");
             }
             assertEquals(initialMatchedTimeStamp, firstObject.getMatchedTimeStamp(), "matchedTimeStamp");
-
         } catch (IllegalAccessException e) {
             fail("IllegalAccessException");
             e.printStackTrace();

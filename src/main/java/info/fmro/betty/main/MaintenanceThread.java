@@ -49,7 +49,6 @@ public class MaintenanceThread
     //     return timeTillNext;
     // }
 
-
     public static long timedPrintAverages() {
         long timeForNext = Statics.timeStamps.getLastPrintAverages();
         long timeTillNext = timeForNext - System.currentTimeMillis();
@@ -238,7 +237,6 @@ public class MaintenanceThread
         }
         return timeTillNext;
     }
-
 
     public static void cleanSafeBetsMap() {
         Statics.safeBetsMap.timeCleanStamp(20_000L);
@@ -1179,7 +1177,7 @@ public class MaintenanceThread
                 long timeToSleep;
 
                 if (Statics.needSessionToken.get()) {
-                    Betty.authenticate(Statics.AUTH_URL, Statics.bu, Statics.bp, Statics.sessionTokenObject, Statics.needSessionToken, Statics.KEY_STORE_FILE_NAME, Statics.KEY_STORE_PASSWORD, Statics.KEY_STORE_TYPE, Statics.appKey);
+                    Betty.authenticate(Statics.AUTH_URL, Statics.bu, Statics.bp, Statics.sessionTokenObject, Statics.KEY_STORE_FILE_NAME, Statics.KEY_STORE_PASSWORD, Statics.KEY_STORE_TYPE, Statics.appKey);
                 }
                 if (Statics.mustWriteObjects.get()) {
                     VarsIO.writeObjectsToFiles();

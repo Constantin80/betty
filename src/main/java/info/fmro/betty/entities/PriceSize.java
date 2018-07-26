@@ -1,11 +1,15 @@
 package info.fmro.betty.entities;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 
 public class PriceSize
         implements Serializable {
-
+    private static final Logger logger = LoggerFactory.getLogger(PriceSize.class);
     private static final long serialVersionUID = 6795917492745798841L;
     private Double price;
     private Double size;
@@ -18,18 +22,27 @@ public class PriceSize
         this.size = size;
     }
 
+    public PriceSize(List<Double> priceSize) {
+        if (priceSize != null) {
+            this.price = priceSize.get(0);
+            this.size = priceSize.get(1);
+        } else { // I'm leaving the fields null and printing error
+            logger.error("null priceSize list in PriceSize object creation");
+        }
+    }
+
     public synchronized Double getPrice() {
         return price;
     }
 
-//    public synchronized void setPrice(Double price) {
+    //    public synchronized void setPrice(Double price) {
 //        this.price = price;
 //    }
     public synchronized Double getSize() {
         return size;
     }
 
-//    public synchronized void setSize(Double size) {
+    //    public synchronized void setSize(Double size) {
 //        this.size = size;
 //    }
     @Override

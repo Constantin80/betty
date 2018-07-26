@@ -123,12 +123,19 @@ public class Formulas {
         charactersMap.put("&", "and");
         charactersMap.put(".", " ");
 
-        int mapCapacity = Generic.getCollectionCapacity(charactersMap.size(), 0.75f);
-        LinkedHashMap<String, String> tempMap = new LinkedHashMap<>(mapCapacity, 0.75f);
+        final int mapCapacity = Generic.getCollectionCapacity(charactersMap.size(), 0.75f);
+        final LinkedHashMap<String, String> tempMap = new LinkedHashMap<>(mapCapacity, 0.75f);
         synchronized (charactersMap) { // apply toLowerCase().trim() to all keys & values
-            Set<String> keys = charactersMap.keySet();
+            final Set<String> keys = charactersMap.keySet();
             for (String key : keys) {
-                String value = charactersMap.get(key), modifiedKey = key.toLowerCase(Locale.ENGLISH), modifiedValue = value.toLowerCase(Locale.ENGLISH);
+                final String value = charactersMap.get(key), modifiedKey = key.toLowerCase(Locale.ENGLISH), modifiedValue = value.toLowerCase(Locale.ENGLISH);
+                if (key != modifiedKey) {
+                    logger.error("key gets modified in charactersMap static parsing: {} - {}", key, modifiedKey);
+                }
+                if (value != modifiedValue) {
+                    logger.error("value gets modified in charactersMap static parsing: {} - {}", value, modifiedValue);
+                }
+
                 tempMap.put(modifiedKey, modifiedValue);
             }
 
@@ -147,7 +154,7 @@ public class Formulas {
         if (teamString != null) {
             modifiedString = teamString.toLowerCase().trim();
             synchronized (charactersMap) {
-                Set<String> keys = charactersMap.keySet();
+                final Set<String> keys = charactersMap.keySet();
                 for (String key : keys) {
                     while (modifiedString.contains(key)) {
                         modifiedString = Generic.quotedReplaceAll(modifiedString, key, charactersMap.get(key));
@@ -159,6 +166,25 @@ public class Formulas {
         }
 
         return modifiedString;
+    }
+
+    public static boolean containsStrangeChars(String teamString) {
+        boolean result = false;
+        if (teamString != null) {
+            synchronized (charactersMap) {
+                final Set<String> keys = charactersMap.keySet();
+                for (String key : keys) {
+                    if (teamString.contains(key)) {
+                        result = true;
+                        break;
+                    }
+                } // end for
+            } // end synchronized
+        } else {
+            logger.error("null teamString in containsStrangeChars()");
+        }
+
+        return result;
     }
 
     public static String parseTeamString(String teamString) {

@@ -26,10 +26,6 @@ import java.util.Objects;
 import java.util.Set;
 
 public class Event
-
-
-
-
         extends Ignorable
         implements Serializable, Comparable<Event> {
 

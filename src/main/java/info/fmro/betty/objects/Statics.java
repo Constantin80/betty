@@ -9,6 +9,9 @@ import info.fmro.betty.main.CoralScraperThread;
 import info.fmro.betty.main.InputConnectionThread;
 import info.fmro.betty.main.LoggerThread;
 import info.fmro.betty.main.ScraperThread;
+import info.fmro.betty.stream.cache.market.MarketCache;
+import info.fmro.betty.stream.cache.order.OrderCache;
+import info.fmro.betty.stream.client.Client;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.SynchronizedMap;
 import info.fmro.shared.utility.SynchronizedSafeSet;
@@ -42,20 +45,19 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Statics {
-
     private static final Logger logger = LoggerFactory.getLogger(Statics.class);
     public static final boolean notPlacingOrders = true; // hard stop for order placing; true for testing, false enables order placing
     public static final boolean safeBetModuleActivated = false; // false for now, I won't be using this module for quite a while
     public static final NullComparator nullComparator = new NullComparator(false);
     public static final double threshold = .8d, highThreshold = .9d;
     public static final int ENCRYPTION_KEY = 0, DECRYPTION_KEY = 2, SOCKET_CONNECT_TIMEOUT = 30_000, SOCKET_READ_TIMEOUT = 30_000, PAGE_GET_TIMEOUT = 120_000, N_BEST = 100, N_ALL = 11, N_MARKETBOOK_THREADS_LIMIT = 50,
-            MIN_MATCHED = safeBetModuleActivated ? 2 : 0;
+            MIN_MATCHED = safeBetModuleActivated ? 2 : 0, SSL_PORT = 443;
     public static final long DELAY_GETMARKETBOOKS = 200L, EXECUTOR_KEEPALIVE = 10_000L, DELAY_PRINTAVERAGES = 20_000L, DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD = 1_000L, N_MARKETBOOK_THREADS_INTERVAL = 2_000L, INITIAL_EVENT_SAFETY_PERIOD =
             Generic.MINUTE_LENGTH_MILLISECONDS, PROGRAM_START_TIME = System.currentTimeMillis(), MINIMUM_BAD_STUFF_HAPPENED_IGNORE = 2L * Generic.MINUTE_LENGTH_MILLISECONDS;
-    public static final String VARS_FILE_NAME = "input/vars.txt", STDOUT_FILE_NAME = "out.txt", STDERR_FILE_NAME = "err.txt", MATCHER_FILE_NAME = "matcher.txt", SAFEBETS_FILE_NAME = "bets.txt", NEWMARKET_FILE_NAME = "newmarket.txt", AUTH_URL =
-            "https://identitysso.betfair.ro/api/certlogin", KEY_STORE_FILE_NAME = "input/client-2048.p12", KEY_STORE_PASSWORD = "", KEY_STORE_TYPE = "pkcs12", APING_URL = "https://api.betfair.com/exchange/betting/", RESCRIPT_SUFFIX = "rest/v1.0/",
-            APPLICATION_JSON = "application/json", ACCOUNT_APING_URL = "https://api.betfair.com/exchange/account/", ALIASES_FILE_NAME = "input/aliases.txt", FULL_ALIASES_FILE_NAME = "input/aliasesfull.txt", PROJECT_PREFIX = "info.fmro", LOGS_FOLDER_NAME =
-            "logs", DATA_FOLDER_NAME = "data";
+    public static final String VARS_FILE_NAME = "input/vars.txt", STDOUT_FILE_NAME = "out.txt", STDERR_FILE_NAME = "err.txt", MATCHER_FILE_NAME = "matcher.txt", SAFEBETS_FILE_NAME = "bets.txt", NEWMARKET_FILE_NAME = "newmarket.txt",
+            SSO_HOST_RO = "identitysso.betfair.ro", AUTH_URL = "https://" + SSO_HOST_RO + "/api/certlogin", KEY_STORE_FILE_NAME = "input/client-2048.p12", KEY_STORE_PASSWORD = "", KEY_STORE_TYPE = "pkcs12",
+            APING_URL = "https://api.betfair.com/exchange/betting/", RESCRIPT_SUFFIX = "rest/v1.0/", APPLICATION_JSON = "application/json", ACCOUNT_APING_URL = "https://api.betfair.com/exchange/account/", ALIASES_FILE_NAME = "input/aliases.txt",
+            FULL_ALIASES_FILE_NAME = "input/aliasesfull.txt", PROJECT_PREFIX = "info.fmro", LOGS_FOLDER_NAME = "logs", DATA_FOLDER_NAME = "data", STREAM_HOST = "stream-api.betfair.com";
     public static final String[] supportedEventTypes = {"1"}; // "1" = soccer
 
     //    public static AtomicBoolean closeStandardStreams = new AtomicBoolean(true); // modified by reflection for tests
@@ -120,12 +122,22 @@ public class Statics {
 
     public static final SubclassMaps<ScraperEvent> scraperEventMaps = new SubclassMaps<>(scraperEventSubclassesSet);
 
+    public static final Client[] streamClients = new Client[Client.nClients];
+    public static final MarketCache marketCache = new MarketCache();
+    public static final OrderCache orderCache = new OrderCache();
+
     private Statics() {
     }
 
 //    public Statics(boolean dontCloseStandardStreams) {
 //        Statics.closeStandardStreamsNotInitialized = dontCloseStandardStreams;
 //    }
+
+    static {
+        for (int i = 0; i < streamClients.length; i++) {
+            streamClients[i] = new Client(i, Statics.STREAM_HOST, Statics.SSL_PORT);
+        }
+    }
 
     static {
         connManager.setMaxTotal(32768);
@@ -178,6 +190,7 @@ public class Statics {
         marketTypes.add("HALF_WITH_MOST_GOALS"); // 1st_Half/2nd_Half/Tie, goals scored; very interesting
         marketTypes.add("METHOD_OF_VICTORY"); // method of victory (90 minutes/ET/penalties) 3*2=6 options; very interesting
         marketTypes.add("MATCH_ODDS_AND_OU_25"); // was in the other set; match odds and over/under 2.5 goals combination, 6 options total, after 2nd half; very interesting
+        marketTypes.add("MATCH_ODDS_AND_OU_35"); // was in the other set; match odds and over/under 3.5 goals combination, 6 options total, after 2nd half; very interesting
         marketTypes.add("MATCH_ODDS_AND_BTTS"); // match odds and both teams score combination, 6 options total, after 2nd half; very interesting
         marketTypes.add("LAST_TEAM_TO_SCORE"); // last team to score, after 2nd half, with "No Goal" option; very interesting
         // next are considered for testing
@@ -204,6 +217,12 @@ public class Statics {
         marketTypes.add("OVER_UNDER_75"); // over/under 7.5 goals, after 2nd half; normally gets suspended when goal scored and closed when impossible
         marketTypes.add("OVER_UNDER_85"); // over/under 8.5 goals, after 2nd half; normally gets suspended when goal scored and closed when impossible
         marketTypes.add("OVER_UNDER"); // over/under goals, after 2nd half; many markets, I've seen for 9.5-14.5; normally gets suspended when goal scored and closed when impossible
+        marketTypes.add("TEAM_A_OVER_UNDER_05"); // home team over/under 0.5 goals, after 2nd half; normally gets suspended when goal scored and closed when impossible
+        marketTypes.add("TEAM_A_OVER_UNDER_15"); // home team over/under 1.5 goals, after 2nd half; normally gets suspended when goal scored and closed when impossible
+        marketTypes.add("TEAM_A_OVER_UNDER_25"); // home team over/under 2.5 goals, after 2nd half; normally gets suspended when goal scored and closed when impossible
+        marketTypes.add("TEAM_B_OVER_UNDER_05"); // away team over/under 0.5 goals, after 2nd half; normally gets suspended when goal scored and closed when impossible
+        marketTypes.add("TEAM_B_OVER_UNDER_15"); // away team over/under 1.5 goals, after 2nd half; normally gets suspended when goal scored and closed when impossible
+        marketTypes.add("TEAM_B_OVER_UNDER_25"); // away team over/under 2.5 goals, after 2nd half; normally gets suspended when goal scored and closed when impossible
         // next are not considered
         marketTypes.add("ET_CORRECT_SCORE"); // correct score, upto 2-2, only ET; very interesting, but harder to code
         marketTypes.add("ET_BTTS"); // both teams to score, only ET; seems to get closed when impossible
@@ -227,6 +246,7 @@ public class Statics {
         marketTypes.add("HAT_TRICKED_SCORED"); // 3+ goals by same player, after 2nd half; own goals don't count; hard & likely not live & probably closed when imopossible
         marketTypes.add("PENALTY_TAKEN"); // penalty awarded, after 2nd half; hard & likely not live & probably closed when imopossible
         marketTypes.add("OVER_UNDER_25_CARDS"); // number of total cards over/under 2.5, after 2nd half; hard & probably closed when imopossible
+        marketTypes.add("OVER_UNDER_35_CARDS"); // number of total cards over/under 2.5, after 2nd half; hard & probably closed when imopossible
         marketTypes.add("OVER_UNDER_45_CARDS"); // number of total cards over/under 4.5, after 2nd half; hard & probably closed when imopossible
         marketTypes.add("OVER_UNDER_65_CARDS"); // number of total cards over/under 6.5, after 2nd half; hard & probably closed when imopossible
         marketTypes.add("SHOWN_A_CARD"); // huge list, players who may be shown a card, after 2nd half; only those who played count, rest will be voided; hard & not live

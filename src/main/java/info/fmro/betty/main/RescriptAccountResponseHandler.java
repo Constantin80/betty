@@ -54,7 +54,7 @@ public class RescriptAccountResponseHandler
                             switch (accountAPINGException.getErrorCode()) {
                                 case INVALID_SESSION_INFORMATION:
                                     Statics.needSessionToken.set(true);
-                                    Generic.alreadyPrintedMap.logOnce(defaultPrintExpiry, logger, LogLevel.INFO, "needing another session token, call to api-ng failed: {} {}", httpEntityString, statusLine);
+                                    Generic.alreadyPrintedMap.logOnce(defaultPrintExpiry, logger, LogLevel.INFO, "needing another session token, INVALID_SESSION_INFORMATION, call to api-ng failed: {} {}", httpEntityString, statusLine);
                                     Generic.threadSleep(100);
                                     break;
                                 case INVALID_APP_KEY: // I see this error if I send an invalid session token

@@ -647,7 +647,6 @@ public class CoralScraperThread
 //                majorScrapingError.incrementAndGet();
 //            }
         }
-
     }
 
     @Override

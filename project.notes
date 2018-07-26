@@ -1096,7 +1096,7 @@ trading bot
 	-client with GUI
 	-client for phone with alert sounds
 	-sometimes, when makets are created, odds can be way off from what bookies offer (seen in OU 4.5/5.5/6.5/7.5 markets)
-	-placing amounts on some low liquidity markets, with variable odds, depending the the other amounts
+	-placing amounts on some low liquidity markets, with variable odds, depending on the other amounts
 		-ex: amounts at 1.79 back and 7 lay; set limits of 2.8 back and 4.5 lay; amounts initially will be at 1.78 and 6.9, but this will also depend on the amounts on the market and amounts being placed
 	//-amount traded on a runner is counted twice, once for the amount backed and once for layed (ex: 100 EUR matched at any odds, from 1.01 to 1000, will result in 200 EUR matched)
 	-main ways to make profit:

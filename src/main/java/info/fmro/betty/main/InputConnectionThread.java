@@ -18,7 +18,6 @@ import java.util.Objects;
 
 public class InputConnectionThread
         extends Thread {
-
     private static final Logger logger = LoggerFactory.getLogger(InputConnectionThread.class);
     private final Socket socket;
 
@@ -170,7 +169,7 @@ public class InputConnectionThread
                             logger.info("betradarEventsMap keys: {}", Statics.betradarEventsMap.keySetCopy());
                         } else {
                             try {
-                                logger.info("betradarEventsMap key {} : {}", mapCommandString, Generic.objectToString(Statics.betradarEventsMap.get(new Long(mapCommandString))));
+                                logger.info("betradarEventsMap key {} : {}", mapCommandString, Generic.objectToString(Statics.betradarEventsMap.get(Long.valueOf(mapCommandString))));
                             } catch (NumberFormatException numberFormatException) {
                                 logger.error("numberFormatException while parsing betradarEventsMap command: {}", mapCommandString, numberFormatException);
                             }
@@ -182,7 +181,7 @@ public class InputConnectionThread
                             logger.info("coralEventsMap keys: {}", Statics.coralEventsMap.keySetCopy());
                         } else {
                             try {
-                                logger.info("coralEventsMap key {} : {}", mapCommandString, Generic.objectToString(Statics.coralEventsMap.get(new Long(mapCommandString))));
+                                logger.info("coralEventsMap key {} : {}", mapCommandString, Generic.objectToString(Statics.coralEventsMap.get(Long.valueOf(mapCommandString))));
                             } catch (NumberFormatException numberFormatException) {
                                 logger.error("numberFormatException while parsing coralEventsMap command: {}", mapCommandString, numberFormatException);
                             }

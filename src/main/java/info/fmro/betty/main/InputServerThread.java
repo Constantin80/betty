@@ -35,7 +35,7 @@ public class InputServerThread
 
             while (!Statics.mustStop.get()) {
                 try {
-                    Socket socket = serverSocket.accept();
+                    final Socket socket = serverSocket.accept();
                     if (socket.getInetAddress().getHostAddress().equals("127.0.0.1")) {
                         Statics.inputConnectionSocketsSet.add(socket);
                         InputConnectionThread inputConnectionThread = new InputConnectionThread(socket);
