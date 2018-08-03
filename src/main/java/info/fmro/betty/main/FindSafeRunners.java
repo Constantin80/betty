@@ -1527,7 +1527,16 @@ public class FindSafeRunners {
                                             if (matchStatus == MatchStatus.AWAITING_ET || matchStatus == MatchStatus.OVERTIME || matchStatus == MatchStatus.FIRST_ET ||
                                                 matchStatus == MatchStatus.ET_HALF_TIME || matchStatus == MatchStatus.SECOND_ET || matchStatus == MatchStatus.AWAITING_PEN ||
                                                 matchStatus == MatchStatus.PENALTIES) {
-                                                final int nSafeRunners = matchStatus == MatchStatus.AWAITING_PEN || matchStatus == MatchStatus.PENALTIES ? 4 : 2;
+                                                final int nRunners = marketCatalogue.getNRunners();
+                                                final int nSafeRunners;
+                                                if (nRunners == 6) {
+                                                    nSafeRunners = matchStatus == MatchStatus.AWAITING_PEN || matchStatus == MatchStatus.PENALTIES ? 4 : 2;
+                                                } else if (nRunners == 4) {
+                                                    nSafeRunners = 2;
+                                                } else {
+                                                    logger.error("wrong nRunners {} for: {} {} {}", nRunners, parsedMarketType, matchStatus, Generic.objectToString(marketCatalogue));
+                                                    nSafeRunners = 0;
+                                                }
                                                 final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
                                                 for (final ParsedRunner parsedRunner : parsedRunnersSet) {
                                                     final ParsedRunnerType parsedRunnerType = parsedRunner.getParsedRunnerType();

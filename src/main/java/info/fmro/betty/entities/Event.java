@@ -1,5 +1,6 @@
 package info.fmro.betty.entities;
 
+import info.fmro.betty.enums.CommandType;
 import info.fmro.betty.main.LaunchCommandThread;
 import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.ScraperEvent;
@@ -7,7 +8,6 @@ import info.fmro.betty.objects.Statics;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
-import info.fmro.shared.utility.LogLevel;
 import info.fmro.shared.utility.SynchronizedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -164,9 +164,9 @@ public class Event
             final HashSet<Event> eventsSet = new HashSet<>(2);
             eventsSet.add(this);
 
-            logger.info("ignoreEvent to check: {} delay: {} launch: findInterestingMarkets", this.id, realPeriod);
-            Statics.threadPoolExecutor.execute(new LaunchCommandThread("findInterestingMarkets", eventsSet, realPeriod));
-//            Statics.threadPoolExecutor.execute(new LaunchCommandThread("findSafeRunners", eventsSet, realPeriod));
+            logger.info("ignoreEvent to check: {} delay: {} launch: findMarkets", this.id, realPeriod);
+            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, eventsSet, realPeriod));
+//            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, eventsSet, realPeriod));
         } else { // ignored was not modified, likely nothing to be done
         }
 
@@ -403,8 +403,8 @@ public class Event
             int homeModified = this.setHomeName(name.substring(0, name.indexOf(" @ ")));
             int awayModified = this.setAwayName(name.substring(name.indexOf(" @ ") + " @ ".length()));
             modified = homeModified + awayModified;
-        } else {
-            Generic.alreadyPrintedMap.logOnce(logger, LogLevel.WARN, "unknown event name home/away separator for: {}", name);
+        } else { // creates clutter in the logs even if logging once
+            //            Generic.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "unknown event name home/away separator for: {}", name);
 
             // won't allow null to be set
             // homeName = null;

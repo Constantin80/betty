@@ -648,9 +648,9 @@ public class ScraperEvent
 //                    final HashSet<Event> eventsSet = new HashSet<>(2);
 //                    eventsSet.add(event);
 //
-//                    logger.info("ignoreScraper {} toCheckEvent: {} delay: {} launch: findInterestingMarkets findSafeRunners", this.eventId, matchedEventId, realPeriod);
-//                    Statics.threadPoolExecutor.execute(new LaunchCommandThread("findInterestingMarkets", eventsSet, realPeriod));
-//                    Statics.threadPoolExecutor.execute(new LaunchCommandThread("findSafeRunners", eventsSet, realPeriod));
+//                    logger.info("ignoreScraper {} toCheckEvent: {} delay: {} launch: findMarkets findSafeRunners", this.eventId, matchedEventId, realPeriod);
+//                    Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, eventsSet, realPeriod));
+//                    Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, eventsSet, realPeriod));
                 } else { // error message is printed in checkEventNMatched, nothing to be done
                     logger.error("no event in map for matchedEventId {} in ScraperEvent.setIgnored for: {}", this.matchedEventId, Generic.objectToString(this));
                 }

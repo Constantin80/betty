@@ -3,11 +3,12 @@ package info.fmro.betty.objects;
 import info.fmro.betty.enums.ParsedMarketType;
 import info.fmro.betty.enums.ParsedRunnerType;
 import info.fmro.shared.utility.Generic;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Objects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ParsedMarket
         implements Serializable, Comparable<ParsedMarket> {
@@ -19,14 +20,6 @@ public class ParsedMarket
     private final ParsedMarketType parsedMarketType;
     private final HashSet<ParsedRunner> parsedRunnersSet;
 
-//    public ParsedMarket(String marketId) {
-//        this.marketId = marketId;
-//    }
-//
-//    public ParsedMarket(String marketId, ParsedMarketType parsedMarketType) {
-//        this.marketId = marketId;
-//        this.parsedMarketType = parsedMarketType;
-//    }
     public ParsedMarket(String marketId, ParsedMarketType parsedMarketType, HashSet<ParsedRunner> parsedRunnersSet) {
         this.marketId = marketId;
         this.parsedMarketType = parsedMarketType;
@@ -41,16 +34,10 @@ public class ParsedMarket
         return parsedMarketType;
     }
 
-//    public synchronized void setParsedMarketType(ParsedMarketType parsedMarketType) {
-//        this.parsedMarketType = parsedMarketType;
-//    }
     public synchronized HashSet<ParsedRunner> getParsedRunnersSet() {
         return new HashSet<>(parsedRunnersSet);
     }
 
-//    public synchronized void setParsedRunnersSet(HashSet<ParsedRunner> parsedRunnersSet) {
-//        this.parsedRunnersSet = parsedRunnersSet == null ? null : new HashSet<>(parsedRunnersSet);
-//    }
     public synchronized boolean checkSameTypeRunners() {
         boolean allDifferent;
         int capacity = Generic.getCollectionCapacity(this.parsedRunnersSet.size());
@@ -60,8 +47,7 @@ public class ParsedMarket
             parsedRunnerTypesSet.add(parsedRunner.getParsedRunnerType());
         }
         if (parsedRunnerTypesSet.size() != this.parsedRunnersSet.size()) {
-            logger.error("same type ParsedRunner(s) detected {} {} {}: {}", parsedRunnerTypesSet.size(), this.parsedRunnersSet.size(), Generic.objectToString(parsedRunnerTypesSet),
-                    Generic.objectToString(this));
+            logger.error("same type ParsedRunner(s) detected {} {} {}: {}", parsedRunnerTypesSet.size(), this.parsedRunnersSet.size(), Generic.objectToString(parsedRunnerTypesSet), Generic.objectToString(this));
             allDifferent = false;
         } else {
             allDifferent = true;
@@ -112,7 +98,7 @@ public class ParsedMarket
             if (other.parsedRunnersSet == null) {
                 return AFTER;
             }
-//            return this.parsedRunnersSet.compareTo(other.parsedRunnersSet);
+
             return BEFORE; // very primitive, hopefully it won't cause bugs; implementing compareTo for sets is not easy and it would likely consume too much resources
         }
 

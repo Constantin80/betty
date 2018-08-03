@@ -2,6 +2,7 @@ package info.fmro.betty.main;
 
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.EventResult;
+import info.fmro.betty.enums.CommandType;
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
@@ -17,89 +18,111 @@ public class GetLiveMarketsThread
     private static final Logger logger = LoggerFactory.getLogger(GetLiveMarketsThread.class);
     public static final AtomicInteger timedMapEventsCounter = new AtomicInteger(), timedFindInterestingMarketsCounter = new AtomicInteger();
 
-    public static void parseEventResultList() {
+    public static void parseEventList() {
         final long startTime = System.currentTimeMillis();
-        final List<EventResult> eventResultList = SafeBetModuleMethods.getLiveEventResultList(Statics.appKey.get());
+        final List<EventResult> eventResultList = ApiNGJRescriptDemo.getEventList(Statics.appKey.get());
+        final long receivedListFromServerTime = System.currentTimeMillis();
         if (eventResultList != null) {
-            // Statics.timeStamps.lastParseEventResultListStamp(Generic.MINUTE_LENGTH_MILLISECONDS);
             final HashSet<Event> addedEvents = new HashSet<>(0);
             final HashSet<Event> modifiedEvents = new HashSet<>(0);
             for (final EventResult eventResult : eventResultList) {
                 final Event event = eventResult.getEvent();
-                if (event.parseName() > 0) {
-                    final String eventId = event.getId();
-                    final Event existingEvent;
-                    synchronized (Statics.eventsMap) {
-                        if (Statics.eventsMap.containsKey(eventId)) {
-                            existingEvent = Statics.eventsMap.get(eventId);
+                final String eventId = event.getId();
+                final Event existingEvent;
+
+                if (Statics.eventsMap.containsKey(eventId)) {
+                    existingEvent = Statics.eventsMap.get(eventId);
+                } else {
+                    if (event.isIgnored(startTime)) { // these events don't already exist in map, so they can't be ignored already; this would be an error
+                        logger.error("blackListed event added: {}", eventId);
+                    } else { // normal case, nothing to be done
+                    }
+
+                    existingEvent = Statics.eventsMap.putIfAbsent(eventId, event);
+                    if (existingEvent == null) { // event was added, no previous event existed, double check to avoid racing issues
+                        addedEvents.add(event);
+                    } else {
+                        final long eventStamp = event.getTimeStamp();
+                        final long existingEventStamp = existingEvent.getTimeStamp();
+                        final long timeDifference = eventStamp - existingEventStamp;
+                        if (timeDifference < 1_000L) {
+                            logger.info("existingEvent found {} ms during put double check: {} {}", timeDifference, Generic.objectToString(existingEvent), Generic.objectToString(event));
                         } else {
-                            if (event.isIgnored(startTime)) { // these events don't already exist in map, so they can't be ignored already; this would be an error
-                                logger.error("blackListed event added: {}", eventId);
-                            } else {
-                            }
-
-                            existingEvent = Statics.eventsMap.putIfAbsent(eventId, event);
-                            if (existingEvent == null) { // event was added, no previous event existed, double check to avoid racing issues
-                                addedEvents.add(event);
-                            } else {
-                                logger.error("existingEvent found during put double check: {} {}", Generic.objectToString(existingEvent), Generic.objectToString(event));
-                            }
-                        }
-                    } // end synchronized
-
-                    if (existingEvent != null) {
-                        int update = existingEvent.update(event);
-                        if (update > 0) {
-                            modifiedEvents.add(existingEvent);
+                            logger.error("existingEvent found {} ms during put double check: {} {}", timeDifference, Generic.objectToString(existingEvent), Generic.objectToString(event));
                         }
                     }
-                } else {
-                    Generic.alreadyPrintedMap.logOnce(logger, LogLevel.WARN, "parseEventResultList ignoring unparsed event name: {}", event.getName());
+                }
+
+                if (existingEvent != null) {
+                    final int update = existingEvent.update(event);
+                    if (update > 0) {
+                        modifiedEvents.add(existingEvent);
+                    }
                 }
             } // end for
             Statics.eventsMap.timeStamp();
 
-            int sizeModified = modifiedEvents.size();
-            if (sizeModified > 0) { // check on whether the modified events are matched is done in findInterestingMarkets
-                final HashSet<Event> notIgnoredModifiedEvents = new HashSet<>(Generic.getCollectionCapacity(modifiedEvents));
+            final HashSet<Event> notIgnoredModifiedEvents = new HashSet<>(Generic.getCollectionCapacity(modifiedEvents));
+            final int sizeModified = modifiedEvents.size();
+            if (sizeModified > 0) {
                 for (Event event : modifiedEvents) {
                     if (!event.isIgnored()) {
                         notIgnoredModifiedEvents.add(event);
                     }
                 } // end for
-                if (notIgnoredModifiedEvents.size() > 0) {
-                    logger.info("parseEventResultList modifiedEvents: {} launch: findInterestingMarkets", sizeModified);
-                    Statics.threadPoolExecutor.execute(new LaunchCommandThread("findInterestingMarkets", modifiedEvents));
-                }
             }
 
-            int sizeAdded = addedEvents.size();
-            if (sizeAdded > 0) { // only added; modified will be checked during fullRun
-                if (Statics.safeBetModuleActivated) {
-                    logger.info("parseEventResultList addedEvents: {} launch: mapEventsToScraperEvents delayed", sizeAdded);
-                    Statics.threadPoolExecutor.execute(new LaunchCommandThread("mapEventsToScraperEvents", addedEvents, Generic.MINUTE_LENGTH_MILLISECONDS));
-                }
+            final int sizeNotIgnoredModified = notIgnoredModifiedEvents.size();
+            final int sizeAdded = addedEvents.size();
+            final int sizeToCheck = sizeNotIgnoredModified + sizeAdded;
+            if (sizeToCheck > 0) {
+                final HashSet<Event> toCheckEvents = new HashSet<>(Generic.getCollectionCapacity(sizeToCheck));
+                toCheckEvents.addAll(notIgnoredModifiedEvents);
+                toCheckEvents.addAll(addedEvents);
+                logger.info("parseEventResultList toCheckEvents: {}({}+{}) launch: findMarkets", sizeToCheck, sizeAdded, sizeNotIgnoredModified);
+                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, toCheckEvents));
             }
         } else {
-            logger.error("eventResultList null in parseEventResultList");
+            if (Statics.mustStop.get() && Statics.needSessionToken.get()) { // normal to happen during program stop, if not logged in
+            } else {
+                logger.error("eventResultList null in parseEventList");
 
-            if (!waitForSessionToken("parseEventResultList")) {
-                logger.error("sessionToken seems to not have been needed in parseEventResultList");
-                Generic.threadSleep(1000L); // avoid throttle, sessionToken might not have been needed
+                if (!waitForSessionToken("parseEventList")) {
+                    logger.error("sessionToken seems to not have been needed in parseEventList");
+                    Generic.threadSleep(1_000L); // avoid throttle, sessionToken might not have been needed
+                }
             }
         }
-        logger.info("parseEventResultList finished in {} ms eventResultList size: {}", System.currentTimeMillis() - startTime,
-                    eventResultList == null ? null : eventResultList.size());
+        final long endTime = System.currentTimeMillis();
+        logger.info("parseEventList eventResultList size: {} finished in {} ms of which {} ms spent parsing", eventResultList == null ? null : eventResultList.size(), endTime - startTime, endTime - receivedListFromServerTime);
     }
 
-    public static long timedParseEventResultList() {
+    public static long timedCheckEventResultList() {
         long timeForNext = Statics.timeStamps.getLastParseEventResultList();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0) {
-            Statics.timeStamps.lastParseEventResultListStamp(Generic.MINUTE_LENGTH_MILLISECONDS);
-            Statics.threadPoolExecutor.execute(new LaunchCommandThread("parseEventResultList"));
+            Statics.timeStamps.lastParseEventResultListStamp(5L * Generic.MINUTE_LENGTH_MILLISECONDS);
+            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.checkEventResultList));
 
             timeForNext = Statics.timeStamps.getLastParseEventResultList();
+            timeTillNext = timeForNext - System.currentTimeMillis();
+        } else { // nothing to be done
+        }
+        return timeTillNext;
+    }
+
+    public static long timedFindMarkets() {
+        long timeForNext = Statics.timeStamps.getLastFindInterestingMarkets();
+        long timeTillNext = timeForNext - System.currentTimeMillis();
+        if (timeTillNext <= 0) {
+            Statics.timeStamps.lastFindInterestingMarketsStamp(2L * Generic.MINUTE_LENGTH_MILLISECONDS);
+            if (timedFindInterestingMarketsCounter.getAndIncrement() % 10 == 0) {
+                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, true));
+            } else {
+                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets));
+            }
+
+            timeForNext = Statics.timeStamps.getLastFindInterestingMarkets();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -112,30 +135,12 @@ public class GetLiveMarketsThread
         if (timeTillNext <= 0) {
             Statics.timeStamps.lastMapEventsToScraperEventsStamp(Generic.MINUTE_LENGTH_MILLISECONDS);
             if (timedMapEventsCounter.getAndIncrement() % 10 == 0) {
-                Statics.threadPoolExecutor.execute(new LaunchCommandThread("mapEventsToScraperEvents", true));
+                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents, true));
             } else {
-                Statics.threadPoolExecutor.execute(new LaunchCommandThread("mapEventsToScraperEvents"));
+                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents));
             }
 
             timeForNext = Statics.timeStamps.getLastMapEventsToScraperEvents();
-            timeTillNext = timeForNext - System.currentTimeMillis();
-        } else { // nothing to be done
-        }
-        return timeTillNext;
-    }
-
-    public static long timedFindInterestingMarkets() {
-        long timeForNext = Statics.timeStamps.getLastFindInterestingMarkets();
-        long timeTillNext = timeForNext - System.currentTimeMillis();
-        if (timeTillNext <= 0) {
-            Statics.timeStamps.lastFindInterestingMarketsStamp(Generic.MINUTE_LENGTH_MILLISECONDS);
-            if (timedFindInterestingMarketsCounter.getAndIncrement() % 10 == 0) {
-                Statics.threadPoolExecutor.execute(new LaunchCommandThread("findInterestingMarkets", true));
-            } else {
-                Statics.threadPoolExecutor.execute(new LaunchCommandThread("findInterestingMarkets"));
-            }
-
-            timeForNext = Statics.timeStamps.getLastFindInterestingMarkets();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -147,7 +152,7 @@ public class GetLiveMarketsThread
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0) {
             Statics.timeStamps.lastFindSafeRunnersStamp(Generic.MINUTE_LENGTH_MILLISECONDS);
-            Statics.threadPoolExecutor.execute(new LaunchCommandThread("findSafeRunners"));
+            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners));
 
             timeForNext = Statics.timeStamps.getLastFindSafeRunners();
             timeTillNext = timeForNext - System.currentTimeMillis();
@@ -161,10 +166,11 @@ public class GetLiveMarketsThread
         int whileCounter = 0;
         while (Statics.needSessionToken.get() && !Statics.mustStop.get()) {
             if (whileCounter == 0) {
-                logger.info("{} waiting for sessionToken...", id);
+                Generic.alreadyPrintedMap.logOnce(20_000L, logger, LogLevel.INFO, "{} waiting for sessionToken...", id);
                 neededToken = true;
             } else if (whileCounter >= 1000 && whileCounter % 100 == 0) {
-                logger.error("{} still waiting for sessionToken {}...", id, whileCounter);
+                Generic.alreadyPrintedMap.logOnce(20_000L, logger, LogLevel.ERROR, "{} still waiting for sessionToken {}...", id, whileCounter);
+//                logger.error("{} still waiting for sessionToken {}...", id, whileCounter);
             }
             whileCounter++;
             Generic.threadSleep(10L);
@@ -183,11 +189,11 @@ public class GetLiveMarketsThread
 
                 long timeToSleep;
 
-                timeToSleep = timedParseEventResultList();
+                timeToSleep = timedCheckEventResultList();
                 if (Statics.safeBetModuleActivated) {
                     timeToSleep = Math.min(timeToSleep, timedMapEventsToScraperEvents());
                 }
-                timeToSleep = Math.min(timeToSleep, timedFindInterestingMarkets());
+                timeToSleep = Math.min(timeToSleep, timedFindMarkets());
                 if (Statics.safeBetModuleActivated) {
                     timeToSleep = Math.min(timeToSleep, timedFindSafeRunners());
                 }

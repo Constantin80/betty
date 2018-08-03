@@ -9,6 +9,7 @@ import info.fmro.betty.entities.MarketBook;
 import info.fmro.betty.entities.PlaceInstruction;
 import info.fmro.betty.entities.PriceSize;
 import info.fmro.betty.entities.Runner;
+import info.fmro.betty.enums.CommandType;
 import info.fmro.betty.enums.MarketStatus;
 import info.fmro.betty.enums.OrderType;
 import info.fmro.betty.enums.PersistenceType;
@@ -837,8 +838,8 @@ public class SafetyLimits
 
             final TreeSet<String> marketIdsSet = new TreeSet<>();
             marketIdsSet.add(marketId);
-            logger.info("marketId to check: {} launch: findInterestingMarkets", marketId);
-            Statics.threadPoolExecutor.execute(new LaunchCommandThread("findInterestingMarkets", marketIdsSet));
+            logger.info("marketId to check: {} launch: findMarkets", marketId);
+            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, marketIdsSet));
         } else {
             addAmountToDoubleMap(eventId, addedAmount, this.eventAmounts);
         }

@@ -413,7 +413,7 @@ public class Betty {
 
                         if (sessionToken != null && sessionToken.getSessionTokenLength() > 0) {
                             sessionTokenObject.setSessionToken(sessionToken.getSessionToken());
-                            sessionTokenObject.timeStamp();
+//                            sessionTokenObject.timeStamp();
                             Statics.needSessionToken.set(false);
                             success = true;
                         } else {

@@ -107,7 +107,7 @@ public class Statics {
     public static final SynchronizedMap<Long, BetradarEvent> betradarEventsMap = new SynchronizedMap<>(128); // <scraperId, BetradarEvent>
     public static final SynchronizedMap<Long, CoralEvent> coralEventsMap = new SynchronizedMap<>(128); // <scraperId, CoralEvent>
     public static final SynchronizedMap<String, Event> eventsMap = new SynchronizedMap<>(128); // <eventId, Event>
-    // marketCataloguesMap contains interestingMarkets; markets that can be parsed and have at least MIN_MATCHED scraperEvents attached; added to in FindInterestingMarkets
+    // marketCataloguesMap contains interestingMarkets; markets that can be parsed and have at least MIN_MATCHED scraperEvents attached; added to in FindMarkets
     public static final SynchronizedMap<String, MarketCatalogue> marketCataloguesMap = new SynchronizedMap<>(128); // <marketId, MarketCatalogue>
 
     // safeMarketsMap contains the safeRunners and marketIds of their markets; these markets are being quickly rechecked; added to in FindSafeRunners

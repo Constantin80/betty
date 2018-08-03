@@ -1,7 +1,6 @@
 package info.fmro.betty.enums;
 
 public enum ParsedRunnerType {
-
     HOME_AND_HOME,
     HOME_AND_DRAW,
     HOME_AND_AWAY,
@@ -159,5 +158,5 @@ public enum ParsedRunnerType {
     GOALS_UNDER_135,
     GOALS_OVER_135,
     GOALS_UNDER_145,
-    GOALS_OVER_145;
+    GOALS_OVER_145
 }

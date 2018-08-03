@@ -122,6 +122,7 @@ public class Formulas {
         charactersMap.put("`", " ");
         charactersMap.put("&", "and");
         charactersMap.put(".", " ");
+        charactersMap.put("||", "ii");
 
         final int mapCapacity = Generic.getCollectionCapacity(charactersMap.size(), 0.75f);
         final LinkedHashMap<String, String> tempMap = new LinkedHashMap<>(mapCapacity, 0.75f);
@@ -259,6 +260,9 @@ public class Formulas {
                 modifiedString = "universi " + modifiedString.substring("univ ".length());
             }
             if (modifiedString.startsWith("dep ")) {
+                modifiedString = "deportivo " + modifiedString.substring("dep ".length());
+            }
+            if (modifiedString.startsWith("depor ")) {
                 modifiedString = "deportivo " + modifiedString.substring("dep ".length());
             }
 
@@ -495,6 +499,13 @@ public class Formulas {
                     result = 1;
                 } else if ((localSecond.length() > 3 && localFirst.contains(localSecond)) || (localFirst.length() > 3 && localSecond.contains(localFirst))) {
                     result = .98;
+
+                    localFirst = parseTeamString(localFirst);
+                    localSecond = parseTeamString(localSecond);
+                    if (localFirst.equals(localSecond)) {
+                        result = .99; // an increase
+                    } else { // verified on next branch
+                    }
                 } else {
                     localFirst = parseTeamString(localFirst);
                     localSecond = parseTeamString(localSecond);

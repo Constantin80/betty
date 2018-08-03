@@ -261,7 +261,7 @@ public class QuickCheckThread
                 // try {
                 //     rescriptOpThreadMarketBook.join();
                 // } catch (InterruptedException interruptedException) {
-                //     logger.error("STRANGE interruptedException in findInterestingMarkets", interruptedException);
+                //     logger.error("STRANGE interruptedException in findMarkets", interruptedException);
                 // }
                 final long endTime = System.currentTimeMillis();
 

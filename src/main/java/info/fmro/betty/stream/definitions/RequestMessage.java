@@ -7,6 +7,11 @@ public class RequestMessage {
     public RequestMessage() {
     }
 
+    public RequestMessage(RequestMessage other) {
+        this.id = other.getId();
+        this.op = other.getOp();
+    }
+
     public synchronized Integer getId() {
         return id;
     }

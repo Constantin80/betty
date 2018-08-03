@@ -12,6 +12,7 @@ public class EventResult {
         event.timeStamp();
         event.setMarketCount(marketCount);
         event.initializeCollections();
+        event.parseName();
         return event;
     }
 

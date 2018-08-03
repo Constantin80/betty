@@ -169,7 +169,7 @@ public class VarsIO {
         if (haveRead) { // will run checkAll next
             GetLiveMarketsThread.timedMapEventsCounter.set(GetLiveMarketsThread.timedMapEventsCounter.get() - GetLiveMarketsThread.timedMapEventsCounter.get() % 10);
             Statics.timeStamps.setLastMapEventsToScraperEvents(System.currentTimeMillis());
-            // Statics.threadPoolExecutor.execute(new LaunchCommandThread("mapEventsToScraperEvents", true));
+            // Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents, true));
             Formulas.matchesCache.clear();
         }
 

@@ -3,6 +3,7 @@ package info.fmro.betty.main;
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.MarketBook;
 import info.fmro.betty.entities.MarketCatalogue;
+import info.fmro.betty.enums.CommandType;
 import info.fmro.betty.enums.ScrapedField;
 import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.SafeBet;
@@ -732,6 +733,7 @@ public class MaintenanceThread
             }
         }
 
+        final HashSet<Event> removedEvents = new HashSet<>();
         final Set<Entry<String, Event>> entrySetCopy = Statics.eventsMap.entrySetCopy();
         for (Entry<String, Event> entry : entrySetCopy) {
             final Event event = entry.getValue();
@@ -739,13 +741,13 @@ public class MaintenanceThread
             // Date openDate = value.getOpenDate();
             // long openTime = openDate.getTime();
             final String eventId = entry.getKey();
-
             if (eventsMapLastUpdate - timeStamp > Generic.MINUTE_LENGTH_MILLISECONDS * 5L // && eventsMapLastUpdate - openTime > Generic.HOUR_LENGTH_MILLISECONDS * 12L
-                    ) {
-                final Event removedEvent = removeEvent(eventId);
+            ) {
+                final Event removedEvent = removeEvent(eventId, false);
 //                Statics.eventsMap.remove(key);
 //                removedEventIds.add(key);
                 if (removedEvent != null) {
+                    removedEvents.add(removedEvent);
                     nEventsRemoved++;
                 } else {
                     logger.error("event not removed from eventsMap in cleanEventsMap for: {} {}", eventId, Generic.objectToString(event));
@@ -782,16 +784,22 @@ public class MaintenanceThread
         } // end for
         //        } // end synchronized block
 
+        int removedMarkets = 0;
+        if (!removedEvents.isEmpty()) {
+            removedMarkets = removeMarkets(removedEvents);
+        }
         if (nEventsRemoved > 0) {
             final int newSize = Statics.eventsMap.size();
-            logger.info("cleaned eventsMap, nEventsRemoved: {} initialSize: {} newSize: {} in {} ms", nEventsRemoved, initialSize, newSize, System.currentTimeMillis() - startTime);
+            logger.info("cleaned eventsMap, nEventsRemoved: {} initialSize: {} newSize: {}, markets removed: {} left: {}, in {} ms", nEventsRemoved, initialSize, newSize, removedMarkets, Statics.marketCataloguesMap.size(),
+                        System.currentTimeMillis() - startTime);
         } else { // nothing removed, I guess nothing needs to be printed
         }
+
         if (nScraperEventsRemoved > 0) {
             final int newCoralSize = Statics.coralEventsMap.size();
             final int newBetradarSize = Statics.betradarEventsMap.size();
-            logger.info("cleaned eventsMap, nScraperEventsRemoved: {} initialCoralSize: {} newCoralSize: {} initialBetradarSize: {} newBetradarSize: {} in {} ms",
-                        nScraperEventsRemoved, initialCoralSize, newCoralSize, initialBetradarSize, newBetradarSize, System.currentTimeMillis() - startTime);
+            logger.info("cleaned eventsMap, nScraperEventsRemoved: {} initialCoralSize: {} newCoralSize: {} initialBetradarSize: {} newBetradarSize: {} in {} ms", nScraperEventsRemoved, initialCoralSize, newCoralSize, initialBetradarSize, newBetradarSize,
+                        System.currentTimeMillis() - startTime);
         } else { // nothing removed, I guess nothing needs to be printed
         }
     }
@@ -863,7 +871,7 @@ public class MaintenanceThread
 
             if (Statics.safeBetModuleActivated) {
                 Statics.timeStamps.setLastMapEventsToScraperEvents(System.currentTimeMillis() + Generic.MINUTE_LENGTH_MILLISECONDS);
-                Statics.threadPoolExecutor.execute(new LaunchCommandThread("mapEventsToScraperEvents"));
+                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents));
             }
         } else { // nothing removed, I guess nothing needs to be printed
         }
@@ -987,11 +995,15 @@ public class MaintenanceThread
     }
 
     private static Event removeEvent(String eventId) {
+        return removeEvent(eventId, true); // by default, removeMarkets; keep in mind the performance hit is huge, markets should be removed for batches of events
+    }
+
+    private static Event removeEvent(String eventId, boolean removeMarkets) {
         final Event matchedEvent = Statics.eventsMap.remove(eventId);
 
         if (matchedEvent != null) {
-            int nRemovedMarkets = removeMarkets(matchedEvent);
-//            final Set<Entry<String, MarketCatalogue>> entrySetCopy = Statics.marketCataloguesMap.entrySetCopy();
+            final int nRemovedMarkets = removeMarkets ? removeMarkets(matchedEvent) : 0;
+            //            final Set<Entry<String, MarketCatalogue>> entrySetCopy = Statics.marketCataloguesMap.entrySetCopy();
 //            for (final Entry<String, MarketCatalogue> entry : entrySetCopy) {
 //                final MarketCatalogue marketCatalogue = entry.getValue();
 //                if (marketCatalogue != null) {
@@ -1030,7 +1042,7 @@ public class MaintenanceThread
             } else { // no matched scrapers, nothing to be done about it
             }
 
-            if (nRemovedMarkets == 0 && nScraperEventIds >= Statics.MIN_MATCHED) {
+            if (removeMarkets && nRemovedMarkets == 0 && nScraperEventIds >= Statics.MIN_MATCHED) {
                 final long currentTime = System.currentTimeMillis();
                 final long timeSinceEventsMapRemoval = currentTime - Statics.eventsMap.getTimeStampRemoved();
                 if (timeSinceEventsMapRemoval < 200L) {
@@ -1046,6 +1058,35 @@ public class MaintenanceThread
         }
 
         return matchedEvent;
+    }
+
+    private static int removeMarkets(HashSet<Event> events) {
+        int nPurgedMarkets = 0;
+        if (events == null) {
+            logger.error("null events set in removeMarkets");
+        } else {
+            final Set<Entry<String, MarketCatalogue>> entrySetCopy = Statics.marketCataloguesMap.entrySetCopy();
+            for (final Entry<String, MarketCatalogue> entry : entrySetCopy) {
+                final MarketCatalogue marketCatalogue = entry.getValue();
+                if (marketCatalogue != null) {
+                    final Event eventStump = marketCatalogue.getEventStump();
+                    if (events.contains(eventStump)) { // it doesn't matter if marketCatalogueEvent is null
+                        final String marketId = entry.getKey();
+                        if (removeMarket(marketId) != null) {
+                            nPurgedMarkets++;
+                        } else {
+                            logger.error("couldn't removeMarket in removeMarkets: {} {}", marketId, Generic.objectToString(marketCatalogue));
+                        }
+                    } else { // not interesting marketCatalogue, nothing to be done
+                    }
+                } else {
+                    logger.error("null marketCatalogue value found in marketCataloguesMap during removeMarkets(set) for: {}", entry.getKey());
+                    Statics.marketCataloguesMap.removeValueAll(null);
+                }
+            } // end for
+        }
+
+        return nPurgedMarkets;
     }
 
     private static int removeMarkets(Event event) {
@@ -1161,7 +1202,7 @@ public class MaintenanceThread
                 logger.warn("null safeRunners in removeSafeMarket for: {}", marketId);
             } else {
 //                Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "null safeRunners in removeSafeMarket for: {}", marketId);
-                Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "null safeRunners in removeSafeMarket");
+                Generic.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "null safeRunners in removeSafeMarket");
             }
         }
         return safeRunners;

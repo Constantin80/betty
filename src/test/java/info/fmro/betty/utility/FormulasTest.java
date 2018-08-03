@@ -103,6 +103,11 @@ class FormulasTest
         expResult = "fcv v";
         result = Formulas.parseTeamString(teamString);
         assertEquals(expResult, result, "8");
+
+        teamString = "swindon s";
+        expResult = "swindon supermarine";
+        result = Formulas.parseTeamString(teamString);
+        assertEquals(expResult, result, "9");
     }
 
     @Test
@@ -151,5 +156,15 @@ class FormulasTest
         secondString = "fcv";
         result = Formulas.matchTeams(firstString, secondString);
         assertTrue(result > .95, "9 " + result);
+
+        firstString = "Swindon S";
+        secondString = "Swindon Supermarine";
+        result = Formulas.matchTeams(firstString, secondString);
+        assertTrue(result == .99, "10 " + result);
+
+        firstString = "swindon supermarine";
+        secondString = "Swindon Supermarine";
+        result = Formulas.matchTeams(firstString, secondString);
+        assertTrue(result == 1, "11 " + result);
     }
 }

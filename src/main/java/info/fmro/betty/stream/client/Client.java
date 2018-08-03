@@ -3,11 +3,8 @@ package info.fmro.betty.stream.client;
 import info.fmro.betty.main.GetLiveMarketsThread;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.definitions.AuthenticationMessage;
-import info.fmro.betty.stream.definitions.ConnectionMessage;
 import info.fmro.betty.stream.definitions.HeartbeatMessage;
 import info.fmro.betty.stream.definitions.MarketDataFilter;
-import info.fmro.betty.stream.definitions.MarketSubscriptionMessage;
-import info.fmro.betty.stream.definitions.OrderSubscriptionMessage;
 import info.fmro.betty.stream.protocol.ConnectionStatus;
 import info.fmro.shared.utility.Generic;
 import org.slf4j.Logger;
@@ -23,11 +20,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -101,17 +96,17 @@ public class Client
 
     private synchronized void startThreads() {
         if (processor.isAlive()) {
-            logger.error("processor thread already alive");
+            logger.error("[{}]processor thread already alive", this.id);
         } else {
             processor.start();
         }
         if (readerThread.isAlive()) {
-            logger.error("reader thread already alive");
+            logger.error("[{}]reader thread already alive", this.id);
         } else {
             readerThread.start();
         }
         if (writerThread.isAlive()) {
-            logger.error("writer thread already alive");
+            logger.error("[{}]writer thread already alive", this.id);
         } else {
             writerThread.start();
         }
@@ -129,13 +124,16 @@ public class Client
                     isStopped.set(false);
                     setStreamError(false);
                 } else {
-                    logger.error("something went wrong during startClient, disconnecting: {} {} {}", socketIsConnected.get(), streamIsConnected.get(), isAuth.get());
+                    if (!Statics.mustStop.get()) {
+                        logger.error("something went wrong during startClient, disconnecting[{}]: {} {} {}", this.id, socketIsConnected.get(), streamIsConnected.get(), isAuth.get());
+                    } else { // normal behavior to get this error after stop
+                    }
                     disconnect();
                     Generic.threadSleepSegmented(10_000L, 100L, Statics.mustStop);
                 }
             } while (isStopped.get() && !Statics.mustStop.get());
         } else {
-            logger.error("trying to start an already started client");
+            logger.error("[{}]trying to start an already started client", this.id);
         }
         this.startedStamp.set(System.currentTimeMillis());
     }
@@ -147,9 +145,9 @@ public class Client
     private synchronized void connectSocket() {
         if (!socketIsConnected.get()) {
             try {
-                logger.info("ESAClient: Opening socket to: {}:{}", hostName, port);
+                logger.info("[{}]ESAClient: Opening socket to: {}:{}", this.id, hostName, port);
                 if (socket != null && !socket.isClosed()) {
-                    logger.error("previous socket not closed in connectSocket, disconnecting");
+                    logger.error("[{}]previous socket not closed in connectSocket, disconnecting", this.id);
                     disconnect();
                 }
                 socket = createSocket(hostName, port);
@@ -160,16 +158,16 @@ public class Client
 
                 socketIsConnected.set(true);
             } catch (IOException e) {
-                logger.error("Failed to connect streamClient", e);
+                logger.error("[{}]Failed to connect streamClient", this.id, e);
             }
         } else {
-            logger.error("trying to connect a socket that is already connected");
+            logger.error("[{}]trying to connect a socket that is already connected", this.id);
         }
     }
 
     private synchronized Socket createSocket(String hostName, int port) {
         if (port != 443) {
-            logger.error("streamClient trying to connect on a port other than 443, I'll still use SSL");
+            logger.error("[{}]streamClient trying to connect on a port other than 443, I'll still use SSL", this.id);
         }
 
         final SocketFactory factory = SSLSocketFactory.getDefault();
@@ -180,7 +178,7 @@ public class Client
                 newSocket.setSoTimeout((int) timeout);
                 newSocket.startHandshake();
             } catch (IOException e) {
-                logger.error("IOException in streamClient.createSocket", e);
+                logger.error("[{}]IOException in streamClient.createSocket", this.id, e);
             }
             if (newSocket == null) {
                 Generic.threadSleepSegmented(5_000L, 100L, Statics.mustStop);
@@ -192,20 +190,21 @@ public class Client
 
     private synchronized void connectAuthenticateAndResubscribe() {
         if (streamIsConnected.get()) {
-            logger.error("connecting a stream that is already connected");
+            logger.error("[{}]connecting a stream that is already connected", this.id);
         }
+        Generic.threadSleepSegmented(timeout, 50L, streamIsConnected, Statics.mustStop);
 
-        ConnectionMessage result = null;
-        try {
-            result = processor.getConnectionMessage().get(timeout, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            logger.error("Exception in streamClient.connectAuthenticateAndResubscribe", e);
-        }
+//        ConnectionMessage result = null;
+//        try {
+//            result = processor.getConnectionMessage().get(timeout, TimeUnit.MILLISECONDS);
+//        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+//            logger.error("[{}]Exception in streamClient.connectAuthenticateAndResubscribe", this.id, e);
+//        }
 
-        if (result == null) { //timeout
-            logger.error("No connection message in streamClient.connectAuthenticateAndResubscribe");
+        if (!streamIsConnected.get()) { //timeout
+            logger.error("[{}]No connection message in streamClient.connectAuthenticateAndResubscribe", this.id);
         } else {
-            streamIsConnected.set(true);
+//            streamIsConnected.set(true);
             authenticateAndResubscribe();
         }
     }
@@ -215,35 +214,30 @@ public class Client
             GetLiveMarketsThread.waitForSessionToken("stream client");
         }
 
-        if (isAuth.get()) {
-            logger.error("auth on a stream that is already auth");
-        }
+        if (!Statics.mustStop.get()) {
+            if (isAuth.get()) {
+                logger.error("[{}]auth on a stream that is already auth", this.id);
+            }
 
-        final AuthenticationMessage authenticationMessage = new AuthenticationMessage();
-        authenticationMessage.setAppKey(Statics.appKey.get());
-        authenticationMessage.setSession(Statics.sessionTokenObject.getSessionToken());
-        ClientCommands.waitFor(this, processor.authenticate(authenticationMessage));
-        if (socketIsConnected.get() && streamIsConnected.get()) {
-            isAuth.set(true);
-            resubscribe();
-        } else {
-            logger.error("something went wrong in streamClient before auth: {} {}", socketIsConnected.get(), streamIsConnected);
-        }
-    }
+//            processor.authAndResubscribe();
+            final AuthenticationMessage authenticationMessage = new AuthenticationMessage();
+            authenticationMessage.setAppKey(Statics.appKey.get());
+            authenticationMessage.setSession(Statics.sessionTokenObject.getSessionToken());
+//        ClientCommands.waitFor(this, processor.authenticate(authenticationMessage));
 
-    private synchronized void resubscribe() {
-        //Resub markets
-        final MarketSubscriptionMessage marketSubscription = processor.getMarketResubscribeMessage();
-        if (marketSubscription != null) {
-            logger.info("Resubscribe to market subscription.");
-            ClientCommands.subscribeMarkets(this, marketSubscription);
-        }
+            processor.authenticate(authenticationMessage);
+            Generic.threadSleepSegmented(timeout, 10L, isAuth, Statics.mustStop);
 
-        //Resub orders
-        final OrderSubscriptionMessage orderSubscription = processor.getOrderResubscribeMessage();
-        if (orderSubscription != null) {
-            logger.info("Resubscribe to order subscription.");
-            ClientCommands.subscribeOrders(this, orderSubscription);
+            if (socketIsConnected.get() && streamIsConnected.get() && isAuth.get()) {
+                processor.resubscribe();
+                isAuth.set(true); // after resubscribe, else I might get some racing condition bugs
+            } else {
+                if (!Statics.mustStop.get()) {
+                    logger.error("something went wrong in streamClient before auth[{}]: {} {}", id, socketIsConnected.get(), streamIsConnected.get());
+                } else { // normal behavior to get this error after stop
+                }
+            }
+        } else { // program stopping, won't try to auth
         }
     }
 
@@ -263,24 +257,24 @@ public class Client
         if (socket != null) {
             if (socket.isClosed()) {
                 if (stoppingClient) {
-                    logger.info("socket already closed in streamClient.disconnect during stopping");
+                    logger.info("[{}]socket already closed in streamClient.disconnect during stopping", this.id);
                 } else {
-                    logger.error("socket already closed in streamClient.disconnect");
+                    logger.error("[{}]socket already closed in streamClient.disconnect", this.id);
                 }
             } else {
                 try {
                     socket.close();
                 } catch (IOException e) {
-                    logger.error("Exception in close socket in streamClient.disconnect", e);
+                    logger.error("[{}]Exception in close socket in streamClient.disconnect", this.id, e);
                 }
             }
 
             socket = null;
         } else {
-            if (stoppingClient) {
-                logger.info("tried to disconnect a null socket during stopping");
+            if (stoppingClient) { // quite common, shouldn't print message
+//                logger.info("[{}]tried to disconnect a null socket during stopping", this.id);
             } else {
-                logger.error("tried to disconnect a null socket");
+                logger.error("[{}]tried to disconnect a null socket", this.id);
             }
         }
 
@@ -296,24 +290,25 @@ public class Client
         if (keepAliveTimer != null) {
             keepAliveTimer.shutdown();
         } else {
-            logger.info("tried to shutdown null keepAliveTimer");
+            logger.info("[{}]tried to shutdown null keepAliveTimer", this.id);
         }
     }
 
     private synchronized void keepAliveCheck() {
         if (processor.getStatus() == ConnectionStatus.SUBSCRIBED) { //connection looks up
             if (processor.getLastRequestTime() + keepAliveHeartbeat < System.currentTimeMillis()) { //send a heartbeat to server to keep networks open
-                logger.info("Last Request Time is longer than {}: Sending Keep Alive Heartbeat", keepAliveHeartbeat);
+                logger.info("[{}]Last Request Time is longer than {}: Sending Keep Alive Heartbeat", this.id, keepAliveHeartbeat);
                 heartbeat();
             } else if (processor.getLastResponseTime() + timeout < System.currentTimeMillis()) {
-                logger.info("Last Response Time is longer than timeout {}: Sending Keep Alive Heartbeat", timeout);
+                logger.info("[{}]Last Response Time is longer than timeout {}: Sending Keep Alive Heartbeat", this.id, timeout);
                 heartbeat();
             }
         }
     }
 
     private synchronized void heartbeat() {
-        ClientCommands.waitFor(this, processor.heartbeat(new HeartbeatMessage()));
+//        ClientCommands.waitFor(this, processor.heartbeat(new HeartbeatMessage()));
+        processor.heartbeat(new HeartbeatMessage());
     }
 
     //todo errors in out.txt; after I get the stream going, find a way to get above 1k markets, using 2 or more clients; get all markets list, probably from events, and test this split market hose
@@ -336,29 +331,29 @@ public class Client
 
                 Generic.threadSleepSegmented(5_000L, 10L, isStopped, streamError, Statics.mustStop);
             } catch (Throwable throwable) {
-                logger.error("STRANGE ERROR inside Client loop", throwable);
+                logger.error("[{}]STRANGE ERROR inside Client loop", this.id, throwable);
             }
         } // end while
 
         try {
             if (readerThread != null) {
                 if (readerThread.isAlive()) {
-                    logger.info("joining readerThread");
+                    logger.info("[{}]joining readerThread", this.id);
                     readerThread.join();
                 }
             } else {
-                logger.error("null readerThread during stream end");
+                logger.error("[{}]null readerThread during stream end", this.id);
             }
             if (writerThread != null) {
                 if (writerThread.isAlive()) {
-                    logger.info("joining writerThread");
+                    logger.info("[{}]joining writerThread", this.id);
                     writerThread.join();
                 }
             } else {
-                logger.error("null writerThread during stream end");
+                logger.error("[{}]null writerThread during stream end", this.id);
             }
         } catch (InterruptedException e) {
-            logger.error("interrupted exception at the end of clientThread", e);
+            logger.error("[{}]interrupted exception at the end of clientThread", this.id, e);
         }
 
         shutdownClient(); // only called once
@@ -366,19 +361,19 @@ public class Client
         if (keepAliveTimer != null) {
             try {
                 if (!keepAliveTimer.awaitTermination(1L, TimeUnit.MINUTES)) {
-                    logger.error("keepAliveTimer hanged");
+                    logger.error("[{}]keepAliveTimer hanged", this.id);
                     final List<Runnable> runnableList = keepAliveTimer.shutdownNow();
                     if (!runnableList.isEmpty()) {
-                        logger.error("keepAliveTimer not commenced: {}", runnableList.size());
+                        logger.error("[{}]keepAliveTimer not commenced: {}", this.id, runnableList.size());
                     }
                 }
             } catch (InterruptedException e) {
-                logger.error("InterruptedException during awaitTermination during stream end", e);
+                logger.error("[{}]InterruptedException during awaitTermination during stream end", this.id, e);
             }
         } else {
-            logger.error("keepAliveTimer null during stream end");
+            logger.error("[{}]keepAliveTimer null during stream end", this.id);
         }
 
-        logger.info("streamClient thread ends");
+        logger.info("[{}]streamClient thread ends", this.id);
     }
 }

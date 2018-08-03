@@ -11,6 +11,7 @@ import com.ximpleware.VTDNav;
 import com.ximpleware.XPathEvalException;
 import com.ximpleware.XPathParseException;
 import info.fmro.betty.entities.Event;
+import info.fmro.betty.enums.CommandType;
 import info.fmro.betty.enums.MatchStatus;
 import info.fmro.betty.objects.BetradarEvent;
 import info.fmro.betty.objects.Statics;
@@ -36,7 +37,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class BetradarScraperThread
         extends ScraperThread {
-
     private static final Logger logger = LoggerFactory.getLogger(BetradarScraperThread.class);
     public static final String selectFootballXPath = "//span[@class='item' and starts-with(@onclick,\"SRLive.trigger('treefilter:select', { _id: '1'\")]",
             orderByKickoffXPath = "//span[@class=' last ' and @data-eventid='kickoff' and starts-with(@onclick,\"SRLive.trigger('\")]",
@@ -949,12 +949,12 @@ public class BetradarScraperThread
             final int sizeAdded = addedScraperEvents.size();
             if (sizeAdded > 0) {
                 logger.info("{} getScraperEvents addedScraperEvents: {} launch: mapEventsToScraperEvents", threadId, sizeAdded);
-                Statics.threadPoolExecutor.execute(new LaunchCommandThread("mapEventsToScraperEvents", addedScraperEvents, BetradarEvent.class));
+                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents, addedScraperEvents, BetradarEvent.class));
             }
             final int sizeEvents = eventsAttachedToModifiedScraperEvents.size();
             if (sizeEvents > 0) {
                 logger.info("{} getScraperEvents toCheckEvents: {} launch: findSafeRunners", threadId, sizeEvents);
-                Statics.threadPoolExecutor.execute(new LaunchCommandThread("findSafeRunners", eventsAttachedToModifiedScraperEvents));
+                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, eventsAttachedToModifiedScraperEvents));
             }
 
             if (!mustRefreshPage.get()) {

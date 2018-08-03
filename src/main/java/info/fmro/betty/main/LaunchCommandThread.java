@@ -2,6 +2,7 @@ package info.fmro.betty.main;
 
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.MarketCatalogue;
+import info.fmro.betty.enums.CommandType;
 import info.fmro.betty.enums.MatchStatus;
 import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.ScraperEvent;
@@ -29,7 +30,7 @@ public class LaunchCommandThread
         implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(LaunchCommandThread.class);
-    private final String command;
+    private final CommandType command;
     private boolean checkAll;
     private long delay;
     public static final long RECENT_PERIOD = 1_000L;
@@ -42,43 +43,43 @@ public class LaunchCommandThread
     private LinkedHashSet<Entry<String, MarketCatalogue>> entrySet;
     private Class<? extends ScraperEvent> clazz;
 
-    public LaunchCommandThread(String command) {
+    public LaunchCommandThread(CommandType command) {
         this.command = command;
     }
 
-    public LaunchCommandThread(String command, boolean checkAll) {
+    public LaunchCommandThread(CommandType command, boolean checkAll) {
         this.command = command;
         this.checkAll = checkAll;
     }
 
-    public LaunchCommandThread(String command, TreeSet<String> marketIdsSet) {
+    public LaunchCommandThread(CommandType command, TreeSet<String> marketIdsSet) {
         this.command = command;
         this.marketIdsSet = marketIdsSet;
     }
 
-    public LaunchCommandThread(String command, HashSet<Event> eventsSet) {
+    public LaunchCommandThread(CommandType command, HashSet<Event> eventsSet) {
         this.command = command;
         this.eventsSet = eventsSet;
     }
 
-    public LaunchCommandThread(String command, HashSet<Event> eventsSet, long delay) {
+    public LaunchCommandThread(CommandType command, HashSet<Event> eventsSet, long delay) {
         this.command = command;
         this.eventsSet = eventsSet;
         this.delay = delay;
     }
 
-    public LaunchCommandThread(String command, Set<?> scraperEventsSet, Class<? extends ScraperEvent> clazz) {
+    public LaunchCommandThread(CommandType command, Set<?> scraperEventsSet, Class<? extends ScraperEvent> clazz) {
         this.command = command;
         this.scraperEventsSet = scraperEventsSet;
         this.clazz = clazz;
     }
 
-    public LaunchCommandThread(String command, LinkedHashSet<Entry<String, MarketCatalogue>> entrySet) {
+    public LaunchCommandThread(CommandType command, LinkedHashSet<Entry<String, MarketCatalogue>> entrySet) {
         this.command = command;
         this.entrySet = entrySet;
     }
 
-    public LaunchCommandThread(String command, LinkedHashSet<Entry<String, MarketCatalogue>> entrySet, long delay) {
+    public LaunchCommandThread(CommandType command, LinkedHashSet<Entry<String, MarketCatalogue>> entrySet, long delay) {
         this.command = command;
         this.entrySet = entrySet;
         this.delay = delay;
@@ -234,104 +235,6 @@ public class LaunchCommandThread
                                             matchedScraperEvent = scraperEvent;
                                         } else {
                                             // two potential matches support disabled; it can be added later as a separate method, but unlikely
-//                                        @SuppressWarnings(value = "null")
-//                                        final long scraperEventTime = scraperEvent.getStartTime().getTime();
-//                                        @SuppressWarnings(value = "null")
-//                                        final long matchedScraperEventTime = matchedScraperEvent.getStartTime().getTime();
-//                                        final boolean scraperEventHasStarted = scraperEvent.hasStarted();
-//                                        final boolean matchedScraperEventHasStarted = matchedScraperEvent.hasStarted();
-//                                        final String eventId = event.getId();
-//                                        final String scraperMatchedEventId = scraperEvent.getMatchedEventId();
-//                                        final String matchedScraperMatchedEventId = matchedScraperEvent.getMatchedEventId();
-//
-//                                        Formulas.logOnce(Statics.matcherSynchronizedWriter, logger, LogLevel.WARN, "two potential matches: {} {} {} {}/{}/{} {}/{}/{}",
-//                                                maxTotalMatch, totalMatch, eventName, matchedScraperEvent.getHomeTeam(), matchedScraperEvent.getAwayTeam(),
-//                                                matchedScraperEvent.getMatchStatus(), scraperEvent.getHomeTeam(), scraperEvent.getAwayTeam(), scraperEvent.getMatchStatus());
-//                                        if (scraperMatchedEventId != null && !scraperMatchedEventId.equals(eventId)) {
-//                                            // scraperEvent already matched to another event, nothing will be done
-//                                            if (Statics.debugLevel.check(3, 160)) {
-//                                                logger.info("two potential matches: second scraperEvent already matched to another event, the other scraperEvent will be used");
-//                                            }
-//                                        } else if (matchedScraperMatchedEventId != null && !matchedScraperMatchedEventId.equals(eventId)) {
-//                                            // matchedScraperEvent already matched to another event, I'll change it
-//                                            if (Statics.debugLevel.check(3, 161)) {
-//                                                logger.warn("two potential matches: first scraperEvent already matched to another event, the other scraperEvent will be used");
-//                                            }
-//                                            maxTotalMatch = totalMatch;
-//                                            matchedScraperEvent = scraperEvent;
-//                                        } else {
-//                                            if (matchedScraperEventHasStarted && !scraperEventHasStarted) {
-//                                                // existing scraperEvent has started, nothing will be done
-//                                                if (Statics.debugLevel.check(3, 162)) {
-//                                                    logger.warn("two potential matches: first scraperEvent has started and will be used");
-//                                                }
-//                                            } else if (!matchedScraperEventHasStarted && scraperEventHasStarted) {
-//                                                if (Statics.debugLevel.check(3, 163)) {
-//                                                    logger.warn("two potential matches: second scraperEvent has started and will be used");
-//                                                }
-//                                                maxTotalMatch = totalMatch;
-//                                                matchedScraperEvent = scraperEvent;
-//                                            } else if (matchedScraperEventHasStarted && scraperEventHasStarted) {
-//                                                if (Statics.debugLevel.check(3, 164)) {
-//                                                    logger.warn("two potential matches: both scraperEvents have started and last to start be used");
-//                                                }
-//                                                if (scraperEventTime > matchedScraperEventTime) {
-//                                                    maxTotalMatch = totalMatch;
-//                                                    matchedScraperEvent = scraperEvent;
-//                                                } else if (scraperEventTime < matchedScraperEventTime) {
-//                                                    // existing scraperEvent is chosen, nothing will be done
-//                                                } else {
-//                                                    if (Statics.debugLevel.check(3, 165)) {
-//                                                        logger.error("!!!two potential matches: both start at the same time");
-//                                                    }
-//                                                    twoPotentialMatches = true;
-//                                                }
-//                                            } else if (!matchedScraperEventHasStarted && !scraperEventHasStarted) {
-//                                                if (Statics.debugLevel.check(3, 166)) {
-//                                                    logger.warn("two potential matches: none of the scraperEvents has started and first to start and not postponed will be used");
-//                                                }
-//                                                if (scraperEventTime < matchedScraperEventTime) {
-//                                                    final MatchStatus olderMatchStatus = scraperEvent.getMatchStatus();
-//                                                    if (olderMatchStatus == MatchStatus.POSTPONED) {
-//                                                        // postponed, won't be used, nothing to be done
-//                                                    } else {
-//                                                        maxTotalMatch = totalMatch;
-//                                                        matchedScraperEvent = scraperEvent;
-//                                                    }
-//                                                } else if (scraperEventTime > matchedScraperEventTime) {
-//                                                    final MatchStatus olderMatchStatus = matchedScraperEvent.getMatchStatus();
-//                                                    if (olderMatchStatus == MatchStatus.POSTPONED) {
-//                                                        // postponed, the other one will be used
-//                                                        maxTotalMatch = totalMatch;
-//                                                        matchedScraperEvent = scraperEvent;
-//                                                    } else {
-//                                                        // existing scraperEvent is chosen, nothing will be done
-//                                                    }
-//                                                } else {
-//                                                    final MatchStatus matchStatus = scraperEvent.getMatchStatus();
-//                                                    final MatchStatus matchedMatchStatus = matchedScraperEvent.getMatchStatus();
-//                                                    if (matchedMatchStatus == MatchStatus.POSTPONED && matchStatus != MatchStatus.POSTPONED) {
-//                                                        maxTotalMatch = totalMatch;
-//                                                        matchedScraperEvent = scraperEvent;
-//                                                    } else if (matchStatus == MatchStatus.POSTPONED && matchedMatchStatus != MatchStatus.POSTPONED) {
-//                                                        // nothing will be done
-//                                                    } else if (matchStatus == MatchStatus.POSTPONED && matchedMatchStatus == MatchStatus.POSTPONED) {
-//                                                        // both postponed, nothing will be done, unimportant situation
-//                                                    } else if (matchStatus != MatchStatus.POSTPONED && matchedMatchStatus != MatchStatus.POSTPONED) {
-//                                                        if (Statics.debugLevel.check(3, 167)) {
-//                                                            logger.error("!!!two potential matches: both start at the same time");
-//                                                        }
-//                                                        twoPotentialMatches = true;
-//                                                    } else {
-//                                                        logger.error("VERY STRANGE two potential matches error, unknown postponed if branch");
-//                                                        twoPotentialMatches = true;
-//                                                    }
-//                                                }
-//                                            } else {
-//                                                logger.error("VERY STRANGE two potential matches error, unknown if branch");
-//                                                twoPotentialMatches = true;
-//                                            }
-//                                        }
 
                                             errTotalMatchList.add(totalMatch);
                                             errScraperEventList.add(scraperEvent);
@@ -574,14 +477,14 @@ public class LaunchCommandThread
                     } // end for
                     final int notIgnoredSize = notIgnoredToCheckEvents.size();
                     if (notIgnoredSize > 0) {
-                        final String printedString = MessageFormatter.arrayFormat("{} mapEventsToScraperEvents {}{}toCheckEvents: {} launch: findInterestingMarkets",
+                        final String printedString = MessageFormatter.arrayFormat("{} mapEventsToScraperEvents {}{}toCheckEvents: {} launch: findMarkets",
                                                                                   new Object[]{clazz.getSimpleName(), checkAllString, fullRunString, notIgnoredSize}).getMessage();
                         if (checkAll || fullRun) {
                             logger.warn(printedString); // it sometimes happens if a regular run is scheduled very close (sometimes a delayed run)
                         } else {
                             logger.info(printedString);
                         }
-                        Statics.threadPoolExecutor.execute(new LaunchCommandThread("findInterestingMarkets", notIgnoredToCheckEvents));
+                        Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, notIgnoredToCheckEvents));
                     }
                 }
 
@@ -589,9 +492,8 @@ public class LaunchCommandThread
                 if (sizeRecent > 0) {
                     // minimal delay
                     minTimeDifference = Math.max(minTimeDifference, scraperThread.DELAY_GETSCRAPEREVENTS);
-                    logger.info("{} mapEventsToScraperEvents {}{}tooRecentMatchedEvents: {} launch: mapEventsToScraperEvents smallDelay {}ms", clazz.getSimpleName(),
-                                checkAllString, fullRunString, sizeRecent, minTimeDifference);
-                    Statics.threadPoolExecutor.execute(new LaunchCommandThread("mapEventsToScraperEvents", tooRecentMatchedEvents, minTimeDifference));
+                    logger.info("{} mapEventsToScraperEvents {}{}tooRecentMatchedEvents: {} launch: mapEventsToScraperEvents smallDelay {}ms", clazz.getSimpleName(), checkAllString, fullRunString, sizeRecent, minTimeDifference);
+                    Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents, tooRecentMatchedEvents, minTimeDifference));
                 }
 
                 logger.info("{} mapEventsToScraperEvents {}{}size: {} not matched: {} finished in {} ms", clazz.getSimpleName(), checkAllString, fullRunString,
@@ -661,16 +563,19 @@ public class LaunchCommandThread
     @SuppressWarnings("unchecked")
     public void run() {
         // Statics.launchCommandThreadsSet.add(this);
+        if (delay > 0L) {
+            if (!Statics.safeBetModuleActivated) {
+                logger.error("delay present and probably not necessary without safeBets");
+            }
+            Generic.threadSleepSegmented(delay, 100L, Statics.mustStop);
+        }
         switch (command) {
-            case "mapEventsToScraperEvents":
+            case mapEventsToScraperEvents:
                 if (!Statics.safeBetModuleActivated) {
                     logger.error("mapEventsToScraperEvents without safeBetModuleActivated: {} {} {} {}", delay, checkAll, Generic.objectToString(this.eventsSet), Generic.objectToString(this.scraperEventsSet));
                 }
                 if (Statics.debugLevel.check(2, 152)) {
                     logger.info("Running mapEventsToScraperEvents");
-                }
-                if (delay > 0L) {
-                    Generic.threadSleepSegmented(delay, 100L, Statics.mustStop);
                 }
                 if (!Statics.mustStop.get()) {
                     if (checkAll) {
@@ -684,36 +589,12 @@ public class LaunchCommandThread
                     }
                 }
                 break;
-            case "findInterestingMarkets":
-                if (Statics.debugLevel.check(2, 153)) {
-                    logger.info("Running findInterestingMarkets");
-                }
-                if (delay > 0L) {
-                    Generic.threadSleepSegmented(delay, 100L, Statics.mustStop);
-                }
-                if (!Statics.mustStop.get()) {
-                    if (checkAll) {
-                        FindInterestingMarkets.findInterestingMarkets(true);
-                    } else if (this.eventsSet != null) {
-                        checkRecentlyUsed(this.eventsSet);
-                        FindInterestingMarkets.findInterestingMarkets(this.eventsSet);
-                    } else if (this.marketIdsSet != null) {
-                        checkRecentlyUsed(this.marketIdsSet);
-                        FindInterestingMarkets.findInterestingMarkets(this.marketIdsSet);
-                    } else {
-                        FindInterestingMarkets.findInterestingMarkets(); // full run
-                    }
-                }
-                break;
-            case "findSafeRunners":
+            case findSafeRunners:
                 if (!Statics.safeBetModuleActivated) {
                     logger.error("findSafeRunners without safeBetModuleActivated: {} {} {}", delay, Generic.objectToString(this.eventsSet), Generic.objectToString(this.entrySet));
                 }
                 if (Statics.debugLevel.check(2, 154)) {
                     logger.info("Running findSafeRunners");
-                }
-                if (delay > 0L) {
-                    Generic.threadSleepSegmented(delay, 100L, Statics.mustStop);
                 }
                 if (!Statics.mustStop.get()) {
                     if (this.eventsSet != null) {
@@ -725,11 +606,29 @@ public class LaunchCommandThread
                     }
                 }
                 break;
-            case "parseEventResultList":
+            case findMarkets:
+                if (Statics.debugLevel.check(2, 153)) {
+                    logger.info("Running findMarkets");
+                }
+                if (!Statics.mustStop.get()) {
+                    if (checkAll) {
+                        FindMarkets.findMarkets(true);
+                    } else if (this.eventsSet != null) {
+                        checkRecentlyUsed(this.eventsSet);
+                        FindMarkets.findMarkets(this.eventsSet);
+                    } else if (this.marketIdsSet != null) {
+                        checkRecentlyUsed(this.marketIdsSet);
+                        FindMarkets.findMarkets(this.marketIdsSet);
+                    } else {
+                        FindMarkets.findMarkets(); // full run
+                    }
+                }
+                break;
+            case checkEventResultList:
                 if (Statics.debugLevel.check(2, 174)) {
                     logger.info("Running parseEventResultList");
                 }
-                GetLiveMarketsThread.parseEventResultList(); // this only has full run
+                GetLiveMarketsThread.parseEventList(); // this only has full run
                 break;
             default:
                 logger.error("unknown operation in LaunchCommandThread: {}", command);

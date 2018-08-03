@@ -1087,6 +1087,10 @@ when amounts listed on the market are important for making decisions (present am
 
 Betfair Stream API looks interesting; might be faster than regular exchange API, but requires major modifications to program; speed and reliability testing
 tennis module
+no more than 1000 bets placed or edited (whether matched, cancelled or lapsed) per hour
+    -hours start and end at the exact hour, 00:00 minutes:seconds
+    -I could slow down a bit before 1000, depending how long from the hour is left
+    -after the limit is reached or the slowdown is in effect, I'll still place important bets; charge is 1 pence per bet, but the daily commission generated counts against that
 
 trading bot
 	-sleep/awake settings

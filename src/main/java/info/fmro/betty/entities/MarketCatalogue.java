@@ -1,12 +1,13 @@
 package info.fmro.betty.entities;
 
+import info.fmro.betty.enums.CommandType;
 import info.fmro.betty.main.LaunchCommandThread;
 import info.fmro.betty.main.MaintenanceThread;
 import info.fmro.betty.objects.ParsedMarket;
 import info.fmro.betty.objects.Statics;
+import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
-import info.fmro.shared.utility.LogLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,21 +56,6 @@ public class MarketCatalogue
         final int modified = super.setIgnored(period, currentTime);
 
         if (modified > 0 && this.isIgnored()) {
-            // public static final SynchronizedMap<String, SynchronizedSet<SafeRunner>> safeMarketsMap = new SynchronizedMap<>(64); // <marketId, HashSet<SafeRunner>>
-//            final SynchronizedSet<SafeRunner> safeRunners = Statics.safeMarketsMap.get(marketId);
-//            if (safeRunners != null && !safeRunners.isEmpty()) {
-//                safeRunners.clear();
-//                Statics.safeMarketsImportantMap.remove(marketId);
-//                Statics.safeMarketBooksMap.remove(marketId);
-//
-////                synchronized (safeRunners) {
-////                    for (final SafeRunner safeRunner : safeRunners) {
-////                        safeRunner.setIgnored(period, currentTime);
-////                    }
-////                }
-//            } else { // nothing to be done, it's probably normal behavior to have no safeRunners
-//            }
-
             MaintenanceThread.removeFromSecondaryMaps(marketId);
 
             // delayed starting of threads might no longer be necessary
@@ -80,7 +66,7 @@ public class MarketCatalogue
 
             if (Statics.safeBetModuleActivated) {
                 logger.info("ignoreMarketCatalogue to check: {} delay: {} launch: findSafeRunners", this.marketId, realPeriod);
-                Statics.threadPoolExecutor.execute(new LaunchCommandThread("findSafeRunners", marketCatalogueEntriesSet, realPeriod));
+                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, marketCatalogueEntriesSet, realPeriod));
             }
         } else { // ignored was not modified or market is not ignored, likely nothing to be done
         }
@@ -90,6 +76,10 @@ public class MarketCatalogue
 
     public synchronized String getMarketId() {
         return marketId;
+    }
+
+    public synchronized int getNRunners() {
+        return this.runners == null ? 0 : runners.size();
     }
 
     public synchronized String getMarketName() {
@@ -300,7 +290,10 @@ public class MarketCatalogue
         final int modified;
         if (parsedMarket == null) {
             if (this.parsedMarket == null) {
-                Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "trying to set null over null value for parsedMarket in MarketCatalogue: {}", this.marketId);
+                if (Formulas.isMarketType(this, Statics.supportedEventTypes)) { // happens often enough that it can clutter my logs, won't print
+//                    Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "trying to set null over null value for parsedMarket in MarketCatalogue: {}", this.marketId);
+                } else { // normal that market is not parsed and setting null is attempted
+                }
                 modified = 0;
             } else {
                 // won't allow null to be set

@@ -4,14 +4,9 @@ import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.cache.market.Market;
 import info.fmro.betty.stream.cache.order.OrderMarket;
 import info.fmro.betty.stream.cache.util.Utils;
-import info.fmro.betty.stream.definitions.ErrorCode;
 import info.fmro.betty.stream.definitions.MarketFilter;
 import info.fmro.betty.stream.definitions.MarketSubscriptionMessage;
 import info.fmro.betty.stream.definitions.OrderSubscriptionMessage;
-import info.fmro.betty.stream.definitions.StatusCode;
-import info.fmro.betty.stream.definitions.StatusMessage;
-import info.fmro.betty.stream.protocol.FutureResponse;
-import info.fmro.shared.utility.Generic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
@@ -23,10 +18,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 @Component
 @Configuration
@@ -118,8 +109,9 @@ public class ClientCommands
         message.setHeartbeatMs(client.heartbeatMs.get());
         message.setMarketDataFilter(client.marketDataFilter);
 
-        final FutureResponse<StatusMessage> futureResponse = client.processor.marketSubscription(message);
-        waitFor(client, futureResponse);
+//        final FutureResponse<StatusMessage> futureResponse = client.processor.marketSubscription(message);
+//        waitFor(client, futureResponse);
+        client.processor.marketSubscription(message);
     }
 
     /**
@@ -136,8 +128,9 @@ public class ClientCommands
         message.setConflateMs(client.conflateMs.get());
         message.setHeartbeatMs(client.heartbeatMs.get());
 
-        final FutureResponse<StatusMessage> futureResponse = client.processor.orderSubscription(message);
-        waitFor(client, futureResponse);
+//        final FutureResponse<StatusMessage> futureResponse = client.processor.orderSubscription(message);
+//        waitFor(client, futureResponse);
+        client.processor.orderSubscription(message);
     }
 
     @CliCommand(value = "listMarkets", help = "lists the cached markets")
@@ -169,42 +162,42 @@ public class ClientCommands
         client.processor.setTraceChangeTruncation(truncate);
     }
 
-    public static FutureResponse<StatusMessage> waitFor(Client client, FutureResponse<StatusMessage> task) {
-        StatusMessage statusMessage = null;
-        FutureResponse<StatusMessage> result = null;
-
-        try {
-            statusMessage = task.get(client.timeout, TimeUnit.MILLISECONDS);
-            if (statusMessage != null) { //server responded
-                if (statusMessage.getStatusCode() == StatusCode.SUCCESS) {
-                    result = task;
-                } else { //status error
-                    if (statusMessage.getErrorCode() == ErrorCode.INVALID_SESSION_INFORMATION) {
-                        logger.info("INVALID_SESSION_INFORMATION, needSessionToken: {}", Generic.objectToString(statusMessage));
-                        Statics.needSessionToken.set(true);
-                    } else {
-                        logger.error("StatusCode.FAILURE in streamClient: {}", Generic.objectToString(statusMessage));
-                    }
-                }
-            } else {
-                logger.error("statusMessage null in streamClient: {}", Generic.objectToString(task, "backtrace"));
-            }
-        } catch (InterruptedException e) {
-            logger.error("InterruptedException in streamClient: {}", Generic.objectToString(task, "backtrace"), e);
-        } catch (ExecutionException e) {
-            logger.error("ExecutionException in streamClient: {}", Generic.objectToString(task, "backtrace"), e);
-        } catch (CancellationException e) {
-            logger.error("CancellationException in streamClient: {}", Generic.objectToString(task, "backtrace"), e);
-        } catch (TimeoutException e) {
-            logger.error("TimeoutException in streamClient: {}", Generic.objectToString(task, "backtrace"), e);
-        }
-
-        if (statusMessage == null || (statusMessage.getStatusCode() == StatusCode.FAILURE && statusMessage.getErrorCode() != ErrorCode.SUBSCRIPTION_LIMIT_EXCEEDED)) {
-            logger.error("failure in waitFor: {} {}", Generic.objectToString(statusMessage), Generic.objectToString(task, "backtrace"));
-//            disconnect();
-            client.setStreamError(true);
-        }
-
-        return result;
-    }
+//    public static FutureResponse<StatusMessage> waitFor(Client client, FutureResponse<StatusMessage> task) {
+//        StatusMessage statusMessage = null;
+//        FutureResponse<StatusMessage> result = null;
+//
+//        try {
+//            statusMessage = task.get(client.timeout, TimeUnit.MILLISECONDS);
+//            if (statusMessage != null) { //server responded
+//                if (statusMessage.getStatusCode() == StatusCode.SUCCESS) {
+//                    result = task;
+//                } else { //status error
+//                    if (statusMessage.getErrorCode() == ErrorCode.INVALID_SESSION_INFORMATION) {
+//                        logger.info("INVALID_SESSION_INFORMATION, needSessionToken[{}]: {}", client.id, Generic.objectToString(statusMessage));
+//                        Statics.needSessionToken.set(true);
+//                    } else {
+//                        logger.error("StatusCode.FAILURE in streamClient[{}]: {}", client.id, Generic.objectToString(statusMessage));
+//                    }
+//                }
+//            } else {
+//                logger.error("statusMessage null in streamClient[{}]: {}", client.id, Generic.objectToString(task, "backtrace"));
+//            }
+//        } catch (InterruptedException e) {
+//            logger.error("InterruptedException in streamClient[{}]: {}", client.id, Generic.objectToString(task, "backtrace"), e);
+//        } catch (ExecutionException e) {
+//            logger.error("ExecutionException in streamClient[{}]: {}", client.id, Generic.objectToString(task, "backtrace"), e);
+//        } catch (CancellationException e) {
+//            logger.error("CancellationException in streamClient[{}]: {}", client.id, Generic.objectToString(task, "backtrace"), e);
+//        } catch (TimeoutException e) {
+//            logger.error("TimeoutException in streamClient[{}]: {}", client.id, Generic.objectToString(task, "backtrace"), e);
+//        }
+//
+//        if (statusMessage == null || (statusMessage.getStatusCode() == StatusCode.FAILURE && statusMessage.getErrorCode() != ErrorCode.SUBSCRIPTION_LIMIT_EXCEEDED)) {
+//            logger.error("failure in waitFor[{}]: {} {}", client.id, Generic.objectToString(statusMessage), Generic.objectToString(task, "backtrace"));
+////            disconnect();
+//            client.setStreamError(true);
+//        }
+//
+//        return result;
+//    }
 }

@@ -4,8 +4,8 @@ import java.io.Serializable;
 
 public class SessionTokenObject
         implements Serializable {
-
     private static final long serialVersionUID = -6100294880488404837L;
+    public static final long defaultRecentPeriod = 1_000L;
     private String sessionToken;
     private long timeStamp;
 
@@ -15,6 +15,7 @@ public class SessionTokenObject
 
     public synchronized void setSessionToken(String sessionToken) {
         this.sessionToken = sessionToken;
+        timeStamp();
     }
 
     public synchronized long getTimeStamp() {
@@ -27,6 +28,15 @@ public class SessionTokenObject
 
     public synchronized void timeStamp() {
         this.timeStamp = System.currentTimeMillis();
+    }
+
+    public synchronized boolean isRecent() {
+        return isRecent(defaultRecentPeriod);
+    }
+
+    public synchronized boolean isRecent(long recentPeriod) {
+        final long currentTime = System.currentTimeMillis();
+        return currentTime - timeStamp <= recentPeriod;
     }
 
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")

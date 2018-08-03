@@ -9,6 +9,7 @@ import info.fmro.betty.entities.PlaceExecutionReport;
 import info.fmro.betty.entities.PlaceInstruction;
 import info.fmro.betty.enums.ExecutionReportStatus;
 import info.fmro.betty.enums.MarketProjection;
+import info.fmro.betty.enums.OperationType;
 import info.fmro.betty.enums.Side;
 import info.fmro.betty.objects.OrderPrice;
 import info.fmro.betty.objects.SafetyLimits;
@@ -29,7 +30,7 @@ public class RescriptOpThread<T>
         implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(RescriptOpThread.class);
-    private final String operation;
+    private final OperationType operation;
     private String marketId;
     private Set<T> returnSet;
     private HashSet<String> eventIdsSet;
@@ -41,41 +42,41 @@ public class RescriptOpThread<T>
     private boolean isStartedGettingOrders;
 
     public RescriptOpThread(Set<T> returnSet, HashSet<String> eventIdsSet, HashSet<MarketProjection> marketProjectionsSet) {
-        this.operation = "listMarketCatalogue";
+        this.operation = OperationType.listMarketCatalogue;
         this.returnSet = returnSet;
         this.eventIdsSet = eventIdsSet;
         this.marketProjectionsSet = marketProjectionsSet;
     }
 
     public RescriptOpThread(Set<T> returnSet, TreeSet<String> marketIdsSet, HashSet<MarketProjection> marketProjectionsSet) {
-        this.operation = "listMarketCatalogue";
+        this.operation = OperationType.listMarketCatalogue;
         this.returnSet = returnSet;
         this.marketIdsSet = marketIdsSet;
         this.marketProjectionsSet = marketProjectionsSet;
     }
 
     public RescriptOpThread(SafetyLimits safetyLimits, AtomicInteger threadCounter) {
-        this.operation = "getAccountFunds";
+        this.operation = OperationType.getAccountFunds;
         this.safetyLimits = safetyLimits;
         this.threadCounter = threadCounter;
     }
 
     public RescriptOpThread(String marketId, List<PlaceInstruction> placeInstructionsList, boolean isStartedGettingOrders) {
-        this.operation = "placeOrders";
+        this.operation = OperationType.placeOrders;
         this.marketId = marketId;
         this.placeInstructionsList = placeInstructionsList;
         this.isStartedGettingOrders = isStartedGettingOrders;
     }
 
     public RescriptOpThread() {
-        this.operation = "cancelOrders";
+        this.operation = OperationType.cancelOrders;
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public void run() {
         switch (operation) {
-            case "listMarketCatalogue":
+            case listMarketCatalogue:
                 if (returnSet != null && (eventIdsSet != null && eventIdsSet.size() > 0) || (marketIdsSet != null && marketIdsSet.size() > 0)) {
                     MarketFilter marketFilter = new MarketFilter();
                     marketFilter.setEventIds(eventIdsSet);
@@ -103,6 +104,7 @@ public class RescriptOpThread<T>
                                     logger.error("marketCatalogueList null while getting single event: {} {}", eventId, rescriptResponseHandler.isTooMuchData());
                                 }
                             } // end for
+                        } else if (Statics.mustStop.get() && Statics.needSessionToken.get()) { // normal case, no results returned because I couldn't get sessionToken and program ended
                         } else {
                             logger.error("marketCatalogueList null and not tooMuchData for: {}", Generic.objectToString(eventIdsSet));
                         }
@@ -111,34 +113,7 @@ public class RescriptOpThread<T>
                     logger.error("null or empty variables in RescriptOpThread listMarketCatalogue: {}", Generic.objectToString(eventIdsSet));
                 }
                 break;
-            // case "listMarketBook":
-            //     try {
-            //         if (returnSet != null && marketIdsList != null && marketIdsList.size() > 0) {
-            //             RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
-            //             List<MarketBook> marketBooksList = null;
-            //             try {
-            //                 marketBooksList = ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, Statics.appKey.get(),
-            //                         rescriptResponseHandler);
-            //             } catch (APINGException aPINGException) {
-            //                 logger.error("aPINGException in getMarketBooks for: {}", Generic.objectToString(marketIdsList), aPINGException);
-            //             }
-            //             if (marketBooksList != null) {
-            //                 returnSet.addAll((List<T>) marketBooksList);
-            //             } else {
-            //                 logger.error("marketBooksList null for: {}", Generic.objectToString(marketIdsList));
-            //             }
-            //         } else {
-            //             logger.error("null or empty variables in RescriptOpThread listMarketBook: {}", Generic.objectToString(marketIdsList));
-            //         }
-            //     } finally {
-            //         if (threadCounter != null) {
-            //             threadCounter.getAndDecrement();
-            //         } else {
-            //             // logger.error("STRANGE threadCounter null for listMarketBook"); // no longer error, I sometimes/always don't use a counter
-            //         }
-            //     }
-            //     break;
-            case "getAccountFunds":
+            case getAccountFunds:
                 try {
                     if (safetyLimits != null) {
                         RescriptAccountResponseHandler rescriptAccountResponseHandler = new RescriptAccountResponseHandler();
@@ -155,7 +130,10 @@ public class RescriptOpThread<T>
                                 logger.error("availableToBetBalance null for: {}", Generic.objectToString(accountFundsResponse));
                             }
                         } else {
-                            logger.error("accountFundsResponse null");
+                            if (Statics.mustStop.get() && Statics.needSessionToken.get()) { // normal to happen during program stop, if not logged in
+                            } else {
+                                logger.error("accountFundsResponse null");
+                            }
                         }
                     } else {
                         logger.error("null or empty variables in RescriptOpThread getAccountFunds");
@@ -168,7 +146,7 @@ public class RescriptOpThread<T>
                     }
                 }
                 break;
-            case "placeOrders":
+            case placeOrders:
                 if (marketId != null && placeInstructionsList != null) {
                     String customerRef = null;
                     RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
@@ -241,39 +219,13 @@ public class RescriptOpThread<T>
                         double orderSize = limitOrder.getSize();
                         Formulas.removeInstruction(orderPrice, orderSize);
 
-//                        synchronized (Statics.executingOrdersMap) {
-//                            double existingSize;
-//                            if (Statics.executingOrdersMap.containsKey(orderPrice)) {
-//                                existingSize = Statics.executingOrdersMap.get(orderPrice);
-//                            } else {
-//                                logger.error("STRANGE order not found in Statics.executingOrdersMap for: {} in {}", Generic.objectToString(orderPrice),
-//                                        Generic.objectToString(Statics.executingOrdersMap));
-//                                existingSize = 0;
-//                            }
-//
-//                            double remainingSize = existingSize - orderSize;
-//                            if (remainingSize < .01) {
-//                                Statics.executingOrdersMap.remove(orderPrice);
-//                                logger.info("removed orderPrice from Statics.executingOrdersMap");
-//                            } else {
-//                                Statics.executingOrdersMap.put(orderPrice, remainingSize);
-//                                logger.warn("orderPrice diminished but not removed from Statics.executingOrdersMap: {} {} {}", orderSize, remainingSize,
-//                                        Generic.objectToString(orderPrice));
-//                            }
-//
-//                            if (Statics.executingOrdersMap.size() > 0) {
-//                                logger.warn("orders still exist in Statics.executingOrdersMap: {} {}", Statics.executingOrdersMap.size(),
-//                                        Generic.objectToString(Statics.executingOrdersMap));
-//                            } else { // map empty
-//                            }
-//                        } // end synchronized block
                         counter++;
                     } // end for
                 } else {
                     logger.error("STRANGE null or empty variables in RescriptOpThread placeOrders");
                 }
                 break;
-            case "cancelOrders":
+            case cancelOrders:
                 RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
                 Statics.timeLastFundsOp.set(System.currentTimeMillis());
                 if (!Statics.fundsQuickRun.getAndSet(true)) {

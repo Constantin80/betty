@@ -1,5 +1,6 @@
 package info.fmro.betty.main;
 
+import info.fmro.betty.enums.CommandType;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
@@ -325,7 +326,7 @@ public class InputConnectionThread
                         GetLiveMarketsThread.timedMapEventsCounter.set(GetLiveMarketsThread.timedMapEventsCounter.get() - GetLiveMarketsThread.timedMapEventsCounter.get() % 10 + 11); // will delay running checkAll again
                         Statics.timeStamps.setLastMapEventsToScraperEvents(System.currentTimeMillis() + Generic.MINUTE_LENGTH_MILLISECONDS);
                         if (Statics.safeBetModuleActivated) {
-                            Statics.threadPoolExecutor.execute(new LaunchCommandThread("mapEventsToScraperEvents", true));
+                            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents, true));
                         }
                     }
                 } else if (inputLine.startsWith("reserve ")) {

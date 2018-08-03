@@ -6,24 +6,21 @@ import info.fmro.betty.objects.Statics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 
 public class ApiNGJRescriptDemo {
 
     private static final Logger logger = LoggerFactory.getLogger(ApiNGJRescriptDemo.class);
-    public final static HashSet<String> eventTypeIdsSet = new HashSet<>(2, 0.75f);
+    //    public final static HashSet<String> eventTypeIdsSet = new HashSet<>(2, 0.75f);
     public final static MarketFilter marketFilter = new MarketFilter();
 
-    static {
-//        eventTypeIdsSet.add("1"); // soccer
-        eventTypeIdsSet.addAll(Arrays.asList(Statics.supportedEventTypes));
-
-        marketFilter.setInPlayOnly(true);
-        marketFilter.setTurnInPlayEnabled(true);
-        marketFilter.setEventTypeIds(eventTypeIdsSet);
-    }
+//    static {
+//        eventTypeIdsSet.addAll(Arrays.asList(Statics.supportedEventTypes));
+//
+//        marketFilter.setInPlayOnly(true);
+//        marketFilter.setTurnInPlayEnabled(true);
+//        marketFilter.setEventTypeIds(eventTypeIdsSet);
+//    }
 
     private ApiNGJRescriptDemo() {
     }

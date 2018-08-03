@@ -27,7 +27,7 @@ public class ReaderThread
             try {
                 this.bufferedReader.close();
             } catch (IOException e) {
-                logger.error("error while closing buffer in setBufferedReader", e);
+                logger.error("[{}]error while closing buffer in setBufferedReader", client.id, e);
             }
         }
         this.bufferedReader = bufferedReader;
@@ -36,7 +36,7 @@ public class ReaderThread
     private synchronized void addLine(String line) {
         linesList.add(line);
         bufferNotEmpty.set(true);
-//        logger.info("added line: {}", line);
+//        logger.info("[{}]added line: {}", client.id, line);
     }
 
     public synchronized String pollLine() {
@@ -62,7 +62,7 @@ public class ReaderThread
                         if (line == null) {
 //                        throw new IOException("Socket closed - EOF");
                             if (!Statics.mustStop.get()) {
-                                logger.error("line null in streamReaderThread");
+                                logger.error("[{}]line null in streamReaderThread", client.id);
                             }
                             client.setStreamError(true);
                         } else {
@@ -72,9 +72,9 @@ public class ReaderThread
                     } catch (IOException e) {
                         if (!Statics.mustStop.get()) {
                             if (client.socketIsConnected.get()) {
-                                logger.error("IOException in streamReaderThread", e);
+                                logger.error("[{}]IOException in streamReaderThread", client.id, e);
                             } else {
-                                logger.info("IOException in disconnected streamReaderThread: {}", e);
+                                logger.info("[{}]IOException in disconnected streamReaderThread: {}", client.id, e);
                             }
                         }
                         client.setStreamError(true);
@@ -84,7 +84,7 @@ public class ReaderThread
                     Generic.threadSleepSegmented(500L, 10L, client.socketIsConnected, Statics.mustStop);
                 }
             } catch (Throwable throwable) {
-                logger.error("STRANGE ERROR inside Client readerThread loop", throwable);
+                logger.error("[{}]STRANGE ERROR inside Client readerThread loop", client.id, throwable);
             }
         } // end while
     }
