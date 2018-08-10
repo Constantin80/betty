@@ -1,6 +1,5 @@
 package info.fmro.betty.stream.cache.order;
 
-import info.fmro.betty.stream.cache.util.Utils;
 import info.fmro.betty.stream.definitions.OrderMarketChange;
 import info.fmro.betty.stream.protocol.ChangeMessage;
 import org.slf4j.Logger;
@@ -53,8 +52,8 @@ public class OrderCache {
         orderMarketChangeEvent.setOrderMarket(orderMarket);
 
         try {
-            if (traceOrders) {
-                Utils.printOrderMarket(orderMarketChangeEvent.snap());
+            if (traceOrders) { // does nothing now, I'll either add something or remove it completely in the future
+//                Utils.printOrderMarket(orderMarketChangeEvent.snap());
             }
         } catch (Exception ex) {
             logger.error("Exception from event listener", ex);

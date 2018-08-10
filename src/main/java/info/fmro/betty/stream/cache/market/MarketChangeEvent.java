@@ -8,7 +8,7 @@ import java.util.EventObject;
 public class MarketChangeEvent
         extends EventObject {
     private static final long serialVersionUID = 2828124631512388452L;
-    
+
     //the raw change message that was just applied
     private MarketChange change;
     //the market changed - this is reference invariant
@@ -40,7 +40,7 @@ public class MarketChangeEvent
         this.market = market;
     }
 
-    public synchronized MarketSnap getSnap() {
-        return market.getSnap();
-    }
+//    public synchronized MarketSnap getSnap() {
+//        return market.getSnap();
+//    }
 }

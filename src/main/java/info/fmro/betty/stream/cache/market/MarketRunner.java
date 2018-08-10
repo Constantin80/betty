@@ -3,7 +3,6 @@ package info.fmro.betty.stream.cache.market;
 import info.fmro.betty.stream.cache.util.LevelPriceSizeLadder;
 import info.fmro.betty.stream.cache.util.PriceSizeLadder;
 import info.fmro.betty.stream.cache.util.RunnerId;
-import info.fmro.betty.stream.cache.util.Utils;
 import info.fmro.betty.stream.definitions.RunnerChange;
 import info.fmro.betty.stream.definitions.RunnerDefinition;
 
@@ -13,10 +12,10 @@ public class MarketRunner {
     private final RunnerId runnerId;
 
     // Level / Depth Based Ladders
-    private MarketRunnerPrices marketRunnerPrices = new MarketRunnerPrices();
-    private PriceSizeLadder atlPrices = PriceSizeLadder.newLay();
-    private PriceSizeLadder atbPrices = PriceSizeLadder.newBack();
-    private PriceSizeLadder trdPrices = PriceSizeLadder.newLay();
+//    private MarketRunnerPrices marketRunnerPrices = new MarketRunnerPrices();
+    private PriceSizeLadder atlPrices = PriceSizeLadder.newLay(); // available to lay
+    private PriceSizeLadder atbPrices = PriceSizeLadder.newBack(); // available to back
+    private PriceSizeLadder trdPrices = PriceSizeLadder.newLay(); // traded
     private PriceSizeLadder spbPrices = PriceSizeLadder.newBack();
     private PriceSizeLadder splPrices = PriceSizeLadder.newLay();
 
@@ -32,42 +31,52 @@ public class MarketRunner {
 //    private double ltp;
 //    private double tv;
     private RunnerDefinition runnerDefinition;
-    private MarketRunnerSnap snap;
+//    private MarketRunnerSnap snap;
 
     public MarketRunner(String marketId, RunnerId runnerId) {
         this.marketId = marketId;
         this.runnerId = runnerId;
     }
 
-    void onPriceChange(boolean isImage, RunnerChange runnerChange) {
+    synchronized void onPriceChange(boolean isImage, RunnerChange runnerChange) {
         //snap is invalid
-        snap = null;
+//        snap = null;
 
-        MarketRunnerPrices newPrices = new MarketRunnerPrices();
+//        MarketRunnerPrices newPrices = new MarketRunnerPrices();
+//
+//        newPrices.setAtl(atlPrices.onPriceChange(isImage, runnerChange.getAtl()));
+//        newPrices.setAtb(atbPrices.onPriceChange(isImage, runnerChange.getAtb()));
+//        newPrices.setTrd(trdPrices.onPriceChange(isImage, runnerChange.getTrd()));
+//        newPrices.setSpb(spbPrices.onPriceChange(isImage, runnerChange.getSpb()));
+//        newPrices.setSpl(splPrices.onPriceChange(isImage, runnerChange.getSpl()));
+//
+//        newPrices.setBatb(batbPrices.onPriceChange(isImage, runnerChange.getBatb()));
+//        newPrices.setBatl(batlPrices.onPriceChange(isImage, runnerChange.getBatl()));
+//        newPrices.setBdatb(bdatbPrices.onPriceChange(isImage, runnerChange.getBdatb()));
+//        newPrices.setBdatl(bdatlPrices.onPriceChange(isImage, runnerChange.getBdatl()));
+//
+//        newPrices.setSpn(Utils.selectPrice(isImage, newPrices.getSpn(), runnerChange.getSpn()));
+//        newPrices.setSpf(Utils.selectPrice(isImage, newPrices.getSpf(), runnerChange.getSpf()));
+//        newPrices.setLtp(Utils.selectPrice(isImage, newPrices.getLtp(), runnerChange.getLtp()));
+//        newPrices.setTv(Utils.selectPrice(isImage, newPrices.getTv(), runnerChange.getTv()));
+        atlPrices.onPriceChange(isImage, runnerChange.getAtl());
+        atbPrices.onPriceChange(isImage, runnerChange.getAtb());
+        trdPrices.onPriceChange(isImage, runnerChange.getTrd());
+        spbPrices.onPriceChange(isImage, runnerChange.getSpb());
+        splPrices.onPriceChange(isImage, runnerChange.getSpl());
 
-        newPrices.setAtl(atlPrices.onPriceChange(isImage, runnerChange.getAtl()));
-        newPrices.setAtb(atbPrices.onPriceChange(isImage, runnerChange.getAtb()));
-        newPrices.setTrd(trdPrices.onPriceChange(isImage, runnerChange.getTrd()));
-        newPrices.setSpb(spbPrices.onPriceChange(isImage, runnerChange.getSpb()));
-        newPrices.setSpl(splPrices.onPriceChange(isImage, runnerChange.getSpl()));
-
-        newPrices.setBatb(batbPrices.onPriceChange(isImage, runnerChange.getBatb()));
-        newPrices.setBatl(batlPrices.onPriceChange(isImage, runnerChange.getBatl()));
-        newPrices.setBdatb(bdatbPrices.onPriceChange(isImage, runnerChange.getBdatb()));
-        newPrices.setBdatl(bdatlPrices.onPriceChange(isImage, runnerChange.getBdatl()));
-
-        newPrices.setSpn(Utils.selectPrice(isImage, newPrices.getSpn(), runnerChange.getSpn()));
-        newPrices.setSpf(Utils.selectPrice(isImage, newPrices.getSpf(), runnerChange.getSpf()));
-        newPrices.setLtp(Utils.selectPrice(isImage, newPrices.getLtp(), runnerChange.getLtp()));
-        newPrices.setTv(Utils.selectPrice(isImage, newPrices.getTv(), runnerChange.getTv()));
+        batbPrices.onPriceChange(isImage, runnerChange.getBatb());
+        batlPrices.onPriceChange(isImage, runnerChange.getBatl());
+        bdatbPrices.onPriceChange(isImage, runnerChange.getBdatb());
+        bdatlPrices.onPriceChange(isImage, runnerChange.getBdatl());
 
         //copy on write
-        marketRunnerPrices = newPrices;
+//        marketRunnerPrices = newPrices;
     }
 
     synchronized void onRunnerDefinitionChange(RunnerDefinition runnerDefinition) {
         //snap is invalid
-        snap = null;
+//        snap = null;
         this.runnerDefinition = runnerDefinition;
     }
 
@@ -75,20 +84,20 @@ public class MarketRunner {
         return runnerId;
     }
 
-    public synchronized MarketRunnerSnap getSnap() {
-        // takes or returns an existing immutable snap of the runner
-        if (snap == null) {
-            snap = new MarketRunnerSnap(getRunnerId(), runnerDefinition, marketRunnerPrices);
-        }
-        return snap;
-    }
+//    public synchronized MarketRunnerSnap getSnap() {
+//        // takes or returns an existing immutable snap of the runner
+//        if (snap == null) {
+//            snap = new MarketRunnerSnap(getRunnerId(), runnerDefinition, marketRunnerPrices);
+//        }
+//        return snap;
+//    }
 
-    @Override
-    public synchronized String toString() {
-        return "MarketRunner{" +
-               "runnerId=" + runnerId +
-               ", prices=" + marketRunnerPrices +
-               ", runnerDefinition=" + runnerDefinition +
-               '}';
-    }
+//    @Override
+//    public synchronized String toString() {
+//        return "MarketRunner{" +
+//               "runnerId=" + runnerId +
+//               ", prices=" + marketRunnerPrices +
+//               ", runnerDefinition=" + runnerDefinition +
+//               '}';
+//    }
 }

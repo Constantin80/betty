@@ -28,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -120,9 +121,14 @@ public class Formulas {
         charactersMap.put("/", " ");
         charactersMap.put("'", " ");
         charactersMap.put("`", " ");
+        charactersMap.put("’", " ");
         charactersMap.put("&", "and");
         charactersMap.put(".", " ");
         charactersMap.put("||", "ii");
+        charactersMap.put("[", "(");
+        charactersMap.put("]", ")");
+        charactersMap.put("{", "(");
+        charactersMap.put("}", ")");
 
         final int mapCapacity = Generic.getCollectionCapacity(charactersMap.size(), 0.75f);
         final LinkedHashMap<String, String> tempMap = new LinkedHashMap<>(mapCapacity, 0.75f);
@@ -130,10 +136,10 @@ public class Formulas {
             final Set<String> keys = charactersMap.keySet();
             for (String key : keys) {
                 final String value = charactersMap.get(key), modifiedKey = key.toLowerCase(Locale.ENGLISH), modifiedValue = value.toLowerCase(Locale.ENGLISH);
-                if (key != modifiedKey) {
+                if (!Objects.equals(key, modifiedKey)) {
                     logger.error("key gets modified in charactersMap static parsing: {} - {}", key, modifiedKey);
                 }
-                if (value != modifiedValue) {
+                if (!Objects.equals(value, modifiedValue)) {
                     logger.error("value gets modified in charactersMap static parsing: {} - {}", value, modifiedValue);
                 }
 
@@ -269,6 +275,12 @@ public class Formulas {
             while (modifiedString.contains("(") && modifiedString.contains(")") && modifiedString.indexOf('(') < modifiedString.indexOf(')')) {
                 modifiedString = modifiedString.substring(0, modifiedString.indexOf('(')) + modifiedString.substring(modifiedString.indexOf(')') + ")".length());
             }
+            if (modifiedString.contains("(") && modifiedString.indexOf('(') >= modifiedString.length() - 2) { // an extremely rare error, with an "(" left close to the end of the teamName
+                modifiedString = modifiedString.substring(0, modifiedString.indexOf('('));
+            }
+            if (modifiedString.contains(" (")) { // an extremely rare error: atletico nacional (col
+                modifiedString = modifiedString.substring(0, modifiedString.indexOf(" (")) + " " + modifiedString.substring(modifiedString.indexOf(" (") + " (".length());
+            }
 
 //            if (modifiedString.endsWith(".")) {
 //                modifiedString = modifiedString.substring(0, modifiedString.lastIndexOf('.'));
@@ -317,8 +329,7 @@ public class Formulas {
             for (int i = 0; i < length; i++) {
                 final char c = modifiedString.charAt(i);
                 if ((c < 48 || c > 57) && (c < 97 || c > 122) && c != 32) {
-                    Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, Formulas.logger, LogLevel.ERROR, "forbidden char:{} code:{} in parseTeamString: {}", c, (int) c,
-                                                      teamString);
+                    Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, Formulas.logger, LogLevel.ERROR, "forbidden char:{} code:{} in parseTeamString: {}", c, (int) c, teamString);
                 }
             } // end for
 

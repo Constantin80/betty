@@ -2,8 +2,6 @@ package info.fmro.betty.stream.cache.util;
 
 import info.fmro.betty.entities.PriceSize;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +9,7 @@ import java.util.TreeMap;
 
 public class PriceSizeLadder {
     private Map<Double, PriceSize> priceToSize;
-    private List<PriceSize> snap = Collections.emptyList();
+//    private List<PriceSize> snap = Collections.emptyList();
 
     public static PriceSizeLadder newBack() {
         return new PriceSizeLadder(Comparator.reverseOrder());
@@ -25,7 +23,8 @@ public class PriceSizeLadder {
         priceToSize = new TreeMap<>(comparator);
     }
 
-    public synchronized List<PriceSize> onPriceChange(boolean isImage, List<List<Double>> prices) {
+    //    public synchronized List<PriceSize> onPriceChange(boolean isImage, List<List<Double>> prices) {
+    public synchronized void onPriceChange(boolean isImage, List<List<Double>> prices) {
         if (isImage) {
             priceToSize.clear();
         }
@@ -39,11 +38,11 @@ public class PriceSizeLadder {
                 }
             }
         }
-        if (isImage || prices != null) {
-            //update snap on image or if we had cell changes
-            snap = new ArrayList<>(priceToSize.values());
-        }
-        return snap;
+//        if (isImage || prices != null) {
+//            //update snap on image or if we had cell changes
+//            snap = new ArrayList<>(priceToSize.values());
+//        }
+//        return snap;
     }
 
     @Override

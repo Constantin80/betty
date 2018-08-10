@@ -16,7 +16,7 @@ import java.util.function.Consumer;
 public class RequestResponse {
     //    private final FutureResponse<StatusMessage> future = new FutureResponse<>();
     private static final Logger logger = LoggerFactory.getLogger(RequestResponse.class);
-    public static final long defaultExpirationPeriod = 15_000L;
+    public static final long defaultExpirationPeriod = 30_000L;
     private final RequestMessage request;
     private final Consumer<RequestResponse> onSuccess;
     //    private final int id;

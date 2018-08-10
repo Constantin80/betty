@@ -1,6 +1,5 @@
 package info.fmro.betty.stream.cache.market;
 
-import info.fmro.betty.stream.cache.util.Utils;
 import info.fmro.betty.stream.definitions.MarketChange;
 import info.fmro.betty.stream.protocol.ChangeMessage;
 import org.slf4j.Logger;
@@ -18,7 +17,7 @@ public class MarketCache {
 
     //whether markets are automatically removed on close (default is True)
     private boolean isMarketRemovedOnClose = true; // default
-    private boolean traceMarkets = false;
+    private boolean traceMarkets;
 
     //conflation indicates slow consumption
     private int conflatedCount;
@@ -97,8 +96,8 @@ public class MarketCache {
         marketChangeEvent.setChange(marketChange);
 
         try {
-            if (traceMarkets) {
-                Utils.printMarket(marketChangeEvent.getSnap());
+            if (traceMarkets) { // does nothing now, I'll either add something or remove it completely in the future
+//                Utils.printMarket(marketChangeEvent.getSnap());
             }
         } catch (Exception e) {
             logger.error("Exception from event listener", e);

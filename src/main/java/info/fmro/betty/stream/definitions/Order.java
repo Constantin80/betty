@@ -5,7 +5,6 @@ import java.util.Date;
 
 public class Order
         implements Serializable {
-
     private static final long serialVersionUID = 3021807768896649660L;
     private Double avp; // Average Price Matched - the average price the order was matched at (null if the order is not matched).
     //                     This value is not meaningful for activity on Line markets and is not guaranteed to be returned or maintained for these markets.

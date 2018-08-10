@@ -17,6 +17,7 @@ import info.fmro.betty.stream.definitions.OrderSubscriptionMessage;
 import info.fmro.betty.stream.definitions.RequestMessage;
 import info.fmro.betty.stream.definitions.RequestOperationType;
 import info.fmro.betty.stream.definitions.ResponseMessage;
+import info.fmro.betty.stream.definitions.StatusCode;
 import info.fmro.betty.stream.definitions.StatusMessage;
 import info.fmro.betty.stream.protocol.ChangeMessage;
 import info.fmro.betty.stream.protocol.ChangeMessageFactory;
@@ -35,10 +36,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -53,11 +52,13 @@ public class RequestResponseProcessor
     private final AtomicInteger nextId = new AtomicInteger();
     //    private ConnectionMessage connectionMessage;
     private final HashMap<Integer, RequestResponse> tasks = new HashMap<>();
-    private final ScheduledExecutorService tasksMaintenance;
+    //    private final ScheduledExecutorService tasksMaintenance;
+    private final HashSet<String> marketsSet;
 
     //subscription handlers
     private SubscriptionHandler<MarketSubscriptionMessage, ChangeMessage<MarketChange>, MarketChange> marketSubscriptionHandler;
     private SubscriptionHandler<OrderSubscriptionMessage, ChangeMessage<OrderMarketChange>, OrderMarketChange> orderSubscriptionHandler;
+    private Map<Integer, Long> previousIds = new HashMap<>(1);
 
     private ConnectionStatus status = ConnectionStatus.STOPPED;
 //    private CopyOnWriteArrayList<ConnectionStatusListener> connectionStatusListeners = new CopyOnWriteArrayList<>();
@@ -69,10 +70,69 @@ public class RequestResponseProcessor
 
     public RequestResponseProcessor(Client client) {
         this.client = client;
+        marketsSet = new HashSet<>();
         objectMapper = new ObjectMapper();
         objectMapper.addMixIn(ResponseMessage.class, MixInResponseMessage.class);
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        tasksMaintenance = Executors.newSingleThreadScheduledExecutor();
+//        tasksMaintenance = Executors.newSingleThreadScheduledExecutor();
+    }
+
+    public synchronized boolean hasValidHandler() {
+        return marketSubscriptionHandler != null || orderSubscriptionHandler != null;
+    }
+
+    public synchronized int nMarkets() {
+        return marketsSet.size();
+    }
+
+    public synchronized HashSet<String> getMarketsSet() {
+        final HashSet<String> returnValue;
+        if (marketsSet == null) {
+            logger.error("[{}]null marketsSet in processor", client.id);
+            returnValue = null;
+        } else {
+            returnValue = new HashSet<>(marketsSet);
+        }
+
+        return marketsSet;
+    }
+
+    public synchronized boolean setMarketsSet(Collection<String> markets) {
+        final int newSize = markets.size();
+        final boolean modified;
+        if (newSize <= 1000) {
+            marketsSet.clear();
+            marketsSet.addAll(markets);
+            modified = true;
+        } else {
+            logger.error("[{}]trying to set too many markets: {}", client.id, newSize);
+            modified = false;
+        }
+        if (modified) {
+            marketSubscription(ClientCommands.createMarketSubscriptionMessage(client, getMarketsSet()));
+        }
+        return modified;
+    }
+
+    private synchronized void removeMarketsFromSet(int nMarkets) {
+        if (nMarkets > 0) {
+            final ArrayList<String> list = new ArrayList<>(marketsSet);
+            final int listSize = list.size();
+            final List<String> subList;
+            if (nMarkets < listSize) {
+                subList = list.subList(0, nMarkets - 1);
+            } else {
+                logger.error("[{}]bad nMarkets: {} {}", client.id, nMarkets, listSize);
+                subList = list;
+            }
+            subList.clear();
+
+            logger.info("[{}]removing {} markets from stream: before: {} after: {}", client.id, nMarkets, nMarkets(), list.size());
+            setMarketsSet(list);
+            ClientHandler.modifiedLists.add(client.id);
+        } else {
+            logger.error("[{}]bad nMarkets: {}", client.id, nMarkets);
+        }
     }
 
     private synchronized void successfulAuth() {
@@ -129,9 +189,12 @@ public class RequestResponseProcessor
         final Collection<RequestResponse> tasksValuesCopy = new ArrayList<>(tasks.values());
         tasks.clear(); // can be refilled by this method
 
+        final long currentTime = System.currentTimeMillis();
         for (RequestResponse task : tasksValuesCopy) {
 //            final RequestOperationType operationType = task.getRequestOperationType();
 //            final RequestMessage requestMessage = task.getRequest();
+            final int taskId = task.getId();
+            this.previousIds.put(taskId, currentTime);
             repeatTask(task);
         }
 //        tasks = new ConcurrentHashMap<>();
@@ -183,20 +246,22 @@ public class RequestResponseProcessor
         final boolean marketSubscriptionAlreadyExists = similarTaskExists(RequestOperationType.marketSubscription);
         if (!marketSubscriptionAlreadyExists) {
             //Resub markets
-            final MarketSubscriptionMessage marketSubscription = getMarketResubscribeMessage();
-            if (marketSubscription != null) {
+            final MarketSubscriptionMessage marketSubscriptionMessage = getMarketResubscribeMessage();
+            if (marketSubscriptionMessage != null) {
                 logger.info("[{}]Resubscribe to market subscription.", client.id);
-                ClientCommands.subscribeMarkets(client, marketSubscription);
+//                ClientCommands.createMarketSubscriptionMessage(client, marketSubscriptionMessage);
+                marketSubscription(marketSubscriptionMessage);
             }
         }
 
         final boolean orderSubscriptionAlreadyExists = similarTaskExists(RequestOperationType.orderSubscription);
         if (!orderSubscriptionAlreadyExists) {
             //Resub orders
-            final OrderSubscriptionMessage orderSubscription = getOrderResubscribeMessage();
-            if (orderSubscription != null) {
+            final OrderSubscriptionMessage orderSubscriptionMessage = getOrderResubscribeMessage();
+            if (orderSubscriptionMessage != null) {
                 logger.info("[{}]Resubscribe to order subscription.", client.id);
-                ClientCommands.subscribeOrders(client, orderSubscription);
+//                ClientCommands.createOrderSubscriptionMessage(client, orderSubscriptionMessage);
+                orderSubscription(orderSubscriptionMessage);
             }
         }
     }
@@ -258,22 +323,39 @@ public class RequestResponseProcessor
         sendMessage(message, success -> successfulAuth(), true);
     }
 
-    public synchronized void heartbeat(HeartbeatMessage message) {
+    public synchronized void keepAliveCheck() {
+        if (getStatus() == ConnectionStatus.SUBSCRIBED) { //connection looks up
+            if (getLastRequestTime() + client.keepAliveHeartbeat < System.currentTimeMillis()) { //send a heartbeat to server to keep networks open
+                logger.info("[{}]Last Request Time is longer than {}: Sending Keep Alive Heartbeat", client.id, client.keepAliveHeartbeat);
+                heartbeat();
+            } else if (getLastResponseTime() + client.timeout < System.currentTimeMillis()) {
+                logger.info("[{}]Last Response Time is longer than timeout {}: Sending Keep Alive Heartbeat", client.id, client.timeout);
+                heartbeat();
+            }
+        }
+    }
+
+    private synchronized void heartbeat() {
+//        ClientCommands.waitFor(this, processor.heartbeat(new HeartbeatMessage()));
+        heartbeat(new HeartbeatMessage());
+    }
+
+    private synchronized void heartbeat(HeartbeatMessage message) {
         heartbeat(message, true);
     }
 
-    public synchronized void heartbeat(HeartbeatMessage message, boolean needsHeader) {
+    private synchronized void heartbeat(HeartbeatMessage message, boolean needsHeader) {
         if (needsHeader) {
             createHeader(message, RequestOperationType.heartbeat);
         }
         sendMessage(message, null);
     }
 
-    public synchronized void marketSubscription(MarketSubscriptionMessage message) {
+    private synchronized void marketSubscription(MarketSubscriptionMessage message) {
         marketSubscription(message, true);
     }
 
-    public synchronized void marketSubscription(MarketSubscriptionMessage message, boolean needsHeader) {
+    private synchronized void marketSubscription(MarketSubscriptionMessage message, boolean needsHeader) {
         if (needsHeader) {
             createHeader(message, RequestOperationType.marketSubscription);
         }
@@ -281,11 +363,11 @@ public class RequestResponseProcessor
         sendMessage(message, success -> setMarketSubscriptionHandler(newSub));
     }
 
-    public synchronized void orderSubscription(OrderSubscriptionMessage message) {
+    private synchronized void orderSubscription(OrderSubscriptionMessage message) {
         orderSubscription(message, true);
     }
 
-    public synchronized void orderSubscription(OrderSubscriptionMessage message, boolean needsHeader) {
+    private synchronized void orderSubscription(OrderSubscriptionMessage message, boolean needsHeader) {
         if (needsHeader) {
             createHeader(message, RequestOperationType.orderSubscription);
         }
@@ -396,7 +478,7 @@ public class RequestResponseProcessor
     private synchronized void processOrderChangeMessage(OrderChangeMessage message) {
         ChangeMessage<OrderMarketChange> change = ChangeMessageFactory.ToChangeMessage(client.id, message);
         if (orderSubscriptionHandler == null) {
-            logger.error("[{}]null orderSubscriptionHandler for: {}", client.id, Generic.objectToString(message));
+            logger.error("[{}]null orderSubscriptionHandler for: {}", client.id, Generic.objectToString(message, "mc"));
         } else {
             change = orderSubscriptionHandler.processChangeMessage(change);
             if (change != null) {
@@ -407,32 +489,106 @@ public class RequestResponseProcessor
 
     private synchronized void processMarketChangeMessage(MarketChangeMessage message) {
         ChangeMessage<MarketChange> change = ChangeMessageFactory.ToChangeMessage(client.id, message);
+        final int id = message.getId();
         if (marketSubscriptionHandler == null) {
-            logger.error("[{}]null marketSubscriptionHandler for: {}", client.id, Generic.objectToString(message));
+            if (isIdRecentlyRemoved(id)) {
+                logger.info("[{}]null marketSubscriptionHandler for: {}", client.id, id);
+            } else {
+                logger.error("[{}]null marketSubscriptionHandler for: {}", client.id, Generic.objectToString(message, "mc"));
+            }
         } else {
-            change = marketSubscriptionHandler.processChangeMessage(change);
+            final int handlerId = marketSubscriptionHandler.getSubscriptionId();
+            if (handlerId == id) {
+                change = marketSubscriptionHandler.processChangeMessage(change);
 
-            if (change != null) {
-                Statics.marketCache.onMarketChange(change);
+                if (change != null) {
+                    Statics.marketCache.onMarketChange(change);
+                }
+            } else {
+                if (isIdRecentlyRemoved(id)) {
+                    logger.info("[{}]obsolete marketSubscriptionHandler attempt for: {}", client.id, id);
+                } else {
+                    logger.error("[{}]obsolete marketSubscriptionHandler attempt for: {}", client.id, Generic.objectToString(message, "mc"));
+                }
             }
         }
     }
 
     private synchronized void processStatusMessage(StatusMessage statusMessage) {
-        if (statusMessage.getId() == null) {
+        final Integer id = statusMessage.getId();
+        if (id == null) {
             //async status / status for a message that couldn't be decoded
+            final StatusCode statusCode = statusMessage.getStatusCode();
+            if (statusCode == StatusCode.SUCCESS) {
+                logger.error("[{}]{} in Error Status Notification: {}", client.id, statusCode, Generic.objectToString(statusMessage));
+            } else if (statusCode == StatusCode.FAILURE) {
+                final ErrorCode errorCode = statusMessage.getErrorCode();
+                switch (errorCode) {
+                    case TIMEOUT:
+                        if (Statics.needSessionToken.get() || Statics.sessionTokenObject.isRecent()) {
+                            logger.info("{} Error Status Notification in streamClient[{}]: {}", errorCode, client.id, Generic.objectToString(statusMessage));
+                        } else {
+                            logger.error("{} Error Status Notification in streamClient[{}]: {}", errorCode, client.id, Generic.objectToString(statusMessage));
+                        }
+                        break;
+                    case NOT_AUTHORIZED:
+                    case NO_APP_KEY:
+                    case INVALID_APP_KEY:
+                    case NO_SESSION:
+                    case INVALID_SESSION_INFORMATION:
+                        logger.info("{}, Error Status Notification needSessionToken[{}]: {}", errorCode, client.id, Generic.objectToString(statusMessage));
+                        Statics.needSessionToken.set(true);
+                        break;
+                    case INVALID_CLOCK:
+                    case UNEXPECTED_ERROR:
+                    case INVALID_INPUT:
+                    case INVALID_REQUEST:
+                    case SUBSCRIPTION_LIMIT_EXCEEDED:
+                    case CONNECTION_FAILED:
+                    case MAX_CONNECTION_LIMIT_EXCEEDED:
+                        logger.error("{} Error Status Notification in streamClient[{}]: {}", errorCode, client.id, Generic.objectToString(statusMessage));
+                        break;
+                    default:
+                        logger.error("[{}]unknown errorCode {} Error Status Notification for: {}", client.id, errorCode, Generic.objectToString(statusMessage));
+                        break;
+                }
+            } else { // includes null
+                logger.error("[{}]unknown StatusCode {} in Error Status Notification: {}", client.id, statusCode, Generic.objectToString(statusMessage));
+            }
             logger.error("[{}]Error Status Notification: {}", client.id, Generic.objectToString(statusMessage));
         } else {
-            final RequestResponse task = tasks.get(statusMessage.getId());
+            final RequestResponse task = tasks.get(id);
             if (task == null) {
                 //shouldn't happen
-                logger.error("[{}]Status Notification with no task: {}", client.id, Generic.objectToString(statusMessage));
+                if (isIdRecentlyRemoved(id)) {
+                    logger.info("[{}]Status Notification with no task: {}", client.id, id);
+                } else {
+                    logger.error("[{}]Status Notification with no task: {}", client.id, Generic.objectToString(statusMessage));
+                }
             } else {
                 //unwind task
                 task.processStatusMessage(statusMessage);
             }
         }
         tasksMaintenance();
+    }
+
+    private synchronized boolean isIdRecentlyRemoved(int id) {
+        return isIdRecentlyRemoved(id, 120_000L); // default value
+    }
+
+    private synchronized boolean isIdRecentlyRemoved(int id, long recentPeriod) {
+        final boolean isRecent;
+        final Long storedValue = previousIds.get(id);
+        if (storedValue == null) {
+            isRecent = false;
+        } else {
+            final long currentTime = System.currentTimeMillis();
+            final long timeSinceRemoved = currentTime - storedValue;
+            isRecent = timeSinceRemoved <= recentPeriod;
+        }
+
+        return isRecent;
     }
 
 //    private synchronized void processUncorrelatedStatus(StatusMessage statusMessage) {
@@ -519,6 +675,8 @@ public class RequestResponseProcessor
             if (!idsToRemove.isEmpty()) {
                 for (Integer id : idsToRemove) {
                     logger.info("[{}]removing task in tasksMaintenance: {} {}", client.id, id, Generic.objectToString(tasks.get(id)));
+                    final long currentTime = System.currentTimeMillis();
+                    this.previousIds.put(id, currentTime);
                     tasks.remove(id);
                 }
                 idsToRemove.clear();
@@ -535,7 +693,6 @@ public class RequestResponseProcessor
                 } else if (task.isTaskFinished()) { // tasks with error are not normally repeated, but in the future I might change this for some error codes
                     final StatusMessage statusMessage = task.getStatusMessage();
                     final ErrorCode errorCode = statusMessage.getErrorCode();
-
                     switch (errorCode) {
                         case NOT_AUTHORIZED:
                         case NO_APP_KEY:
@@ -560,6 +717,28 @@ public class RequestResponseProcessor
                             break;
                         case SUBSCRIPTION_LIMIT_EXCEEDED:
                             logger.error("{} in streamClient[{}]: {}", errorCode, client.id, Generic.objectToString(statusMessage));
+                            final String errorMessage = statusMessage.getErrorMessage();
+                            // trying to subscribe to 1001 markets
+                            final String beginMarker = "trying to subscribe to ", endMarker = " markets";
+                            final int beginMarkerIndex = errorMessage.indexOf(beginMarker);
+                            final int endMarkerIndex = errorMessage.indexOf(endMarker);
+                            if (beginMarkerIndex >= 0 && endMarkerIndex > beginMarkerIndex) {
+                                final String numberString = errorMessage.substring(beginMarkerIndex + beginMarker.length(), endMarkerIndex);
+                                try {
+                                    final int number = Integer.parseInt(numberString);
+                                    if (number > 1000) {
+                                        final int difference = number - 1000;
+
+                                        removeMarketsFromSet(difference);
+                                    } else {
+                                        logger.error("bad number in streamClient[{}] for: {} {}", client.id, number, errorMessage);
+                                    }
+                                } catch (NumberFormatException e) {
+                                    logger.error("NumberFormatException in streamClient[{}] for: {} {}", client.id, numberString, errorMessage, e);
+                                }
+                            } else {
+                                logger.error("bad errorMessage in streamClient[{}]: {} {} {}", client.id, beginMarkerIndex, endMarkerIndex, errorMessage);
+                            }
                             break;
                         case CONNECTION_FAILED:
                             logger.error("{} in streamClient[{}]: {}", errorCode, client.id, Generic.objectToString(statusMessage));
@@ -580,7 +759,11 @@ public class RequestResponseProcessor
                     }
                     idsToRemove.add(id);
                 } else if (task.isExpired()) {
-                    logger.error("[{}]maintenance, task expired: {}", client.id, Generic.objectToString(task));
+                    if (Statics.needSessionToken.get() || Statics.sessionTokenObject.isRecent()) {
+                        logger.info("[{}]maintenance, task expired: {}", client.id, id);
+                    } else {
+                        logger.error("[{}]maintenance, task expired: {}", client.id, Generic.objectToString(task));
+                    }
                     idsToRemove.add(id);
 //                    final RequestMessage requestMessage = task.getRequest();
                     tasksToRepeat.add(task);
@@ -592,6 +775,8 @@ public class RequestResponseProcessor
             if (!idsToRemove.isEmpty()) {
                 for (Integer id : idsToRemove) {
                     logger.info("[{}]removing task in tasksMaintenance end: {} {}", client.id, id, Generic.objectToString(tasks.get(id)));
+                    final long currentTime = System.currentTimeMillis();
+                    this.previousIds.put(id, currentTime);
                     tasks.remove(id);
                 }
                 idsToRemove.clear();
@@ -606,6 +791,17 @@ public class RequestResponseProcessor
             }
         } else { // no tasks, nothing to be done
         }
+        if (!previousIds.isEmpty()) {
+            previousIds.keySet().removeIf((Integer id) -> !isIdRecentlyRemoved(id, Generic.MINUTE_LENGTH_MILLISECONDS * 10L));
+//            final Iterator<Integer> iterator = previousIds.keySet().iterator();
+//            while (iterator.hasNext()) {
+//                final Integer id = iterator.next();
+//                if (!isIdRecentlyRemoved(id, Generic.MINUTE_LENGTH_MILLISECONDS * 10L)) {
+//                    iterator.remove();
+//                }
+//            }
+        } else { // no previous tasks, nothing to be done
+        }
     }
 
     private synchronized void repeatTask(RequestResponse task) {
@@ -614,10 +810,10 @@ public class RequestResponseProcessor
         final RequestMessage requestMessage = task.getRequest();
         final boolean similarTaskExists = similarTaskExists(operationType);
         switch (operationType) {
-            case heartbeat:
-                if (!similarTaskExists) {
-                    heartbeat((HeartbeatMessage) requestMessage, false);
-                }
+            case heartbeat: // I won't repeat expired heartbeat, as sometimes it seems no reply is sent if there's a lot of other stuff sent by the server; if there's need for it, another heartbeat will be sent
+//                if (!similarTaskExists) {
+//                    heartbeat((HeartbeatMessage) requestMessage, false);
+//                }
                 break;
             case authentication: // reauth should be done automatically, without reusing this message
                 break;
@@ -652,8 +848,12 @@ public class RequestResponseProcessor
 
     @Override
     public void run() {
-        tasksMaintenance.scheduleAtFixedRate(this::tasksMaintenance, 2_000L, 2_000L, TimeUnit.MILLISECONDS);
+//        tasksMaintenance.scheduleAtFixedRate(this::tasksMaintenance, 2_000L, 2_000L, TimeUnit.MILLISECONDS);
+        if (client.id == 0) {
+            orderSubscription(ClientCommands.createOrderSubscriptionMessage(client));
+        }
 
+        int counter = 0;
         while (!Statics.mustStop.get()) {
             try {
                 if (client.readerThread.bufferNotEmpty.get()) {
@@ -662,26 +862,31 @@ public class RequestResponseProcessor
                 }
 
                 Generic.threadSleepSegmented(5_000L, 10L, client.readerThread.bufferNotEmpty, Statics.mustStop);
+                tasksMaintenance();
+                if (counter % 6 == 0) {
+                    keepAliveCheck();
+                }
+                counter++;
             } catch (Throwable throwable) {
                 logger.error("[{}]STRANGE ERROR inside stream processor loop", client.id, throwable);
             }
         } // end while
 
-        if (tasksMaintenance != null) {
-            try {
-                tasksMaintenance.shutdown();
-                if (!tasksMaintenance.awaitTermination(1L, TimeUnit.MINUTES)) {
-                    logger.error("[{}]tasksMaintenance hanged", client.id);
-                    final List<Runnable> runnableList = tasksMaintenance.shutdownNow();
-                    if (!runnableList.isEmpty()) {
-                        logger.error("[{}]tasksMaintenance not commenced: {}", client.id, runnableList.size());
-                    }
-                }
-            } catch (InterruptedException e) {
-                logger.error("[{}]InterruptedException during tasksMaintenance awaitTermination during stream end", client.id, e);
-            }
-        } else {
-            logger.error("[{}]tasksMaintenance null during stream end", client.id);
-        }
+//        if (tasksMaintenance != null) {
+//            try {
+//                tasksMaintenance.shutdown();
+//                if (!tasksMaintenance.awaitTermination(1L, TimeUnit.MINUTES)) {
+//                    logger.error("[{}]tasksMaintenance hanged", client.id);
+//                    final List<Runnable> runnableList = tasksMaintenance.shutdownNow();
+//                    if (!runnableList.isEmpty()) {
+//                        logger.error("[{}]tasksMaintenance not commenced: {}", client.id, runnableList.size());
+//                    }
+//                }
+//            } catch (InterruptedException e) {
+//                logger.error("[{}]InterruptedException during tasksMaintenance awaitTermination during stream end", client.id, e);
+//            }
+//        } else {
+//            logger.error("[{}]tasksMaintenance null during stream end", client.id);
+//        }
     }
 }

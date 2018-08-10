@@ -11,7 +11,6 @@ import info.fmro.betty.main.LoggerThread;
 import info.fmro.betty.main.ScraperThread;
 import info.fmro.betty.stream.cache.market.MarketCache;
 import info.fmro.betty.stream.cache.order.OrderCache;
-import info.fmro.betty.stream.client.Client;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.SynchronizedMap;
 import info.fmro.shared.utility.SynchronizedSafeSet;
@@ -122,7 +121,6 @@ public class Statics {
 
     public static final SubclassMaps<ScraperEvent> scraperEventMaps = new SubclassMaps<>(scraperEventSubclassesSet);
 
-    public static final Client[] streamClients = new Client[Client.nClients];
     public static final MarketCache marketCache = new MarketCache();
     public static final OrderCache orderCache = new OrderCache();
 
@@ -132,12 +130,6 @@ public class Statics {
 //    public Statics(boolean dontCloseStandardStreams) {
 //        Statics.closeStandardStreamsNotInitialized = dontCloseStandardStreams;
 //    }
-
-    static {
-        for (int i = 0; i < streamClients.length; i++) {
-            streamClients[i] = new Client(i, Statics.STREAM_HOST, Statics.SSL_PORT);
-        }
-    }
 
     static {
         connManager.setMaxTotal(32768);

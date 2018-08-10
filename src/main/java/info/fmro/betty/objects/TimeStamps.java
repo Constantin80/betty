@@ -1,16 +1,17 @@
 package info.fmro.betty.objects;
 
-import java.io.Serializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.Serializable;
 
 public class TimeStamps
         implements Serializable {
 
     private static final Logger logger = LoggerFactory.getLogger(TimeStamps.class);
     private static final long serialVersionUID = 2521253086493558605L;
-    private long lastObjectsSave, lastCleanScraperEventsMap, lastParseEventResultList, lastMapEventsToScraperEvents, lastGetMarketBooks, lastCleanSecondaryMaps, lastFindSafeRunners,
-            lastGetAccountFunds, lastFindInterestingMarkets, lastPrintDebug, lastPrintAverages, lastCleanTimedMaps, lastCheckAliases;
+    private long lastObjectsSave, lastCleanScraperEventsMap, lastParseEventResultList, lastMapEventsToScraperEvents, lastGetMarketBooks, lastCleanSecondaryMaps, lastFindSafeRunners, lastStreamMarkets, lastGetAccountFunds, lastFindInterestingMarkets,
+            lastPrintDebug, lastPrintAverages, lastCleanTimedMaps, lastCheckAliases;
 
     public synchronized long getLastObjectsSave() {
         return lastObjectsSave;
@@ -156,6 +157,27 @@ public class TimeStamps
             this.lastFindSafeRunners = currentTime + timeStamp;
         } else {
             this.lastFindSafeRunners += timeStamp;
+        }
+    }
+
+    public synchronized long getLastStreamMarkets() {
+        return lastStreamMarkets;
+    }
+
+    public synchronized void setLastStreamMarkets(long lastStreamMarkets) {
+        this.lastStreamMarkets = lastStreamMarkets;
+    }
+
+    public synchronized void lastStreamMarketsStamp() {
+        this.lastStreamMarkets = System.currentTimeMillis();
+    }
+
+    public synchronized void lastStreamMarketsStamp(long timeStamp) {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - this.lastStreamMarkets >= timeStamp) {
+            this.lastStreamMarkets = currentTime + timeStamp;
+        } else {
+            this.lastStreamMarkets += timeStamp;
         }
     }
 

@@ -11,7 +11,6 @@ import info.fmro.betty.stream.definitions.RunnerDefinition;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * Thread safe, reference invariant reference to a market.
@@ -23,7 +22,7 @@ public class Market {
     private MarketDefinition marketDefinition;
     private double tv;
     //An atomic snapshot of the state of the market.
-    private MarketSnap snap;
+//    private MarketSnap snap;
 
     public Market(String marketId) {
         this.marketId = marketId;
@@ -37,12 +36,13 @@ public class Market {
         //runners changed
         Optional.ofNullable(marketChange.getRc()).ifPresent(l -> l.forEach(p -> onPriceChange(isImage, p)));
 
-        final MarketSnap newSnap = new MarketSnap();
-        newSnap.setMarketId(marketId);
-        newSnap.setMarketDefinition(marketDefinition);
-        newSnap.setMarketRunners(marketRunners.entrySet().stream().map(l -> l.getValue().getSnap()).collect(Collectors.toList()));
-        newSnap.setTradedVolume(tv = Utils.selectPrice(isImage, tv, marketChange.getTv()));
-        snap = newSnap;
+//        final MarketSnap newSnap = new MarketSnap();
+//        newSnap.setMarketId(marketId);
+//        newSnap.setMarketDefinition(marketDefinition);
+//        newSnap.setMarketRunners(marketRunners.entrySet().stream().map(l -> l.getValue().getSnap()).collect(Collectors.toList()));
+//        newSnap.setTradedVolume(tv = Utils.selectPrice(isImage, tv, marketChange.getTv()));
+//        snap = newSnap;
+        tv = Utils.selectPrice(isImage, tv, marketChange.getTv());
     }
 
     private synchronized void onPriceChange(boolean isImage, RunnerChange runnerChange) {
@@ -76,9 +76,9 @@ public class Market {
         return (marketDefinition != null && marketDefinition.getStatus() == MarketStatus.CLOSED);
     }
 
-    public synchronized MarketSnap getSnap() {
-        return snap;
-    }
+//    public synchronized MarketSnap getSnap() {
+//        return snap;
+//    }
 
     @Override
     public synchronized String toString() {

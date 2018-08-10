@@ -47,6 +47,10 @@ public class SubscriptionHandler<S extends RequestMessage, C extends ChangeMessa
         ttlm = new StopWatch("ttlm");
     }
 
+    public synchronized int getSubscriptionId() {
+        return subscriptionId;
+    }
+
     public synchronized S getSubscriptionMessage() {
         return subscriptionMessage;
     }

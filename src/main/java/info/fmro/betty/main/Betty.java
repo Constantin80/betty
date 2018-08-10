@@ -4,7 +4,7 @@ import com.gargoylesoftware.htmlunit.BrowserVersion;
 import info.fmro.betty.entities.SessionToken;
 import info.fmro.betty.objects.SessionTokenObject;
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.stream.client.ClientCommands;
+import info.fmro.betty.stream.client.ClientHandler;
 import info.fmro.betty.utility.UncaughtExceptionHandler;
 import info.fmro.shared.utility.Generic;
 import org.apache.http.HttpEntity;
@@ -159,8 +159,8 @@ public class Betty {
             timeJumpDetectorThread.start();
             final Thread idleConnectionMonitorThread = new Thread(new IdleConnectionMonitorThread(Statics.connManager));
             idleConnectionMonitorThread.start();
-            for (int i = 0; i < Statics.streamClients.length; i++) {
-                Statics.streamClients[i].start();
+            for (int i = 0; i < ClientHandler.streamClients.length; i++) {
+                ClientHandler.streamClients[i].start();
             }
 
             if (Statics.safeBetModuleActivated) {
@@ -170,46 +170,8 @@ public class Betty {
                 }
             }
 
-
-            try {
-//                for (int i = 0; i < Statics.streamClients.length - 5; i++) {
-//                    ClientCommands.subscribeOrders(Statics.streamClients[i]);
-//                }
-//                Thread.sleep(180_000L);
-//                for (int i = Statics.streamClients.length - 5; i < Statics.streamClients.length; i++) {
-//                    ClientCommands.subscribeOrders(Statics.streamClients[i]);
-//                }
-
-                ClientCommands.subscribeOrders(Statics.streamClients[0]);
-                ClientCommands.traceOrders();
-//                ClientCommands.marketFirehose(Statics.streamClients[0]);
-
-//                ClientCommands.subscribeMarkets(Statics.streamClients[0], "1.145787541");
-                ClientCommands.subscribeMarkets(Statics.streamClients[1], "1.145951907");
-//                ClientCommands.subscribeMarkets(Statics.streamClients[2], "1.145787603");
-//                ClientCommands.subscribeMarkets(Statics.streamClients[3], "1.145787568");
-//                ClientCommands.subscribeMarkets(Statics.streamClients[4], "1.145787560");
-//
-//                ClientCommands.subscribeMarkets(Statics.streamClients[5], "1.145787559");
-//                ClientCommands.subscribeMarkets(Statics.streamClients[6], "1.145787557");
-//                ClientCommands.subscribeMarkets(Statics.streamClients[7], "1.145787555");
-//                ClientCommands.subscribeMarkets(Statics.streamClients[8], "1.145787569");
-//                ClientCommands.subscribeMarkets(Statics.streamClients[9], "1.145806114");
-//                ClientCommands.subscribeMarkets(Statics.streamClients[10], "1.145787606");
-//                ClientCommands.subscribeMarkets(Statics.streamClients[11], "1.145787605");
-//                ClientCommands.subscribeMarkets(Statics.streamClients[12], "1.145787608");
-//                ClientCommands.subscribeMarkets(Statics.streamClients[13], "1.145806103");
-//                ClientCommands.subscribeMarkets(Statics.streamClients[14], "1.145806085");
-//                ClientCommands.subscribeMarkets(Statics.streamClients[15], "1.145806101");
-//                ClientCommands.subscribeMarkets(Statics.streamClients[16], "1.145787603");
-//                ClientCommands.subscribeMarkets(Statics.streamClients[17], "1.145787628");
-//                ClientCommands.subscribeMarkets(Statics.streamClients[18], "1.145787616");
-//                ClientCommands.subscribeMarkets(Statics.streamClients[19], "1.145806091");
-                ClientCommands.traceMarkets();
-            } catch (Throwable throwable) {
-                logger.error("throwable during initial clientCommands:", throwable);
-            }
-
+//            ClientCommands.traceOrders();
+//            ClientCommands.traceMarkets();
 
             while (!Statics.mustStop.get()) {
                 try {
@@ -225,10 +187,6 @@ public class Betty {
                     logger.error("STRANGE ERROR inside Betty loop", throwable);
                 }
             } // end while
-
-//            ClientCommands.listOrders();
-//            ClientCommands.listMarkets();
-//            Statics.streamClient.stopClient(); // stopClient should be called by Statics.mustStop
 
             Statics.threadPoolExecutor.shutdown();
             Statics.threadPoolExecutorMarketBooks.shutdown();
@@ -303,10 +261,10 @@ public class Betty {
                 logger.info("joining logger thread");
                 loggerThread.join();
             }
-            for (int i = 0; i < Statics.streamClients.length; i++) {
-                if (Statics.streamClients[i].isAlive()) {
+            for (int i = 0; i < ClientHandler.streamClients.length; i++) {
+                if (ClientHandler.streamClients[i].isAlive()) {
                     logger.info("joining streamClient {}", i);
-                    Statics.streamClients[i].join();
+                    ClientHandler.streamClients[i].join();
                 }
             }
 

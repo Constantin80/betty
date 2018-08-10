@@ -7,6 +7,7 @@ import info.fmro.betty.enums.MatchStatus;
 import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.ScraperEvent;
 import info.fmro.betty.objects.Statics;
+import info.fmro.betty.stream.client.ClientHandler;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
@@ -629,6 +630,9 @@ public class LaunchCommandThread
                     logger.info("Running parseEventResultList");
                 }
                 GetLiveMarketsThread.parseEventList(); // this only has full run
+                break;
+            case streamMarkets:
+                ClientHandler.streamAllMarkets();
                 break;
             default:
                 logger.error("unknown operation in LaunchCommandThread: {}", command);

@@ -1070,6 +1070,8 @@ betradar doesn't show UK scores on UK ip, which reduces its usefulness
     //-this market is a combination of other markets; it usually has bad odds and should be ignored
 //modularizare, creare variabila safeBetModule, care sa suprinda rularea threadurilor de scrape si probabil alte lucruri
 
+plenty of football markets, including the main odds one, are not parsed, as they were not interesting for safebetting
+
 bets with very good odds on non live markets, especially ones that have a long time till beginning or a rather short time+good liquidity
 	-I can safely take such bets, even if there's risk of match fixing, as I can trade out some of the amount to be safe
 

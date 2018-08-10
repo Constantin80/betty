@@ -4,5 +4,6 @@ public enum CommandType {
     mapEventsToScraperEvents,
     findMarkets,
     findSafeRunners,
-    checkEventResultList
+    checkEventResultList,
+    streamMarkets
 }

@@ -62,7 +62,11 @@ public class ReaderThread
                         if (line == null) {
 //                        throw new IOException("Socket closed - EOF");
                             if (!Statics.mustStop.get()) {
-                                logger.error("[{}]line null in streamReaderThread", client.id);
+                                if (Statics.needSessionToken.get() || Statics.sessionTokenObject.isRecent()) {
+                                    logger.info("[{}]line null in streamReaderThread", client.id);
+                                } else {
+                                    logger.error("[{}]line null in streamReaderThread", client.id);
+                                }
                             }
                             client.setStreamError(true);
                         } else {

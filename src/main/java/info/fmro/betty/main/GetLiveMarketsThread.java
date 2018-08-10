@@ -161,6 +161,20 @@ public class GetLiveMarketsThread
         return timeTillNext;
     }
 
+    public static long timedStreamMarkets() {
+        long timeForNext = Statics.timeStamps.getLastStreamMarkets();
+        long timeTillNext = timeForNext - System.currentTimeMillis();
+        if (timeTillNext <= 0) {
+            Statics.timeStamps.lastStreamMarketsStamp(Generic.MINUTE_LENGTH_MILLISECONDS * 2L);
+            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.streamMarkets));
+
+            timeForNext = Statics.timeStamps.getLastStreamMarkets();
+            timeTillNext = timeForNext - System.currentTimeMillis();
+        } else { // nothing to be done
+        }
+        return timeTillNext;
+    }
+
     public static boolean waitForSessionToken(String id) {
         boolean neededToken = false;
         int whileCounter = 0;
@@ -168,7 +182,7 @@ public class GetLiveMarketsThread
             if (whileCounter == 0) {
                 Generic.alreadyPrintedMap.logOnce(20_000L, logger, LogLevel.INFO, "{} waiting for sessionToken...", id);
                 neededToken = true;
-            } else if (whileCounter >= 1000 && whileCounter % 100 == 0) {
+            } else if (whileCounter >= 2000 && whileCounter % 500 == 0) {
                 Generic.alreadyPrintedMap.logOnce(20_000L, logger, LogLevel.ERROR, "{} still waiting for sessionToken {}...", id, whileCounter);
 //                logger.error("{} still waiting for sessionToken {}...", id, whileCounter);
             }
@@ -197,6 +211,7 @@ public class GetLiveMarketsThread
                 if (Statics.safeBetModuleActivated) {
                     timeToSleep = Math.min(timeToSleep, timedFindSafeRunners());
                 }
+                timeToSleep = Math.min(timeToSleep, timedStreamMarkets());
 
                 Generic.threadSleepSegmented(timeToSleep, 100L, Statics.mustStop);
             } catch (Throwable throwable) { // safety net

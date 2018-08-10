@@ -1,21 +1,17 @@
 package info.fmro.betty.stream.cache.order;
 
 import info.fmro.betty.stream.cache.util.OrderMarketRunner;
-import info.fmro.betty.stream.cache.util.OrderMarketRunnerSnap;
-import info.fmro.betty.stream.cache.util.OrderMarketSnap;
 import info.fmro.betty.stream.cache.util.RunnerId;
 import info.fmro.betty.stream.definitions.OrderMarketChange;
 import info.fmro.betty.stream.definitions.OrderRunnerChange;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class OrderMarket {
     private final String marketId;
     private final Map<RunnerId, OrderMarketRunner> marketRunners = new ConcurrentHashMap<>();
-    private OrderMarketSnap orderMarketSnap;
+//    private OrderMarketSnap orderMarketSnap;
     private boolean isClosed;
 
     public OrderMarket(String marketId) {
@@ -23,8 +19,8 @@ public class OrderMarket {
     }
 
     public synchronized void onOrderMarketChange(OrderMarketChange orderMarketChange) {
-        final OrderMarketSnap newSnap = new OrderMarketSnap();
-        newSnap.setMarketId(this.marketId);
+//        final OrderMarketSnap newSnap = new OrderMarketSnap();
+//        newSnap.setMarketId(this.marketId);
 
         // update runners
         if (orderMarketChange.getOrc() != null) {
@@ -33,17 +29,15 @@ public class OrderMarket {
             }
         }
 
-        final List<OrderMarketRunnerSnap> snaps = new ArrayList<>(marketRunners.size());
-        for (OrderMarketRunner orderMarketRunner : marketRunners.values()) {
-            snaps.add(orderMarketRunner.getOrderMarketRunnerSnap());
-        }
+//        final List<OrderMarketRunnerSnap> snaps = new ArrayList<>(marketRunners.size());
+//        for (OrderMarketRunner orderMarketRunner : marketRunners.values()) {
+//            snaps.add(orderMarketRunner.getOrderMarketRunnerSnap());
+//        }
 
-        newSnap.setOrderMarketRunners(snaps);
-
+//        newSnap.setOrderMarketRunners(snaps);
         isClosed = Boolean.TRUE.equals(orderMarketChange.getClosed());
-        newSnap.setClosed(isClosed);
-
-        orderMarketSnap = newSnap;
+//        newSnap.setClosed(isClosed);
+//        orderMarketSnap = newSnap;
     }
 
     private synchronized void onOrderRunnerChange(OrderRunnerChange orderRunnerChange) {
@@ -59,9 +53,9 @@ public class OrderMarket {
         return isClosed;
     }
 
-    public synchronized OrderMarketSnap getOrderMarketSnap() {
-        return orderMarketSnap;
-    }
+//    public synchronized OrderMarketSnap getOrderMarketSnap() {
+//        return orderMarketSnap;
+//    }
 
     public synchronized String getMarketId() {
         return marketId;

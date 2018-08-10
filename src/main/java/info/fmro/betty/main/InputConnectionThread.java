@@ -2,6 +2,7 @@ package info.fmro.betty.main;
 
 import info.fmro.betty.enums.CommandType;
 import info.fmro.betty.objects.Statics;
+import info.fmro.betty.utility.DebuggingMethods;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import org.slf4j.Logger;
@@ -137,6 +138,16 @@ public class InputConnectionThread
                 } else if (inputLine.equals("findmarkettypes")) {
                     printWriter.println("Will find new market types");
                     newOrder = "findmarkettypes";
+                } else if (inputLine.startsWith("printcachedmarkets ")) {
+                    String marketIds = inputLine.substring("printcachedmarket ".length()).trim();
+                    if (marketIds.startsWith("=")) {
+                        marketIds = marketIds.substring("=".length()).trim();
+                    }
+                    printWriter.println("Will print cached marketIds: " + marketIds);
+                    DebuggingMethods.printCachedMarkets(marketIds);
+                } else if (inputLine.equals("printcachedorders")) {
+                    printWriter.println("Will print cached orders");
+                    DebuggingMethods.printCachedOrders();
                 } else if (inputLine.startsWith("printmarket ")) {
                     String marketId = inputLine.substring("printmarket ".length()).trim();
                     if (marketId.startsWith("=")) {

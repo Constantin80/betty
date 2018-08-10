@@ -51,8 +51,8 @@ public class WriterThread
         final String result = authLine;
         if (authLine == null) {
             if (Statics.needSessionToken.get()) { // normal, nothing to be done
-            } else if (isLastAuthRecent() || lastAuthSentStamp == 0L || Statics.sessionTokenObject.isRecent()) {
-                logger.info("[{}]returning null line in getAuthLine: {}", client.id, timeSinceLastAuth());
+            } else if (isLastAuthRecent() || lastAuthSentStamp == 0L || Statics.sessionTokenObject.isRecent()) { // normal, no need to print
+//                logger.info("[{}]returning null line in getAuthLine: {}", client.id, timeSinceLastAuth());
             } else {
                 logger.error("[{}]returning null line in getAuthLine: {}", client.id, timeSinceLastAuth());
             }
@@ -74,7 +74,7 @@ public class WriterThread
     }
 
     private synchronized boolean isLastAuthRecent() {
-        return isLastAuthRecent(1_000L); // default
+        return isLastAuthRecent(5_000L); // default
     }
 
     private synchronized boolean isLastAuthRecent(long recentPeriod) {
@@ -112,9 +112,9 @@ public class WriterThread
             result = getAuthLine();
             if (result == null) {
                 if (Statics.needSessionToken.get()) { // normal, nothing to be done
-                } else if (isLastAuthRecent() || lastAuthSentStamp == 0L || Statics.sessionTokenObject.isRecent()) {
-                    logger.info("[{}]client is not auth and I have don't have authLine in writerThread: {} {} {} {} {}", client.id, client.isStopped.get(), client.socketIsConnected.get(), client.streamIsConnected.get(), client.isAuth.get(),
-                                timeSinceLastAuth());
+                } else if (isLastAuthRecent() || lastAuthSentStamp == 0L || Statics.sessionTokenObject.isRecent()) { // normal, no need to print
+//                    logger.info("[{}]client is not auth and I have don't have authLine in writerThread: {} {} {} {} {}", client.id, client.isStopped.get(), client.socketIsConnected.get(), client.streamIsConnected.get(), client.isAuth.get(),
+//                                timeSinceLastAuth());
                 } else {
                     logger.error("[{}]client is not auth and I have don't have authLine in writerThread: {} {} {} {} {}", client.id, client.isStopped.get(), client.socketIsConnected.get(), client.streamIsConnected.get(), client.isAuth.get(),
                                  timeSinceLastAuth());
@@ -146,8 +146,8 @@ public class WriterThread
             }
         } else {
             if (Statics.needSessionToken.get()) { // normal, nothing to be done
-            } else if (isLastAuthRecent() || lastAuthSentStamp == 0L || Statics.sessionTokenObject.isRecent()) {
-                logger.info("[{}]won't send null line in stream writerThread: {}", client.id, timeSinceLastAuth());
+            } else if (isLastAuthRecent() || lastAuthSentStamp == 0L || Statics.sessionTokenObject.isRecent()) { // normal, no need to print
+//                logger.info("[{}]won't send null line in stream writerThread: {}", client.id, timeSinceLastAuth());
             } else {
                 logger.error("[{}]won't send null line in stream writerThread: {}", client.id, timeSinceLastAuth());
             }

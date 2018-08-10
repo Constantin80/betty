@@ -3,7 +3,6 @@ package info.fmro.betty.stream.cache.util;
 import info.fmro.betty.stream.definitions.Order;
 import info.fmro.betty.stream.definitions.OrderRunnerChange;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -11,7 +10,7 @@ public class OrderMarketRunner {
     //    private final OrderMarket orderMarket;
     private final String marketId;
     private final RunnerId runnerId;
-    private OrderMarketRunnerSnap orderMarketRunnerSnap;
+    //    private OrderMarketRunnerSnap orderMarketRunnerSnap;
     private PriceSizeLadder layMatches = PriceSizeLadder.newLay();
     private PriceSizeLadder backMatches = PriceSizeLadder.newBack();
     private Map<String, Order> unmatchedOrders = new ConcurrentHashMap<>();
@@ -34,18 +33,20 @@ public class OrderMarketRunner {
             }
         }
 
-        OrderMarketRunnerSnap newSnap = new OrderMarketRunnerSnap();
-        newSnap.setUnmatchedOrders(new HashMap<>(unmatchedOrders));
+//        OrderMarketRunnerSnap newSnap = new OrderMarketRunnerSnap();
+//        newSnap.setUnmatchedOrders(new HashMap<>(unmatchedOrders));
 
-        newSnap.setLayMatches(layMatches.onPriceChange(isImage, orderRunnerChange.getMl()));
-        newSnap.setBackMatches(backMatches.onPriceChange(isImage, orderRunnerChange.getMb()));
+//        newSnap.setLayMatches(layMatches.onPriceChange(isImage, orderRunnerChange.getMl()));
+//        newSnap.setBackMatches(backMatches.onPriceChange(isImage, orderRunnerChange.getMb()));
+        layMatches.onPriceChange(isImage, orderRunnerChange.getMl());
+        backMatches.onPriceChange(isImage, orderRunnerChange.getMb());
 
-        orderMarketRunnerSnap = newSnap;
+//        orderMarketRunnerSnap = newSnap;
     }
 
-    public synchronized OrderMarketRunnerSnap getOrderMarketRunnerSnap() {
-        return orderMarketRunnerSnap;
-    }
+//    public synchronized OrderMarketRunnerSnap getOrderMarketRunnerSnap() {
+//        return orderMarketRunnerSnap;
+//    }
 
     public synchronized RunnerId getRunnerId() {
         return runnerId;
@@ -55,8 +56,8 @@ public class OrderMarketRunner {
         return marketId;
     }
 
-    @Override
-    public synchronized String toString() {
-        return orderMarketRunnerSnap == null ? "null" : orderMarketRunnerSnap.toString();
-    }
+//    @Override
+//    public synchronized String toString() {
+//        return orderMarketRunnerSnap == null ? "null" : orderMarketRunnerSnap.toString();
+//    }
 }

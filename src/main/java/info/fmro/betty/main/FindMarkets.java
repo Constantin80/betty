@@ -130,18 +130,53 @@ public class FindMarkets {
 
     public static boolean getNamesFromRunnerNames(StringBuilder eventHomeName, StringBuilder eventAwayName, String marketId, String runnerName, String beginMarker, String endMarker, int sortPriority, int sortHome, int sortAway,
                                                   MarketCatalogue marketCatalogue) {
+        return getNamesFromRunnerNames(eventHomeName, eventAwayName, marketId, runnerName, beginMarker, endMarker, sortPriority, sortHome, sortAway, marketCatalogue, false);
+    }
+
+    public static boolean getNamesFromRunnerNames(StringBuilder eventHomeName, StringBuilder eventAwayName, String marketId, String runnerName, String beginMarker, String endMarker, int sortPriority, int sortHome, int sortAway,
+                                                  MarketCatalogue marketCatalogue, boolean useMiddleMarker) {
         boolean success = true;
-        if (sortPriority == sortHome || sortPriority == sortAway) {
+        if (runnerName == null) {
+            success = false;
+        } else if (sortPriority == sortHome || sortPriority == sortAway) {
             String teamString;
             try {
                 if (beginMarker == null && endMarker == null) {
                     teamString = runnerName;
                 } else if (beginMarker != null && endMarker != null) {
-                    teamString = runnerName.substring(StringUtils.indexOfIgnoreCase(runnerName, beginMarker) + beginMarker.length(), StringUtils.indexOfIgnoreCase(runnerName, endMarker));
+                    final int beginIndex;
+                    final int endIndex;
+                    if (!useMiddleMarker) {
+                        beginIndex = StringUtils.indexOfIgnoreCase(runnerName, beginMarker);
+                        endIndex = StringUtils.indexOfIgnoreCase(runnerName, endMarker);
+                    } else {
+                        final String lowerCaseRunnerName = runnerName.toLowerCase();
+                        final String lowerCaseBeginMarker = beginMarker.toLowerCase();
+                        final String lowerCaseEndMarker = endMarker.toLowerCase();
+                        beginIndex = Generic.getMiddleIndex(lowerCaseRunnerName, lowerCaseBeginMarker);
+                        endIndex = Generic.getMiddleIndex(lowerCaseRunnerName, lowerCaseEndMarker);
+                    }
+                    teamString = runnerName.substring(beginIndex + beginMarker.length(), endIndex);
                 } else if (beginMarker == null && endMarker != null) {
-                    teamString = runnerName.substring(0, StringUtils.indexOfIgnoreCase(runnerName, endMarker));
+                    final int endIndex;
+                    if (!useMiddleMarker) {
+                        endIndex = StringUtils.indexOfIgnoreCase(runnerName, endMarker);
+                    } else {
+                        final String lowerCaseRunnerName = runnerName.toLowerCase();
+                        final String lowerCaseEndMarker = endMarker.toLowerCase();
+                        endIndex = Generic.getMiddleIndex(lowerCaseRunnerName, lowerCaseEndMarker);
+                    }
+                    teamString = runnerName.substring(0, endIndex);
                 } else if (beginMarker != null && endMarker == null) {
-                    teamString = runnerName.substring(StringUtils.indexOfIgnoreCase(runnerName, beginMarker) + beginMarker.length());
+                    final int beginIndex;
+                    if (!useMiddleMarker) {
+                        beginIndex = StringUtils.indexOfIgnoreCase(runnerName, beginMarker);
+                    } else {
+                        final String lowerCaseRunnerName = runnerName.toLowerCase();
+                        final String lowerCaseBeginMarker = beginMarker.toLowerCase();
+                        beginIndex = Generic.getMiddleIndex(lowerCaseRunnerName, lowerCaseBeginMarker);
+                    }
+                    teamString = runnerName.substring(beginIndex + beginMarker.length());
                 } else {
                     Generic.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "STRANGE unknown if branch in runner team matching {} {} {} {} {} in: {} {}", runnerName, beginMarker, endMarker, eventHomeName, eventAwayName, marketId,
                                                       Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
@@ -503,7 +538,7 @@ public class FindMarkets {
                             if (eventId != null) {
                                 final boolean interestingMarket = parseSupportedMarket(eventHomeNameString, eventAwayNameString, marketCatalogue, marketId, marketName, marketDescription, runnerCatalogsList);
 //                                logger.info("interesting or not: {} {} {}", marketId, interestingMarket, nMatched);
-                                if (interestingMarket) {
+                                if (interestingMarket && additionalInterestingCheck(marketCatalogue)) {
                                     if (nMatched >= Statics.MIN_MATCHED) { // double check, just in case an error slips through
                                         final MarketCatalogue inMapMarketCatalogue = Statics.marketCataloguesMap.putIfAbsent(marketId, marketCatalogue);
                                         if (inMapMarketCatalogue == null) { // marketCatalogue was added, no previous marketCatalogue existed
@@ -631,6 +666,22 @@ public class FindMarkets {
         } else {
             logger.info("scraperEventsMap too old in findMarkets");
         }
+    }
+
+    public static boolean additionalInterestingCheck(MarketCatalogue marketCatalogue) {
+        final boolean interesting;
+        if (marketCatalogue == null) {
+            interesting = false;
+        } else {
+            final ParsedMarket parsedMarket = marketCatalogue.getParsedMarket();
+            if (parsedMarket == null) {
+                interesting = false;
+            } else {
+                interesting = true;
+            }
+        }
+
+        return interesting;
     }
 
     public static boolean parseSupportedMarket(String eventHomeNameString, String eventAwayNameString, MarketCatalogue marketCatalogue, String marketId, String marketName, MarketDescription marketDescription, List<RunnerCatalog> runnerCatalogsList) {
@@ -962,7 +1013,12 @@ public class FindMarkets {
                         for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
                             final int sortPriority = runnerCatalog.getSortPriority();
                             final String runnerName = runnerCatalog.getRunnerName();
-                            final boolean successInGettingName = getNamesFromRunnerNames(eventHomeName, eventAwayName, marketId, runnerName, "/", null, sortPriority, 1, 3, marketCatalogue);
+                            boolean successInGettingName = getNamesFromRunnerNames(eventHomeName, eventAwayName, marketId, runnerName, "/", null, sortPriority, 1, -1, marketCatalogue, true);
+                            if (!successInGettingName) {
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            successInGettingName = getNamesFromRunnerNames(eventHomeName, eventAwayName, marketId, runnerName, eventHomeName + "/", null, sortPriority, -1, 3, marketCatalogue);
                             if (!successInGettingName) {
                                 errorAlreadyPrinted = true;
                                 break;

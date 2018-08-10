@@ -1,9 +1,7 @@
 package info.fmro.betty.utility;
 
 import info.fmro.betty.entities.ClearedOrderSummary;
-import info.fmro.betty.entities.ClearedOrderSummaryReport;
 import info.fmro.betty.entities.CurrentOrderSummary;
-import info.fmro.betty.entities.CurrentOrderSummaryReport;
 import info.fmro.betty.entities.EventResult;
 import info.fmro.betty.entities.ExBestOffersOverrides;
 import info.fmro.betty.entities.MarketBook;
@@ -22,14 +20,17 @@ import info.fmro.betty.enums.SortDir;
 import info.fmro.betty.main.ApiNgRescriptOperations;
 import info.fmro.betty.main.RescriptResponseHandler;
 import info.fmro.betty.objects.Statics;
+import info.fmro.betty.stream.cache.market.Market;
+import info.fmro.betty.stream.cache.order.OrderMarket;
 import info.fmro.shared.utility.Generic;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DebuggingMethods {
 
@@ -38,10 +39,29 @@ public class DebuggingMethods {
     private DebuggingMethods() {
     }
 
+    public static void printCachedOrders() {
+//        ClientCommands.listOrders();
+        final Iterable<OrderMarket> orderMarkets = Statics.orderCache.getOrderMarkets();
+        for (OrderMarket orderMarket : orderMarkets) {
+//            logger.info("listing orderMarket: {}", Generic.objectToString(orderMarket, "Snap", "snap"));
+            logger.info("listing orderMarket: {}", Generic.objectToString(orderMarket));
+        }
+    }
+
+    public static void printCachedMarkets(String marketIds) {
+        final String[] marketIdsArray = marketIds.split(" ");
+//        ClientCommands.listMarkets(marketIdsArray);
+        for (String marketId : marketIdsArray) {
+            final Market market = Statics.marketCache.getMarket(marketId);
+//            logger.info("listing market: {}", Generic.objectToString(market, "Snap", "snap"));
+            final String toPrint = market == null ? "null " + marketId : Generic.objectToString(market);
+            logger.info("listing market: {}", toPrint);
+        }
+    }
+
     public static void listCurrentOrders() {
         final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
-        final HashSet<CurrentOrderSummary> currentOrderSummarySet = ApiNgRescriptOperations.listCurrentOrders(null, null, OrderProjection.ALL, null, OrderBy.BY_PLACE_TIME,
-                SortDir.EARLIEST_TO_LATEST, 0, 0, Statics.appKey.get(), rescriptResponseHandler);
+        final HashSet<CurrentOrderSummary> currentOrderSummarySet = ApiNgRescriptOperations.listCurrentOrders(null, null, OrderProjection.ALL, null, OrderBy.BY_PLACE_TIME, SortDir.EARLIEST_TO_LATEST, 0, 0, Statics.appKey.get(), rescriptResponseHandler);
 
         logger.info("listCurrentOrders size: {}", currentOrderSummarySet == null ? null : currentOrderSummarySet.size());
         logger.info("listCurrentOrders: {}", Generic.objectToString(currentOrderSummarySet));
@@ -49,8 +69,7 @@ public class DebuggingMethods {
 
     public static void listClearedtOrders() {
         final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
-        final HashSet<ClearedOrderSummary> clearedOrderSummarySet = ApiNgRescriptOperations.listClearedOrders(BetStatus.SETTLED, null, null, null, null, null, null, null, null,
-                true, 0, 0, Statics.appKey.get(), rescriptResponseHandler);
+        final HashSet<ClearedOrderSummary> clearedOrderSummarySet = ApiNgRescriptOperations.listClearedOrders(BetStatus.SETTLED, null, null, null, null, null, null, null, null, true, 0, 0, Statics.appKey.get(), rescriptResponseHandler);
 
         logger.info("listClearedOrders size: {}", clearedOrderSummarySet == null ? null : clearedOrderSummarySet.size());
         logger.info("listClearedOrders: {}", Generic.objectToString(clearedOrderSummarySet));
@@ -93,7 +112,7 @@ public class DebuggingMethods {
 
         RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
         final List<MarketBook> marketBookList = ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, Statics.appKey.get(),
-                rescriptResponseHandler);
+                                                                                       rescriptResponseHandler);
 
         logger.info("printing marketBookList EX_ALL_OFFERS for {}: {}", marketId, Generic.objectToString(marketBookList));
 
@@ -130,7 +149,7 @@ public class DebuggingMethods {
 
         rescriptResponseHandler = new RescriptResponseHandler();
         final List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, Statics.appKey.get(),
-                rescriptResponseHandler);
+                                                                                                      rescriptResponseHandler);
 
         logger.info("printing marketCatalogueList for {}: {}", marketId, Generic.objectToString(marketCatalogueList));
 
@@ -169,7 +188,7 @@ public class DebuggingMethods {
 
         rescriptResponseHandler = new RescriptResponseHandler();
         final List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, Statics.appKey.get(),
-                rescriptResponseHandler);
+                                                                                                      rescriptResponseHandler);
 
         if (marketCatalogueList != null) {
             final HashSet<String> unknownMarketTypesSet = new HashSet<>(0, 0.75f), unknownMarketNamesSet = new HashSet<>(0, 0.75f);
@@ -224,7 +243,7 @@ public class DebuggingMethods {
 
         rescriptResponseHandler = new RescriptResponseHandler();
         final List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, Statics.appKey.get(),
-                rescriptResponseHandler);
+                                                                                                      rescriptResponseHandler);
 
         logger.info("printing marketCatalogueList for {}: {}", marketType, Generic.objectToString(marketCatalogueList));
     }

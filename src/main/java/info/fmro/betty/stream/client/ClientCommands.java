@@ -1,9 +1,6 @@
 package info.fmro.betty.stream.client;
 
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.stream.cache.market.Market;
-import info.fmro.betty.stream.cache.order.OrderMarket;
-import info.fmro.betty.stream.cache.util.Utils;
 import info.fmro.betty.stream.definitions.MarketFilter;
 import info.fmro.betty.stream.definitions.MarketSubscriptionMessage;
 import info.fmro.betty.stream.definitions.OrderSubscriptionMessage;
@@ -30,7 +27,7 @@ public class ClientCommands
     }
 
     @CliCommand(value = "marketFirehose", help = "subscribes to all markets")
-    public static void marketFirehose(Client client) {
+    public static MarketSubscriptionMessage marketFirehose(Client client) {
 //        1=Soccer  10k markets
 //        2=Tennis  6k markets
 //        3=Golf    everything else has very few markets
@@ -55,97 +52,92 @@ public class ClientCommands
 //        468328=Handball
 //        998918=Bowls
 //        998919=Bandy
-        subscribeMarkets(client);
+        return createMarketSubscriptionMessage(client);
     }
 
     /**
      * Subscribe to the specified market ids. (starting the client if needed).
      */
-    public static void subscribeMarkets(Client client, String... markets) {
+
+    public static MarketSubscriptionMessage createMarketSubscriptionMessage(Client client, String... markets) {
         final MarketFilter marketFilter = new MarketFilter();
         marketFilter.setMarketIds(new HashSet<>(Arrays.asList(markets)));
-//        marketFilter.setEventTypeIds("3");
-//        marketFilter.setMarketTypes("HALF_TIME_FULL_TIME",
-//                                    "CORRECT_SCORE",
-//                                    "ANYTIME_SCORE",
-//                                    "HALF_TIME_SCORE",
-//                                    "TOTAL_GOALS"
-//                                    );
-        subscribeMarkets(client, marketFilter);
+        return createMarketSubscriptionMessage(client, marketFilter);
+    }
 
-//        final MarketFilter marketFilter2 = new MarketFilter();
-//        marketFilter2.setMarketIds(new HashSet<>(Arrays.asList(markets)));
-////        marketFilter.setEventTypeIds("3");
-////        marketFilter2.setMarketTypes(
-////                "EXACT_GOALS",
-////                "TEAM_TOTAL_GOALS_A",
-////                "TEAM_TOTAL_GOALS_B",
-////                "CORRECT_SCORE2_A",
-////                                    "CORRECT_SCORE2_B",
-////                                    "WINNING_MARGIN",
-////                                    "HALF_WITH_MOST_GOALS",
-////                                    "METHOD_OF_VICTORY",
-////                                    "MATCH_ODDS_AND_OU_25",
-////                                    "MATCH_ODDS_AND_OU_35",
-////                                    "MATCH_ODDS_AND_BTTS",
-////                                    "ET_CORRECT_SCORE",
-////                                    "TO_SCORE_BOTH_HALVES_A",
-////                                    "TO_SCORE_BOTH_HALVES_B");
-//        subscribeMarkets(marketFilter2);
+    public static MarketSubscriptionMessage createMarketSubscriptionMessage(Client client, HashSet<String> markets) {
+        final MarketFilter marketFilter = new MarketFilter();
+        marketFilter.setMarketIds(markets);
+        return createMarketSubscriptionMessage(client, marketFilter);
     }
 
     /**
      * Subscribe to the specified markets (matching your filter). (starting the client if needed).
      */
-    public static void subscribeMarkets(Client client, MarketFilter marketFilter) {
+    public static MarketSubscriptionMessage createMarketSubscriptionMessage(Client client, MarketFilter marketFilter) {
         final MarketSubscriptionMessage marketSubscriptionMessage = new MarketSubscriptionMessage();
         marketSubscriptionMessage.setMarketFilter(marketFilter);
-        subscribeMarkets(client, marketSubscriptionMessage);
+        return createMarketSubscriptionMessage(client, marketSubscriptionMessage);
     }
 
     // Explicit order subscription.
-    public static void subscribeMarkets(Client client, MarketSubscriptionMessage message) {
+    public static MarketSubscriptionMessage createMarketSubscriptionMessage(Client client, MarketSubscriptionMessage message) {
         message.setConflateMs(client.conflateMs.get());
         message.setHeartbeatMs(client.heartbeatMs.get());
         message.setMarketDataFilter(client.marketDataFilter);
-
+        return message;
 //        final FutureResponse<StatusMessage> futureResponse = client.processor.marketSubscription(message);
 //        waitFor(client, futureResponse);
-        client.processor.marketSubscription(message);
+        //        client.processor.marketSubscription(message);
     }
 
     /**
      * Subscribe to all orders.
      */
-    public static void subscribeOrders(Client client) {
-        subscribeOrders(client, new OrderSubscriptionMessage());
+    public static OrderSubscriptionMessage createOrderSubscriptionMessage(Client client) {
+        return createOrderSubscriptionMessage(client, new OrderSubscriptionMessage());
     }
 
     /**
      * Explict order subscription.
      */
-    public static void subscribeOrders(Client client, OrderSubscriptionMessage message) {
+    public static OrderSubscriptionMessage createOrderSubscriptionMessage(Client client, OrderSubscriptionMessage message) {
         message.setConflateMs(client.conflateMs.get());
         message.setHeartbeatMs(client.heartbeatMs.get());
-
+        return message;
 //        final FutureResponse<StatusMessage> futureResponse = client.processor.orderSubscription(message);
 //        waitFor(client, futureResponse);
-        client.processor.orderSubscription(message);
+//        client.processor.orderSubscription(message);
     }
 
-    @CliCommand(value = "listMarkets", help = "lists the cached markets")
-    public static void listMarkets() {
-        for (Market market : Statics.marketCache.getMarkets()) {
-            Utils.printMarket(market.getSnap());
-        }
-    }
-
-    @CliCommand(value = "listOrders", help = "lists the cached orders")
-    public static void listOrders() {
-        for (OrderMarket orderMarket : Statics.orderCache.getOrderMarkets()) {
-            Utils.printOrderMarket(orderMarket.getOrderMarketSnap());
-        }
-    }
+//    @CliCommand(value = "listMarkets", help = "lists the cached markets")
+//    public static void listMarkets() {
+//        for (Market market : Statics.marketCache.getMarkets()) {
+//            Utils.printMarket(market.getSnap());
+//        }
+//    }
+//
+//    public static void listMarkets(String... marketIds) {
+//        if (marketIds != null) {
+//            for (String marketId : marketIds) {
+//                final Market market = Statics.marketCache.getMarket(marketId);
+//                if (market != null) {
+//                    Utils.printMarket(market.getSnap());
+//                } else {
+//                    logger.error("null market in listMarkets for: {}", marketId);
+//                }
+//            }
+//        } else {
+//            logger.error("null marketIds in listMarkets");
+//        }
+//    }
+//
+//    @CliCommand(value = "listOrders", help = "lists the cached orders")
+//    public static void listOrders() {
+//        for (OrderMarket orderMarket : Statics.orderCache.getOrderMarkets()) {
+//            Utils.printOrderMarket(orderMarket.getOrderMarketSnap());
+//        }
+//    }
 
     @CliCommand(value = "traceMarkets", help = "trace Markets")
     public static void traceMarkets() {

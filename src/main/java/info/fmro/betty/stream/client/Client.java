@@ -3,9 +3,8 @@ package info.fmro.betty.stream.client;
 import info.fmro.betty.main.GetLiveMarketsThread;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.definitions.AuthenticationMessage;
-import info.fmro.betty.stream.definitions.HeartbeatMessage;
+import info.fmro.betty.stream.definitions.FilterFlag;
 import info.fmro.betty.stream.definitions.MarketDataFilter;
-import info.fmro.betty.stream.protocol.ConnectionStatus;
 import info.fmro.shared.utility.Generic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,19 +18,12 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 // Order for synchronization: 1:Client, 2:Processor, 3:ReaderThread, WriterThread
 public class Client
         extends Thread {
-    // errorMessage=You have exceeded your max connection limit which is: 10 connection(s).You currently have: 11 active connection(s).
-    // this errorMessage seem to trigger much later than 11 connections; triggers with 70, not with 68; started 23, sleep 3 min, start 5 more, didn't trigger
-    public static final int nClients = 32;
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
 
     public final int id;
@@ -41,10 +33,10 @@ public class Client
     public final RequestResponseProcessor processor;
     public final ReaderThread readerThread;
     public final WriterThread writerThread;
-    private final ScheduledExecutorService keepAliveTimer;
+//    private final ScheduledExecutorService keepAliveTimer;
 
     public final long timeout = 30L * 1000L;
-    private final long keepAliveHeartbeat = 60L * 60L * 1000L;
+    public final long keepAliveHeartbeat = 60L * 60L * 1000L;
 
     public final AtomicBoolean isStopped = new AtomicBoolean(true);
     public final AtomicBoolean socketIsConnected = new AtomicBoolean();
@@ -58,7 +50,7 @@ public class Client
 
     public final AtomicLong conflateMs = new AtomicLong();
     public final AtomicLong heartbeatMs = new AtomicLong();
-    public final MarketDataFilter marketDataFilter = null; // not used
+    public final MarketDataFilter marketDataFilter = new MarketDataFilter(FilterFlag.EX_ALL_OFFERS, FilterFlag.EX_TRADED, FilterFlag.EX_TRADED_VOL, FilterFlag.EX_LTP, FilterFlag.EX_MARKET_DEF);
 
     public Client(int id, String hostName, int port) {
         this.id = id;
@@ -68,7 +60,7 @@ public class Client
         processor = new RequestResponseProcessor(this);
         readerThread = new ReaderThread(this);
         writerThread = new WriterThread(this);
-        keepAliveTimer = Executors.newSingleThreadScheduledExecutor();
+//        keepAliveTimer = Executors.newSingleThreadScheduledExecutor();
 
 //        setChangeHandler(this);
     }
@@ -110,32 +102,43 @@ public class Client
         } else {
             writerThread.start();
         }
-        keepAliveTimer.scheduleAtFixedRate(this::keepAliveCheck, timeout, timeout, TimeUnit.MILLISECONDS);
+//        keepAliveTimer.scheduleAtFixedRate(processor::keepAliveCheck, timeout, timeout, TimeUnit.MILLISECONDS);
     }
 
-    private synchronized void startClient() {
-        if (isStopped.get()) {
-            do {
-                connectSocket();
+    private synchronized boolean startClient() {
+        final boolean attemptedToStart;
+        if (writerThread.bufferNotEmpty.get() || processor.hasValidHandler()) {
+            if (isStopped.get()) {
+                do {
+                    connectSocket();
 
-                connectAuthenticateAndResubscribe();
+                    connectAuthenticateAndResubscribe();
 
-                if (socketIsConnected.get() && streamIsConnected.get() && isAuth.get()) {
-                    isStopped.set(false);
-                    setStreamError(false);
-                } else {
-                    if (!Statics.mustStop.get()) {
-                        logger.error("something went wrong during startClient, disconnecting[{}]: {} {} {}", this.id, socketIsConnected.get(), streamIsConnected.get(), isAuth.get());
-                    } else { // normal behavior to get this error after stop
+                    if (socketIsConnected.get() && streamIsConnected.get() && isAuth.get()) {
+                        isStopped.set(false);
+                        setStreamError(false);
+                    } else {
+                        if (!Statics.mustStop.get()) {
+                            if (Statics.sessionTokenObject.isRecent()) {
+                                logger.info("something went wrong during startClient, disconnecting[{}]: {} {} {}", this.id, socketIsConnected.get(), streamIsConnected.get(), isAuth.get());
+                            } else {
+                                logger.error("something went wrong during startClient, disconnecting[{}]: {} {} {}", this.id, socketIsConnected.get(), streamIsConnected.get(), isAuth.get());
+                            }
+                        } else { // normal behavior to get this error after stop
+                        }
+                        disconnect();
+                        Generic.threadSleepSegmented(10_000L, 100L, Statics.mustStop);
                     }
-                    disconnect();
-                    Generic.threadSleepSegmented(10_000L, 100L, Statics.mustStop);
-                }
-            } while (isStopped.get() && !Statics.mustStop.get());
-        } else {
-            logger.error("[{}]trying to start an already started client", this.id);
+                } while (isStopped.get() && !Statics.mustStop.get());
+            } else {
+                logger.error("[{}]trying to start an already started client", this.id);
+            }
+            this.startedStamp.set(System.currentTimeMillis());
+            attemptedToStart = true;
+        } else { // no command in buffer and no handler to resub, won't attempt to start
+            attemptedToStart = false;
         }
-        this.startedStamp.set(System.currentTimeMillis());
+        return attemptedToStart;
     }
 
 //    private synchronized void setSocketIsConnected(boolean newValue) {
@@ -157,6 +160,7 @@ public class Client
                 writerThread.setBufferedWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
 
                 socketIsConnected.set(true);
+                setStreamError(false); // I need to reset the error here as well, to get the readerThread going
             } catch (IOException e) {
                 logger.error("[{}]Failed to connect streamClient", this.id, e);
             }
@@ -202,7 +206,9 @@ public class Client
 //        }
 
         if (!streamIsConnected.get()) { //timeout
-            logger.error("[{}]No connection message in streamClient.connectAuthenticateAndResubscribe", this.id);
+            if (!Statics.mustStop.get()) {
+                logger.error("[{}]No connection message in streamClient.connectAuthenticateAndResubscribe", this.id);
+            }
         } else {
 //            streamIsConnected.set(true);
             authenticateAndResubscribe();
@@ -233,7 +239,11 @@ public class Client
                 isAuth.set(true); // after resubscribe, else I might get some racing condition bugs
             } else {
                 if (!Statics.mustStop.get()) {
-                    logger.error("something went wrong in streamClient before auth[{}]: {} {}", id, socketIsConnected.get(), streamIsConnected.get());
+                    if (Statics.sessionTokenObject.isRecent()) {
+                        logger.info("something went wrong in streamClient before auth[{}]: {} {}", id, socketIsConnected.get(), streamIsConnected.get());
+                    } else {
+                        logger.error("something went wrong in streamClient before auth[{}]: {} {}", id, socketIsConnected.get(), streamIsConnected.get());
+                    }
                 } else { // normal behavior to get this error after stop
                 }
             }
@@ -242,7 +252,7 @@ public class Client
     }
 
     private synchronized void shutdownClient() {
-        shutdownKeepAliveTimer();
+//        shutdownKeepAliveTimer();
 
         disconnect(true);
 
@@ -286,32 +296,14 @@ public class Client
         processor.disconnected();
     }
 
-    private synchronized void shutdownKeepAliveTimer() {
-        if (keepAliveTimer != null) {
-            keepAliveTimer.shutdown();
-        } else {
-            logger.info("[{}]tried to shutdown null keepAliveTimer", this.id);
-        }
-    }
+//    private synchronized void shutdownKeepAliveTimer() {
+//        if (keepAliveTimer != null) {
+//            keepAliveTimer.shutdown();
+//        } else {
+//            logger.info("[{}]tried to shutdown null keepAliveTimer", this.id);
+//        }
+//    }
 
-    private synchronized void keepAliveCheck() {
-        if (processor.getStatus() == ConnectionStatus.SUBSCRIBED) { //connection looks up
-            if (processor.getLastRequestTime() + keepAliveHeartbeat < System.currentTimeMillis()) { //send a heartbeat to server to keep networks open
-                logger.info("[{}]Last Request Time is longer than {}: Sending Keep Alive Heartbeat", this.id, keepAliveHeartbeat);
-                heartbeat();
-            } else if (processor.getLastResponseTime() + timeout < System.currentTimeMillis()) {
-                logger.info("[{}]Last Response Time is longer than timeout {}: Sending Keep Alive Heartbeat", this.id, timeout);
-                heartbeat();
-            }
-        }
-    }
-
-    private synchronized void heartbeat() {
-//        ClientCommands.waitFor(this, processor.heartbeat(new HeartbeatMessage()));
-        processor.heartbeat(new HeartbeatMessage());
-    }
-
-    //todo errors in out.txt; after I get the stream going, find a way to get above 1k markets, using 2 or more clients; get all markets list, probably from events, and test this split market hose
     @Override
     public void run() {
         startThreads(); // used only once
@@ -319,14 +311,15 @@ public class Client
         while (!Statics.mustStop.get()) {
             try {
                 if (isStopped.get()) {
-                    if (writerThread.bufferNotEmpty.get()) {
-                        startClient();
-                    } else {
+                    final boolean hasAttemptedStart = startClient();
+                    if (!hasAttemptedStart) {
                         Generic.threadSleepSegmented(5_000L, 10L, writerThread.bufferNotEmpty, Statics.mustStop);
                     }
                 } else if (streamError.get()) {
-                    disconnect();
-                    startClient();
+                    disconnect(); // can attempt restart on the next loop iteration
+//                    if (!startClient()) {
+//                        Generic.threadSleepSegmented(5_000L, 10L, writerThread.bufferNotEmpty, Statics.mustStop);
+//                    }
                 }
 
                 Generic.threadSleepSegmented(5_000L, 10L, isStopped, streamError, Statics.mustStop);
@@ -358,21 +351,21 @@ public class Client
 
         shutdownClient(); // only called once
 
-        if (keepAliveTimer != null) {
-            try {
-                if (!keepAliveTimer.awaitTermination(1L, TimeUnit.MINUTES)) {
-                    logger.error("[{}]keepAliveTimer hanged", this.id);
-                    final List<Runnable> runnableList = keepAliveTimer.shutdownNow();
-                    if (!runnableList.isEmpty()) {
-                        logger.error("[{}]keepAliveTimer not commenced: {}", this.id, runnableList.size());
-                    }
-                }
-            } catch (InterruptedException e) {
-                logger.error("[{}]InterruptedException during awaitTermination during stream end", this.id, e);
-            }
-        } else {
-            logger.error("[{}]keepAliveTimer null during stream end", this.id);
-        }
+//        if (keepAliveTimer != null) {
+//            try {
+//                if (!keepAliveTimer.awaitTermination(1L, TimeUnit.MINUTES)) {
+//                    logger.error("[{}]keepAliveTimer hanged", this.id);
+//                    final List<Runnable> runnableList = keepAliveTimer.shutdownNow();
+//                    if (!runnableList.isEmpty()) {
+//                        logger.error("[{}]keepAliveTimer not commenced: {}", this.id, runnableList.size());
+//                    }
+//                }
+//            } catch (InterruptedException e) {
+//                logger.error("[{}]InterruptedException during awaitTermination during stream end", this.id, e);
+//            }
+//        } else {
+//            logger.error("[{}]keepAliveTimer null during stream end", this.id);
+//        }
 
         logger.info("[{}]streamClient thread ends", this.id);
     }

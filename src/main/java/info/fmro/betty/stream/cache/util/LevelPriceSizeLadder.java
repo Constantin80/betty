@@ -1,7 +1,5 @@
 package info.fmro.betty.stream.cache.util;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -11,9 +9,10 @@ import java.util.TreeMap;
  */
 public class LevelPriceSizeLadder {
     private Map<Integer, LevelPriceSize> levelToPriceSize = new TreeMap<>();
-    private List<LevelPriceSize> snap = Collections.emptyList();
+//    private List<LevelPriceSize> snap = Collections.emptyList();
 
-    public synchronized List<LevelPriceSize> onPriceChange(boolean isImage, List<List<Double>> prices) {
+    //    public synchronized List<LevelPriceSize> onPriceChange(boolean isImage, List<List<Double>> prices) {
+    public synchronized void onPriceChange(boolean isImage, List<List<Double>> prices) {
         if (isImage) {
             //image is replace
             levelToPriceSize.clear();
@@ -27,10 +26,10 @@ public class LevelPriceSizeLadder {
             }
         }
 
-        if (isImage || prices != null) {
-            //update snap on image or if we had cell changes
-            snap = new ArrayList<>(levelToPriceSize.values());
-        }
-        return snap;
+//        if (isImage || prices != null) {
+//            //update snap on image or if we had cell changes
+//            snap = new ArrayList<>(levelToPriceSize.values());
+//        }
+//        return snap;
     }
 }
