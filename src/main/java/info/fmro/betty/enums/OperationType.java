@@ -4,5 +4,6 @@ public enum OperationType {
     listMarketCatalogue,
     getAccountFunds,
     placeOrders,
-    cancelOrders
+    cancelOrders,
+    listCurrencyRates
 }

@@ -93,7 +93,7 @@ public class LoggerThread
                 final long timeToExecute = entry.getValue();
 
                 final long timeLeft = timeToExecute - currentTime; // can be negative
-                if (timeLeft < -50L) {
+                if (timeLeft < -1_000L) {
                     logger.error("LoggerThread.finalPrintEntries, printing entry with negative timeLeft {}ms", timeLeft);
                 } else {
                     logger.warn("LoggerThread.finalPrintEntries, printing entry with timeLeft {}ms", timeLeft);

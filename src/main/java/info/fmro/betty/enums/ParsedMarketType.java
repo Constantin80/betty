@@ -1,7 +1,6 @@
 package info.fmro.betty.enums;
 
 public enum ParsedMarketType {
-
     HALF_TIME_FULL_TIME,
     CORRECT_SCORE,
     ANYTIME_SCORE,
@@ -87,6 +86,7 @@ public enum ParsedMarketType {
     SCORE_CAST,
     WINCAST_ANYTIME,
     WINCAST_FIRST_GOAL,
+    WINCAST,
     FIRST_HALF_CORNERS,
     OVER_UNDER_55_CORNR,
     OVER_UNDER_85_CORNR,
@@ -164,5 +164,6 @@ public enum ParsedMarketType {
     ASIAN_HANDICAP_MINUS_10,
     ASIAN_HANDICAP_PLUS_10,
     ASIAN_HANDICAP_MINUS_15,
-    ASIAN_HANDICAP_PLUS_15;
+    ASIAN_HANDICAP_PLUS_15,
+    MATCH_ODDS_UNMANAGED
 }

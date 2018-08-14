@@ -3,13 +3,13 @@ package info.fmro.betty.entities;
 import info.fmro.betty.enums.OrderType;
 import info.fmro.betty.enums.Side;
 import info.fmro.shared.utility.Generic;
-import java.io.Serializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
+
 public class PlaceInstruction
         implements Serializable {
-
     private static final Logger logger = LoggerFactory.getLogger(PlaceInstruction.class);
     private static final long serialVersionUID = -1136840098955839521L;
     private OrderType orderType;

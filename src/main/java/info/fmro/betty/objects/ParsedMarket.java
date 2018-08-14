@@ -1,8 +1,6 @@
 package info.fmro.betty.objects;
 
 import info.fmro.betty.enums.ParsedMarketType;
-import info.fmro.betty.enums.ParsedRunnerType;
-import info.fmro.shared.utility.Generic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,23 +36,23 @@ public class ParsedMarket
         return new HashSet<>(parsedRunnersSet);
     }
 
-    public synchronized boolean checkSameTypeRunners() {
-        boolean allDifferent;
-        int capacity = Generic.getCollectionCapacity(this.parsedRunnersSet.size());
-        HashSet<ParsedRunnerType> parsedRunnerTypesSet = new HashSet<>(capacity);
-
-        for (ParsedRunner parsedRunner : this.parsedRunnersSet) {
-            parsedRunnerTypesSet.add(parsedRunner.getParsedRunnerType());
-        }
-        if (parsedRunnerTypesSet.size() != this.parsedRunnersSet.size()) {
-            logger.error("same type ParsedRunner(s) detected {} {} {}: {}", parsedRunnerTypesSet.size(), this.parsedRunnersSet.size(), Generic.objectToString(parsedRunnerTypesSet), Generic.objectToString(this));
-            allDifferent = false;
-        } else {
-            allDifferent = true;
-        }
-
-        return allDifferent;
-    }
+//    public synchronized boolean checkSameTypeRunners() {
+//        boolean allDifferent;
+//        int capacity = Generic.getCollectionCapacity(this.parsedRunnersSet.size());
+//        final HashSet<ParsedRunnerType> parsedRunnerTypesSet = new HashSet<>(capacity);
+//
+//        for (ParsedRunner parsedRunner : this.parsedRunnersSet) {
+//            parsedRunnerTypesSet.add(parsedRunner.getParsedRunnerType());
+//        }
+//        if (parsedRunnerTypesSet.size() != this.parsedRunnersSet.size()) {
+//            logger.error("same type ParsedRunner(s) detected {} {} {}: {}", parsedRunnerTypesSet.size(), this.parsedRunnersSet.size(), Generic.objectToString(parsedRunnerTypesSet), Generic.objectToString(this));
+//            allDifferent = false;
+//        } else {
+//            allDifferent = true;
+//        }
+//
+//        return allDifferent;
+//    }
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")

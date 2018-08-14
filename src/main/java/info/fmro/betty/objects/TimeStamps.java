@@ -7,11 +7,10 @@ import java.io.Serializable;
 
 public class TimeStamps
         implements Serializable {
-
     private static final Logger logger = LoggerFactory.getLogger(TimeStamps.class);
     private static final long serialVersionUID = 2521253086493558605L;
-    private long lastObjectsSave, lastCleanScraperEventsMap, lastParseEventResultList, lastMapEventsToScraperEvents, lastGetMarketBooks, lastCleanSecondaryMaps, lastFindSafeRunners, lastStreamMarkets, lastGetAccountFunds, lastFindInterestingMarkets,
-            lastPrintDebug, lastPrintAverages, lastCleanTimedMaps, lastCheckAliases;
+    private long lastObjectsSave, lastCleanScraperEventsMap, lastParseEventResultList, lastMapEventsToScraperEvents, lastGetMarketBooks, lastCleanSecondaryMaps, lastFindSafeRunners, lastStreamMarkets, lastGetAccountFunds, lastListCurrencyRates,
+            lastFindInterestingMarkets, lastPrintDebug, lastPrintAverages, lastCleanTimedMaps, lastCheckAliases;
 
     public synchronized long getLastObjectsSave() {
         return lastObjectsSave;
@@ -191,6 +190,18 @@ public class TimeStamps
 
     public synchronized void lastGetAccountFundsStamp() {
         this.lastGetAccountFunds = System.currentTimeMillis();
+    }
+
+    public synchronized long getLastListCurrencyRates() {
+        return lastListCurrencyRates;
+    }
+
+    public synchronized void setLastListCurrencyRates(long lastListCurrencyRates) {
+        this.lastListCurrencyRates = lastListCurrencyRates;
+    }
+
+    public synchronized void lastListCurrencyRatesStamp() {
+        this.lastListCurrencyRates = System.currentTimeMillis();
     }
 
     public synchronized long getLastFindInterestingMarkets() {

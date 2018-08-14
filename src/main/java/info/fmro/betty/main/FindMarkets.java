@@ -33,7 +33,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class FindMarkets {
-
     private static final Logger logger = LoggerFactory.getLogger(FindMarkets.class);
     public static final HashSet<MarketProjection> marketProjectionsSet = new HashSet<>(8, 0.75f);
 
@@ -58,14 +57,17 @@ public class FindMarkets {
             interestingMarket = false;
         } else if (parsedRunnersSet.size() == expectedSize) {
             final ParsedMarket parsedMarket = new ParsedMarket(marketId, parsedMarketType, parsedRunnersSet);
-            if (parsedMarket.checkSameTypeRunners()) {
-                interestingMarket = marketCatalogue.setParsedMarket(parsedMarket) > 0; // only true if modified
-            } else {
-                interestingMarket = false;
-            }
+//            if (parsedMarket.checkSameTypeRunners()) {
+            interestingMarket = marketCatalogue.setParsedMarket(parsedMarket) > 0; // only true if modified
+//            } else {
+//                interestingMarket = false;
+//            }
         } else {
-            Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "incorrect parsedRunnersSet size {} in: {} {} for: {}", parsedRunnersSet.size(), parsedMarketType, marketId,
-                                              Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
+            if (parsedMarketType == ParsedMarketType.ALT_TOTAL_GOALS && parsedRunnersSet.size() == 64) { // normal, happens, no need to print
+            } else {
+                Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "incorrect parsedRunnersSet size {} in: {} {} for: {} set: {}", parsedRunnersSet.size(), parsedMarketType, marketId,
+                                                  Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"), Generic.objectToString(parsedRunnersSet));
+            }
             interestingMarket = false;
         }
         return interestingMarket;
@@ -73,8 +75,9 @@ public class FindMarkets {
 
     public static void addParsedRunner(HashSet<ParsedRunner> parsedRunnersSet, RunnerCatalog runnerCatalog, final ParsedRunnerType parsedRunnerType) {
         final Long selectionId = runnerCatalog.getSelectionId();
+        final Double handicap = runnerCatalog.getHandicap();
         if (parsedRunnerType != null) {
-            final ParsedRunner parsedRunner = new ParsedRunner(selectionId, parsedRunnerType);
+            final ParsedRunner parsedRunner = new ParsedRunner(selectionId, handicap, parsedRunnerType);
             parsedRunnersSet.add(parsedRunner);
         }
     }
@@ -285,19 +288,19 @@ public class FindMarkets {
                             logger.warn("event modified {} in findMarkets for: {} {} {}", update, marketId, Generic.objectToString(eventStump), Generic.objectToString(event)); // this might be normal behaviour
                         }
                     } else {
-                        final String eventStumpId = eventStump.getId();
-                        if (eventStumpId != null) {
-                            final Event existingEvent = Statics.eventsMap.putIfAbsent(eventStumpId, eventStump);
-                            if (existingEvent == null) { // event was added, no previous event existed, double check to avoid racing issues
-                                modifiedEvents.add(eventStump);
-                            } else { // this is the normal behaviour branch, event is supposed to exist
-                            }
-                            if (existingEvent != null && existingEvent.isIgnored(methodStartTime)) {
-                                logger.warn("marketCatalogue attached to blackListed event: {}", marketId);
-                            }
-                        } else {
-                            logger.error("null eventStumpId in findMarkets for: {}", Generic.objectToString(marketCatalogue));
-                        }
+//                        final String eventStumpId = eventStump.getId();
+//                        if (eventStumpId != null) {
+//                            final Event existingEvent = Statics.eventsMap.putIfAbsent(eventStumpId, eventStump); // line removed; placing a stump that exists attached to a catalogue in the map results in unwanted behavior
+//                            if (existingEvent == null) { // event was added, no previous event existed, double check to avoid racing issues
+                        modifiedEvents.add(eventStump);
+//                            } else { // this is the normal behaviour branch, event is supposed to exist
+//                            }
+//                            if (existingEvent != null && existingEvent.isIgnored(methodStartTime)) {
+//                                logger.warn("marketCatalogue attached to blackListed event: {}", marketId);
+//                            }
+//                        } else {
+//                            logger.error("null eventStumpId in findMarkets for: {}", Generic.objectToString(marketCatalogue));
+//                        }
                     }
 
                     final MarketCatalogue existingMarketCatalogue;
@@ -336,9 +339,8 @@ public class FindMarkets {
 
             final int sizeModified = modifiedEvents.size();
             if (sizeModified > 0) {
-                final String printedString = MessageFormatter.arrayFormat("findMarkets modifiedEvents: {} launch: findMarkets", new Object[]{sizeModified}).getMessage();
-                logger.info(printedString);
-
+//                final String printedString = MessageFormatter.arrayFormat("findMarkets modifiedEvents: {} launch: findMarkets", new Object[]{sizeModified}).getMessage();
+//                logger.info(printedString);
                 final HashSet<Event> notIgnoredModifiedEvents = new HashSet<>(Generic.getCollectionCapacity(modifiedEvents));
                 for (Event event : modifiedEvents) {
                     if (!event.isIgnored()) {
@@ -589,7 +591,12 @@ public class FindMarkets {
                             if (timeSinceLastRemoved < 1_000L) {
                                 logger.info("marketCatalogue {} attached to event not present in eventsMap", marketId);
                             } else {
-                                logger.error("marketCatalogue attached to event not present in eventsMap: {}", Generic.objectToString(marketCatalogue));
+                                final long timeSinceUpdated = methodStartTime - Statics.eventsMap.getTimeStamp();
+                                if (timeSinceUpdated > Generic.DAY_LENGTH_MILLISECONDS) {
+                                    logger.info("marketCatalogue {} attached to event not present in obsolete eventsMap", marketId);
+                                } else {
+                                    logger.error("marketCatalogue attached to event not present in eventsMap: {} {}", timeSinceLastRemoved, Generic.objectToString(marketCatalogue));
+                                }
                             }
                         } else {
                             logger.error("null fields in findMarkets for: {}", Generic.objectToString(marketCatalogue));
@@ -861,7 +868,7 @@ public class FindMarkets {
             } else {
                 switch (marketType) {
                     case "MATCH_ODDS_AND_BTTS":
-                        parsedMarketType = ParsedMarketType.MATCH_ODDS_AND_BTTS;
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
                         nParsedRunners = 6;
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
                         for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
@@ -899,7 +906,7 @@ public class FindMarkets {
                         }
                         break;
                     case "LAST_TEAM_TO_SCORE":
-                        parsedMarketType = ParsedMarketType.LAST_TEAM_TO_SCORE;
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
                         nParsedRunners = 3;
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
                         for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
@@ -931,45 +938,9 @@ public class FindMarkets {
                         }
                         break;
                     case "MATCH_ODDS_AND_OU_25":
-                        parsedMarketType = ParsedMarketType.MATCH_ODDS_AND_OU_25;
-                        nParsedRunners = 6;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final boolean successInGettingName = getNamesFromRunnerNames(eventHomeName, eventAwayName, marketId, runnerName, null, "/", sortPriority, 1, 3, marketCatalogue);
-                            if (!successInGettingName) {
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.equalsIgnoreCase(eventHomeName + "/Under 2.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.HOME_AND_UNDER;
-                            } else if (sortPriority == 2 && runnerName.equalsIgnoreCase(eventHomeName + "/Over 2.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.HOME_AND_OVER;
-                            } else if (sortPriority == 3 && runnerName.equalsIgnoreCase(eventAwayName + "/Under 2.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.AWAY_AND_UNDER;
-                            } else if (sortPriority == 4 && runnerName.equalsIgnoreCase(eventAwayName + "/Over 2.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.AWAY_AND_OVER;
-                            } else if (sortPriority == 5 && runnerName.trim().equalsIgnoreCase("Draw/Under 2.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.DRAW_AND_UNDER;
-                            } else if (sortPriority == 6 && runnerName.trim().equalsIgnoreCase("Draw/Over 2.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.DRAW_AND_OVER;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
                     case "MATCH_ODDS_AND_OU_35":
-                        parsedMarketType = ParsedMarketType.MATCH_ODDS_AND_OU_35;
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
+                        final int nGoalsFirst = Integer.valueOf(marketType.substring(marketType.lastIndexOf("_") + "_".length(), marketType.lastIndexOf("5")));
                         nParsedRunners = 6;
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
                         for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
@@ -981,17 +952,17 @@ public class FindMarkets {
                                 break;
                             }
                             final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.equalsIgnoreCase(eventHomeName + "/Under 3.5 Goals")) {
+                            if (sortPriority == 1 && runnerName.equalsIgnoreCase(eventHomeName + "/Under " + nGoalsFirst + ".5 Goals")) {
                                 parsedRunnerType = ParsedRunnerType.HOME_AND_UNDER;
-                            } else if (sortPriority == 2 && runnerName.equalsIgnoreCase(eventHomeName + "/Over 3.5 Goals")) {
+                            } else if (sortPriority == 2 && runnerName.equalsIgnoreCase(eventHomeName + "/Over " + nGoalsFirst + ".5 Goals")) {
                                 parsedRunnerType = ParsedRunnerType.HOME_AND_OVER;
-                            } else if (sortPriority == 3 && runnerName.equalsIgnoreCase(eventAwayName + "/Under 3.5 Goals")) {
+                            } else if (sortPriority == 3 && runnerName.equalsIgnoreCase(eventAwayName + "/Under " + nGoalsFirst + ".5 Goals")) {
                                 parsedRunnerType = ParsedRunnerType.AWAY_AND_UNDER;
-                            } else if (sortPriority == 4 && runnerName.equalsIgnoreCase(eventAwayName + "/Over 3.5 Goals")) {
+                            } else if (sortPriority == 4 && runnerName.equalsIgnoreCase(eventAwayName + "/Over " + nGoalsFirst + ".5 Goals")) {
                                 parsedRunnerType = ParsedRunnerType.AWAY_AND_OVER;
-                            } else if (sortPriority == 5 && runnerName.trim().equalsIgnoreCase("Draw/Under 3.5 Goals")) {
+                            } else if (sortPriority == 5 && runnerName.trim().equalsIgnoreCase("Draw/Under " + nGoalsFirst + ".5 Goals")) {
                                 parsedRunnerType = ParsedRunnerType.DRAW_AND_UNDER;
-                            } else if (sortPriority == 6 && runnerName.trim().equalsIgnoreCase("Draw/Over 3.5 Goals")) {
+                            } else if (sortPriority == 6 && runnerName.trim().equalsIgnoreCase("Draw/Over " + nGoalsFirst + ".5 Goals")) {
                                 parsedRunnerType = ParsedRunnerType.DRAW_AND_OVER;
                             } else {
                                 parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
@@ -1007,7 +978,7 @@ public class FindMarkets {
                         }
                         break;
                     case "HALF_TIME_FULL_TIME":
-                        parsedMarketType = ParsedMarketType.HALF_TIME_FULL_TIME;
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
                         nParsedRunners = 9;
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
                         for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
@@ -1056,8 +1027,7 @@ public class FindMarkets {
                         }
                         break;
                     case "CORRECT_SCORE":
-                        parsedMarketType = ParsedMarketType.CORRECT_SCORE;
-//                                            nParsedRunners = 17;
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
                         nParsedRunners = 19;
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
                         for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
@@ -1114,7 +1084,7 @@ public class FindMarkets {
                         }
                         break;
                     case "ANYTIME_SCORE":
-                        parsedMarketType = ParsedMarketType.ANYTIME_SCORE;
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
                         nParsedRunners = 15;
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
                         for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
@@ -1165,7 +1135,7 @@ public class FindMarkets {
                         }
                         break;
                     case "HALF_TIME_SCORE":
-                        parsedMarketType = ParsedMarketType.HALF_TIME_SCORE;
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
                         nParsedRunners = 10;
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
                         for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
@@ -1206,7 +1176,7 @@ public class FindMarkets {
                         }
                         break;
                     case "TOTAL_GOALS":
-                        parsedMarketType = ParsedMarketType.TOTAL_GOALS;
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
                         nParsedRunners = 7;
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
                         for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
@@ -1241,7 +1211,7 @@ public class FindMarkets {
                         }
                         break;
                     case "EXACT_GOALS":
-                        parsedMarketType = ParsedMarketType.EXACT_GOALS;
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
                         nParsedRunners = 8;
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
                         for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
@@ -1484,7 +1454,7 @@ public class FindMarkets {
                         } // end else
                         break;
                     case "WINNING_MARGIN":
-                        parsedMarketType = ParsedMarketType.WINNING_MARGIN;
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
                         nParsedRunners = 10;
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
                         for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
@@ -1530,7 +1500,7 @@ public class FindMarkets {
                         }
                         break;
                     case "HALF_WITH_MOST_GOALS":
-                        parsedMarketType = ParsedMarketType.HALF_WITH_MOST_GOALS;
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
                         nParsedRunners = 3;
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
                         for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
@@ -1557,7 +1527,7 @@ public class FindMarkets {
                         }
                         break;
                     case "METHOD_OF_VICTORY":
-                        parsedMarketType = ParsedMarketType.METHOD_OF_VICTORY;
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
                         final int nRunners = marketCatalogue.getNRunners();
                         final int sortAway;
                         if (nRunners == 6) {
@@ -1653,7 +1623,7 @@ public class FindMarkets {
                             } else {
                                 interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
                             }
-                        } // end for
+                        }
                         break;
                     case "WIN_HALF":
                         parsedMarketType = pickParsedMarketType(" Win a Half?", marketName, eventHomeName, eventAwayName, marketId, ParsedMarketType.WIN_HALF_A, ParsedMarketType.WIN_HALF_B);
@@ -1683,81 +1653,6 @@ public class FindMarkets {
                                 interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
                             }
                         } // end for
-                        break;
-                    case "GOAL_BOTH_HALVES":
-                        parsedMarketType = ParsedMarketType.GOAL_BOTH_HALVES;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Yes")) {
-                                parsedRunnerType = ParsedRunnerType.YES;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("No")) {
-                                parsedRunnerType = ParsedRunnerType.NO;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "TEAM_A_WIN_TO_NIL":
-                        parsedMarketType = ParsedMarketType.TEAM_A_WIN_TO_NIL;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Yes")) {
-                                parsedRunnerType = ParsedRunnerType.YES;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("No")) {
-                                parsedRunnerType = ParsedRunnerType.NO;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "TEAM_B_WIN_TO_NIL":
-                        parsedMarketType = ParsedMarketType.TEAM_B_WIN_TO_NIL;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Yes")) {
-                                parsedRunnerType = ParsedRunnerType.YES;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("No")) {
-                                parsedRunnerType = ParsedRunnerType.NO;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
                         break;
                     case "WIN_BOTH_HALVES":
                         parsedMarketType = pickParsedMarketType(" Win both Halves", marketName, eventHomeName, eventAwayName, marketId, ParsedMarketType.WIN_BOTH_HALVES_A, ParsedMarketType.WIN_BOTH_HALVES_B);
@@ -1823,670 +1718,26 @@ public class FindMarkets {
                             }
                         }
                         break;
-                    case "BOTH_TEAMS_TO_SCORE":
-                        parsedMarketType = ParsedMarketType.BOTH_TEAMS_TO_SCORE;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Yes")) {
-                                parsedRunnerType = ParsedRunnerType.YES;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("No")) {
-                                parsedRunnerType = ParsedRunnerType.NO;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "FIRST_HALF_GOALS_05":
-                        parsedMarketType = ParsedMarketType.FIRST_HALF_GOALS_05;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 0.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_UNDER_05;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 0.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_OVER_05;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "FIRST_HALF_GOALS_15":
-                        parsedMarketType = ParsedMarketType.FIRST_HALF_GOALS_15;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 1.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_UNDER_15;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 1.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_OVER_15;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "FIRST_HALF_GOALS_25":
-                        parsedMarketType = ParsedMarketType.FIRST_HALF_GOALS_25;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 2.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_UNDER_25;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 2.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_OVER_25;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "SECOND_HALF_GOALS_05":
-                        parsedMarketType = ParsedMarketType.SECOND_HALF_GOALS_05;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 0.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_UNDER_05;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 0.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_OVER_05;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "SECOND_HALF_GOALS_15":
-                        parsedMarketType = ParsedMarketType.SECOND_HALF_GOALS_15;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 1.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_UNDER_15;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 1.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_OVER_15;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "OVER_UNDER_05":
-                        parsedMarketType = ParsedMarketType.OVER_UNDER_05;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 0.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_UNDER_05;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 0.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_OVER_05;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "OVER_UNDER_15":
-                        parsedMarketType = ParsedMarketType.OVER_UNDER_15;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 1.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_UNDER_15;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 1.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_OVER_15;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "OVER_UNDER_25":
-                        parsedMarketType = ParsedMarketType.OVER_UNDER_25;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 2.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_UNDER_25;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 2.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_OVER_25;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "OVER_UNDER_35":
-                        parsedMarketType = ParsedMarketType.OVER_UNDER_35;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 3.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_UNDER_35;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 3.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_OVER_35;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "OVER_UNDER_45":
-                        parsedMarketType = ParsedMarketType.OVER_UNDER_45;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 4.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_UNDER_45;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 4.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_OVER_45;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "OVER_UNDER_55":
-                        parsedMarketType = ParsedMarketType.OVER_UNDER_55;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 5.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_UNDER_55;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 5.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_OVER_55;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "OVER_UNDER_65":
-                        parsedMarketType = ParsedMarketType.OVER_UNDER_65;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 6.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_UNDER_65;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 6.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_OVER_65;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "OVER_UNDER_75":
-                        parsedMarketType = ParsedMarketType.OVER_UNDER_75;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 7.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_UNDER_75;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 7.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_OVER_75;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "OVER_UNDER_85":
-                        parsedMarketType = ParsedMarketType.OVER_UNDER_85;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 8.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_UNDER_85;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 8.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_OVER_85;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "TEAM_A_OVER_UNDER_05":
-                        parsedMarketType = ParsedMarketType.TEAM_A_OVER_UNDER_05;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 0.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_UNDER_05;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 0.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_OVER_05;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "TEAM_A_OVER_UNDER_15":
-                        parsedMarketType = ParsedMarketType.TEAM_A_OVER_UNDER_15;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 1.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_UNDER_15;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 1.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_OVER_15;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "TEAM_A_OVER_UNDER_25":
-                        parsedMarketType = ParsedMarketType.TEAM_A_OVER_UNDER_25;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 2.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_UNDER_25;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 2.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_OVER_25;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "TEAM_B_OVER_UNDER_05":
-                        parsedMarketType = ParsedMarketType.TEAM_B_OVER_UNDER_05;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 0.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_UNDER_05;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 0.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_OVER_05;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "TEAM_B_OVER_UNDER_15":
-                        parsedMarketType = ParsedMarketType.TEAM_B_OVER_UNDER_15;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 1.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_UNDER_15;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 1.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_OVER_15;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
-                    case "TEAM_B_OVER_UNDER_25":
-                        parsedMarketType = ParsedMarketType.TEAM_B_OVER_UNDER_25;
-                        nParsedRunners = 2;
-                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                            final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
-                            final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 2.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_UNDER_25;
-                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 2.5 Goals")) {
-                                parsedRunnerType = ParsedRunnerType.GOALS_OVER_25;
-                            } else {
-                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                errorAlreadyPrinted = true;
-                                break;
-                            }
-                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                        } // end for
-                        if (errorAlreadyPrinted) {
-                            interestingMarket = false;
-                        } else {
-                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                        }
-                        break;
                     case "OVER_UNDER":
                         switch (marketName) {
                             case "Over/Under 9.5 Goals":
-                                parsedMarketType = ParsedMarketType.OVER_UNDER_95;
-                                nParsedRunners = 2;
-                                parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                                for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                                    final int sortPriority = runnerCatalog.getSortPriority();
-                                    final String runnerName = runnerCatalog.getRunnerName();
-                                    final ParsedRunnerType parsedRunnerType;
-                                    if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 9.5 Goals")) {
-                                        parsedRunnerType = ParsedRunnerType.GOALS_UNDER_95;
-                                    } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 9.5 Goals")) {
-                                        parsedRunnerType = ParsedRunnerType.GOALS_OVER_95;
-                                    } else {
-                                        parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                        errorAlreadyPrinted = true;
-                                        break;
-                                    }
-                                    addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                                } // end for
-                                if (errorAlreadyPrinted) {
-                                    interestingMarket = false;
-                                } else {
-                                    interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                                }
-                                break;
                             case "Over/Under 10.5 Goals":
-                                parsedMarketType = ParsedMarketType.OVER_UNDER_105;
-                                nParsedRunners = 2;
-                                parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                                for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                                    final int sortPriority = runnerCatalog.getSortPriority();
-                                    final String runnerName = runnerCatalog.getRunnerName();
-                                    final ParsedRunnerType parsedRunnerType;
-                                    if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 10.5 Goals")) {
-                                        parsedRunnerType = ParsedRunnerType.GOALS_UNDER_105;
-                                    } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 10.5 Goals")) {
-                                        parsedRunnerType = ParsedRunnerType.GOALS_OVER_105;
-                                    } else {
-                                        parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                        errorAlreadyPrinted = true;
-                                        break;
-                                    }
-                                    addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                                } // end for
-                                if (errorAlreadyPrinted) {
-                                    interestingMarket = false;
-                                } else {
-                                    interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                                }
-                                break;
                             case "Over/Under 11.5 Goals":
-                                parsedMarketType = ParsedMarketType.OVER_UNDER_115;
-                                nParsedRunners = 2;
-                                parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                                for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                                    final int sortPriority = runnerCatalog.getSortPriority();
-                                    final String runnerName = runnerCatalog.getRunnerName();
-                                    final ParsedRunnerType parsedRunnerType;
-                                    if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 11.5 Goals")) {
-                                        parsedRunnerType = ParsedRunnerType.GOALS_UNDER_115;
-                                    } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 11.5 Goals")) {
-                                        parsedRunnerType = ParsedRunnerType.GOALS_OVER_115;
-                                    } else {
-                                        parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                        errorAlreadyPrinted = true;
-                                        break;
-                                    }
-                                    addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                                } // end for
-                                if (errorAlreadyPrinted) {
-                                    interestingMarket = false;
-                                } else {
-                                    interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                                }
-                                break;
                             case "Over/Under 12.5 Goals":
-                                parsedMarketType = ParsedMarketType.OVER_UNDER_125;
-                                nParsedRunners = 2;
-                                parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                                for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                                    final int sortPriority = runnerCatalog.getSortPriority();
-                                    final String runnerName = runnerCatalog.getRunnerName();
-                                    final ParsedRunnerType parsedRunnerType;
-                                    if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 12.5 Goals")) {
-                                        parsedRunnerType = ParsedRunnerType.GOALS_UNDER_125;
-                                    } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 12.5 Goals")) {
-                                        parsedRunnerType = ParsedRunnerType.GOALS_OVER_125;
-                                    } else {
-                                        parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                        errorAlreadyPrinted = true;
-                                        break;
-                                    }
-                                    addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                                } // end for
-                                if (errorAlreadyPrinted) {
-                                    interestingMarket = false;
-                                } else {
-                                    interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                                }
-                                break;
                             case "Over/Under 13.5 Goals":
-                                parsedMarketType = ParsedMarketType.OVER_UNDER_135;
-                                nParsedRunners = 2;
-                                parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
-                                for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
-                                    final int sortPriority = runnerCatalog.getSortPriority();
-                                    final String runnerName = runnerCatalog.getRunnerName();
-                                    final ParsedRunnerType parsedRunnerType;
-                                    if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 13.5 Goals")) {
-                                        parsedRunnerType = ParsedRunnerType.GOALS_UNDER_135;
-                                    } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 13.5 Goals")) {
-                                        parsedRunnerType = ParsedRunnerType.GOALS_OVER_135;
-                                    } else {
-                                        parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                        errorAlreadyPrinted = true;
-                                        break;
-                                    }
-                                    addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
-                                } // end for
-                                if (errorAlreadyPrinted) {
-                                    interestingMarket = false;
-                                } else {
-                                    interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                                }
-                                break;
                             case "Over/Under 14.5 Goals":
-                                parsedMarketType = ParsedMarketType.OVER_UNDER_145;
+                                final int nGoalsInner = Integer.valueOf(marketName.substring("Over/Under ".length(), marketName.indexOf(".5 Goals")));
+                                parsedMarketType = ParsedMarketType.valueOf(marketType + "_" + nGoalsInner + "5");
                                 nParsedRunners = 2;
                                 parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
                                 for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
                                     final int sortPriority = runnerCatalog.getSortPriority();
                                     final String runnerName = runnerCatalog.getRunnerName();
                                     final ParsedRunnerType parsedRunnerType;
-                                    if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under 14.5 Goals")) {
-                                        parsedRunnerType = ParsedRunnerType.GOALS_UNDER_145;
-                                    } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over 14.5 Goals")) {
-                                        parsedRunnerType = ParsedRunnerType.GOALS_OVER_145;
+                                    if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under " + nGoalsInner + ".5 Goals")) {
+                                        parsedRunnerType = ParsedRunnerType.valueOf("GOALS_UNDER_" + nGoalsInner + "5");
+                                    } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over " + nGoalsInner + ".5 Goals")) {
+                                        parsedRunnerType = ParsedRunnerType.valueOf("GOALS_OVER_" + nGoalsInner + "5");
                                     } else {
                                         parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
                                         errorAlreadyPrinted = true;
@@ -2508,7 +1759,7 @@ public class FindMarkets {
                         } // end switch
                         break;
                     case "ET_CORRECT_SCORE":
-                        parsedMarketType = ParsedMarketType.ET_CORRECT_SCORE;
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
                         nParsedRunners = 10;
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
                         for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
@@ -2548,14 +1799,673 @@ public class FindMarkets {
                             interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
                         }
                         break;
-                    default:
-                        if (!Statics.marketTypes.contains(marketType)) {
-                            Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "new marketType found: {}, for: {}", marketType, Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
+                    case "FIRST_HALF_GOALS_05":
+                    case "FIRST_HALF_GOALS_15":
+                    case "FIRST_HALF_GOALS_25":
+                    case "SECOND_HALF_GOALS_05":
+                    case "SECOND_HALF_GOALS_15":
+                    case "OVER_UNDER_05":
+                    case "OVER_UNDER_15":
+                    case "OVER_UNDER_25":
+                    case "OVER_UNDER_35":
+                    case "OVER_UNDER_45":
+                    case "OVER_UNDER_55":
+                    case "OVER_UNDER_65":
+                    case "OVER_UNDER_75":
+                    case "OVER_UNDER_85":
+                    case "TEAM_A_OVER_UNDER_05":
+                    case "TEAM_A_OVER_UNDER_15":
+                    case "TEAM_A_OVER_UNDER_25":
+                    case "TEAM_B_OVER_UNDER_05":
+                    case "TEAM_B_OVER_UNDER_15":
+                    case "TEAM_B_OVER_UNDER_25":
+                    case "ET_OU_GOALS_05":
+                    case "ET_OU_GOALS_15":
+                    case "ET_OU_GOALS_25":
+                    case "ET_OU_GOALS_35":
+                    case "ET_FH_OU_GOALS_05":
+                    case "ET_FH_OU_GOALS_15":
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
+                        final int nGoals = Integer.valueOf(marketType.substring(marketType.lastIndexOf("_") + "_".length(), marketType.lastIndexOf("5")));
+                        nParsedRunners = 2;
+                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
+                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
+                            final int sortPriority = runnerCatalog.getSortPriority();
+                            final String runnerName = runnerCatalog.getRunnerName();
+                            final ParsedRunnerType parsedRunnerType;
+                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under " + nGoals + ".5 Goals")) {
+                                parsedRunnerType = ParsedRunnerType.valueOf("GOALS_UNDER_" + nGoals + "5");
+                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over " + nGoals + ".5 Goals")) {
+                                parsedRunnerType = ParsedRunnerType.valueOf("GOALS_OVER_" + nGoals + "5");
+                            } else {
+                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
+                        } // end for
+                        if (errorAlreadyPrinted) {
                             interestingMarket = false;
-                        } else { // known market that is not parsed
-//                            interestingMarket = false;
-                            interestingMarket = true; // not supported markets, with no errors, pass all the time
+                        } else {
+                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
                         }
+                        break;
+                    case "CORNER_ODDS":
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
+                        nParsedRunners = 3;
+                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
+                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
+                            final int sortPriority = runnerCatalog.getSortPriority();
+                            final String runnerName = runnerCatalog.getRunnerName();
+                            final ParsedRunnerType parsedRunnerType;
+                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("9 or less")) {
+                                parsedRunnerType = ParsedRunnerType.CORNERS_9_OR_LESS;
+                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("10 - 12")) {
+                                parsedRunnerType = ParsedRunnerType.CORNERS_10_12;
+                            } else if (sortPriority == 3 && runnerName.trim().equalsIgnoreCase("13 or more")) {
+                                parsedRunnerType = ParsedRunnerType.CORNERS_13_OR_MORE;
+                            } else {
+                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
+                        } // end for
+                        if (errorAlreadyPrinted) {
+                            interestingMarket = false;
+                        } else {
+                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
+                        }
+                        break;
+                    case "GOAL_BOTH_HALVES":
+                    case "TEAM_A_WIN_TO_NIL":
+                    case "TEAM_B_WIN_TO_NIL":
+                    case "BOTH_TEAMS_TO_SCORE":
+                    case "SENDING_OFF":
+                    case "ET_BTTS":
+                    case "HAT_TRICKED_SCORED":
+                    case "PENALTY_TAKEN":
+                    case "WIN_FROM_BEHIND_A":
+                    case "WIN_FROM_BEHIND_B":
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
+                        nParsedRunners = 2;
+                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
+                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
+                            final int sortPriority = runnerCatalog.getSortPriority();
+                            final String runnerName = runnerCatalog.getRunnerName();
+                            final ParsedRunnerType parsedRunnerType;
+                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Yes")) {
+                                parsedRunnerType = ParsedRunnerType.YES;
+                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("No")) {
+                                parsedRunnerType = ParsedRunnerType.NO;
+                            } else {
+                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
+                        }
+                        if (errorAlreadyPrinted) {
+                            interestingMarket = false;
+                        } else {
+                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
+                        }
+                        break;
+                    case "OVER_UNDER_25_CARDS":
+                    case "OVER_UNDER_35_CARDS":
+                    case "OVER_UNDER_45_CARDS":
+                    case "OVER_UNDER_65_CARDS":
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
+                        final int nCards = Integer.valueOf(marketType.substring("OVER_UNDER_".length(), marketType.indexOf("5_CARDS")));
+                        nParsedRunners = 2;
+                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
+                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
+                            final int sortPriority = runnerCatalog.getSortPriority();
+                            final String runnerName = runnerCatalog.getRunnerName();
+                            final ParsedRunnerType parsedRunnerType;
+                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under " + nCards + ".5 Cards")) {
+                                parsedRunnerType = ParsedRunnerType.valueOf("CARDS_UNDER_" + nCards + "5");
+                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over " + nCards + ".5 Cards")) {
+                                parsedRunnerType = ParsedRunnerType.valueOf("CARDS_OVER_" + nCards + "5");
+                            } else {
+                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
+                        } // end for
+                        if (errorAlreadyPrinted) {
+                            interestingMarket = false;
+                        } else {
+                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
+                        }
+                        break;
+                    case "OVER_UNDER_55_CORNR":
+                    case "OVER_UNDER_85_CORNR":
+                    case "OVER_UNDER_105_CORNR":
+                    case "OVER_UNDER_135_CORNR":
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
+                        final int nCorners = Integer.valueOf(marketType.substring("OVER_UNDER_".length(), marketType.indexOf("5_CORNR")));
+                        nParsedRunners = 2;
+                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
+                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
+                            final int sortPriority = runnerCatalog.getSortPriority();
+                            final String runnerName = runnerCatalog.getRunnerName();
+                            final ParsedRunnerType parsedRunnerType;
+                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("Under " + nCorners + ".5 Corners")) {
+                                parsedRunnerType = ParsedRunnerType.valueOf("CORNERS_UNDER_" + nCorners + "5");
+                            } else if (sortPriority == 2 && runnerName.trim().equalsIgnoreCase("Over " + nCorners + ".5 Corners")) {
+                                parsedRunnerType = ParsedRunnerType.valueOf("CORNERS_OVER_" + nCorners + "5");
+                            } else {
+                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
+                        } // end for
+                        if (errorAlreadyPrinted) {
+                            interestingMarket = false;
+                        } else {
+                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
+                        }
+                        break;
+                    case "BOOKING_ODDS":
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
+                        nParsedRunners = 3;
+                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
+                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
+                            final int sortPriority = runnerCatalog.getSortPriority();
+                            final String runnerName = runnerCatalog.getRunnerName();
+                            final ParsedRunnerType parsedRunnerType;
+                            if (sortPriority == 1 && runnerName.trim().equalsIgnoreCase("25pts and Under")) {
+                                parsedRunnerType = ParsedRunnerType.BOOKING_25_AND_UNDER;
+                            } else if (sortPriority == 2 && (runnerName.trim().equalsIgnoreCase("30 - 40pts") || runnerName.trim().equalsIgnoreCase("30 - 40 pts"))) {
+                                parsedRunnerType = ParsedRunnerType.BOOKING_30_40;
+                            } else if (sortPriority == 3 && runnerName.trim().equalsIgnoreCase("45pts and Over")) {
+                                parsedRunnerType = ParsedRunnerType.BOOKING_45_AND_OVER;
+                            } else {
+                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
+                        } // end for
+                        if (errorAlreadyPrinted) {
+                            interestingMarket = false;
+                        } else {
+                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
+                        }
+                        break;
+                    case "NEXT_GOAL":
+                    case "ET_NEXT_GOAL":
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
+                        nParsedRunners = 3;
+                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
+                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
+                            final int sortPriority = runnerCatalog.getSortPriority();
+                            final String runnerName = runnerCatalog.getRunnerName();
+                            final boolean successInGettingName = getNamesFromRunnerNames(eventHomeName, eventAwayName, marketId, runnerName, null, null, sortPriority, 1, 2, marketCatalogue);
+                            if (!successInGettingName) {
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            final ParsedRunnerType parsedRunnerType;
+                            if (sortPriority == 1 && runnerName.equalsIgnoreCase(eventHomeName.toString())) {
+                                parsedRunnerType = ParsedRunnerType.HOME;
+                            } else if (sortPriority == 2 && runnerName.equalsIgnoreCase(eventAwayName.toString())) {
+                                parsedRunnerType = ParsedRunnerType.AWAY;
+                            } else if (sortPriority == 3 && runnerName.equalsIgnoreCase("No Goal")) {
+                                parsedRunnerType = ParsedRunnerType.NO_GOAL;
+                            } else {
+                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
+                        } // end for
+                        if (errorAlreadyPrinted) {
+                            interestingMarket = false;
+                        } else {
+                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
+                        }
+                        break;
+                    case "MATCH_ODDS":
+                    case "HALF_TIME":
+                    case "SECOND_HALF_MATCH_ODDS":
+                    case "EXTRA_TIME":
+                    case "ET_HALF_TIME":
+                    case "MATCH_ODDS_UNMANAGED":
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
+                        nParsedRunners = 3;
+                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
+                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
+                            final int sortPriority = runnerCatalog.getSortPriority();
+                            final String runnerName = runnerCatalog.getRunnerName();
+                            final boolean successInGettingName = getNamesFromRunnerNames(eventHomeName, eventAwayName, marketId, runnerName, null, null, sortPriority, 1, 2, marketCatalogue);
+                            if (!successInGettingName) {
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            final ParsedRunnerType parsedRunnerType;
+                            if (sortPriority == 1 && runnerName.equalsIgnoreCase(eventHomeName.toString())) {
+                                parsedRunnerType = ParsedRunnerType.HOME;
+                            } else if (sortPriority == 2 && runnerName.equalsIgnoreCase(eventAwayName.toString())) {
+                                parsedRunnerType = ParsedRunnerType.AWAY;
+                            } else if (sortPriority == 3 && runnerName.equalsIgnoreCase("The Draw")) {
+                                parsedRunnerType = ParsedRunnerType.DRAW;
+                            } else {
+                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
+                        } // end for
+                        if (errorAlreadyPrinted) {
+                            interestingMarket = false;
+                        } else {
+                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
+                        }
+                        break;
+                    case "TO_QUALIFY":
+                    case "TO_REACH_SEMIS":
+                    case "TO_REACH_FINAL":
+                    case "DRAW_NO_BET":
+                    case "WINNER":
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
+                        nParsedRunners = 2;
+                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
+                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
+                            final int sortPriority = runnerCatalog.getSortPriority();
+                            final String runnerName = runnerCatalog.getRunnerName();
+                            final boolean successInGettingName = getNamesFromRunnerNames(eventHomeName, eventAwayName, marketId, runnerName, null, null, sortPriority, 1, 2, marketCatalogue);
+                            if (!successInGettingName) {
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            final ParsedRunnerType parsedRunnerType;
+                            if (sortPriority == 1 && runnerName.equalsIgnoreCase(eventHomeName.toString())) {
+                                parsedRunnerType = ParsedRunnerType.HOME;
+                            } else if (sortPriority == 2 && runnerName.equalsIgnoreCase(eventAwayName.toString())) {
+                                parsedRunnerType = ParsedRunnerType.AWAY;
+                            } else {
+                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
+                        } // end for
+                        if (errorAlreadyPrinted) {
+                            interestingMarket = false;
+                        } else {
+                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
+                        }
+                        break;
+                    case "TEAM_A_1":
+                    case "TEAM_A_2":
+                    case "TEAM_A_3":
+                    case "TEAM_A_4":
+                    case "TEAM_A_5":
+                    case "TEAM_A_6":
+                    case "TEAM_A_7":
+                    case "TEAM_A_8":
+                    case "TEAM_A_9":
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
+                        final int handicapA = Integer.valueOf(marketType.substring("TEAM_A_".length()));
+                        nParsedRunners = 3;
+                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
+                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
+                            final int sortPriority = runnerCatalog.getSortPriority();
+                            final String runnerName = runnerCatalog.getRunnerName();
+                            boolean successInGettingName = getNamesFromRunnerNames(eventHomeName, eventAwayName, marketId, runnerName, null, " +", sortPriority, 1, -1, marketCatalogue);
+                            if (!successInGettingName) {
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            successInGettingName = getNamesFromRunnerNames(eventHomeName, eventAwayName, marketId, runnerName, null, " -", sortPriority, -1, 2, marketCatalogue);
+                            if (!successInGettingName) {
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            final ParsedRunnerType parsedRunnerType;
+                            if (sortPriority == 1 && runnerName.equalsIgnoreCase(eventHomeName.toString() + " +" + handicapA)) {
+                                parsedRunnerType = ParsedRunnerType.HOME;
+                            } else if (sortPriority == 2 && runnerName.equalsIgnoreCase(eventAwayName.toString() + " -" + handicapA)) {
+                                parsedRunnerType = ParsedRunnerType.AWAY;
+                            } else if (sortPriority == 3 && runnerName.equalsIgnoreCase("Draw")) {
+                                parsedRunnerType = ParsedRunnerType.DRAW;
+                            } else {
+                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
+                        } // end for
+                        if (errorAlreadyPrinted) {
+                            interestingMarket = false;
+                        } else {
+                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
+                        }
+                        break;
+                    case "TEAM_B_1":
+                    case "TEAM_B_2":
+                    case "TEAM_B_3":
+                    case "TEAM_B_4":
+                    case "TEAM_B_5":
+                    case "TEAM_B_6":
+                    case "TEAM_B_7":
+                    case "TEAM_B_8":
+                    case "TEAM_B_9":
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
+                        final int handicapB = Integer.valueOf(marketType.substring("TEAM_B_".length()));
+                        nParsedRunners = 3;
+                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
+                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
+                            final int sortPriority = runnerCatalog.getSortPriority();
+                            final String runnerName = runnerCatalog.getRunnerName();
+                            boolean successInGettingName = getNamesFromRunnerNames(eventHomeName, eventAwayName, marketId, runnerName, null, " +", sortPriority, -1, 1, marketCatalogue);
+                            if (!successInGettingName) {
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            successInGettingName = getNamesFromRunnerNames(eventHomeName, eventAwayName, marketId, runnerName, null, " -", sortPriority, 2, -1, marketCatalogue);
+                            if (!successInGettingName) {
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            final ParsedRunnerType parsedRunnerType;
+                            if (sortPriority == 1 && runnerName.equalsIgnoreCase(eventAwayName.toString() + " +" + handicapB)) {
+                                parsedRunnerType = ParsedRunnerType.HOME;
+                            } else if (sortPriority == 2 && runnerName.equalsIgnoreCase(eventHomeName.toString() + " -" + handicapB)) {
+                                parsedRunnerType = ParsedRunnerType.AWAY;
+                            } else if (sortPriority == 3 && runnerName.equalsIgnoreCase("Draw")) {
+                                parsedRunnerType = ParsedRunnerType.DRAW;
+                            } else {
+                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
+                        } // end for
+                        if (errorAlreadyPrinted) {
+                            interestingMarket = false;
+                        } else {
+                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
+                        }
+                        break;
+                    case "ASIAN_HANDICAP":
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
+                        nParsedRunners = 66;
+                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
+                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
+                            final int sortPriority = runnerCatalog.getSortPriority();
+                            final double handicap = runnerCatalog.getHandicap();
+                            final String runnerName = runnerCatalog.getRunnerName();
+                            final boolean successInGettingName = getNamesFromRunnerNames(eventHomeName, eventAwayName, marketId, runnerName, null, null, sortPriority, 1, 2, marketCatalogue);
+                            if (!successInGettingName) {
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            final ParsedRunnerType parsedRunnerType;
+                            final int handicapMultiplied;
+                            String runnerTypeBuilder;
+                            final String runnerNameBuilder;
+                            if (sortPriority % 2 == 1) { // home
+                                handicapMultiplied = (sortPriority - 1) / 2 - 16;
+                                runnerTypeBuilder = "HOME";
+                                runnerNameBuilder = eventHomeName.toString();
+                            } else { // away
+                                handicapMultiplied = 17 - sortPriority / 2;
+                                runnerTypeBuilder = "AWAY";
+                                runnerNameBuilder = eventAwayName.toString();
+                            }
+                            if (handicapMultiplied > 0) {
+                                runnerTypeBuilder += "_PLUS_";
+                            } else if (handicapMultiplied < 0) {
+                                runnerTypeBuilder += "_MINUS_";
+                            } else { // is 0, nothing to add
+                            }
+                            switch (Math.abs(handicapMultiplied) % 4) {
+                                case 0:
+                                    final int valueToAdd = Math.abs(handicapMultiplied) / 4;
+                                    if (valueToAdd != 0) {
+                                        runnerTypeBuilder += Math.abs(handicapMultiplied) / 4;
+                                    } else { // won't add anything when value is 0
+                                    }
+                                    break;
+                                case 1:
+                                    runnerTypeBuilder += Math.abs(handicapMultiplied) / 4 + "25";
+                                    break;
+                                case 2:
+                                    runnerTypeBuilder += Math.abs(handicapMultiplied) / 4 + "5";
+                                    break;
+                                case 3:
+                                    runnerTypeBuilder += Math.abs(handicapMultiplied) / 4 + "75";
+                                    break;
+                                default://-15 -3.75 3
+                                    logger.error("default in handicapMultiplied switch should never be reached: {} {} {}", handicapMultiplied, handicap, sortPriority);
+                                    break;
+                            }
+
+                            if (handicap * 4 == handicapMultiplied && runnerName.equalsIgnoreCase(runnerNameBuilder)) {
+                                parsedRunnerType = ParsedRunnerType.valueOf(runnerTypeBuilder);
+                            } else {
+                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
+                        } // end for
+                        if (errorAlreadyPrinted) {
+                            interestingMarket = false;
+                        } else {
+                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
+                        }
+                        break;
+                    case "DOUBLE_CHANCE":
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
+                        nParsedRunners = 3;
+                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
+                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
+                            final int sortPriority = runnerCatalog.getSortPriority();
+                            final String runnerName = runnerCatalog.getRunnerName();
+                            final ParsedRunnerType parsedRunnerType;
+                            if (sortPriority == 1 && runnerName.equalsIgnoreCase("Home or Draw")) {
+                                parsedRunnerType = ParsedRunnerType.HOME_OR_DRAW;
+                            } else if (sortPriority == 2 && runnerName.equalsIgnoreCase("Draw or Away")) {
+                                parsedRunnerType = ParsedRunnerType.DRAW_OR_AWAY;
+                            } else if (sortPriority == 3 && runnerName.equalsIgnoreCase("Home or Away")) {
+                                parsedRunnerType = ParsedRunnerType.HOME_OR_AWAY;
+                            } else {
+                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
+                        } // end for
+                        if (errorAlreadyPrinted) {
+                            interestingMarket = false;
+                        } else {
+                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
+                        }
+                        break;
+                    case "ODD_OR_EVEN":
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
+                        nParsedRunners = 2;
+                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
+                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
+                            final int sortPriority = runnerCatalog.getSortPriority();
+                            final String runnerName = runnerCatalog.getRunnerName();
+                            final ParsedRunnerType parsedRunnerType;
+                            if (sortPriority == 1 && runnerName.equalsIgnoreCase("Odd")) {
+                                parsedRunnerType = ParsedRunnerType.ODD;
+                            } else if (sortPriority == 2 && runnerName.equalsIgnoreCase("Even")) {
+                                parsedRunnerType = ParsedRunnerType.EVEN;
+                            } else {
+                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
+                        } // end for
+                        if (errorAlreadyPrinted) {
+                            interestingMarket = false;
+                        } else {
+                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
+                        }
+                        break;
+                    case "BOOKING_MATCH_BET":
+                    case "CORNER_MATCH_BET":
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
+                        nParsedRunners = 3;
+                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
+                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
+                            final int sortPriority = runnerCatalog.getSortPriority();
+                            final String runnerName = runnerCatalog.getRunnerName();
+                            final boolean successInGettingName = getNamesFromRunnerNames(eventHomeName, eventAwayName, marketId, runnerName, null, null, sortPriority, 1, 2, marketCatalogue);
+                            if (!successInGettingName) {
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            final ParsedRunnerType parsedRunnerType;
+                            if (sortPriority == 1 && runnerName.equalsIgnoreCase(eventHomeName.toString())) {
+                                parsedRunnerType = ParsedRunnerType.HOME;
+                            } else if (sortPriority == 2 && runnerName.equalsIgnoreCase(eventAwayName.toString())) {
+                                parsedRunnerType = ParsedRunnerType.AWAY;
+                            } else if (sortPriority == 3 && runnerName.equalsIgnoreCase("Tie")) {
+                                parsedRunnerType = ParsedRunnerType.TIE;
+                            } else {
+                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
+                        } // end for
+                        if (errorAlreadyPrinted) {
+                            interestingMarket = false;
+                        } else {
+                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
+                        }
+                        break;
+                    case "ALT_TOTAL_GOALS":
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
+                        nParsedRunners = 66;
+                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
+                        double handicapOfFirstRunner = 0;
+                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
+                            final int sortPriority = runnerCatalog.getSortPriority();
+                            final double handicap = runnerCatalog.getHandicap();
+                            if (sortPriority == 1) {
+                                handicapOfFirstRunner = handicap;
+                            }
+                            final String runnerName = runnerCatalog.getRunnerName();
+                            final ParsedRunnerType parsedRunnerType;
+                            int handicapMultiplied = (sortPriority - 1) / 2 + (int) (handicapOfFirstRunner * 4 + 0.01);
+                            if (handicapMultiplied > 34) {
+                                handicapMultiplied -= 33;
+                            }
+                            final String runnerTypeBuilder;
+                            final String runnerNameBuilder;
+                            if (sortPriority % 2 == 1) { // under
+                                runnerTypeBuilder = "UNDER";
+                                runnerNameBuilder = "Under";
+                            } else { // over
+                                runnerTypeBuilder = "OVER";
+                                runnerNameBuilder = "Over";
+                            }
+
+                            // this is a dynamic market, and unfortunately, sometimes right when it closes, the sortPriority can get messed up and it no longer follows the rules that create handicapMultiplied
+//                            if (handicap * 4 == handicapMultiplied && runnerName.equalsIgnoreCase(runnerNameBuilder)) {
+//                                parsedRunnerType = ParsedRunnerType.valueOf(runnerTypeBuilder);
+//                            }
+                            if (runnerName.equalsIgnoreCase(runnerNameBuilder)) {
+                                parsedRunnerType = ParsedRunnerType.valueOf(runnerTypeBuilder);
+                            } else {
+                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
+                        } // end for
+                        if (errorAlreadyPrinted) {
+                            interestingMarket = false;
+                        } else {
+                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
+                        }
+                        break;
+                    case "FIRST_GOAL_ODDS":
+                        parsedMarketType = ParsedMarketType.valueOf(marketType);
+                        nParsedRunners = 10;
+                        parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
+                        for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
+                            final int sortPriority = runnerCatalog.getSortPriority();
+                            final String runnerName = runnerCatalog.getRunnerName();
+                            final ParsedRunnerType parsedRunnerType;
+                            if (sortPriority == 1 && runnerName.equalsIgnoreCase("1 - 10 Minutes")) {
+                                parsedRunnerType = ParsedRunnerType.MINUTES_INTERVAL;
+                            } else if (sortPriority == 2 && runnerName.equalsIgnoreCase("11 - 20 Minutes")) {
+                                parsedRunnerType = ParsedRunnerType.MINUTES_INTERVAL;
+                            } else if (sortPriority == 3 && runnerName.equalsIgnoreCase("21 - 30 Minutes")) {
+                                parsedRunnerType = ParsedRunnerType.MINUTES_INTERVAL;
+                            } else if (sortPriority == 4 && runnerName.equalsIgnoreCase("31 - 40 Minutes")) {
+                                parsedRunnerType = ParsedRunnerType.MINUTES_INTERVAL;
+                            } else if (sortPriority == 5 && runnerName.equalsIgnoreCase("41 - 50 Minutes")) {
+                                parsedRunnerType = ParsedRunnerType.MINUTES_INTERVAL;
+                            } else if (sortPriority == 6 && runnerName.equalsIgnoreCase("51 - 60 Minutes")) {
+                                parsedRunnerType = ParsedRunnerType.MINUTES_INTERVAL;
+                            } else if (sortPriority == 7 && runnerName.equalsIgnoreCase("61 - 70 Minutes")) {
+                                parsedRunnerType = ParsedRunnerType.MINUTES_INTERVAL;
+                            } else if (sortPriority == 8 && runnerName.equalsIgnoreCase("71 - 80 Minutes")) {
+                                parsedRunnerType = ParsedRunnerType.MINUTES_INTERVAL;
+                            } else if (sortPriority == 9 && runnerName.equalsIgnoreCase("81 - Full Time")) {
+                                parsedRunnerType = ParsedRunnerType.MINUTES_INTERVAL;
+                            } else if (sortPriority == 10 && runnerName.equalsIgnoreCase("No Goal")) {
+                                parsedRunnerType = ParsedRunnerType.NO_GOAL;
+                            } else {
+                                parsedRunnerType = unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
+                                errorAlreadyPrinted = true;
+                                break;
+                            }
+                            addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
+                        } // end for
+                        if (errorAlreadyPrinted) {
+                            interestingMarket = false;
+                        } else {
+                            interestingMarket = parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
+                        }
+                        break;
+                    case "LAST_GOALSCORER": // list of player names, won't parse
+                    case "FIRST_GOAL_SCORER": // list of player names, won't parse
+                    case "FIRST_GOAL_SCORER_A": // list of player names, won't parse
+                    case "FIRST_GOAL_SCORER_B": // list of player names, won't parse
+                    case "NEXT_GOALSCORER": // list of player names, won't parse
+                    case "TO_SCORE_HATTRICK": // list of player names, won't parse
+                    case "TO_SCORE": // list of player names, won't parse
+                    case "SHOWN_A_CARD": // list of player names, won't parse
+                    case "SCORE_CAST": // list of player names, won't parse
+                    case "WINCAST_ANYTIME": // list of player names, won't parse
+                    case "WINCAST_FIRST_GOAL": // list of player names, won't parse
+                    case "WINCAST": // list of player names, won't parse
+                    case "TOP_GOALSCORER": // list of player names, won't parse
+                    case "NEXT_GOALSCORER_2ND_GOAL": // list of player names, won't parse
+                    case "NEXT_GOALSCORER_3RD_GOAL": // list of player names, won't parse
+                    case "NEXT_GOALSCORER_4TH_GOAL": // list of player names, won't parse
+                    case "NEXT_GOALSCORER_5TH_GOAL": // list of player names, won't parse
+                    case "NEXT_GOALSCORER_6TH_GOAL": // list of player names, won't parse
+                    case "NEXT_GOALSCORER_7TH_GOAL": // list of player names, won't parse
+                    case "NEXT_GOALSCORER_8TH_GOAL": // list of player names, won't parse
+                    case "NEXT_GOALSCORER_9TH_GOAL": // list of player names, won't parse
+                    case "ET_FIRST_GOALSCORER": // list of player names, won't parse
+                    case "TO_SCORE_2_OR_MORE": // list of player names, won't parse
+                        interestingMarket = true; // not supported markets, with no errors, pass all the time
+                        break;
+                    default:
+//                        if (!Statics.marketTypes.contains(marketType)) {
+                        Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "new marketType found: {}, for: {}", marketType, Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
+                        interestingMarket = false;
+//                        } else { // known market that is not parsed
+////                            interestingMarket = false;
+//                            interestingMarket = true; // not supported markets, with no errors, pass all the time
+//                        }
                         break;
                 } // end switch
             }

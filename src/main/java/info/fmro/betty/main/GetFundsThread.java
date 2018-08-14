@@ -2,9 +2,10 @@ package info.fmro.betty.main;
 
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
-import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class GetFundsThread
         extends Thread {
@@ -13,10 +14,10 @@ public class GetFundsThread
     private static final AtomicInteger getAccountFundsThreadCounter = new AtomicInteger();
 
     public static long timedGetAccountFunds() {
-        long currentTime = System.currentTimeMillis();
+        final long currentTime = System.currentTimeMillis();
         long runInterval;
-        boolean newQuickRun = currentTime - Statics.timeLastFundsOp.get() <= 20000L;
-        boolean quickRun = Statics.fundsQuickRun.getAndSet(newQuickRun);
+        final boolean newQuickRun = currentTime - Statics.timeLastFundsOp.get() <= 20000L;
+        final boolean quickRun = Statics.fundsQuickRun.getAndSet(newQuickRun);
         if (quickRun) {
             runInterval = 0L;
             if (!newQuickRun) {
@@ -32,7 +33,7 @@ public class GetFundsThread
         long timeForNext = Statics.timeStamps.getLastGetAccountFunds() + runInterval;
         long timeTillNext = timeForNext - currentTime;
         if (timeTillNext <= 0) {
-            int runningThreads = getAccountFundsThreadCounter.get();
+            final int runningThreads = getAccountFundsThreadCounter.get();
             if (runningThreads == 0 || (quickRun && runningThreads <= 1)) {
                 if (runningThreads == 1) {
                     Generic.threadSleep(100L); // so I don't start a second thread at almost the same time
@@ -59,6 +60,27 @@ public class GetFundsThread
         return timeTillNext;
     }
 
+    public static long timedListCurrencyRates() { // server updates a few seconds after each exact hour; I'll get it at 3 minutes past exact hour
+        final long currentTime = System.currentTimeMillis();
+        long timeForNext = Statics.timeStamps.getLastListCurrencyRates() + Generic.HOUR_LENGTH_MILLISECONDS;
+        long timeOverExactHour = timeForNext % Generic.HOUR_LENGTH_MILLISECONDS;
+        timeForNext = timeForNext - timeOverExactHour + 3 * Generic.MINUTE_LENGTH_MILLISECONDS;
+
+        long timeTillNext = timeForNext - currentTime;
+        if (timeTillNext <= 0) {
+            Statics.timeStamps.lastListCurrencyRatesStamp();
+            Statics.threadPoolExecutor.execute(new RescriptOpThread<>(Statics.safetyLimits)); // listCurrencyRates thread
+
+            timeTillNext = timeForNext - currentTime + Generic.HOUR_LENGTH_MILLISECONDS;
+            if (timeTillNext < -Generic.HOUR_LENGTH_MILLISECONDS) { // hasn't been updated in a very long time
+                timeTillNext = Generic.HOUR_LENGTH_MILLISECONDS;
+            }
+        } else { // nothing to be done
+        }
+
+        return timeTillNext;
+    }
+
     @Override
     public void run() {
         while (!Statics.mustStop.get()) {
@@ -71,6 +93,7 @@ public class GetFundsThread
                 long timeToSleep;
 
                 timeToSleep = timedGetAccountFunds();
+                timeToSleep = Math.min(timeToSleep, timedListCurrencyRates());
 
                 Generic.threadSleepSegmented(timeToSleep, 10L, Statics.mustStop, Statics.fundsQuickRun);
             } catch (Throwable throwable) {

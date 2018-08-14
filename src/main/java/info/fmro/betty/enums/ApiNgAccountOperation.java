@@ -1,7 +1,6 @@
 package info.fmro.betty.enums;
 
 public enum ApiNgAccountOperation {
-
     CREATEDEVELOPERAPPKEYS("createDeveloperAppKeys"),
     GETDEVELOPERAPPKEYS("getDeveloperAppKeys"),
     GETACCOUNTFUNDS("getAccountFunds"),

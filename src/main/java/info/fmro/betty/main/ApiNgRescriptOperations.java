@@ -6,6 +6,7 @@ import info.fmro.betty.entities.CancelExecutionReport;
 import info.fmro.betty.entities.CancelInstruction;
 import info.fmro.betty.entities.ClearedOrderSummary;
 import info.fmro.betty.entities.ClearedOrderSummaryReport;
+import info.fmro.betty.entities.CurrencyRate;
 import info.fmro.betty.entities.CurrentOrderSummary;
 import info.fmro.betty.entities.CurrentOrderSummaryReport;
 import info.fmro.betty.entities.EventResult;
@@ -299,13 +300,26 @@ public class ApiNgRescriptOperations {
     public static AccountFundsResponse getAccountFunds(String appKeyString, String ssoIdString, RescriptAccountResponseHandler rescriptAccountResponseHandler) {
         final HashMap<String, Object> paramsHashMap = new HashMap<>(2, 0.75f);
 
-        final String responseString = ApiNgRescriptOperations.makeAccountRequest(ApiNgAccountOperation.GETACCOUNTFUNDS.getOperationName(), paramsHashMap, appKeyString,
-                                                                                 rescriptAccountResponseHandler);
+        final String responseString = ApiNgRescriptOperations.makeAccountRequest(ApiNgAccountOperation.GETACCOUNTFUNDS.getOperationName(), paramsHashMap, appKeyString, rescriptAccountResponseHandler);
         if (Statics.debugLevel.check(3, 121)) {
             logger.info("params: {} Response: {} timeStamp={}", Generic.objectToString(paramsHashMap, false, false), responseString, System.currentTimeMillis());
         }
 
         return JsonConverter.convertFromJson(responseString, AccountFundsResponse.class);
+    }
+
+    public static List<CurrencyRate> listCurrencyRates(String appKeyString, String ssoIdString, RescriptAccountResponseHandler rescriptAccountResponseHandler) {
+        final HashMap<String, Object> paramsHashMap = new HashMap<>(2, 0.75f);
+
+        final String responseString = ApiNgRescriptOperations.makeAccountRequest(ApiNgAccountOperation.LISTCURRENCYRATES.getOperationName(), paramsHashMap, appKeyString, rescriptAccountResponseHandler);
+        if (Statics.debugLevel.check(3, 121)) {
+            logger.info("params: {} Response: {} timeStamp={}", Generic.objectToString(paramsHashMap, false, false), responseString, System.currentTimeMillis());
+        }
+
+        final List<CurrencyRate> containerCurrencyRate = JsonConverter.convertFromJson(responseString, new TypeToken<List<CurrencyRate>>() {
+        }.getType());
+
+        return containerCurrencyRate;
     }
 
     public static String makeRequest(String operationString, Map<String, Object> paramsMap, String appKeyString, RescriptResponseHandler rescriptResponseHandler) {

@@ -2,6 +2,7 @@ package info.fmro.betty.objects;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import info.fmro.betty.entities.ClearedOrderSummary;
+import info.fmro.betty.entities.CurrencyRate;
 import info.fmro.betty.entities.CurrentOrderSummary;
 import info.fmro.betty.entities.ExchangePrices;
 import info.fmro.betty.entities.LimitOrder;
@@ -32,12 +33,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
 public class SafetyLimits
         implements Serializable {
-
     private static final long specialLimitInitialPeriod = 120_000L;
     private static final Logger logger = LoggerFactory.getLogger(SafetyLimits.class);
     private static final long serialVersionUID = 9100257467817248236L;
@@ -46,7 +47,7 @@ public class SafetyLimits
     private static final double reserveFraction = .5d; // reserve is 50% of total (but starts at 500 and only increases)
     private static final double initialSafeRunnerLimitFraction = .1d; // max bet during the initial period, as fraction of total; applied for safeRunners
     private static final double safeEventLimitFraction = .2d; // max bet per safe event
-
+    public final AtomicDouble currencyRate = new AtomicDouble(1d); // GBP/EUR, 1.1187000274658203 right now, on 13-08-2018; default 1d
     //    private final HashMap<AtomicDouble, Long> tempReserveMap = new HashMap<>(0);
     // private final HashSet<AtomicDouble> localUsedBalanceSet = new HashSet<>(0);
 //    private double reserve = 500d; // default value; will always be truncated to int; can only increase
@@ -96,11 +97,16 @@ public class SafetyLimits
         }
         this.startedGettingOrders = safetyLimits.startedGettingOrders;
         this.availableFunds = safetyLimits.availableFunds;
+        this.currencyRate.set(safetyLimits.currencyRate.get());
         this.setReserve(safetyLimits.reserve);
+
+        if (currencyRate.get() == 1d || currencyRate.get() == 0d) { // likely default values
+            Statics.timeStamps.setLastListCurrencyRates(0L); // get currencyRate as soon as possible
+        }
     }
 
-    public synchronized void createPlaceInstructionList(List<Runner> runnersList, SynchronizedSet<SafeRunner> safeRunnersSet, MarketBook marketBook, String marketId, long startTime,
-                                                        long endTime, MarketStatus marketStatus, boolean inplay, int betDelay, long timePreviousMarketBookCheck) {
+    public synchronized void createPlaceInstructionList(List<Runner> runnersList, SynchronizedSet<SafeRunner> safeRunnersSet, MarketBook marketBook, String marketId, long startTime, long endTime, MarketStatus marketStatus, boolean inplay, int betDelay,
+                                                        long timePreviousMarketBookCheck) {
         final List<PlaceInstruction> placeInstructionsList = new ArrayList<>(0);
 
         for (Runner runner : runnersList) {
@@ -143,8 +149,7 @@ public class SafetyLimits
                                     break;
                                 default:
                                     safePriceSizesList = null;
-                                    logger.error("STRANGE unknown side {} in getMarketBooks for: {} {}", side, Generic.objectToString(runner),
-                                                 Generic.objectToString(marketBook));
+                                    logger.error("STRANGE unknown side {} in getMarketBooks for: {} {}", side, Generic.objectToString(runner), Generic.objectToString(marketBook));
                                     break;
                             } // end switch
                             if (safePriceSizesList != null && !safePriceSizesList.isEmpty()) { // this is a list of safe price/size pairs
@@ -157,8 +162,7 @@ public class SafetyLimits
                                 } else {
                                     Statics.safeMarketsImportantMap.put(marketId, endTime);
                                     if (BlackList.notExistOrIgnored(Statics.marketCataloguesMap, marketId, startTime)) {
-                                        BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime,
-                                                                                     "market with bets after importantMap add, marketCatalogue map");
+                                        BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "market with bets after importantMap add, marketCatalogue map");
                                         MaintenanceThread.removeFromSecondaryMaps(marketId);
 //                                    } else if (safeRunner.isIgnored(startTime)) {
 //                                        logger.error("ignored safeRunner with bets after importantMap add: {} {}", marketId,
@@ -170,18 +174,15 @@ public class SafetyLimits
 
                                             if (marketStatus == MarketStatus.OPEN) {
                                                 Generic.alreadyPrintedMap.logOnce(Statics.debugLevel.check(2, 171), logger, LogLevel.INFO,
-                                                                                  "safe bet in market: {} marketStatus: {} inplay={} betDelay={} runner: {} runnerStatus: {} " +
-                                                                                  "side: {} price: {} size: {}", marketId, marketStatus, inplay, betDelay, runnerId,
+                                                                                  "safe bet in market: {} marketStatus: {} inplay={} betDelay={} runner: {} runnerStatus: {} side: {} price: {} size: {}", marketId, marketStatus, inplay, betDelay, runnerId,
                                                                                   runnerStatus, side, price, size);
 
-                                                final SafeBet safeBet = new SafeBet(marketId, marketStatus, inplay, betDelay, runnerId,
-                                                                                    runnerStatus, price, size, side);
+                                                final SafeBet safeBet = new SafeBet(marketId, marketStatus, inplay, betDelay, runnerId, runnerStatus, price, size, side);
 
                                                 Statics.safeBetsMap.addAndGetSafeBetStats(marketId, safeBet, endTime, timePreviousMarketBookCheck);
 
                                                 if (BlackList.notExistOrIgnored(Statics.marketCataloguesMap, marketId, startTime)) {
-                                                    BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime,
-                                                                                                 "market with bets after safeBet add, marketCatalogue map");
+                                                    BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "market with bets after safeBet add, marketCatalogue map");
                                                     MaintenanceThread.removeFromSecondaryMaps(marketId);
                                                     break; // break from for
 //                                                } else if (safeRunner.isIgnored(startTime)) {
@@ -189,33 +190,27 @@ public class SafetyLimits
 //                                                                 Generic.objectToString(safeRunner));
 //                                                    break; // break from for
                                                 } else if (!safeRunner.sufficientScrapers()) {
-                                                    logger.error("insufficientScrapers after safeBet add: {} {}", marketId,
-                                                                 Generic.objectToString(safeRunner));
+                                                    logger.error("insufficientScrapers after safeBet add: {} {}", marketId, Generic.objectToString(safeRunner));
                                                     MaintenanceThread.removeSafeRunner(marketId, safeRunner);
                                                     break; // break from for
                                                 } else {
-                                                    oversizedPlaceInstruction = Statics.safetyLimits.processOpenMarket(safeRunner, runner, side,
-                                                                                                                       price, size, betDelay, marketId, runnerId, placeInstructionsList,
-                                                                                                                       previousOversizedRealAmount, oversizedPlaceInstruction);
+                                                    oversizedPlaceInstruction = Statics.safetyLimits.processOpenMarket(safeRunner, runner, side, price, size, betDelay, marketId, runnerId, placeInstructionsList, previousOversizedRealAmount,
+                                                                                                                       oversizedPlaceInstruction);
                                                 }
                                             } else { // market not open, can't place bets
-                                                Generic.alreadyPrintedMap.logOnce(logger, LogLevel.INFO,
-                                                                                  "safe bet in not active market: {} marketStatus: {} inplay={} betDelay={} runner: {} " +
-                                                                                  "runnerStatus: {} side: {} price: {} size: {}", marketId, marketStatus, inplay, betDelay,
-                                                                                  runnerId, runnerStatus, side, price, size);
+                                                Generic.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "safe bet in not active market: {} marketStatus: {} inplay={} betDelay={} runner: {} runnerStatus: {} side: {} price: {} size: {}",
+                                                                                  marketId, marketStatus, inplay, betDelay, runnerId, runnerStatus, side, price, size);
                                             }
                                         } // end for safePriceSizesList
                                     }
                                 } // end else
                             } else {
                                 if (safePriceSizesList == null) {
-                                    logger.error("null safePriceSizesList in getMarketBooks for: {} {} {}", side, Generic.objectToString(runner),
-                                                 Generic.objectToString(marketBook));
+                                    logger.error("null safePriceSizesList in getMarketBooks for: {} {} {}", side, Generic.objectToString(runner), Generic.objectToString(marketBook));
                                 }
                             }
                         } else {
-                            logger.error("null exchangePrices in getMarketBooks for: {} {}", Generic.objectToString(runner),
-                                         Generic.objectToString(marketBook));
+                            logger.error("null exchangePrices in getMarketBooks for: {} {}", Generic.objectToString(runner), Generic.objectToString(marketBook));
                         }
                     } else { // runner not safe
                         if (safeRunner == null) { // safeRunner null, normal behavior
@@ -262,8 +257,8 @@ public class SafetyLimits
         }
     }
 
-    private synchronized PlaceInstruction processOpenMarket(SafeRunner safeRunner, Runner runner, Side side, double price, double size, int betDelay, String marketId, long runnerId,
-                                                            List<PlaceInstruction> placeInstructionsList, AtomicDouble previousOversizedRealAmount, PlaceInstruction oversizedPlaceInstruction) {
+    private synchronized PlaceInstruction processOpenMarket(SafeRunner safeRunner, Runner runner, Side side, double price, double size, int betDelay, String marketId, long runnerId, List<PlaceInstruction> placeInstructionsList,
+                                                            AtomicDouble previousOversizedRealAmount, PlaceInstruction oversizedPlaceInstruction) {
         final HashSet<Long> orderDelaysSet = new HashSet<>(0);
         final Double handicap = runner.getHandicap();
         final double localAvailableFunds = Statics.safetyLimits.getAvailableFunds(safeRunner);
@@ -434,8 +429,8 @@ public class SafetyLimits
                                     //     Statics.safetyLimits.addLocalUsedBalance(localUsedBalance);
                                     // }
                                     localUsedBalance += newSize - limitOrder.getSize() - previousOrderSize;
-                                    logger.info("{} newSize: {} fromSize: {} size: {} price: {} previousOrderSize: {} previousRealAmount: {} previousPrice: {}", side.name(),
-                                                newSize, limitOrder.getSize(), size, price, previousOrderSize, previousRealAmount, previousPrice);
+                                    logger.info("{} newSize: {} fromSize: {} size: {} price: {} previousOrderSize: {} previousRealAmount: {} previousPrice: {}", side.name(), newSize, limitOrder.getSize(), size, price, previousOrderSize, previousRealAmount,
+                                                previousPrice);
                                     limitOrder.setSize(newSize);
                                     OrderPrice previousOrderPrice = new OrderPrice(marketId, runnerId, side, previousPrice);
                                     Formulas.removeInstruction(previousOrderPrice, previousOrderSize);
@@ -475,8 +470,8 @@ public class SafetyLimits
                                         //     Statics.safetyLimits.addLocalUsedBalance(localUsedBalance);
                                         // }
                                         localUsedBalance += (newSize - limitOrder.getSize()) * (price - 1d) - previousOrderSize * (previousPrice - 1d);
-                                        logger.info("{} newSize: {} fromSize: {} size: {} price: {} previousOrderSize: {} previousRealAmount: {} previousPrice: {}", side.name(),
-                                                    newSize, limitOrder.getSize(), size, price, previousOrderSize, previousRealAmount, previousPrice);
+                                        logger.info("{} newSize: {} fromSize: {} size: {} price: {} previousOrderSize: {} previousRealAmount: {} previousPrice: {}", side.name(), newSize, limitOrder.getSize(), size, price, previousOrderSize,
+                                                    previousRealAmount, previousPrice);
                                         limitOrder.setSize(newSize);
                                         previousOrderPrice = new OrderPrice(marketId, runnerId, side, previousPrice);
                                         Formulas.removeInstruction(previousOrderPrice, previousOrderSize);
@@ -496,8 +491,7 @@ public class SafetyLimits
                         if (newSize == 0d) {
                             previousOversizedRealAmount.set(size);
                         } else {
-                            logger.info("still currentOrderIsOversized, replaced orderSize {} with newSize {} for: {} {}", orderSize, newSize, marketId,
-                                        Generic.objectToString(placeInstruction));
+                            logger.info("still currentOrderIsOversized, replaced orderSize {} with newSize {} for: {} {}", orderSize, newSize, marketId, Generic.objectToString(placeInstruction));
                             previousOversizedRealAmount.addAndGet(size);
                         }
                         returnOversizedPlaceInstruction = placeInstruction;
@@ -740,8 +734,14 @@ public class SafetyLimits
         if (currentOrderSummaries == null) {
             logger.error("null currentOrderSummaries in SafetyLimits addOrderSummaries");
         } else {
+            final TreeSet<String> newMarketIds = new TreeSet<>();
             for (CurrentOrderSummary currentOrderSummary : currentOrderSummaries) {
-                addAmountFromCurrentOrderSummary(currentOrderSummary);
+                addAmountFromCurrentOrderSummary(currentOrderSummary, newMarketIds);
+            }
+            if (newMarketIds.size() > 0) {
+                logger.info("new marketIds to check from addOrderSummaries: {} launch: findMarkets", newMarketIds.size());
+                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, newMarketIds));
+            } else { // no new marketIds found, nothing to do
             }
         }
         if (clearedOrderSummaries == null) {
@@ -796,8 +796,7 @@ public class SafetyLimits
         } else {
             modified = true;
             if (!tempInstructionsListMap.isEmpty()) {
-                logger.error("tempInstructionsListMap size {} in startedGettingOrders: {}", tempInstructionsListMap.size(),
-                             Generic.objectToString(tempInstructionsListMap));
+                logger.error("tempInstructionsListMap size {} in startedGettingOrders: {}", tempInstructionsListMap.size(), Generic.objectToString(tempInstructionsListMap));
             }
         }
         this.startedGettingOrders = true;
@@ -828,18 +827,19 @@ public class SafetyLimits
         return totalAmount;
     }
 
-    private synchronized double addAmountFromCurrentOrderSummary(CurrentOrderSummary currentOrderSummary) {
-        final String eventId = currentOrderSummary.getEventId();
+    private synchronized double addAmountFromCurrentOrderSummary(CurrentOrderSummary currentOrderSummary, TreeSet<String> newMarketIds) {
         final String marketId = currentOrderSummary.getMarketId();
+        final String eventId = currentOrderSummary.getEventId();
+//        if (eventId == null) {
+//            eventId = Formulas.getEventIdOfMarketId(marketId);
+//        } else { // I got the eventId, nothing more to do in this conditional
+//        }
+
         final double addedAmount = getAmountFromCurrentOrderSummary(currentOrderSummary);
 
         if (eventId == null) {
-            logger.info("getting event of marketId {} in addAmountFromCurrentOrderSummary", marketId);
-
-            final TreeSet<String> marketIdsSet = new TreeSet<>();
-            marketIdsSet.add(marketId);
-            logger.info("marketId to check: {} launch: findMarkets", marketId);
-            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, marketIdsSet));
+//            logger.info("getting event of marketId {} in addAmountFromCurrentOrderSummary", marketId);
+            newMarketIds.add(marketId);
         } else {
             addAmountToDoubleMap(eventId, addedAmount, this.eventAmounts);
         }
@@ -884,5 +884,28 @@ public class SafetyLimits
         addAmountToDoubleMap(safeRunner, addedAmount, this.runnerAmounts);
 
         return addedAmount;
+    }
+
+    public synchronized void setCurrencyRate(List<CurrencyRate> currencyRates) {
+        if (currencyRates != null) {
+            for (CurrencyRate currencyRate : currencyRates) {
+                final String currencyCode = currencyRate.getCurrencyCode();
+                if (Objects.equals(currencyCode, "EUR")) {
+                    final Double rate = currencyRate.getRate();
+                    if (rate != null) {
+                        this.currencyRate.set(rate);
+                    } else {
+                        logger.error("null rate for: {}", Generic.objectToString(currencyRates));
+                    }
+                    break;
+                } else { // I only need EUR rate, nothing to be done with the rest
+                }
+            } // end for
+        } else {
+            if (Statics.mustStop.get() && Statics.needSessionToken.get()) { // normal to happen during program stop, if not logged in
+            } else {
+                logger.error("currencyRates null");
+            }
+        }
     }
 }

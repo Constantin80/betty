@@ -2,6 +2,7 @@ package info.fmro.betty.main;
 
 import info.fmro.betty.entities.AccountFundsResponse;
 import info.fmro.betty.entities.CancelExecutionReport;
+import info.fmro.betty.entities.CurrencyRate;
 import info.fmro.betty.entities.LimitOrder;
 import info.fmro.betty.entities.MarketCatalogue;
 import info.fmro.betty.entities.MarketFilter;
@@ -61,6 +62,11 @@ public class RescriptOpThread<T>
         this.threadCounter = threadCounter;
     }
 
+    public RescriptOpThread(SafetyLimits safetyLimits) {
+        this.operation = OperationType.listCurrencyRates;
+        this.safetyLimits = safetyLimits;
+    }
+
     public RescriptOpThread(String marketId, List<PlaceInstruction> placeInstructionsList, boolean isStartedGettingOrders) {
         this.operation = OperationType.placeOrders;
         this.marketId = marketId;
@@ -82,7 +88,7 @@ public class RescriptOpThread<T>
                     marketFilter.setEventIds(eventIdsSet);
                     marketFilter.setMarketIds(marketIdsSet);
 
-                    RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
+                    final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
                     List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, Statics.appKey.get(), rescriptResponseHandler);
 
                     if (marketCatalogueList != null) {
@@ -91,7 +97,7 @@ public class RescriptOpThread<T>
                         if (rescriptResponseHandler.isTooMuchData()) {
                             logger.error("tooMuchData while getting marketCatalogues from: {}", Generic.objectToString(eventIdsSet));
                             for (String eventId : eventIdsSet) {
-                                HashSet<String> singleEventSet = new HashSet<>(2);
+                                final HashSet<String> singleEventSet = new HashSet<>(2);
                                 singleEventSet.add(eventId);
                                 marketFilter = new MarketFilter();
                                 marketFilter.setEventIds(singleEventSet);
@@ -116,13 +122,13 @@ public class RescriptOpThread<T>
             case getAccountFunds:
                 try {
                     if (safetyLimits != null) {
-                        RescriptAccountResponseHandler rescriptAccountResponseHandler = new RescriptAccountResponseHandler();
-                        AccountFundsResponse accountFundsResponse = ApiNgRescriptOperations.getAccountFunds(Statics.appKey.get(), Statics.sessionTokenObject.getSessionToken(), rescriptAccountResponseHandler);
+                        final RescriptAccountResponseHandler rescriptAccountResponseHandler = new RescriptAccountResponseHandler();
+                        final AccountFundsResponse accountFundsResponse = ApiNgRescriptOperations.getAccountFunds(Statics.appKey.get(), Statics.sessionTokenObject.getSessionToken(), rescriptAccountResponseHandler);
 
                         if (accountFundsResponse != null) {
-                            Double availableToBetBalance = accountFundsResponse.getAvailableToBetBalance();
+                            final Double availableToBetBalance = accountFundsResponse.getAvailableToBetBalance();
                             if (availableToBetBalance != null) {
-                                Statics.safetyLimits.processFunds(availableToBetBalance);
+                                safetyLimits.processFunds(availableToBetBalance);
                                 // atomicAvailableToBetBalance.set(availableToBetBalance - Statics.safetyLimits.getReserve());
 
                                 Generic.alreadyPrintedMap.logOnce(Statics.debugLevel.check(3, 102), logger, LogLevel.INFO, "accountFundsResponse: {}", Generic.objectToString(accountFundsResponse));
@@ -146,18 +152,28 @@ public class RescriptOpThread<T>
                     }
                 }
                 break;
+            case listCurrencyRates:
+                if (safetyLimits != null) {
+                    final RescriptAccountResponseHandler rescriptAccountResponseHandler = new RescriptAccountResponseHandler();
+                    final List<CurrencyRate> currencyRates = ApiNgRescriptOperations.listCurrencyRates(Statics.appKey.get(), Statics.sessionTokenObject.getSessionToken(), rescriptAccountResponseHandler);
+
+                    safetyLimits.setCurrencyRate(currencyRates);
+                } else {
+                    logger.error("null or empty variables in RescriptOpThread listCurrencyRates");
+                }
+                break;
             case placeOrders:
                 if (marketId != null && placeInstructionsList != null) {
                     String customerRef = null;
-                    RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
+                    final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
                     PlaceExecutionReport placeExecutionReport;
 
-                    double pricesArray[] = new double[placeInstructionsList.size()];
+                    final double pricesArray[] = new double[placeInstructionsList.size()];
                     int counter = 0;
                     for (PlaceInstruction placeInstruction : placeInstructionsList) {
-                        Side side = placeInstruction.getSide();
+                        final Side side = placeInstruction.getSide();
                         if (side.equals(Side.BACK)) {
-                            LimitOrder limitOrder = placeInstruction.getLimitOrder();
+                            final LimitOrder limitOrder = placeInstruction.getLimitOrder();
                             pricesArray[counter] = limitOrder.getPrice();
                             limitOrder.setPrice(1.01d);
                         }
@@ -180,13 +196,11 @@ public class RescriptOpThread<T>
                         }
 
                         if (placeExecutionReport != null) {
-                            ExecutionReportStatus executionReportStatus = placeExecutionReport.getStatus();
+                            final ExecutionReportStatus executionReportStatus = placeExecutionReport.getStatus();
                             if (executionReportStatus == ExecutionReportStatus.SUCCESS) {
-                                logger.info("successful order placing market: {} list: {} report: {}", marketId, Generic.objectToString(placeInstructionsList),
-                                            Generic.objectToString(placeExecutionReport));
+                                logger.info("successful order placing market: {} list: {} report: {}", marketId, Generic.objectToString(placeInstructionsList), Generic.objectToString(placeExecutionReport));
                             } else {
-                                logger.error("executionReportStatus not successful {} in {} for: {} {}", executionReportStatus,
-                                             Generic.objectToString(placeExecutionReport), marketId, Generic.objectToString(placeInstructionsList));
+                                logger.error("executionReportStatus not successful {} in {} for: {} {}", executionReportStatus, Generic.objectToString(placeExecutionReport), marketId, Generic.objectToString(placeInstructionsList));
                             }
                         } else {
                             // temporary removal until 2nd scraper
@@ -200,8 +214,7 @@ public class RescriptOpThread<T>
                         } else { // added at beginning, and no need to add again
                         }
                     } else { // Statics.notPlacingOrders || Statics.denyBetting.get()
-                        logger.warn("order placing denied {} {}: marketId = {}, placeInstructionsList = {}", Statics.notPlacingOrders, Statics.denyBetting.get(), marketId,
-                                    Generic.objectToString(placeInstructionsList));
+                        logger.warn("order placing denied {} {}: marketId = {}, placeInstructionsList = {}", Statics.notPlacingOrders, Statics.denyBetting.get(), marketId, Generic.objectToString(placeInstructionsList));
                     }
 
                     CancelOrdersThread.addOrder(0L);
@@ -210,13 +223,13 @@ public class RescriptOpThread<T>
 
                     counter = 0;
                     for (PlaceInstruction placeInstruction : placeInstructionsList) {
-                        LimitOrder limitOrder = placeInstruction.getLimitOrder();
+                        final LimitOrder limitOrder = placeInstruction.getLimitOrder();
                         if (pricesArray[counter] > 0d) {
                             limitOrder.setPrice(pricesArray[counter]);
                         }
 
-                        OrderPrice orderPrice = new OrderPrice(marketId, placeInstruction.getSelectionId(), placeInstruction.getSide(), limitOrder.getPrice());
-                        double orderSize = limitOrder.getSize();
+                        final OrderPrice orderPrice = new OrderPrice(marketId, placeInstruction.getSelectionId(), placeInstruction.getSide(), limitOrder.getPrice());
+                        final double orderSize = limitOrder.getSize();
                         Formulas.removeInstruction(orderPrice, orderSize);
 
                         counter++;
@@ -226,13 +239,13 @@ public class RescriptOpThread<T>
                 }
                 break;
             case cancelOrders:
-                RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
+                final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
                 Statics.timeLastFundsOp.set(System.currentTimeMillis());
                 if (!Statics.fundsQuickRun.getAndSet(true)) {
                     logger.info("fundsQuickRun starts");
                 }
 
-                CancelExecutionReport cancelExecutionReport = ApiNgRescriptOperations.cancelOrders(null, null, null, Statics.appKey.get(), rescriptResponseHandler);
+                final CancelExecutionReport cancelExecutionReport = ApiNgRescriptOperations.cancelOrders(null, null, null, Statics.appKey.get(), rescriptResponseHandler);
 
                 Statics.timeLastFundsOp.set(System.currentTimeMillis());
                 if (!Statics.fundsQuickRun.getAndSet(true)) {
@@ -240,7 +253,7 @@ public class RescriptOpThread<T>
                 }
 
                 if (cancelExecutionReport != null) {
-                    ExecutionReportStatus executionReportStatus = cancelExecutionReport.getStatus();
+                    final ExecutionReportStatus executionReportStatus = cancelExecutionReport.getStatus();
                     if (executionReportStatus == ExecutionReportStatus.SUCCESS) {
                         logger.info("canceled orders: {}", Generic.objectToString(cancelExecutionReport));
 

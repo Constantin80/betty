@@ -253,7 +253,7 @@ public class Statics {
         marketTypes.add("FIRST_CORNER"); // 3 options match odds for first corner, after 2nd half; hard to code and might get closed when impossible
         marketTypes.add("MATCH_BET"); // Season Match Bets, 2 options, which team will finish higher in the league; league table positions are not going to be implemented
         marketTypes.add("ACCA"); // accumulator bet on a selection of more than 1 team winning; more than 1 event is involved, too complicated to implement for now and it's very rare
-        marketTypes.add("ALT_TOTAL_GOALS"); // Goal Lines, asian handicap double line betting; this market is a combination of over/under markets, so there's little reason to use it
+        marketTypes.add("ALT_TOTAL_GOALS"); // Goal Lines, asian handicap double line betting; this market is mostly a combination of over/under markets, so there's little reason to use it
         // next are never impossible
         marketTypes.add("NEXT_GOAL"); // team that scores next goal, 3 options; when a goal is scored, market is closed/settled and opened again; never impossible
         marketTypes.add("ET_NEXT_GOAL"); // team that scores next goal, during ET, 3 options; when a goald is scored, market is closed/settled and opened again; never impossible

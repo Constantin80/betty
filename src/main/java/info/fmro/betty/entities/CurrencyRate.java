@@ -1,7 +1,10 @@
 package info.fmro.betty.entities;
 
-public class CurrencyRate {
+import java.io.Serializable;
 
+public class CurrencyRate
+        implements Serializable {
+    private static final long serialVersionUID = 9014962168930839468L;
     private String currencyCode; // Three letter ISO 4217 code
     private Double rate; // Exchange rate for the currency specified in the request
 

@@ -1,6 +1,7 @@
 package info.fmro.betty.objects;
 
 import info.fmro.betty.enums.ParsedRunnerType;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -10,15 +11,22 @@ public class ParsedRunner
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
     private static final long serialVersionUID = 1449977052034070871L;
     private final Long selectionId;
+    private final Double handicap;
     private ParsedRunnerType parsedRunnerType;
 
-    public ParsedRunner(Long selectionId) {
+    public ParsedRunner(Long selectionId, Double handicap) {
         this.selectionId = selectionId;
+        this.handicap = handicap;
     }
 
-    public ParsedRunner(Long selectionId, ParsedRunnerType parsedRunnerType) {
+    public ParsedRunner(Long selectionId, Double handicap, ParsedRunnerType parsedRunnerType) {
         this.selectionId = selectionId;
+        this.handicap = handicap;
         this.parsedRunnerType = parsedRunnerType;
+    }
+
+    public synchronized Double getHandicap() {
+        return handicap;
     }
 
     public synchronized Long getSelectionId() {
@@ -59,30 +67,33 @@ public class ParsedRunner
             }
             return this.selectionId.compareTo(other.selectionId);
         }
-
+        if (!Objects.equals(this.handicap, other.handicap)) {
+            if (this.handicap == null) {
+                return BEFORE;
+            }
+            if (other.handicap == null) {
+                return AFTER;
+            }
+            return this.handicap.compareTo(other.handicap);
+        }
         return EQUAL;
     }
 
     @Override
-    public synchronized int hashCode() {
-        int hash = 3;
-        hash = 83 * hash + (int) (this.selectionId ^ (this.selectionId >>> 32));
-        return hash;
+    public synchronized boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        final ParsedRunner that = (ParsedRunner) o;
+        return Objects.equals(selectionId, that.selectionId) &&
+               Objects.equals(handicap, that.handicap);
     }
 
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (this == obj) {
-            return true;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final ParsedRunner other = (ParsedRunner) obj;
-        return Objects.equals(this.selectionId, other.selectionId);
+    public synchronized int hashCode() {
+        return Objects.hash(selectionId, handicap);
     }
 }

@@ -1069,11 +1069,17 @@ betradar doesn't show UK scores on UK ip, which reduces its usefulness
     //-handicap 0.5 - 8.5; all runners seem to remain even after they no longer appear on the web page
     //-this market is a combination of other markets; it usually has bad odds and should be ignored
 //modularizare, creare variabila safeBetModule, care sa suprinda rularea threadurilor de scrape si probabil alte lucruri
+//Betfair Stream API looks interesting; might be faster than regular exchange API, but requires major modifications to program; speed and reliability testing
+//plenty of football markets, including the main odds one, are not parsed, as they were not interesting for safebetting; I got all the fixed amount of runners ones now
+//GBP / EUR conversion method, for use later with stream objects; added as atomic value to safetyLimits
+//when amounts listed on the market are important for making decisions (present amounts, matched etc); after implementation of streamAPI, this seems obsolete
+	//-check that the currency is right; sometimes there's an error regarding currency between RON and EUR; after implementation of streamAPI, this seems obsolete
+    //-sometimes the market has lag, and the amounts listed might no longer exist; after implementation of streamAPI, this seems obsolete
 
-plenty of football markets, including the main odds one, are not parsed, as they were not interesting for safebetting
-
-bets with very good odds on non live markets, especially ones that have a long time till beginning or a rather short time+good liquidity
-	-I can safely take such bets, even if there's risk of match fixing, as I can trade out some of the amount to be safe
+no more than 1000 bets placed or edited (whether matched, cancelled or lapsed) per hour
+    -hours start and end at the exact hour, 00:00 minutes:seconds
+    -I could slow down a bit before 1000, depending how long from the hour is left
+    -after the limit is reached or the slowdown is in effect, I'll still place important bets; charge is 1 pence per bet, but the daily commission generated counts against that
 
 cancel all orders is incompatible with trading
 	-cancel all methods should be removed, or kept with an error message if used
@@ -1081,20 +1087,11 @@ cancel all orders is incompatible with trading
 		-the queue for cancelling orders has to be executed even if the program is stopping
 		-if there's an error cancelling, the ID should be added to a list that is saved to disk, and checked in the list of unmatched orders later
 
-competition support with flags (friendly, women, youth, low quality, cup)
-
-when amounts listed on the market are important for making decisions (present amounts, matched etc)
-	-check that the currency is right; sometimes there's an error regarding currency between RON and EUR
-	-sometimes the market has lag, and the amounts listed might no longer exist
-
-Betfair Stream API looks interesting; might be faster than regular exchange API, but requires major modifications to program; speed and reliability testing
-tennis module
-no more than 1000 bets placed or edited (whether matched, cancelled or lapsed) per hour
-    -hours start and end at the exact hour, 00:00 minutes:seconds
-    -I could slow down a bit before 1000, depending how long from the hour is left
-    -after the limit is reached or the slowdown is in effect, I'll still place important bets; charge is 1 pence per bet, but the daily commission generated counts against that
-
 trading bot
+    //-what happens when I match my own amount? -> it seems I match my own amount just fine
+        //-on small scale this can probably be used, but on a large scale I would probably be banned for exploiting
+        //-careful that others don't use this exploit against my bot
+    //-amount traded on a runner is counted twice, once for the amount backed and once for layed (ex: 100 EUR matched at any odds, from 1.01 to 1000, will result in 200 EUR matched)
 	-sleep/awake settings
 		-activated with a command, or with a scheduler
 		-during sleep, getting into the market bets should be moved to safe locations
@@ -1104,7 +1101,8 @@ trading bot
 	-sometimes, when makets are created, odds can be way off from what bookies offer (seen in OU 4.5/5.5/6.5/7.5 markets)
 	-placing amounts on some low liquidity markets, with variable odds, depending on the other amounts
 		-ex: amounts at 1.79 back and 7 lay; set limits of 2.8 back and 4.5 lay; amounts initially will be at 1.78 and 6.9, but this will also depend on the amounts on the market and amounts being placed
-	//-amount traded on a runner is counted twice, once for the amount backed and once for layed (ex: 100 EUR matched at any odds, from 1.01 to 1000, will result in 200 EUR matched)
+	-bets with very good odds on non live markets, especially ones that have a long time till beginning or a rather short time+good liquidity
+       	-I can safely take such bets, even if there's risk of match fixing, as I can trade out some of the amount to be safe
 	-main ways to make profit:
 		-scalping, based on the amount of liquidity on the market, amount of time left, and market stability
 			-by watching the market with a fairly quick frequency, you can estimate quite well how close to the beginning of the queue your placed amount gets
@@ -1132,7 +1130,6 @@ bot for 100%+ lay markets or -100% back markets, when win only
 	-for amounts smaller than 2 EUR, either 2 step trick, or it might work without on new versions of their software
 	-although the number of markets is huge, the interesting ones that should be checked often are not that many
 	-1 cent rounding is important at high odds, like 1000, and this imposes a lower limit when betting at those high odds; market might still be profitable even without the extremely high odds
-	//-what happens when I match my own amount? -> it seems I match my own amount just fine
 finding recently opened events from major leagues and competitions in order to manually seed them
 	-the bot can recommend odds and amounts for seeding as default values
 	-the amounts can be spread out over different odds, for example $100 at 2.5, $500 at 2.4, $2000 at 2.3 etc, which would catch small and large jolts
@@ -1151,6 +1148,9 @@ arbitrage bot for exchange markets
 	-arbing can often be done with combinations, like "The Draw" = "0 - 0" + "1 - 1" + "2 - 2" + "3 - 3" + "Any Other Draw"; similar situation for Over/Under markets
 	-in profitable cases, arbing and opportunity might happen at the same time
 		-in such case opportunity should probably take precedence, depending on potential profit
+
+competition support with flags (friendly, women, youth, low quality, cup)
+tennis module
 ----------
 modificari nefolositoare pentru modulul curent (trade):
 REVIEW errors fix:
