@@ -9,12 +9,12 @@ public class StampedDouble { // access to the value is stamped
     private final double value;
     private long stamp;
 
-    public StampedDouble(double value, long stamp) {
+    public StampedDouble(final double value, final long stamp) {
         this.value = value;
         this.stamp = stamp;
     }
 
-    public StampedDouble(double value) {
+    public StampedDouble(final double value) {
         this(value, System.currentTimeMillis());
     }
 
@@ -23,7 +23,7 @@ public class StampedDouble { // access to the value is stamped
         return value;
     }
 
-    public synchronized double getValue(long stamp) {
+    public synchronized double getValue(final long stamp) {
         this.setStamp(stamp);
         return value;
     }
@@ -32,7 +32,7 @@ public class StampedDouble { // access to the value is stamped
         return stamp;
     }
 
-    public synchronized void setStamp(long stamp) {
+    public synchronized void setStamp(final long stamp) {
         if (stamp > this.stamp) {
             this.stamp = stamp;
         } else {
@@ -57,7 +57,7 @@ public class StampedDouble { // access to the value is stamped
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized boolean equals(Object obj) {
+    public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }

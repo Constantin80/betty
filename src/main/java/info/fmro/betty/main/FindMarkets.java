@@ -48,7 +48,7 @@ public class FindMarkets {
         marketProjectionsSet.add(MarketProjection.MARKET_START_TIME);
     }
 
-    public static boolean parsedRunnersSetSizeCheck(HashSet<ParsedRunner> parsedRunnersSet, int expectedSize, String marketId, ParsedMarketType parsedMarketType, MarketCatalogue marketCatalogue) {
+    public static boolean parsedRunnersSetSizeCheck(final HashSet<ParsedRunner> parsedRunnersSet, final int expectedSize, final String marketId, final ParsedMarketType parsedMarketType, final MarketCatalogue marketCatalogue) {
         boolean interestingMarket;
         if (parsedRunnersSet == null || marketCatalogue == null) {
             logger.error("null parsedRunnersSet or marketCatalogue in parsedRunnersSetSizeCheck: {} {}", Generic.objectToString(parsedRunnersSet), Generic.objectToString(marketCatalogue));
@@ -73,7 +73,7 @@ public class FindMarkets {
         return interestingMarket;
     }
 
-    public static void addParsedRunner(HashSet<ParsedRunner> parsedRunnersSet, RunnerCatalog runnerCatalog, final ParsedRunnerType parsedRunnerType) {
+    public static void addParsedRunner(final HashSet<ParsedRunner> parsedRunnersSet, final RunnerCatalog runnerCatalog, final ParsedRunnerType parsedRunnerType) {
         final Long selectionId = runnerCatalog.getSelectionId();
         final Double handicap = runnerCatalog.getHandicap();
         if (parsedRunnerType != null) {
@@ -82,30 +82,30 @@ public class FindMarkets {
         }
     }
 
-    public static ParsedRunnerType unknownParsedRunnerTypeError(ParsedMarketType parsedMarketType, long sortPriority, String runnerName, String marketId, MarketCatalogue marketCatalogue) {
+    public static ParsedRunnerType unknownParsedRunnerTypeError(final ParsedMarketType parsedMarketType, final long sortPriority, final String runnerName, final String marketId, final MarketCatalogue marketCatalogue) {
         Generic.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "unknown parsedRunnerType for {} {} {} in: {} for: {}", parsedMarketType, sortPriority, runnerName, marketId,
                                           Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
         return null;
     }
 
-    public static boolean unknownParsedMarketTypeError(String marketName, String eventHomeName, String eventAwayName, String marketId, MarketCatalogue marketCatalogue) {
+    public static boolean unknownParsedMarketTypeError(final String marketName, final String eventHomeName, final String eventAwayName, final String marketId, final MarketCatalogue marketCatalogue) {
         Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "parsedMarketType null for {} {}/{} in: {} for: {}", marketName, eventHomeName, eventAwayName, marketId,
                                           Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
         return false;
     }
 
-    public static boolean unknownParsedMarketTypeError(String marketName, StringBuilder eventHomeName, StringBuilder eventAwayName, String marketId, MarketCatalogue marketCatalogue) {
+    public static boolean unknownParsedMarketTypeError(final String marketName, final StringBuilder eventHomeName, final StringBuilder eventAwayName, final String marketId, final MarketCatalogue marketCatalogue) {
         Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "parsedMarketType null for {} {}/{} in: {} for: {}", marketName, eventHomeName, eventAwayName, marketId,
                                           Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
         return false;
     }
 
-    public static HashSet<ParsedRunner> createParsedRunnersSet(int nParsedRunners) {
+    public static HashSet<ParsedRunner> createParsedRunnersSet(final int nParsedRunners) {
         final int capacity = Generic.getCollectionCapacity(nParsedRunners);
         return new HashSet<>(capacity);
     }
 
-    public static ParsedMarketType pickParsedMarketType(String endMarker, String marketName, StringBuilder eventHomeName, StringBuilder eventAwayName, String marketId, ParsedMarketType choiceA, ParsedMarketType choiceB) {
+    public static ParsedMarketType pickParsedMarketType(final String endMarker, final String marketName, final StringBuilder eventHomeName, final StringBuilder eventAwayName, final String marketId, final ParsedMarketType choiceA, final ParsedMarketType choiceB) {
         ParsedMarketType parsedMarketType;
         if (StringUtils.endsWithIgnoreCase(marketName, endMarker)) {
             final String marketSubstring = marketName.substring(0, StringUtils.indexOfIgnoreCase(marketName, endMarker));
@@ -131,13 +131,13 @@ public class FindMarkets {
         return parsedMarketType;
     }
 
-    public static boolean getNamesFromRunnerNames(StringBuilder eventHomeName, StringBuilder eventAwayName, String marketId, String runnerName, String beginMarker, String endMarker, int sortPriority, int sortHome, int sortAway,
-                                                  MarketCatalogue marketCatalogue) {
+    public static boolean getNamesFromRunnerNames(final StringBuilder eventHomeName, final StringBuilder eventAwayName, final String marketId, final String runnerName, final String beginMarker, final String endMarker, final int sortPriority, final int sortHome, final int sortAway,
+                                                  final MarketCatalogue marketCatalogue) {
         return getNamesFromRunnerNames(eventHomeName, eventAwayName, marketId, runnerName, beginMarker, endMarker, sortPriority, sortHome, sortAway, marketCatalogue, false);
     }
 
-    public static boolean getNamesFromRunnerNames(StringBuilder eventHomeName, StringBuilder eventAwayName, String marketId, String runnerName, String beginMarker, String endMarker, int sortPriority, int sortHome, int sortAway,
-                                                  MarketCatalogue marketCatalogue, boolean useMiddleMarker) {
+    public static boolean getNamesFromRunnerNames(final StringBuilder eventHomeName, final StringBuilder eventAwayName, final String marketId, final String runnerName, final String beginMarker, final String endMarker, final int sortPriority, final int sortHome, final int sortAway,
+                                                  final MarketCatalogue marketCatalogue, final boolean useMiddleMarker) {
         boolean success = true;
         if (runnerName == null) {
             success = false;
@@ -227,15 +227,15 @@ public class FindMarkets {
         findMarkets(null, false);
     }
 
-    public static void findMarkets(boolean checkAll) {
+    public static void findMarkets(final boolean checkAll) {
         findMarkets(null, checkAll);
     }
 
-    public static void findMarkets(HashSet<Event> eventsSet) {
+    public static void findMarkets(final HashSet<Event> eventsSet) {
         findMarkets(eventsSet, false);
     }
 
-    public static void findMarkets(TreeSet<String> marketIdsSet) {
+    public static void findMarkets(final TreeSet<String> marketIdsSet) {
         if (marketIdsSet != null) {
             final long methodStartTime = System.currentTimeMillis();
             final Set<MarketCatalogue> returnSet = Collections.synchronizedSet(new HashSet<>(Generic.getCollectionCapacity(marketIdsSet.size())));
@@ -378,7 +378,7 @@ public class FindMarkets {
         }
     }
 
-    public static void findMarkets(HashSet<Event> eventsSet, boolean checkAll) {
+    public static void findMarkets(final HashSet<Event> eventsSet, final boolean checkAll) {
         if (!Statics.safeBetModuleActivated || System.currentTimeMillis() - Statics.scraperEventMaps.getNTimeStamp() <= Generic.HOUR_LENGTH_MILLISECONDS * 3L) {
             final long methodStartTime = System.currentTimeMillis();
 
@@ -675,7 +675,7 @@ public class FindMarkets {
         }
     }
 
-    public static boolean additionalInterestingCheck(MarketCatalogue marketCatalogue) {
+    public static boolean additionalInterestingCheck(final MarketCatalogue marketCatalogue) {
         final boolean interesting;
         if (marketCatalogue == null) {
             interesting = false;
@@ -691,7 +691,7 @@ public class FindMarkets {
         return interesting;
     }
 
-    public static boolean parseSupportedMarket(String eventHomeNameString, String eventAwayNameString, MarketCatalogue marketCatalogue, String marketId, String marketName, MarketDescription marketDescription, List<RunnerCatalog> runnerCatalogsList) {
+    public static boolean parseSupportedMarket(final String eventHomeNameString, final String eventAwayNameString, final MarketCatalogue marketCatalogue, final String marketId, final String marketName, final MarketDescription marketDescription, final List<RunnerCatalog> runnerCatalogsList) {
         final boolean interestingMarket;
         if (Formulas.isMarketType(marketCatalogue, Statics.supportedEventTypes) && eventHomeNameString != null && eventAwayNameString != null) {
             final StringBuilder eventHomeName = new StringBuilder(eventHomeNameString);
@@ -2040,7 +2040,10 @@ public class FindMarkets {
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
                         for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
                             final int sortPriority = runnerCatalog.getSortPriority();
-                            final String runnerName = runnerCatalog.getRunnerName();
+                            String runnerName = runnerCatalog.getRunnerName();
+                            if (marketType.equals("HALF_TIME") && runnerName.endsWith(" (HT)")) {
+                                runnerName = runnerName.substring(0, runnerName.lastIndexOf(" (HT)"));
+                            }
                             final boolean successInGettingName = getNamesFromRunnerNames(eventHomeName, eventAwayName, marketId, runnerName, null, null, sortPriority, 1, 2, marketCatalogue);
                             if (!successInGettingName) {
                                 errorAlreadyPrinted = true;

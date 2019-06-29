@@ -31,7 +31,7 @@ public class SafeBet
     private final double size;
     private final Side side;
 
-    public SafeBet(String marketId, MarketStatus marketStatus, boolean inplay, int betDelay, long runnerId, RunnerStatus runnerStatus, double price, double size, Side side) {
+    public SafeBet(final String marketId, final MarketStatus marketStatus, final boolean inplay, final int betDelay, final long runnerId, final RunnerStatus runnerStatus, final double price, final double size, final Side side) {
         this.marketId = marketId;
         this.marketStatus = marketStatus;
         this.inplay = inplay;
@@ -182,7 +182,7 @@ public class SafeBet
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(SafeBet other) {
+    public synchronized int compareTo(final SafeBet other) {
         if (other == null) {
             return AFTER;
         }
@@ -289,7 +289,7 @@ public class SafeBet
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized boolean equals(Object obj) {
+    public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }

@@ -29,3 +29,8 @@ data/*
 gradle/*
 .gradle/*
 /gradlew*
+build/*
+out/*
+jar/*
+/input/
+/data/

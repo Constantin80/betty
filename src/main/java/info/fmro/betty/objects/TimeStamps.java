@@ -1,5 +1,6 @@
 package info.fmro.betty.objects;
 
+import info.fmro.shared.utility.Generic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,14 +10,14 @@ public class TimeStamps
         implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(TimeStamps.class);
     private static final long serialVersionUID = 2521253086493558605L;
-    private long lastObjectsSave, lastCleanScraperEventsMap, lastParseEventResultList, lastMapEventsToScraperEvents, lastGetMarketBooks, lastCleanSecondaryMaps, lastFindSafeRunners, lastStreamMarkets, lastGetAccountFunds, lastListCurrencyRates,
-            lastFindInterestingMarkets, lastPrintDebug, lastPrintAverages, lastCleanTimedMaps, lastCheckAliases;
+    private long lastObjectsSave, lastSettingsSave, lastCleanScraperEventsMap, lastParseEventResultList, lastMapEventsToScraperEvents, lastGetMarketBooks, lastCleanSecondaryMaps, lastFindSafeRunners, lastStreamMarkets, lastGetAccountFunds,
+            lastListCurrencyRates, lastFindInterestingMarkets, lastPrintDebug, lastPrintAverages, lastCleanTimedMaps, lastCheckAliases;
 
     public synchronized long getLastObjectsSave() {
         return lastObjectsSave;
     }
 
-    public synchronized void setLastObjectsSave(long lastObjectsSave) {
+    public synchronized void setLastObjectsSave(final long lastObjectsSave) {
         this.lastObjectsSave = lastObjectsSave;
     }
 
@@ -24,7 +25,7 @@ public class TimeStamps
         this.lastObjectsSave = System.currentTimeMillis();
     }
 
-    public synchronized void lastObjectsSaveStamp(long timeStamp) {
+    public synchronized void lastObjectsSaveStamp(final long timeStamp) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - this.lastObjectsSave >= timeStamp) {
             this.lastObjectsSave = currentTime + timeStamp;
@@ -33,11 +34,32 @@ public class TimeStamps
         }
     }
 
+    public synchronized long getLastSettingsSave() {
+        return lastSettingsSave;
+    }
+
+    public synchronized void setLastSettingsSave(final long lastSettingsSave) {
+        this.lastSettingsSave = lastSettingsSave;
+    }
+
+    public synchronized void lastSettingsSaveStamp() {
+        this.lastSettingsSave = System.currentTimeMillis();
+    }
+
+    public synchronized void lastSettingsSaveStamp(final long timeStamp) {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - this.lastSettingsSave >= timeStamp) {
+            this.lastSettingsSave = currentTime + timeStamp;
+        } else {
+            this.lastSettingsSave += timeStamp;
+        }
+    }
+
     public synchronized long getLastCleanScraperEventsMap() {
         return lastCleanScraperEventsMap;
     }
 
-    public synchronized void setLastCleanScraperEventsMap(long lastCleanScraperEventsMap) {
+    public synchronized void setLastCleanScraperEventsMap(final long lastCleanScraperEventsMap) {
         this.lastCleanScraperEventsMap = lastCleanScraperEventsMap;
     }
 
@@ -45,7 +67,7 @@ public class TimeStamps
         this.lastCleanScraperEventsMap = System.currentTimeMillis();
     }
 
-    public synchronized void lastCleanScraperEventsMapStamp(long timeStamp) {
+    public synchronized void lastCleanScraperEventsMapStamp(final long timeStamp) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - this.lastCleanScraperEventsMap >= timeStamp) {
             this.lastCleanScraperEventsMap = currentTime + timeStamp;
@@ -58,7 +80,7 @@ public class TimeStamps
         return lastParseEventResultList;
     }
 
-    public synchronized void setLastParseEventResultList(long lastParseEventResultList) {
+    public synchronized void setLastParseEventResultList(final long lastParseEventResultList) {
         this.lastParseEventResultList = lastParseEventResultList;
     }
 
@@ -66,7 +88,7 @@ public class TimeStamps
         this.lastParseEventResultList = System.currentTimeMillis();
     }
 
-    public synchronized void lastParseEventResultListStamp(long timeStamp) {
+    public synchronized void lastParseEventResultListStamp(final long timeStamp) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - this.lastParseEventResultList >= timeStamp) {
             this.lastParseEventResultList = currentTime + timeStamp;
@@ -79,7 +101,7 @@ public class TimeStamps
         return lastMapEventsToScraperEvents;
     }
 
-    public synchronized void setLastMapEventsToScraperEvents(long lastMapEventsToScraperEvents) {
+    public synchronized void setLastMapEventsToScraperEvents(final long lastMapEventsToScraperEvents) {
         this.lastMapEventsToScraperEvents = lastMapEventsToScraperEvents;
     }
 
@@ -87,7 +109,7 @@ public class TimeStamps
         this.lastMapEventsToScraperEvents = System.currentTimeMillis();
     }
 
-    public synchronized void lastMapEventsToScraperEventsStamp(long timeStamp) {
+    public synchronized void lastMapEventsToScraperEventsStamp(final long timeStamp) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - this.lastMapEventsToScraperEvents >= timeStamp) {
             this.lastMapEventsToScraperEvents = currentTime + timeStamp;
@@ -100,7 +122,7 @@ public class TimeStamps
         return lastGetMarketBooks;
     }
 
-    public synchronized void setLastGetMarketBooks(long lastGetMarketBooks) {
+    public synchronized void setLastGetMarketBooks(final long lastGetMarketBooks) {
         this.lastGetMarketBooks = lastGetMarketBooks;
     }
 
@@ -108,7 +130,7 @@ public class TimeStamps
         this.lastGetMarketBooks = System.currentTimeMillis();
     }
 
-    public synchronized void lastGetMarketBooksStamp(long timeStamp) {
+    public synchronized void lastGetMarketBooksStamp(final long timeStamp) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - this.lastGetMarketBooks >= timeStamp) {
             this.lastGetMarketBooks = currentTime + timeStamp;
@@ -121,7 +143,7 @@ public class TimeStamps
         return lastCleanSecondaryMaps;
     }
 
-    public synchronized void setLastCleanSecondaryMaps(long lastCleanSecondaryMaps) {
+    public synchronized void setLastCleanSecondaryMaps(final long lastCleanSecondaryMaps) {
         this.lastCleanSecondaryMaps = lastCleanSecondaryMaps;
     }
 
@@ -129,7 +151,7 @@ public class TimeStamps
         this.lastCleanSecondaryMaps = System.currentTimeMillis();
     }
 
-    public synchronized void lastCleanSecondaryMapsStamp(long timeStamp) {
+    public synchronized void lastCleanSecondaryMapsStamp(final long timeStamp) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - this.lastCleanSecondaryMaps >= timeStamp) {
             this.lastCleanSecondaryMaps = currentTime + timeStamp;
@@ -142,7 +164,7 @@ public class TimeStamps
         return lastFindSafeRunners;
     }
 
-    public synchronized void setLastFindSafeRunners(long lastFindSafeRunners) {
+    public synchronized void setLastFindSafeRunners(final long lastFindSafeRunners) {
         this.lastFindSafeRunners = lastFindSafeRunners;
     }
 
@@ -150,7 +172,7 @@ public class TimeStamps
         this.lastFindSafeRunners = System.currentTimeMillis();
     }
 
-    public synchronized void lastFindSafeRunnersStamp(long timeStamp) {
+    public synchronized void lastFindSafeRunnersStamp(final long timeStamp) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - this.lastFindSafeRunners >= timeStamp) {
             this.lastFindSafeRunners = currentTime + timeStamp;
@@ -163,7 +185,7 @@ public class TimeStamps
         return lastStreamMarkets;
     }
 
-    public synchronized void setLastStreamMarkets(long lastStreamMarkets) {
+    public synchronized void setLastStreamMarkets(final long lastStreamMarkets) {
         this.lastStreamMarkets = lastStreamMarkets;
     }
 
@@ -171,7 +193,7 @@ public class TimeStamps
         this.lastStreamMarkets = System.currentTimeMillis();
     }
 
-    public synchronized void lastStreamMarketsStamp(long timeStamp) {
+    public synchronized void lastStreamMarketsStamp(final long timeStamp) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - this.lastStreamMarkets >= timeStamp) {
             this.lastStreamMarkets = currentTime + timeStamp;
@@ -184,7 +206,7 @@ public class TimeStamps
         return lastGetAccountFunds;
     }
 
-    public synchronized void setLastGetAccountFunds(long lastGetAccountFunds) {
+    public synchronized void setLastGetAccountFunds(final long lastGetAccountFunds) {
         this.lastGetAccountFunds = lastGetAccountFunds;
     }
 
@@ -196,7 +218,7 @@ public class TimeStamps
         return lastListCurrencyRates;
     }
 
-    public synchronized void setLastListCurrencyRates(long lastListCurrencyRates) {
+    public synchronized void setLastListCurrencyRates(final long lastListCurrencyRates) {
         this.lastListCurrencyRates = lastListCurrencyRates;
     }
 
@@ -208,7 +230,7 @@ public class TimeStamps
         return lastFindInterestingMarkets;
     }
 
-    public synchronized void setLastFindInterestingMarkets(long lastFindInterestingMarkets) {
+    public synchronized void setLastFindInterestingMarkets(final long lastFindInterestingMarkets) {
         this.lastFindInterestingMarkets = lastFindInterestingMarkets;
     }
 
@@ -216,7 +238,7 @@ public class TimeStamps
         this.lastFindInterestingMarkets = System.currentTimeMillis();
     }
 
-    public synchronized void lastFindInterestingMarketsStamp(long timeStamp) {
+    public synchronized void lastFindInterestingMarketsStamp(final long timeStamp) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - this.lastFindInterestingMarkets >= timeStamp) {
             this.lastFindInterestingMarkets = currentTime + timeStamp;
@@ -229,7 +251,7 @@ public class TimeStamps
         return lastPrintDebug;
     }
 
-    public synchronized void setLastPrintDebug(long lastPrintDebug) {
+    public synchronized void setLastPrintDebug(final long lastPrintDebug) {
         this.lastPrintDebug = lastPrintDebug;
     }
 
@@ -237,7 +259,7 @@ public class TimeStamps
         this.lastPrintDebug = System.currentTimeMillis();
     }
 
-    public synchronized void lastPrintDebugStamp(long timeStamp) {
+    public synchronized void lastPrintDebugStamp(final long timeStamp) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - this.lastPrintDebug >= timeStamp) {
             this.lastPrintDebug = currentTime + timeStamp;
@@ -250,7 +272,7 @@ public class TimeStamps
         return lastPrintAverages;
     }
 
-    public synchronized void setLastPrintAverages(long lastPrintAverages) {
+    public synchronized void setLastPrintAverages(final long lastPrintAverages) {
         this.lastPrintAverages = lastPrintAverages;
     }
 
@@ -258,7 +280,7 @@ public class TimeStamps
         this.lastPrintAverages = System.currentTimeMillis();
     }
 
-    public synchronized void lastPrintAveragesStamp(long timeStamp) {
+    public synchronized void lastPrintAveragesStamp(final long timeStamp) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - this.lastPrintAverages >= timeStamp) {
             this.lastPrintAverages = currentTime + timeStamp;
@@ -271,7 +293,7 @@ public class TimeStamps
         return lastCleanTimedMaps;
     }
 
-    public synchronized void setLastCleanTimedMaps(long lastCleanTimedMaps) {
+    public synchronized void setLastCleanTimedMaps(final long lastCleanTimedMaps) {
         this.lastCleanTimedMaps = lastCleanTimedMaps;
     }
 
@@ -279,7 +301,7 @@ public class TimeStamps
         this.lastCleanTimedMaps = System.currentTimeMillis();
     }
 
-    public synchronized void lastCleanTimedMapsStamp(long timeStamp) {
+    public synchronized void lastCleanTimedMapsStamp(final long timeStamp) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - this.lastCleanTimedMaps >= timeStamp) {
             this.lastCleanTimedMaps = currentTime + timeStamp;
@@ -292,7 +314,7 @@ public class TimeStamps
         return lastCheckAliases;
     }
 
-    public synchronized void setLastCheckAliases(long lastCheckAliases) {
+    public synchronized void setLastCheckAliases(final long lastCheckAliases) {
         this.lastCheckAliases = lastCheckAliases;
     }
 
@@ -300,7 +322,7 @@ public class TimeStamps
         this.lastCheckAliases = System.currentTimeMillis();
     }
 
-    public synchronized void lastCheckAliasesStamp(long timeStamp) {
+    public synchronized void lastCheckAliasesStamp(final long timeStamp) {
         long currentTime = System.currentTimeMillis();
         if (currentTime - this.lastCheckAliases >= timeStamp) {
             this.lastCheckAliases = currentTime + timeStamp;
@@ -310,19 +332,26 @@ public class TimeStamps
     }
 
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized void copyFrom(TimeStamps timeStamps) {
-        this.lastObjectsSave = timeStamps.lastObjectsSave;
-        this.lastCleanScraperEventsMap = timeStamps.lastCleanScraperEventsMap;
-        this.lastParseEventResultList = timeStamps.lastParseEventResultList;
-        this.lastMapEventsToScraperEvents = timeStamps.lastMapEventsToScraperEvents;
-        this.lastGetMarketBooks = timeStamps.lastGetMarketBooks;
-        this.lastCleanSecondaryMaps = timeStamps.lastCleanSecondaryMaps;
-        this.lastFindSafeRunners = timeStamps.lastFindSafeRunners;
-        this.lastGetAccountFunds = timeStamps.lastGetAccountFunds;
-        this.lastFindInterestingMarkets = timeStamps.lastFindInterestingMarkets;
-        this.lastPrintDebug = timeStamps.lastPrintDebug;
-        this.lastPrintAverages = timeStamps.lastPrintAverages;
-        this.lastCleanTimedMaps = timeStamps.lastCleanTimedMaps;
-        this.lastCheckAliases = timeStamps.lastCheckAliases;
+    public synchronized void copyFrom(final TimeStamps timeStamps) {
+        if (timeStamps == null) {
+            logger.error("null timeStamps in copyFrom for: {}", Generic.objectToString(this));
+        } else {
+            this.lastObjectsSave = timeStamps.lastObjectsSave;
+            this.lastSettingsSave = timeStamps.lastSettingsSave;
+            this.lastCleanScraperEventsMap = timeStamps.lastCleanScraperEventsMap;
+            this.lastParseEventResultList = timeStamps.lastParseEventResultList;
+            this.lastMapEventsToScraperEvents = timeStamps.lastMapEventsToScraperEvents;
+            this.lastGetMarketBooks = timeStamps.lastGetMarketBooks;
+            this.lastCleanSecondaryMaps = timeStamps.lastCleanSecondaryMaps;
+            this.lastFindSafeRunners = timeStamps.lastFindSafeRunners;
+            this.lastStreamMarkets = timeStamps.lastStreamMarkets;
+            this.lastGetAccountFunds = timeStamps.lastGetAccountFunds;
+            this.lastListCurrencyRates = timeStamps.lastListCurrencyRates;
+            this.lastFindInterestingMarkets = timeStamps.lastFindInterestingMarkets;
+            this.lastPrintDebug = timeStamps.lastPrintDebug;
+            this.lastPrintAverages = timeStamps.lastPrintAverages;
+            this.lastCleanTimedMaps = timeStamps.lastCleanTimedMaps;
+            this.lastCheckAliases = timeStamps.lastCheckAliases;
+        }
     }
 }

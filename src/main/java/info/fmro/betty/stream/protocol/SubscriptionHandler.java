@@ -38,7 +38,7 @@ public class SubscriptionHandler<S extends RequestMessage, C extends ChangeMessa
     private Long heartbeatMs;
     private Long conflationMs;
 
-    public SubscriptionHandler(S subscriptionMessage, boolean isMergeSegments) {
+    public SubscriptionHandler(final S subscriptionMessage, final boolean isMergeSegments) {
         this.subscriptionMessage = subscriptionMessage;
         this.isMergeSegments = isMergeSegments;
         isSubscribed = false;

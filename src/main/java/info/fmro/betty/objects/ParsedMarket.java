@@ -10,15 +10,14 @@ import java.util.Objects;
 
 public class ParsedMarket
         implements Serializable, Comparable<ParsedMarket> {
-
     private static final Logger logger = LoggerFactory.getLogger(ParsedMarket.class);
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
     private static final long serialVersionUID = -2616558897137266131L;
     private final String marketId;
     private final ParsedMarketType parsedMarketType;
-    private final HashSet<ParsedRunner> parsedRunnersSet;
+    private final HashSet<ParsedRunner> parsedRunnersSet; // the only place where ParsedRunners are stored
 
-    public ParsedMarket(String marketId, ParsedMarketType parsedMarketType, HashSet<ParsedRunner> parsedRunnersSet) {
+    public ParsedMarket(final String marketId, final ParsedMarketType parsedMarketType, final HashSet<ParsedRunner> parsedRunnersSet) {
         this.marketId = marketId;
         this.parsedMarketType = parsedMarketType;
         this.parsedRunnersSet = new HashSet<>(parsedRunnersSet);
@@ -56,7 +55,7 @@ public class ParsedMarket
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(ParsedMarket other) {
+    public synchronized int compareTo(final ParsedMarket other) {
         if (other == null) {
             return AFTER;
         }
@@ -105,7 +104,7 @@ public class ParsedMarket
 
     @Override
     @SuppressWarnings(value = "AccessingNonPublicFieldOfAnotherObject")
-    public synchronized boolean equals(Object obj) {
+    public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }

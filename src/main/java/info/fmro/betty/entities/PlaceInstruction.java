@@ -19,11 +19,12 @@ public class PlaceInstruction
     private LimitOrder limitOrder;
     private LimitOnCloseOrder limitOnCloseOrder;
     private MarketOnCloseOrder marketOnCloseOrder;
+    private String customerOrderRef; // An optional reference customers can set to identify instructions.. No validation will be done on uniqueness and the string is limited to 32 characters. If an empty string is provided it will be treated as null.
 
     public PlaceInstruction() {
     }
 
-    public synchronized double getPlacedAmount(boolean isEachWayMarket) {
+    public synchronized double getPlacedAmount(final boolean isEachWayMarket) {
         double amount;
 
         if (orderType == null) {
@@ -77,7 +78,7 @@ public class PlaceInstruction
         return orderType;
     }
 
-    public synchronized void setOrderType(OrderType orderType) {
+    public synchronized void setOrderType(final OrderType orderType) {
         this.orderType = orderType;
     }
 
@@ -85,7 +86,7 @@ public class PlaceInstruction
         return selectionId;
     }
 
-    public synchronized void setSelectionId(Long selectionId) {
+    public synchronized void setSelectionId(final Long selectionId) {
         this.selectionId = selectionId;
     }
 
@@ -93,7 +94,7 @@ public class PlaceInstruction
         return handicap;
     }
 
-    public synchronized void setHandicap(Double handicap) {
+    public synchronized void setHandicap(final Double handicap) {
         this.handicap = handicap;
     }
 
@@ -101,7 +102,7 @@ public class PlaceInstruction
         return side;
     }
 
-    public synchronized void setSide(Side side) {
+    public synchronized void setSide(final Side side) {
         this.side = side;
     }
 
@@ -109,7 +110,7 @@ public class PlaceInstruction
         return limitOrder;
     }
 
-    public synchronized void setLimitOrder(LimitOrder limitOrder) {
+    public synchronized void setLimitOrder(final LimitOrder limitOrder) {
         this.limitOrder = limitOrder;
     }
 
@@ -117,7 +118,7 @@ public class PlaceInstruction
         return limitOnCloseOrder;
     }
 
-    public synchronized void setLimitOnCloseOrder(LimitOnCloseOrder limitOnCloseOrder) {
+    public synchronized void setLimitOnCloseOrder(final LimitOnCloseOrder limitOnCloseOrder) {
         this.limitOnCloseOrder = limitOnCloseOrder;
     }
 
@@ -125,7 +126,7 @@ public class PlaceInstruction
         return marketOnCloseOrder;
     }
 
-    public synchronized void setMarketOnCloseOrder(MarketOnCloseOrder marketOnCloseOrder) {
+    public synchronized void setMarketOnCloseOrder(final MarketOnCloseOrder marketOnCloseOrder) {
         this.marketOnCloseOrder = marketOnCloseOrder;
     }
 }

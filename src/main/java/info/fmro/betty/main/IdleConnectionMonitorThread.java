@@ -13,7 +13,7 @@ public class IdleConnectionMonitorThread
     private static final Logger logger = LoggerFactory.getLogger(RescriptResponseHandler.class);
     private final PoolingHttpClientConnectionManager connMgr;
 
-    public IdleConnectionMonitorThread(PoolingHttpClientConnectionManager connMgr) {
+    public IdleConnectionMonitorThread(final PoolingHttpClientConnectionManager connMgr) {
         this.connMgr = connMgr;
     }
 

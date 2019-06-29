@@ -12,7 +12,7 @@ public class StatusException
     private final ErrorCode errorCode;
     private final String errorMessage;
 
-    public StatusException(StatusMessage message) {
+    public StatusException(final StatusMessage message) {
         super(message.getErrorCode() + ": " + message.getErrorMessage());
         errorCode = message.getErrorCode();
         errorMessage = message.getErrorMessage();

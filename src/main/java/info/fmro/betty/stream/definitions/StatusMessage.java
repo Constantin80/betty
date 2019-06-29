@@ -1,7 +1,12 @@
 package info.fmro.betty.stream.definitions;
 
+import java.io.Serializable;
+
+// objects of this class are read from the stream
 public class StatusMessage
-        extends ResponseMessage {
+        extends ResponseMessage
+        implements Serializable {
+    private static final long serialVersionUID = 7917124223046297484L;
     private Boolean connectionClosed; // Is the connection now closed
     private String connectionId; // The connection id
     private ErrorCode errorCode; // The type of error in case of a failure
@@ -15,7 +20,7 @@ public class StatusMessage
         return connectionClosed;
     }
 
-    public synchronized void setConnectionClosed(Boolean connectionClosed) {
+    public synchronized void setConnectionClosed(final Boolean connectionClosed) {
         this.connectionClosed = connectionClosed;
     }
 
@@ -23,7 +28,7 @@ public class StatusMessage
         return connectionId;
     }
 
-    public synchronized void setConnectionId(String connectionId) {
+    public synchronized void setConnectionId(final String connectionId) {
         this.connectionId = connectionId;
     }
 
@@ -31,7 +36,7 @@ public class StatusMessage
         return errorCode;
     }
 
-    public synchronized void setErrorCode(ErrorCode errorCode) {
+    public synchronized void setErrorCode(final ErrorCode errorCode) {
         this.errorCode = errorCode;
     }
 
@@ -39,7 +44,7 @@ public class StatusMessage
         return errorMessage;
     }
 
-    public synchronized void setErrorMessage(String errorMessage) {
+    public synchronized void setErrorMessage(final String errorMessage) {
         this.errorMessage = errorMessage;
     }
 
@@ -47,7 +52,7 @@ public class StatusMessage
         return statusCode;
     }
 
-    public synchronized void setStatusCode(StatusCode statusCode) {
+    public synchronized void setStatusCode(final StatusCode statusCode) {
         this.statusCode = statusCode;
     }
 }

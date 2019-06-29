@@ -1,10 +1,10 @@
 package info.fmro.betty.entities;
 
 import info.fmro.betty.enums.SubscriptionStatus;
+
 import java.util.Date;
 
 public class SubscriptionTokenInfo {
-
     private String subscriptionToken; // Application key identifier
     private Date activatedDateTime; // Subscription Activated date
     private Date expiryDateTime; // Subscription Expiry date
@@ -19,7 +19,7 @@ public class SubscriptionTokenInfo {
         return subscriptionToken;
     }
 
-    public synchronized void setSubscriptionToken(String subscriptionToken) {
+    public synchronized void setSubscriptionToken(final String subscriptionToken) {
         this.subscriptionToken = subscriptionToken;
     }
 
@@ -27,7 +27,7 @@ public class SubscriptionTokenInfo {
         return expiryDateTime == null ? null : (Date) expiryDateTime.clone();
     }
 
-    public synchronized void setExpiryDateTime(Date expiryDateTime) {
+    public synchronized void setExpiryDateTime(final Date expiryDateTime) {
         this.expiryDateTime = expiryDateTime == null ? null : (Date) expiryDateTime.clone();
     }
 
@@ -35,7 +35,7 @@ public class SubscriptionTokenInfo {
         return expiredDateTime == null ? null : (Date) expiredDateTime.clone();
     }
 
-    public synchronized void setExpiredDateTime(Date expiredDateTime) {
+    public synchronized void setExpiredDateTime(final Date expiredDateTime) {
         this.expiredDateTime = expiredDateTime == null ? null : (Date) expiredDateTime.clone();
     }
 
@@ -43,7 +43,7 @@ public class SubscriptionTokenInfo {
         return activatedDateTime == null ? null : (Date) activatedDateTime.clone();
     }
 
-    public synchronized void setActivatedDateTime(Date activatedDateTime) {
+    public synchronized void setActivatedDateTime(final Date activatedDateTime) {
         this.activatedDateTime = activatedDateTime == null ? null : (Date) activatedDateTime.clone();
     }
 
@@ -51,7 +51,7 @@ public class SubscriptionTokenInfo {
         return cancellationDateTime == null ? null : (Date) cancellationDateTime.clone();
     }
 
-    public synchronized void setCancellationDateTime(Date cancellationDateTime) {
+    public synchronized void setCancellationDateTime(final Date cancellationDateTime) {
         this.cancellationDateTime = cancellationDateTime == null ? null : (Date) cancellationDateTime.clone();
     }
 
@@ -59,7 +59,7 @@ public class SubscriptionTokenInfo {
         return subscriptionStatus;
     }
 
-    public synchronized void setSubscriptionStatus(SubscriptionStatus subscriptionStatus) {
+    public synchronized void setSubscriptionStatus(final SubscriptionStatus subscriptionStatus) {
         this.subscriptionStatus = subscriptionStatus;
     }
 }

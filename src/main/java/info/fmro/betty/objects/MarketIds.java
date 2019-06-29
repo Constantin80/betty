@@ -17,16 +17,16 @@ public class MarketIds {
     private List<HashSet<String>> marketIdsSetsList;
     private int splitSize = 200;
 
-    public MarketIds(List<MarketCatalogue> marketCataloguesList) {
+    public MarketIds(final List<MarketCatalogue> marketCataloguesList) {
         init(marketCataloguesList);
     }
 
-    public MarketIds(List<MarketCatalogue> marketCataloguesList, int splitSize) {
+    public MarketIds(final List<MarketCatalogue> marketCataloguesList, final int splitSize) {
         this.splitSize = splitSize;
         init(marketCataloguesList);
     }
 
-    private synchronized void init(List<MarketCatalogue> marketCataloguesList) {
+    private synchronized void init(final List<MarketCatalogue> marketCataloguesList) {
         if (marketCataloguesList != null) {
             this.marketIdsList = new ArrayList<>(marketCataloguesList.size());
             for (MarketCatalogue marketCatalogue : marketCataloguesList) {

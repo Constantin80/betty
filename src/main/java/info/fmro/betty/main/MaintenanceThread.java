@@ -61,7 +61,7 @@ public class MaintenanceThread
                 Statics.coralScraperThread.averageLogger.printRecords();
                 // Statics.coralScraperThread.averageLoggerFull.printRecords(); // this will have a check on Statics.coralScraperThread.singleLogger
             }
-            Betty.quickCheckThread.averageLogger.printRecords();
+            Statics.quickCheckThread.averageLogger.printRecords();
 
             int size = Statics.linkedBlockingQueue.size();
             if (size >= 10) {
@@ -122,7 +122,8 @@ public class MaintenanceThread
                 logger.info("eventsMap: {} marketCataloguesMap: {} safeMarketsMap: {} safeMarketBooksMap: {} safeMarketsImportantMap: {}", Statics.eventsMap.size(), Statics.marketCataloguesMap.size(), Statics.safeMarketsMap.size(),
                             Statics.safeMarketBooksMap.size(), Statics.safeMarketsImportantMap.size());
             }
-            logger.info("connManager stats: {}", Statics.connManager.getTotalStats().toString());
+            logger.info("connManager stats: {} writeSettingsCounter: {} BetFrequencyLimit.nOrdersSinceReset: {}", Statics.connManager.getTotalStats().toString(), Generic.addCommas(VarsIO.writeSettingsCounter.get()),
+                        Generic.addCommas(Statics.safetyLimits.speedLimit.getNOrdersSinceReset()));
 
             timeForNext = Statics.timeStamps.getLastPrintDebug();
 
@@ -145,6 +146,20 @@ public class MaintenanceThread
         return timeTillNext;
     }
 
+    public static long timedSaveSettings() {
+        long timeForNext = Statics.timeStamps.getLastSettingsSave();
+        long timeTillNext = timeForNext - System.currentTimeMillis();
+        if (timeTillNext <= 0) {
+            VarsIO.writeSettings();
+            timeForNext = Statics.timeStamps.getLastSettingsSave();
+
+            timeTillNext = timeForNext - System.currentTimeMillis();
+        } else { // nothing to be done
+        }
+        return timeTillNext;
+    }
+
+
     public static long timedCleanScraperEventsMap() {
         long timeForNext = Statics.timeStamps.getLastCleanScraperEventsMap();
         long timeTillNext = timeForNext - System.currentTimeMillis();
@@ -160,6 +175,19 @@ public class MaintenanceThread
         }
         return timeTillNext;
     }
+
+//    public static long timedCleanMarketCache() {
+//        long timeForNext = Statics.marketCache.getTimeClean();
+//        long timeTillNext = timeForNext - System.currentTimeMillis();
+//        if (timeTillNext <= 0) {
+//            cleanMarketCache();
+//            timeForNext = Statics.marketCache.getTimeClean();
+//
+//            timeTillNext = timeForNext - System.currentTimeMillis();
+//        } else { // nothing to be done
+//        }
+//        return timeTillNext;
+//    }
 
     public static long timedCleanEventsMap() {
         long timeForNext = Statics.eventsMap.getTimeClean();
@@ -550,7 +578,7 @@ public class MaintenanceThread
         }
     }
 
-    public static void checkScraperEvents(Event event) {
+    public static void checkScraperEvents(final Event event) {
         if (event != null) {
             final LinkedHashMap<Class<? extends ScraperEvent>, Long> scraperEventIds = event.getScraperEventIds();
             if (scraperEventIds != null && !scraperEventIds.isEmpty()) {
@@ -704,6 +732,11 @@ public class MaintenanceThread
 //            } // end for
 //        } // end if
 //    }safeRunners.isEmpty
+
+//    public static void cleanMarketCache() {
+//        Statics.marketCache.maintenanceClean();
+//    }
+
     public static void cleanEventsMap() {
         Statics.eventsMap.timeCleanStamp(Generic.MINUTE_LENGTH_MILLISECONDS * 10L);
         final long startTime = System.currentTimeMillis();
@@ -804,7 +837,7 @@ public class MaintenanceThread
         }
     }
 
-    public static void cleanScraperEventsMap(Class<? extends ScraperEvent> clazz) {
+    public static void cleanScraperEventsMap(final Class<? extends ScraperEvent> clazz) {
         final SynchronizedMap<Long, ? extends ScraperEvent> map = Formulas.getScraperEventsMap(clazz);
         final long startTime = System.currentTimeMillis();
 
@@ -877,7 +910,7 @@ public class MaintenanceThread
         }
     }
 
-    private static int removeScrapers(LinkedHashMap<Class<? extends ScraperEvent>, Long> map) {
+    private static int removeScrapers(final LinkedHashMap<Class<? extends ScraperEvent>, Long> map) {
         int nRemoved = 0;
         if (map == null) {
             logger.warn("null map in removeScrapers");
@@ -898,7 +931,7 @@ public class MaintenanceThread
         return nRemoved;
     }
 
-    private static <T extends ScraperEvent> T removeScraper(Class<T> clazz, Long scraperEventId) {
+    private static <T extends ScraperEvent> T removeScraper(final Class<T> clazz, final Long scraperEventId) {
         @SuppressWarnings("unchecked") final SynchronizedMap<Long, T> scraperEventsMap = (SynchronizedMap<Long, T>) Formulas.getScraperEventsMap(clazz);
         final T existingScraperEvent;
         if (scraperEventId != null && scraperEventId >= 0) {
@@ -926,7 +959,7 @@ public class MaintenanceThread
         return existingScraperEvent;
     }
 
-    private static <T extends ScraperEvent> T removeScraper(T scraperEvent) {
+    private static <T extends ScraperEvent> T removeScraper(final T scraperEvent) {
         final T existingScraperEvent;
         if (scraperEvent == null) {
             logger.error("null scraperEvent in removeScraper");
@@ -974,7 +1007,7 @@ public class MaintenanceThread
         return existingScraperEvent;
     }
 
-    private static Event removeEvent(Event event) {
+    private static Event removeEvent(final Event event) {
         Event existingEvent;
         if (event == null) {
             logger.error("null event in removeEvent");
@@ -994,11 +1027,11 @@ public class MaintenanceThread
         return existingEvent;
     }
 
-    private static Event removeEvent(String eventId) {
+    private static Event removeEvent(final String eventId) {
         return removeEvent(eventId, true); // by default, removeMarkets; keep in mind the performance hit is huge, markets should be removed for batches of events
     }
 
-    private static Event removeEvent(String eventId, boolean removeMarkets) {
+    private static Event removeEvent(final String eventId, final boolean removeMarkets) {
         final Event matchedEvent = Statics.eventsMap.remove(eventId);
 
         if (matchedEvent != null) {
@@ -1060,7 +1093,7 @@ public class MaintenanceThread
         return matchedEvent;
     }
 
-    private static int removeMarkets(HashSet<Event> events) {
+    private static int removeMarkets(final HashSet<Event> events) {
         int nPurgedMarkets = 0;
         if (events == null) {
             logger.error("null events set in removeMarkets");
@@ -1089,7 +1122,7 @@ public class MaintenanceThread
         return nPurgedMarkets;
     }
 
-    private static int removeMarkets(Event event) {
+    private static int removeMarkets(final Event event) {
         int nPurgedMarkets = 0;
         if (event == null) {
             logger.error("null event in removeMarkets");
@@ -1118,14 +1151,14 @@ public class MaintenanceThread
         return nPurgedMarkets;
     }
 
-    private static MarketCatalogue removeMarket(String marketId) {
+    private static MarketCatalogue removeMarket(final String marketId) {
         final MarketCatalogue marketCatalogue = Statics.marketCataloguesMap.remove(marketId);
         removeFromSecondaryMaps(marketId);
 
         return marketCatalogue;
     }
 
-    public static void removeFromSecondaryMaps(String marketId) {
+    public static void removeFromSecondaryMaps(final String marketId) {
         final SynchronizedMap<SafeBet, SafeBetStats> safeBetsStatsMap = Statics.safeBetsMap.remove(marketId);
         if (safeBetsStatsMap != null && !safeBetsStatsMap.isEmpty()) {
             final Set<Entry<SafeBet, SafeBetStats>> entrySetCopy = safeBetsStatsMap.entrySetCopy();
@@ -1149,7 +1182,7 @@ public class MaintenanceThread
         Statics.safeMarketsImportantMap.remove(marketId);
     }
 
-    public static boolean removeSafeRunner(String marketId, SafeRunner safeRunner) {
+    public static boolean removeSafeRunner(final String marketId, final SafeRunner safeRunner) {
         boolean modified;
         final SynchronizedSet<SafeRunner> safeRunnersSet = Statics.safeMarketsMap.get(marketId);
         if (safeRunnersSet == null) {
@@ -1193,7 +1226,7 @@ public class MaintenanceThread
         return modified;
     }
 
-    public static SynchronizedSafeSet<SafeRunner> removeSafeMarket(String marketId) {
+    public static SynchronizedSafeSet<SafeRunner> removeSafeMarket(final String marketId) {
         final SynchronizedSafeSet<SafeRunner> safeRunners = Statics.safeMarketsMap.remove(marketId);
         if (safeRunners != null) {
             safeRunners.clear();
@@ -1222,6 +1255,7 @@ public class MaintenanceThread
                 }
                 if (Statics.mustWriteObjects.get()) {
                     VarsIO.writeObjectsToFiles();
+                    VarsIO.writeSettings();
                     Statics.mustWriteObjects.set(false);
                 }
                 if (Statics.orderToPrint.get() != null) {
@@ -1233,7 +1267,8 @@ public class MaintenanceThread
                         if (singleOrder.equals("findmarkettypes")) {
                             DebuggingMethods.findNewMarketTypes();
                         } else if (singleOrder.equals("cancelorders")) {
-                            CancelOrdersThread.addOrder(0L);
+                            logger.error("cancelorders command being executed; this is supported, but discouraged; this will cause error messages");
+                            Statics.ordersThread.addCancelAllOrder(0L);
                         } else if (singleOrder.equals("weighttest")) {
                             DebuggingMethods.weightTest();
                         } else if (singleOrder.startsWith("market:")) {
@@ -1252,6 +1287,8 @@ public class MaintenanceThread
                 }
 
                 timeToSleep = timedSaveObjects();
+                timeToSleep = Math.min(timeToSleep, timedSaveSettings());
+//                timeToSleep = Math.min(timeToSleep, timedCleanMarketCache());
                 timeToSleep = Math.min(timeToSleep, timedCleanEventsMap());
                 timeToSleep = Math.min(timeToSleep, timedCleanScraperEventsMap());
                 timeToSleep = Math.min(timeToSleep, timedCleanMarketCataloguesMap());

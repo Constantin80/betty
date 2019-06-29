@@ -15,7 +15,7 @@ public class RunnerDescription {
         return runnerName;
     }
 
-    public synchronized void setRunnerName(String runnerName) {
+    public synchronized void setRunnerName(final String runnerName) {
         this.runnerName = runnerName;
     }
 
@@ -23,7 +23,7 @@ public class RunnerDescription {
         return metadata == null ? null : new HashMap<>(metadata);
     }
 
-    public synchronized void setMetadata(Map<String, String> metadata) {
+    public synchronized void setMetadata(final Map<String, String> metadata) {
         this.metadata = metadata == null ? null : new HashMap<>(metadata);
     }
 }

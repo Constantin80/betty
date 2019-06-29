@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MarketProfitAndLoss {
-
     private String marketId;
     private Double commissionApplied;
     private List<RunnerProfitAndLoss> profitAndLosses;
@@ -16,7 +15,7 @@ public class MarketProfitAndLoss {
         return marketId;
     }
 
-    public synchronized void setMarketId(String marketId) {
+    public synchronized void setMarketId(final String marketId) {
         this.marketId = marketId;
     }
 
@@ -24,7 +23,7 @@ public class MarketProfitAndLoss {
         return commissionApplied;
     }
 
-    public synchronized void setCommissionApplied(Double commissionApplied) {
+    public synchronized void setCommissionApplied(final Double commissionApplied) {
         this.commissionApplied = commissionApplied;
     }
 
@@ -32,7 +31,7 @@ public class MarketProfitAndLoss {
         return profitAndLosses == null ? null : new ArrayList<>(profitAndLosses);
     }
 
-    public synchronized void setProfitAndLosses(List<RunnerProfitAndLoss> profitAndLosses) {
+    public synchronized void setProfitAndLosses(final List<RunnerProfitAndLoss> profitAndLosses) {
         this.profitAndLosses = profitAndLosses == null ? null : new ArrayList<>(profitAndLosses);
     }
 }

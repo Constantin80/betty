@@ -3,11 +3,15 @@ package info.fmro.betty.stream.definitions;
 import info.fmro.betty.enums.MarketBettingType;
 import info.fmro.betty.enums.MarketStatus;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class MarketDefinition {
+// objects of this class are read from the stream
+public class MarketDefinition
+        implements Serializable {
+    private static final long serialVersionUID = 5416387683049486627L;
     private Long betDelay;
     private MarketBettingType bettingType; // betting type of the market (i.e. Odds, Asian Handicap Singles, or Asian Handicap Doubles)
     private Boolean bspMarket; // bsp market only, if True or non-bsp market if False.
@@ -52,7 +56,7 @@ public class MarketDefinition {
         return betDelay;
     }
 
-    public synchronized void setBetDelay(Long betDelay) {
+    public synchronized void setBetDelay(final Long betDelay) {
         this.betDelay = betDelay;
     }
 
@@ -60,7 +64,7 @@ public class MarketDefinition {
         return bettingType;
     }
 
-    public synchronized void setBettingType(MarketBettingType bettingType) {
+    public synchronized void setBettingType(final MarketBettingType bettingType) {
         this.bettingType = bettingType;
     }
 
@@ -68,7 +72,7 @@ public class MarketDefinition {
         return bspMarket;
     }
 
-    public synchronized void setBspMarket(Boolean bspMarket) {
+    public synchronized void setBspMarket(final Boolean bspMarket) {
         this.bspMarket = bspMarket;
     }
 
@@ -76,7 +80,7 @@ public class MarketDefinition {
         return bspReconciled;
     }
 
-    public synchronized void setBspReconciled(Boolean bspReconciled) {
+    public synchronized void setBspReconciled(final Boolean bspReconciled) {
         this.bspReconciled = bspReconciled;
     }
 
@@ -84,7 +88,7 @@ public class MarketDefinition {
         return complete;
     }
 
-    public synchronized void setComplete(Boolean complete) {
+    public synchronized void setComplete(final Boolean complete) {
         this.complete = complete;
     }
 
@@ -92,7 +96,7 @@ public class MarketDefinition {
         return countryCode;
     }
 
-    public synchronized void setCountryCode(String countryCode) {
+    public synchronized void setCountryCode(final String countryCode) {
         this.countryCode = countryCode;
     }
 
@@ -100,7 +104,7 @@ public class MarketDefinition {
         return crossMatching;
     }
 
-    public synchronized void setCrossMatching(Boolean crossMatching) {
+    public synchronized void setCrossMatching(final Boolean crossMatching) {
         this.crossMatching = crossMatching;
     }
 
@@ -108,7 +112,7 @@ public class MarketDefinition {
         return discountAllowed;
     }
 
-    public synchronized void setDiscountAllowed(Boolean discountAllowed) {
+    public synchronized void setDiscountAllowed(final Boolean discountAllowed) {
         this.discountAllowed = discountAllowed;
     }
 
@@ -116,7 +120,7 @@ public class MarketDefinition {
         return eachWayDivisor;
     }
 
-    public synchronized void setEachWayDivisor(Double eachWayDivisor) {
+    public synchronized void setEachWayDivisor(final Double eachWayDivisor) {
         this.eachWayDivisor = eachWayDivisor;
     }
 
@@ -124,7 +128,7 @@ public class MarketDefinition {
         return eventId;
     }
 
-    public synchronized void setEventId(String eventId) {
+    public synchronized void setEventId(final String eventId) {
         this.eventId = eventId;
     }
 
@@ -132,7 +136,7 @@ public class MarketDefinition {
         return eventTypeId;
     }
 
-    public synchronized void setEventTypeId(String eventTypeId) {
+    public synchronized void setEventTypeId(final String eventTypeId) {
         this.eventTypeId = eventTypeId;
     }
 
@@ -140,7 +144,7 @@ public class MarketDefinition {
         return inPlay;
     }
 
-    public synchronized void setInPlay(Boolean inPlay) {
+    public synchronized void setInPlay(final Boolean inPlay) {
         this.inPlay = inPlay;
     }
 
@@ -148,7 +152,7 @@ public class MarketDefinition {
         return keyLineDefinition;
     }
 
-    public synchronized void setKeyLineDefinition(KeyLineDefinition keyLineDefinition) {
+    public synchronized void setKeyLineDefinition(final KeyLineDefinition keyLineDefinition) {
         this.keyLineDefinition = keyLineDefinition;
     }
 
@@ -156,7 +160,7 @@ public class MarketDefinition {
         return lineInterval;
     }
 
-    public synchronized void setLineInterval(Double lineInterval) {
+    public synchronized void setLineInterval(final Double lineInterval) {
         this.lineInterval = lineInterval;
     }
 
@@ -164,7 +168,7 @@ public class MarketDefinition {
         return lineMaxUnit;
     }
 
-    public synchronized void setLineMaxUnit(Double lineMaxUnit) {
+    public synchronized void setLineMaxUnit(final Double lineMaxUnit) {
         this.lineMaxUnit = lineMaxUnit;
     }
 
@@ -172,7 +176,7 @@ public class MarketDefinition {
         return lineMinUnit;
     }
 
-    public synchronized void setLineMinUnit(Double lineMinUnit) {
+    public synchronized void setLineMinUnit(final Double lineMinUnit) {
         this.lineMinUnit = lineMinUnit;
     }
 
@@ -180,7 +184,7 @@ public class MarketDefinition {
         return marketBaseRate;
     }
 
-    public synchronized void setMarketBaseRate(Double marketBaseRate) {
+    public synchronized void setMarketBaseRate(final Double marketBaseRate) {
         this.marketBaseRate = marketBaseRate;
     }
 
@@ -188,7 +192,7 @@ public class MarketDefinition {
         return marketTime == null ? null : (Date) marketTime.clone();
     }
 
-    public synchronized void setMarketTime(Date marketTime) {
+    public synchronized void setMarketTime(final Date marketTime) {
         this.marketTime = marketTime == null ? null : (Date) marketTime.clone();
     }
 
@@ -196,7 +200,7 @@ public class MarketDefinition {
         return marketType;
     }
 
-    public synchronized void setMarketType(String marketType) {
+    public synchronized void setMarketType(final String marketType) {
         this.marketType = marketType;
     }
 
@@ -204,7 +208,7 @@ public class MarketDefinition {
         return numberOfActiveRunners;
     }
 
-    public synchronized void setNumberOfActiveRunners(Integer numberOfActiveRunners) {
+    public synchronized void setNumberOfActiveRunners(final Integer numberOfActiveRunners) {
         this.numberOfActiveRunners = numberOfActiveRunners;
     }
 
@@ -212,7 +216,7 @@ public class MarketDefinition {
         return numberOfWinners;
     }
 
-    public synchronized void setNumberOfWinners(Integer numberOfWinners) {
+    public synchronized void setNumberOfWinners(final Integer numberOfWinners) {
         this.numberOfWinners = numberOfWinners;
     }
 
@@ -220,7 +224,7 @@ public class MarketDefinition {
         return openDate == null ? null : (Date) openDate.clone();
     }
 
-    public synchronized void setOpenDate(Date openDate) {
+    public synchronized void setOpenDate(final Date openDate) {
         this.openDate = openDate == null ? null : (Date) openDate.clone();
     }
 
@@ -228,7 +232,7 @@ public class MarketDefinition {
         return persistenceEnabled;
     }
 
-    public synchronized void setPersistenceEnabled(Boolean persistenceEnabled) {
+    public synchronized void setPersistenceEnabled(final Boolean persistenceEnabled) {
         this.persistenceEnabled = persistenceEnabled;
     }
 
@@ -236,7 +240,7 @@ public class MarketDefinition {
         return priceLadderDefinition;
     }
 
-    public synchronized void setPriceLadderDefinition(PriceLadderDefinition priceLadderDefinition) {
+    public synchronized void setPriceLadderDefinition(final PriceLadderDefinition priceLadderDefinition) {
         this.priceLadderDefinition = priceLadderDefinition;
     }
 
@@ -244,7 +248,7 @@ public class MarketDefinition {
         return raceType;
     }
 
-    public synchronized void setRaceType(String raceType) {
+    public synchronized void setRaceType(final String raceType) {
         this.raceType = raceType;
     }
 
@@ -252,7 +256,7 @@ public class MarketDefinition {
         return regulators == null ? null : new ArrayList<>(regulators);
     }
 
-    public synchronized void setRegulators(List<String> regulators) {
+    public synchronized void setRegulators(final List<String> regulators) {
         this.regulators = regulators == null ? null : new ArrayList<>(regulators);
     }
 
@@ -260,7 +264,7 @@ public class MarketDefinition {
         return runners == null ? null : new ArrayList<>(runners);
     }
 
-    public synchronized void setRunners(List<RunnerDefinition> runners) {
+    public synchronized void setRunners(final List<RunnerDefinition> runners) {
         this.runners = runners == null ? null : new ArrayList<>(runners);
     }
 
@@ -268,7 +272,7 @@ public class MarketDefinition {
         return runnersVoidable;
     }
 
-    public synchronized void setRunnersVoidable(Boolean runnersVoidable) {
+    public synchronized void setRunnersVoidable(final Boolean runnersVoidable) {
         this.runnersVoidable = runnersVoidable;
     }
 
@@ -276,7 +280,7 @@ public class MarketDefinition {
         return settledTime == null ? null : (Date) settledTime.clone();
     }
 
-    public synchronized void setSettledTime(Date settledTime) {
+    public synchronized void setSettledTime(final Date settledTime) {
         this.settledTime = settledTime == null ? null : (Date) settledTime.clone();
     }
 
@@ -284,7 +288,7 @@ public class MarketDefinition {
         return status;
     }
 
-    public synchronized void setStatus(MarketStatus status) {
+    public synchronized void setStatus(final MarketStatus status) {
         this.status = status;
     }
 
@@ -292,7 +296,7 @@ public class MarketDefinition {
         return suspendTime == null ? null : (Date) suspendTime.clone();
     }
 
-    public synchronized void setSuspendTime(Date suspendTime) {
+    public synchronized void setSuspendTime(final Date suspendTime) {
         this.suspendTime = suspendTime == null ? null : (Date) suspendTime.clone();
     }
 
@@ -300,7 +304,7 @@ public class MarketDefinition {
         return timezone;
     }
 
-    public synchronized void setTimezone(String timezone) {
+    public synchronized void setTimezone(final String timezone) {
         this.timezone = timezone;
     }
 
@@ -308,7 +312,7 @@ public class MarketDefinition {
         return turnInPlayEnabled;
     }
 
-    public synchronized void setTurnInPlayEnabled(Boolean turnInPlayEnabled) {
+    public synchronized void setTurnInPlayEnabled(final Boolean turnInPlayEnabled) {
         this.turnInPlayEnabled = turnInPlayEnabled;
     }
 
@@ -316,7 +320,7 @@ public class MarketDefinition {
         return venue;
     }
 
-    public synchronized void setVenue(String venue) {
+    public synchronized void setVenue(final String venue) {
         this.venue = venue;
     }
 
@@ -324,7 +328,7 @@ public class MarketDefinition {
         return version;
     }
 
-    public synchronized void setVersion(Long version) {
+    public synchronized void setVersion(final Long version) {
         this.version = version;
     }
 }

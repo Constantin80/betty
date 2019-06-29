@@ -6,15 +6,15 @@ import info.fmro.betty.enums.PersistenceType;
 import info.fmro.betty.enums.Side;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Objects;
+
 public class CurrentOrderSummary
         implements Serializable, Comparable<CurrentOrderSummary> {
-
     private static final Logger logger = LoggerFactory.getLogger(CurrentOrderSummary.class);
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
     private static final long serialVersionUID = -2498492858943069726L;
@@ -38,9 +38,11 @@ public class CurrentOrderSummary
     private Double sizeVoided;
     private String regulatorAuthCode;
     private String regulatorCode;
+    private String customerOrderRef; // The order reference defined by the customer for this bet
+    private String customerStrategyRef; // The strategy reference defined by the customer for this bet
     private String eventId; // created using the marketId
 
-    public CurrentOrderSummary(String betId, String marketId, Long selectionId) {
+    public CurrentOrderSummary(final String betId, final String marketId, final Long selectionId) {
         this.betId = betId;
         this.marketId = marketId;
         this.selectionId = selectionId;
@@ -59,18 +61,18 @@ public class CurrentOrderSummary
 
             if (this.side == null) {
                 logger.error("null side in CurrentOrderSummary placedAmount: {}", Generic.objectToString(this));
-                amount = Math.max(size, size * (price - 1d)); // assume the worst
+                amount = Math.max(size, Formulas.layExposure(price, size)); // assume the worst
             } else {
                 switch (this.side) {
                     case BACK:
                         amount = size;
                         break;
                     case LAY:
-                        amount = size * (price - 1d);
+                        amount = Formulas.layExposure(price, size);
                         break;
                     default:
                         logger.error("unknown side {} in CurrentOrderSummary placedAmount: {}", this.side, Generic.objectToString(this));
-                        amount = Math.max(size, size * (price - 1d)); // assume the worst
+                        amount = Math.max(size, Formulas.layExposure(price, size)); // assume the worst
                         break;
                 } // end switch
             }
@@ -86,7 +88,7 @@ public class CurrentOrderSummary
         return this.eventId;
     }
 
-    private synchronized void setEventId(String eventId) {
+    private synchronized void setEventId(final String eventId) {
         this.eventId = eventId;
     }
 
@@ -113,7 +115,7 @@ public class CurrentOrderSummary
         return handicap;
     }
 
-    public synchronized void setHandicap(Double handicap) {
+    public synchronized void setHandicap(final Double handicap) {
         this.handicap = handicap;
     }
 
@@ -121,7 +123,7 @@ public class CurrentOrderSummary
         return priceSize;
     }
 
-    public synchronized void setPriceSize(PriceSize priceSize) {
+    public synchronized void setPriceSize(final PriceSize priceSize) {
         this.priceSize = priceSize;
     }
 
@@ -129,7 +131,7 @@ public class CurrentOrderSummary
         return bspLiability;
     }
 
-    public synchronized void setBspLiability(Double bspLiability) {
+    public synchronized void setBspLiability(final Double bspLiability) {
         this.bspLiability = bspLiability;
     }
 
@@ -137,7 +139,7 @@ public class CurrentOrderSummary
         return side;
     }
 
-    public synchronized void setSide(Side side) {
+    public synchronized void setSide(final Side side) {
         this.side = side;
     }
 
@@ -145,7 +147,7 @@ public class CurrentOrderSummary
         return status;
     }
 
-    public synchronized void setStatus(OrderStatus status) {
+    public synchronized void setStatus(final OrderStatus status) {
         this.status = status;
     }
 
@@ -153,7 +155,7 @@ public class CurrentOrderSummary
         return persistenceType;
     }
 
-    public synchronized void setPersistenceType(PersistenceType persistenceType) {
+    public synchronized void setPersistenceType(final PersistenceType persistenceType) {
         this.persistenceType = persistenceType;
     }
 
@@ -161,7 +163,7 @@ public class CurrentOrderSummary
         return orderType;
     }
 
-    public synchronized void setOrderType(OrderType orderType) {
+    public synchronized void setOrderType(final OrderType orderType) {
         this.orderType = orderType;
     }
 
@@ -169,7 +171,7 @@ public class CurrentOrderSummary
         return placedDate == null ? null : (Date) placedDate.clone();
     }
 
-    public synchronized void setPlacedDate(Date placedDate) {
+    public synchronized void setPlacedDate(final Date placedDate) {
         this.placedDate = placedDate == null ? null : (Date) placedDate.clone();
     }
 
@@ -177,7 +179,7 @@ public class CurrentOrderSummary
         return matchedDate == null ? null : (Date) matchedDate.clone();
     }
 
-    public synchronized void setMatchedDate(Date matchedDate) {
+    public synchronized void setMatchedDate(final Date matchedDate) {
         this.matchedDate = matchedDate == null ? null : (Date) matchedDate.clone();
     }
 
@@ -185,7 +187,7 @@ public class CurrentOrderSummary
         return averagePriceMatched;
     }
 
-    public synchronized void setAveragePriceMatched(Double averagePriceMatched) {
+    public synchronized void setAveragePriceMatched(final Double averagePriceMatched) {
         this.averagePriceMatched = averagePriceMatched;
     }
 
@@ -193,7 +195,7 @@ public class CurrentOrderSummary
         return sizeMatched;
     }
 
-    public synchronized void setSizeMatched(Double sizeMatched) {
+    public synchronized void setSizeMatched(final Double sizeMatched) {
         this.sizeMatched = sizeMatched;
     }
 
@@ -201,7 +203,7 @@ public class CurrentOrderSummary
         return sizeRemaining;
     }
 
-    public synchronized void setSizeRemaining(Double sizeRemaining) {
+    public synchronized void setSizeRemaining(final Double sizeRemaining) {
         this.sizeRemaining = sizeRemaining;
     }
 
@@ -209,7 +211,7 @@ public class CurrentOrderSummary
         return sizeLapsed;
     }
 
-    public synchronized void setSizeLapsed(Double sizeLapsed) {
+    public synchronized void setSizeLapsed(final Double sizeLapsed) {
         this.sizeLapsed = sizeLapsed;
     }
 
@@ -217,7 +219,7 @@ public class CurrentOrderSummary
         return sizeCancelled;
     }
 
-    public synchronized void setSizeCancelled(Double sizeCancelled) {
+    public synchronized void setSizeCancelled(final Double sizeCancelled) {
         this.sizeCancelled = sizeCancelled;
     }
 
@@ -225,7 +227,7 @@ public class CurrentOrderSummary
         return sizeVoided;
     }
 
-    public synchronized void setSizeVoided(Double sizeVoided) {
+    public synchronized void setSizeVoided(final Double sizeVoided) {
         this.sizeVoided = sizeVoided;
     }
 
@@ -233,7 +235,7 @@ public class CurrentOrderSummary
         return regulatorAuthCode;
     }
 
-    public synchronized void setRegulatorAuthCode(String regulatorAuthCode) {
+    public synchronized void setRegulatorAuthCode(final String regulatorAuthCode) {
         this.regulatorAuthCode = regulatorAuthCode;
     }
 
@@ -241,13 +243,13 @@ public class CurrentOrderSummary
         return regulatorCode;
     }
 
-    public synchronized void setRegulatorCode(String regulatorCode) {
+    public synchronized void setRegulatorCode(final String regulatorCode) {
         this.regulatorCode = regulatorCode;
     }
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(CurrentOrderSummary other) {
+    public synchronized int compareTo(final CurrentOrderSummary other) {
         if (other == null) {
             return AFTER;
         }
@@ -294,7 +296,7 @@ public class CurrentOrderSummary
     }
 
     @Override
-    public int hashCode() {
+    public synchronized int hashCode() {
         int hash = 3;
         hash = 73 * hash + Objects.hashCode(this.betId);
         hash = 73 * hash + Objects.hashCode(this.marketId);
@@ -304,7 +306,7 @@ public class CurrentOrderSummary
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public boolean equals(Object obj) {
+    public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }

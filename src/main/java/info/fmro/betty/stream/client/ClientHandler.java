@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ClientHandler {
     private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
@@ -20,6 +21,9 @@ public class ClientHandler {
     @SuppressWarnings("unchecked")
     private static final ArrayList<String>[] lists = (ArrayList<String>[]) new ArrayList<?>[nClients];
     public static final ConcurrentSkipListSet<Integer> modifiedLists = new ConcurrentSkipListSet<>();
+    public static final AtomicInteger threadsWithOcmCommandReceived = new AtomicInteger();
+    public static final AtomicInteger threadsWithMcmCommandReceived = new AtomicInteger();
+    public static final AtomicInteger nMcmCommandsNeeded = new AtomicInteger();
 
     static {
         for (int i = 0; i < streamClients.length; i++) {
@@ -36,7 +40,7 @@ public class ClientHandler {
         streamMarkets(marketsSet);
     }
 
-    public static void streamMarkets(Collection<String> marketIds) {
+    public static void streamMarkets(final Collection<String> marketIds) {
         if (modifiedLists.size() > 0) {
             logger.info("following clients have internally modified lists: {}", Generic.objectToString(modifiedLists));
             for (Integer i : modifiedLists) {
@@ -79,14 +83,20 @@ public class ClientHandler {
             }
         }
 
+        int nModified = 0;
         for (int i = 0; i < nClients; i++) {
             if (modified[i]) {
                 streamClients[i].processor.setMarketsSet(lists[i]);
+                nModified++;
             }
         }
 
         if (marketsLeft.size() > 0) {
             logger.error("markets still left in streamMarkets: {} {} {}", marketsLeft.size(), Statics.marketCataloguesMap.size(), Generic.objectToString(sizes));
+        }
+
+        if (ClientHandler.nMcmCommandsNeeded.get() == 0 && nModified > 0) {
+            ClientHandler.nMcmCommandsNeeded.set(nModified);
         }
     }
 }

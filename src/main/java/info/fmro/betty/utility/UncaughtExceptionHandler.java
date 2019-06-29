@@ -13,7 +13,7 @@ public class UncaughtExceptionHandler
 
     // Implements Thread.UncaughtExceptionHandler.uncaughtException()
     @Override
-    public void uncaughtException(Thread thread, Throwable throwable) {
+    public void uncaughtException(final Thread thread, final Throwable throwable) {
         if (Statics.mustStop.get() && throwable instanceof RejectedExecutionException) {
             logger.warn("Crashed thread while mustStop: {} {} {} {}", thread.getName(), thread.getId(), thread, throwable.toString());
         } else if (throwable instanceof ThreadDeath) {

@@ -1,7 +1,6 @@
 package info.fmro.betty.entities;
 
 public class CountryCodeResult {
-
     private String countryCode;
     private Integer marketCount;
 
@@ -12,7 +11,7 @@ public class CountryCodeResult {
         return countryCode;
     }
 
-    public synchronized void setCountryCode(String countryCode) {
+    public synchronized void setCountryCode(final String countryCode) {
         this.countryCode = countryCode;
     }
 
@@ -20,7 +19,7 @@ public class CountryCodeResult {
         return marketCount;
     }
 
-    public synchronized void setMarketCount(Integer marketCount) {
+    public synchronized void setMarketCount(final Integer marketCount) {
         this.marketCount = marketCount;
     }
 }

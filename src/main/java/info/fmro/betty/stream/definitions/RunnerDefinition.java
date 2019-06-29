@@ -2,11 +2,15 @@ package info.fmro.betty.stream.definitions;
 
 import info.fmro.betty.enums.RunnerStatus;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class RunnerDefinition {
+// objects of this class are read from the stream
+public class RunnerDefinition
+        implements Serializable {
+    private static final long serialVersionUID = -6127210092733234930L;
     private Double adjustmentFactor;
-    private Double bsp;
+    private Double bsp; // Betfair Starting Price
     private Double hc; // Handicap - the handicap of the runner (selection) (null if not applicable)
     private Long id; // Selection Id - the id of the runner (selection)
     private Date removalDate;
@@ -20,7 +24,7 @@ public class RunnerDefinition {
         return adjustmentFactor;
     }
 
-    public synchronized void setAdjustmentFactor(Double adjustmentFactor) {
+    public synchronized void setAdjustmentFactor(final Double adjustmentFactor) {
         this.adjustmentFactor = adjustmentFactor;
     }
 
@@ -28,7 +32,7 @@ public class RunnerDefinition {
         return bsp;
     }
 
-    public synchronized void setBsp(Double bsp) {
+    public synchronized void setBsp(final Double bsp) {
         this.bsp = bsp;
     }
 
@@ -36,7 +40,7 @@ public class RunnerDefinition {
         return hc;
     }
 
-    public synchronized void setHc(Double hc) {
+    public synchronized void setHc(final Double hc) {
         this.hc = hc;
     }
 
@@ -44,7 +48,7 @@ public class RunnerDefinition {
         return id;
     }
 
-    public synchronized void setId(Long id) {
+    public synchronized void setId(final Long id) {
         this.id = id;
     }
 
@@ -52,7 +56,7 @@ public class RunnerDefinition {
         return removalDate == null ? null : (Date) removalDate.clone();
     }
 
-    public synchronized void setRemovalDate(Date removalDate) {
+    public synchronized void setRemovalDate(final Date removalDate) {
         this.removalDate = removalDate == null ? null : (Date) removalDate.clone();
     }
 
@@ -60,7 +64,7 @@ public class RunnerDefinition {
         return sortPriority;
     }
 
-    public synchronized void setSortPriority(Integer sortPriority) {
+    public synchronized void setSortPriority(final Integer sortPriority) {
         this.sortPriority = sortPriority;
     }
 
@@ -68,7 +72,7 @@ public class RunnerDefinition {
         return status;
     }
 
-    public synchronized void setStatus(RunnerStatus status) {
+    public synchronized void setStatus(final RunnerStatus status) {
         this.status = status;
     }
 }

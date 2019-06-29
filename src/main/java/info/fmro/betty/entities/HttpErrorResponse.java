@@ -12,7 +12,7 @@ public class HttpErrorResponse {
         return detail;
     }
 
-    public synchronized void setDetail(HttpErrorResponseException detail) {
+    public synchronized void setDetail(final HttpErrorResponseException detail) {
         this.detail = detail;
     }
 
@@ -20,7 +20,7 @@ public class HttpErrorResponse {
         return faultcode;
     }
 
-    public synchronized void setFaultcode(String faultcode) {
+    public synchronized void setFaultcode(final String faultcode) {
         this.faultcode = faultcode;
     }
 
@@ -28,7 +28,7 @@ public class HttpErrorResponse {
         return faultstring;
     }
 
-    public synchronized void setFaultstring(String faultstring) {
+    public synchronized void setFaultstring(final String faultstring) {
         this.faultstring = faultstring;
     }
 }

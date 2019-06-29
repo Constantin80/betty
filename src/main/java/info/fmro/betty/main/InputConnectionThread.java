@@ -23,7 +23,7 @@ public class InputConnectionThread
     private static final Logger logger = LoggerFactory.getLogger(InputConnectionThread.class);
     private final Socket socket;
 
-    InputConnectionThread(Socket socket) {
+    InputConnectionThread(final Socket socket) {
         this.socket = socket;
     }
 
@@ -135,6 +135,12 @@ public class InputConnectionThread
                     Statics.mustWriteObjects.set(true);
                     logger.info("Writeobjects command executed");
                     printWriter.println("Will write objects to disk");
+                } else if (inputLine.startsWith("rules ")) {
+                    final String rulesString = inputLine.substring("rules ".length()).trim();
+                    logger.info("rulesManager command executed: {}", rulesString);
+                    printWriter.println("Will execute rulesManager command");
+
+                    Statics.rulesManager.executeCommand(rulesString);
                 } else if (inputLine.equals("findmarkettypes")) {
                     printWriter.println("Will find new market types");
                     newOrder = "findmarkettypes";

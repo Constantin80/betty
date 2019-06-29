@@ -4,11 +4,15 @@ import info.fmro.shared.utility.Generic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StrategyMatchChange {
+// objects of this class are read from the stream
+public class StrategyMatchChange
+        implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(StrategyMatchChange.class);
+    private static final long serialVersionUID = -3731593485034448217L;
     private List<List<Double>> mb; // Matched Backs - matched amounts by distinct matched price on the Back side for this strategy
     private List<List<Double>> ml; // Matched Lays - matched amounts by distinct matched price on the Lay side for this strategy
 
@@ -35,7 +39,7 @@ public class StrategyMatchChange {
         return result;
     }
 
-    public synchronized void setMb(List<List<Double>> mb) {
+    public synchronized void setMb(final List<List<Double>> mb) {
         if (mb == null) {
             this.mb = null;
         } else {
@@ -71,7 +75,7 @@ public class StrategyMatchChange {
         return result;
     }
 
-    public synchronized void setMl(List<List<Double>> ml) {
+    public synchronized void setMl(final List<List<Double>> ml) {
         if (ml == null) {
             this.ml = null;
         } else {

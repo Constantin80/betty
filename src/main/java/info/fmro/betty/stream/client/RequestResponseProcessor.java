@@ -22,7 +22,6 @@ import info.fmro.betty.stream.definitions.StatusMessage;
 import info.fmro.betty.stream.protocol.ChangeMessage;
 import info.fmro.betty.stream.protocol.ChangeMessageFactory;
 import info.fmro.betty.stream.protocol.ConnectionStatus;
-import info.fmro.betty.stream.protocol.ConnectionStatusChangeEvent;
 import info.fmro.betty.stream.protocol.MixInResponseMessage;
 import info.fmro.betty.stream.protocol.RequestResponse;
 import info.fmro.betty.stream.protocol.SubscriptionHandler;
@@ -67,8 +66,9 @@ public class RequestResponseProcessor
     private long lastResponseTime = Long.MAX_VALUE;
 
     private int traceChangeTruncation; // size to which some info messages from the processor are truncated
+    private transient boolean mcmCommandReceived, ocmCommandReceived;
 
-    public RequestResponseProcessor(Client client) {
+    public RequestResponseProcessor(final Client client) {
         this.client = client;
         marketsSet = new HashSet<>();
         objectMapper = new ObjectMapper();
@@ -97,7 +97,7 @@ public class RequestResponseProcessor
         return marketsSet;
     }
 
-    public synchronized boolean setMarketsSet(Collection<String> markets) {
+    public synchronized boolean setMarketsSet(final Collection<String> markets) {
         final int newSize = markets.size();
         final boolean modified;
         if (newSize <= 1000) {
@@ -114,7 +114,7 @@ public class RequestResponseProcessor
         return modified;
     }
 
-    private synchronized void removeMarketsFromSet(int nMarkets) {
+    private synchronized void removeMarketsFromSet(final int nMarkets) {
         if (nMarkets > 0) {
             final ArrayList<String> list = new ArrayList<>(marketsSet);
             final int listSize = list.size();
@@ -140,14 +140,14 @@ public class RequestResponseProcessor
         client.isAuth.set(true);
     }
 
-    private synchronized void setStatus(ConnectionStatus value) {
+    private synchronized void setStatus(final ConnectionStatus value) {
         if (value == status) { //no-op
         } else {
-            final ConnectionStatusChangeEvent args = new ConnectionStatusChangeEvent(this, status, value);
             logger.info("[{}]ESAClient: Status changed {} -> {}", client.id, status, value);
             status = value;
 
-            dispatchConnectionStatusChange(args);
+//            final ConnectionStatusChangeEvent args = new ConnectionStatusChangeEvent(this, status, value);
+//            dispatchConnectionStatusChange(args);
         }
     }
 
@@ -155,19 +155,19 @@ public class RequestResponseProcessor
         return status;
     }
 
-    private synchronized void dispatchConnectionStatusChange(ConnectionStatusChangeEvent args) {
-        try { // connectionStatusListeners are not used at the moment
-//            connectionStatusListeners.forEach(c -> c.connectionStatusChange(args));
-        } catch (Exception e) {
-            logger.error("[{}]Exception during event dispatch", client.id, e);
-        }
-    }
+//    private synchronized void dispatchConnectionStatusChange(ConnectionStatusChangeEvent args) {
+//        try { // connectionStatusListeners are not used at the moment
+////            connectionStatusListeners.forEach(c -> c.connectionStatusChange(args));
+//        } catch (Exception e) {
+//            logger.error("[{}]Exception during event dispatch", client.id, e);
+//        }
+//    }
 
     public synchronized int getTraceChangeTruncation() {
         return traceChangeTruncation;
     }
 
-    public synchronized void setTraceChangeTruncation(int traceChangeTruncation) {
+    public synchronized void setTraceChangeTruncation(final int traceChangeTruncation) {
         this.traceChangeTruncation = traceChangeTruncation;
         logger.info("[{}]stream processor messages will be truncated to size: {}", client.id, this.traceChangeTruncation);
     }
@@ -290,7 +290,7 @@ public class RequestResponseProcessor
         return marketSubscriptionHandler;
     }
 
-    public synchronized void setMarketSubscriptionHandler(SubscriptionHandler<MarketSubscriptionMessage, ChangeMessage<MarketChange>, MarketChange> newHandler) {
+    public synchronized void setMarketSubscriptionHandler(final SubscriptionHandler<MarketSubscriptionMessage, ChangeMessage<MarketChange>, MarketChange> newHandler) {
         if (marketSubscriptionHandler != null) {
             marketSubscriptionHandler.cancel();
         }
@@ -304,7 +304,7 @@ public class RequestResponseProcessor
         return orderSubscriptionHandler;
     }
 
-    public synchronized void setOrderSubscriptionHandler(SubscriptionHandler<OrderSubscriptionMessage, ChangeMessage<OrderMarketChange>, OrderMarketChange> newHandler) {
+    public synchronized void setOrderSubscriptionHandler(final SubscriptionHandler<OrderSubscriptionMessage, ChangeMessage<OrderMarketChange>, OrderMarketChange> newHandler) {
         if (orderSubscriptionHandler != null) {
             orderSubscriptionHandler.cancel();
         }
@@ -318,7 +318,7 @@ public class RequestResponseProcessor
 //        return connectionMessage;
 //    }
 
-    public synchronized void authenticate(AuthenticationMessage message) {
+    public synchronized void authenticate(final AuthenticationMessage message) {
         createHeader(message, RequestOperationType.authentication);
         sendMessage(message, success -> successfulAuth(), true);
     }
@@ -340,22 +340,22 @@ public class RequestResponseProcessor
         heartbeat(new HeartbeatMessage());
     }
 
-    private synchronized void heartbeat(HeartbeatMessage message) {
+    private synchronized void heartbeat(final HeartbeatMessage message) {
         heartbeat(message, true);
     }
 
-    private synchronized void heartbeat(HeartbeatMessage message, boolean needsHeader) {
+    private synchronized void heartbeat(final HeartbeatMessage message, final boolean needsHeader) {
         if (needsHeader) {
             createHeader(message, RequestOperationType.heartbeat);
         }
         sendMessage(message, null);
     }
 
-    private synchronized void marketSubscription(MarketSubscriptionMessage message) {
+    private synchronized void marketSubscription(final MarketSubscriptionMessage message) {
         marketSubscription(message, true);
     }
 
-    private synchronized void marketSubscription(MarketSubscriptionMessage message, boolean needsHeader) {
+    private synchronized void marketSubscription(final MarketSubscriptionMessage message, final boolean needsHeader) {
         if (needsHeader) {
             createHeader(message, RequestOperationType.marketSubscription);
         }
@@ -363,11 +363,11 @@ public class RequestResponseProcessor
         sendMessage(message, success -> setMarketSubscriptionHandler(newSub));
     }
 
-    private synchronized void orderSubscription(OrderSubscriptionMessage message) {
+    private synchronized void orderSubscription(final OrderSubscriptionMessage message) {
         orderSubscription(message, true);
     }
 
-    private synchronized void orderSubscription(OrderSubscriptionMessage message, boolean needsHeader) {
+    private synchronized void orderSubscription(final OrderSubscriptionMessage message, final boolean needsHeader) {
         if (needsHeader) {
             createHeader(message, RequestOperationType.orderSubscription);
         }
@@ -375,11 +375,11 @@ public class RequestResponseProcessor
         sendMessage(message, success -> setOrderSubscriptionHandler(newSub));
     }
 
-    private synchronized void sendMessage(RequestMessage message, Consumer<RequestResponse> onSuccess) {
+    private synchronized void sendMessage(final RequestMessage message, final Consumer<RequestResponse> onSuccess) {
         sendMessage(message, onSuccess, false);
     }
 
-    private synchronized void sendMessage(RequestMessage message, Consumer<RequestResponse> onSuccess, boolean isAuthLine) {
+    private synchronized void sendMessage(final RequestMessage message, final Consumer<RequestResponse> onSuccess, final boolean isAuthLine) {
         final int messageId = message.getId();
         final RequestResponse requestResponse = new RequestResponse(message, onSuccess);
 
@@ -416,12 +416,12 @@ public class RequestResponseProcessor
      * @param op
      * @return The id
      */
-    private synchronized void createHeader(RequestMessage msg, RequestOperationType op) {
+    private synchronized void createHeader(final RequestMessage msg, final RequestOperationType op) {
         setMessageId(msg);
         msg.setOp(op);
     }
 
-    private synchronized void setMessageId(RequestMessage msg) {
+    private synchronized void setMessageId(final RequestMessage msg) {
         final int id = nextId.incrementAndGet();
         msg.setId(id);
     }
@@ -432,7 +432,7 @@ public class RequestResponseProcessor
      * @param line
      * @return
      */
-    private synchronized ResponseMessage receiveLine(String line) {
+    private synchronized ResponseMessage receiveLine(final String line) {
         //clear last response
         ResponseMessage message = null;
         try {
@@ -469,13 +469,18 @@ public class RequestResponseProcessor
         return message;
     }
 
-    private synchronized void traceChange(String line) {
+    private synchronized void traceChange(final String line) {
         if (traceChangeTruncation != 0) {
             logger.info("[{}]ESA->Client: {}", client.id, line.substring(0, Math.min(traceChangeTruncation, line.length())));
         }
     }
 
-    private synchronized void processOrderChangeMessage(OrderChangeMessage message) {
+    private synchronized void processOrderChangeMessage(final OrderChangeMessage message) {
+        if (!this.ocmCommandReceived) {
+            this.ocmCommandReceived = true;
+            ClientHandler.threadsWithOcmCommandReceived.getAndIncrement();
+        }
+
         ChangeMessage<OrderMarketChange> change = ChangeMessageFactory.ToChangeMessage(client.id, message);
         if (orderSubscriptionHandler == null) {
             logger.error("[{}]null orderSubscriptionHandler for: {}", client.id, Generic.objectToString(message, "mc"));
@@ -487,7 +492,12 @@ public class RequestResponseProcessor
         }
     }
 
-    private synchronized void processMarketChangeMessage(MarketChangeMessage message) {
+    private synchronized void processMarketChangeMessage(final MarketChangeMessage message) {
+        if (!this.mcmCommandReceived) {
+            this.mcmCommandReceived = true;
+            ClientHandler.threadsWithMcmCommandReceived.getAndIncrement();
+        }
+
         ChangeMessage<MarketChange> change = ChangeMessageFactory.ToChangeMessage(client.id, message);
         final int id = message.getId();
         if (marketSubscriptionHandler == null) {
@@ -514,7 +524,7 @@ public class RequestResponseProcessor
         }
     }
 
-    private synchronized void processStatusMessage(StatusMessage statusMessage) {
+    private synchronized void processStatusMessage(final StatusMessage statusMessage) {
         final Integer id = statusMessage.getId();
         if (id == null) {
             //async status / status for a message that couldn't be decoded
@@ -573,11 +583,11 @@ public class RequestResponseProcessor
         tasksMaintenance();
     }
 
-    private synchronized boolean isIdRecentlyRemoved(int id) {
+    private synchronized boolean isIdRecentlyRemoved(final int id) {
         return isIdRecentlyRemoved(id, 120_000L); // default value
     }
 
-    private synchronized boolean isIdRecentlyRemoved(int id, long recentPeriod) {
+    private synchronized boolean isIdRecentlyRemoved(final int id, final long recentPeriod) {
         final boolean isRecent;
         final Long storedValue = previousIds.get(id);
         if (storedValue == null) {
@@ -596,7 +606,7 @@ public class RequestResponseProcessor
 ////        changeHandler.onErrorStatusNotification(statusMessage);
 //    }
 
-    private synchronized void processConnectionMessage(ConnectionMessage message) {
+    private synchronized void processConnectionMessage(final ConnectionMessage message) {
 //        connectionMessage.setResponse(message);
         setStatus(ConnectionStatus.CONNECTED);
         client.streamIsConnected.set(true);
@@ -804,7 +814,7 @@ public class RequestResponseProcessor
         }
     }
 
-    private synchronized void repeatTask(RequestResponse task) {
+    private synchronized void repeatTask(final RequestResponse task) {
 //        final RequestMessage newRequestMessage = new RequestMessage(requestMessage); // if I use the previous request message and modify it, I'll run into some very nasty bugs; not true
         final RequestOperationType operationType = task.getRequestOperationType();
         final RequestMessage requestMessage = task.getRequest();
@@ -833,7 +843,7 @@ public class RequestResponseProcessor
         }
     }
 
-    private synchronized boolean similarTaskExists(RequestOperationType operationType) {
+    private synchronized boolean similarTaskExists(final RequestOperationType operationType) {
         boolean foundSimilar = false;
         for (RequestResponse task : tasks.values()) {
             final RequestOperationType existingOperation = task.getRequestOperationType();

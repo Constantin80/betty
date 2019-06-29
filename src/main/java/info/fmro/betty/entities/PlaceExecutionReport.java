@@ -2,11 +2,11 @@ package info.fmro.betty.entities;
 
 import info.fmro.betty.enums.ExecutionReportErrorCode;
 import info.fmro.betty.enums.ExecutionReportStatus;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class PlaceExecutionReport {
-
     private String customerRef;
     private ExecutionReportStatus status;
     private ExecutionReportErrorCode errorCode;
@@ -20,7 +20,7 @@ public class PlaceExecutionReport {
         return customerRef;
     }
 
-    public synchronized void setCustomerRef(String customerRef) {
+    public synchronized void setCustomerRef(final String customerRef) {
         this.customerRef = customerRef;
     }
 
@@ -28,7 +28,7 @@ public class PlaceExecutionReport {
         return status;
     }
 
-    public synchronized void setStatus(ExecutionReportStatus status) {
+    public synchronized void setStatus(final ExecutionReportStatus status) {
         this.status = status;
     }
 
@@ -36,7 +36,7 @@ public class PlaceExecutionReport {
         return errorCode;
     }
 
-    public synchronized void setErrorCode(ExecutionReportErrorCode errorCode) {
+    public synchronized void setErrorCode(final ExecutionReportErrorCode errorCode) {
         this.errorCode = errorCode;
     }
 
@@ -44,7 +44,7 @@ public class PlaceExecutionReport {
         return marketId;
     }
 
-    public synchronized void setMarketId(String marketId) {
+    public synchronized void setMarketId(final String marketId) {
         this.marketId = marketId;
     }
 
@@ -52,7 +52,7 @@ public class PlaceExecutionReport {
         return instructionReports == null ? null : new ArrayList<>(instructionReports);
     }
 
-    public synchronized void setInstructionReports(List<PlaceInstructionReport> instructionReports) {
+    public synchronized void setInstructionReports(final List<PlaceInstructionReport> instructionReports) {
         this.instructionReports = instructionReports == null ? null : new ArrayList<>(instructionReports);
     }
 }

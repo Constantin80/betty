@@ -1,13 +1,13 @@
 package info.fmro.betty.entities;
 
 import info.fmro.betty.enums.Side;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
 public class Match
         implements Serializable {
-
     private static final long serialVersionUID = 5267424955233956792L;
     private String betId;
     private String matchId;
@@ -19,7 +19,7 @@ public class Match
     public Match() {
     }
 
-    public Match(String betId, String matchId, Side side, Double price, Double size, Date matchDate) {
+    public Match(final String betId, final String matchId, final Side side, final Double price, final Double size, final Date matchDate) {
         this.betId = betId;
         this.matchId = matchId;
         this.side = side;
@@ -32,47 +32,47 @@ public class Match
         return betId;
     }
 
-//    public synchronized void setBetId(String betId) {
+    //    public synchronized void setBetId(String betId) {
 //        this.betId = betId;
 //    }
     public synchronized String getMatchId() {
         return matchId;
     }
 
-//    public synchronized void setMatchId(String matchId) {
+    //    public synchronized void setMatchId(String matchId) {
 //        this.matchId = matchId;
 //    }
     public synchronized Side getSide() {
         return side;
     }
 
-//    public synchronized void setSide(Side side) {
+    //    public synchronized void setSide(Side side) {
 //        this.side = side;
 //    }
     public synchronized Double getPrice() {
         return price;
     }
 
-//    public synchronized void setPrice(Double price) {
+    //    public synchronized void setPrice(Double price) {
 //        this.price = price;
 //    }
     public synchronized Double getSize() {
         return size;
     }
 
-//    public synchronized void setSize(Double size) {
+    //    public synchronized void setSize(Double size) {
 //        this.size = size;
 //    }
     public synchronized Date getMatchDate() {
         return matchDate == null ? null : (Date) matchDate.clone();
     }
 
-//    public synchronized void setMatchDate(Date matchDate) {
+    //    public synchronized void setMatchDate(Date matchDate) {
 //        this.matchDate = matchDate == null ? null : (Date) matchDate.clone();
 //    }
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized boolean equals(Object obj) {
+    public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }

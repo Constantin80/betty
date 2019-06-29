@@ -6,11 +6,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class Runner
         implements Serializable {
-
     private static final long serialVersionUID = -8538359656490442656L;
     private Long selectionId;
     private Double handicap;
@@ -23,12 +23,12 @@ public class Runner
     private ExchangePrices ex;
     private List<Order> orders;
     private List<Match> matches;
+    private Map<String, List<Match>> matchesByStrategy;
 
     public Runner() {
     }
 
-    public Runner(Long selectionId, Double handicap, RunnerStatus status, Double adjustmentFactor, Double lastPriceTraded, Double totalMatched, Date removalDate, StartingPrices sp,
-                  ExchangePrices ex, List<Order> orders, List<Match> matches) {
+    public Runner(final Long selectionId, final Double handicap, final RunnerStatus status, final Double adjustmentFactor, final Double lastPriceTraded, final Double totalMatched, final Date removalDate, final StartingPrices sp, final ExchangePrices ex, final List<Order> orders, final List<Match> matches) {
         this.selectionId = selectionId;
         this.handicap = handicap;
         this.status = status;
@@ -140,7 +140,7 @@ public class Runner
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized boolean equals(Object obj) {
+    public synchronized boolean equals(final Object obj) {
         if (this == obj) {
             return true;
         }

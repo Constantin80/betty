@@ -5,7 +5,6 @@ import java.util.Objects;
 
 public class Competition
         implements Serializable {
-
     private static final long serialVersionUID = -3187113086865598702L;
     private String id;
     private String name;
@@ -13,7 +12,7 @@ public class Competition
     public Competition() {
     }
 
-    public Competition(String id, String name) {
+    public Competition(final String id, final String name) {
         this.id = id;
         this.name = name;
     }
@@ -22,19 +21,19 @@ public class Competition
         return id;
     }
 
-//    public synchronized void setId(String id) {
+    //    public synchronized void setId(String id) {
 //        this.id = id;
 //    }
     public synchronized String getName() {
         return name;
     }
 
-//    public synchronized void setName(String name) {
+    //    public synchronized void setName(String name) {
 //        this.name = name;
 //    }
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized boolean equals(Object obj) {
+    public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }

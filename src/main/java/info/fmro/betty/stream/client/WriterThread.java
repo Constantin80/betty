@@ -21,11 +21,11 @@ public class WriterThread
     private LinkedList<String> linesList = new LinkedList<>();
     public final AtomicBoolean bufferNotEmpty = new AtomicBoolean();
 
-    WriterThread(Client client) {
+    WriterThread(final Client client) {
         this.client = client;
     }
 
-    synchronized void setBufferedWriter(BufferedWriter bufferedWriter) {
+    synchronized void setBufferedWriter(final BufferedWriter bufferedWriter) {
         if (this.bufferedWriter != null) {
             try {
                 this.bufferedWriter.close();
@@ -36,7 +36,7 @@ public class WriterThread
         this.bufferedWriter = bufferedWriter;
     }
 
-    public synchronized void setAuthLine(String line) {
+    public synchronized void setAuthLine(final String line) {
         if (authLine != null) {
             logger.error("[{}]previous authLine not null in setAuthLine: {} {}", client.id, authLine, line);
         } else if (line != null) {
@@ -77,7 +77,7 @@ public class WriterThread
         return isLastAuthRecent(5_000L); // default
     }
 
-    private synchronized boolean isLastAuthRecent(long recentPeriod) {
+    private synchronized boolean isLastAuthRecent(final long recentPeriod) {
         return timeSinceLastAuth() <= recentPeriod;
     }
 
@@ -85,11 +85,11 @@ public class WriterThread
         return System.currentTimeMillis() - lastAuthSentStamp;
     }
 
-    public synchronized void addLine(String line) {
+    public synchronized void addLine(final String line) {
         addLine(line, false);
     }
 
-    public synchronized void addLine(String line, boolean addFirst) {
+    public synchronized void addLine(final String line, final boolean addFirst) {
         if (addFirst) {
             linesList.addFirst(line);
         } else {
@@ -129,7 +129,7 @@ public class WriterThread
         return result;
     }
 
-    private synchronized void sendLine(String line) {
+    private synchronized void sendLine(final String line) {
         if (line != null) {
             try {
                 bufferedWriter.write(line + CRLF);
@@ -154,7 +154,7 @@ public class WriterThread
         }
     }
 
-    private synchronized boolean isAuthLine(String line) {
+    private synchronized boolean isAuthLine(final String line) {
         // ,"op":"authentication","appKey":
         return line.contains(",\"op\":\"authentication\",\"appKey\":");
     }

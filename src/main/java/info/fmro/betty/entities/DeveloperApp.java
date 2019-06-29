@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DeveloperApp {
-
     private String appName; // The unique name of the application
     private Long appId; // A unique id of this application
     private List<DeveloperAppVersion> appVersions; // The application versions (including application keys)
@@ -16,7 +15,7 @@ public class DeveloperApp {
         return appName;
     }
 
-    public synchronized void setAppName(String appName) {
+    public synchronized void setAppName(final String appName) {
         this.appName = appName;
     }
 
@@ -24,7 +23,7 @@ public class DeveloperApp {
         return appId;
     }
 
-    public synchronized void setAppId(Long appId) {
+    public synchronized void setAppId(final Long appId) {
         this.appId = appId;
     }
 
@@ -32,7 +31,7 @@ public class DeveloperApp {
         return appVersions == null ? null : new ArrayList<>(appVersions);
     }
 
-    public synchronized void setAppVersions(List<DeveloperAppVersion> appVersions) {
+    public synchronized void setAppVersions(final List<DeveloperAppVersion> appVersions) {
         this.appVersions = appVersions == null ? null : new ArrayList<>(appVersions);
     }
 }

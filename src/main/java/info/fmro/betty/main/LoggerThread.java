@@ -15,13 +15,12 @@ import java.util.Set;
 
 public class LoggerThread
         implements Runnable {
-
     private static final Logger logger = LoggerFactory.getLogger(LoggerThread.class);
     public static final long DEFAULT_TIME_OUT_TO_PRINT = 1_000L;
     private final HashMap<String, ArrayList<Long>> logEntries = new HashMap<>(2);
     private final HashMap<String, Long> logEntriesExpiration = new HashMap<>(2);
 
-    public synchronized void addLogEntry(String messageFormat, long timeDifference) {
+    public synchronized void addLogEntry(final String messageFormat, final long timeDifference) {
         final ArrayList<Long> list;
         if (logEntries.containsKey(messageFormat)) {
             list = logEntries.get(messageFormat);
@@ -34,7 +33,7 @@ public class LoggerThread
         logEntriesExpiration.put(messageFormat, System.currentTimeMillis() + DEFAULT_TIME_OUT_TO_PRINT);
     }
 
-    private synchronized void printEntry(String messageFormat) {
+    private synchronized void printEntry(final String messageFormat) {
         final ArrayList<Long> list = logEntries.remove(messageFormat);
 
         // logEntriesExpiration entry gets removed outside this method, using the Iterator

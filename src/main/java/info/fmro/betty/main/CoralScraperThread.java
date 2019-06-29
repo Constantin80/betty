@@ -40,7 +40,7 @@ public class CoralScraperThread
         super("coral", 500L, BrowserVersion.FIREFOX_52, 200, true);
     }
 
-    public CoralEvent scrapeEventName(long startTime, BookMark bookMark) {
+    public CoralEvent scrapeEventName(final long startTime, final BookMark bookMark) {
         CoralEvent scraperEvent;
         bookMark.setCursorPosition();
         final VTDNav vtdNav = bookMark.getNav();
@@ -96,7 +96,7 @@ public class CoralScraperThread
         return scraperEvent;
     }
 
-    public boolean scrapeScore(CoralEvent scraperEvent, BookMark bookMark, AtomicInteger knownCauseForFailure) {
+    public boolean scrapeScore(final CoralEvent scraperEvent, final BookMark bookMark, final AtomicInteger knownCauseForFailure) {
         boolean success;
         bookMark.setCursorPosition();
         final VTDNav vtdNav = bookMark.getNav();
@@ -170,7 +170,7 @@ public class CoralScraperThread
         return success;
     }
 
-    public boolean scrapeTime(CoralEvent scraperEvent, BookMark bookMark) {
+    public boolean scrapeTime(final CoralEvent scraperEvent, final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
         final VTDNav vtdNav = bookMark.getNav();
@@ -240,7 +240,7 @@ public class CoralScraperThread
         return success;
     }
 
-    public boolean scrapePeriod(CoralEvent scraperEvent, BookMark bookMark) {
+    public boolean scrapePeriod(final CoralEvent scraperEvent, final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
         final VTDNav vtdNav = bookMark.getNav();
@@ -396,8 +396,8 @@ public class CoralScraperThread
     }
 
     @Override
-    public void getScraperEventsInner(long startTime, boolean fullRun, boolean checkAll, AutoPilot autoPilot, VTDNav vtdNav, AtomicInteger listSize,
-                                      AtomicInteger scrapedEventsCounter)
+    public void getScraperEventsInner(final long startTime, final boolean fullRun, final boolean checkAll, final AutoPilot autoPilot, final VTDNav vtdNav, final AtomicInteger listSize,
+                                      final AtomicInteger scrapedEventsCounter)
             throws XPathParseException, XPathEvalException, NavException {
         if (checkAll) {
             if (startTime - this.lastPageGet.get() > CoralScraperThread.pageRefreshPeriod) { // refresh page once in a while
@@ -667,7 +667,7 @@ public class CoralScraperThread
     }
 
     @Override
-    public HtmlPage getHtmlPage(WebClient webClient) {
+    public HtmlPage getHtmlPage(final WebClient webClient) {
         String savePrefix;
         long currentTime = System.currentTimeMillis();
         synchronized (lastTimedPageSave) { // synchronized not necessary for now, added just in case
@@ -695,7 +695,7 @@ public class CoralScraperThread
     }
 
     @Override
-    public void pageManipulation(WebClient webClient, HtmlPage htmlPage)
+    public void pageManipulation(final WebClient webClient, final HtmlPage htmlPage)
             throws IOException {
         // condition check for this is in the DOM parser
         if (this.shouldChangeCheckboxes) {
@@ -708,7 +708,7 @@ public class CoralScraperThread
         } // end if shouldChangeCheckboxes
     }
 
-    public void checkBoxes(WebClient webClient, HtmlPage htmlPage)
+    public void checkBoxes(final WebClient webClient, final HtmlPage htmlPage)
             throws IOException {
         if (htmlPage != null) {
             List<?> htmlCheckBoxInputs = htmlPage.getByXPath("//input[@class='other-filters' and @name='sportfilter' and @type='checkbox']");

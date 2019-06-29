@@ -1,7 +1,6 @@
 package info.fmro.betty.entities;
 
 public class EventResult {
-
     private Event event;
     private Integer marketCount;
 
@@ -16,7 +15,7 @@ public class EventResult {
         return event;
     }
 
-    public synchronized void setEvent(Event event) {
+    public synchronized void setEvent(final Event event) {
         this.event = event;
     }
 
@@ -24,7 +23,7 @@ public class EventResult {
         return marketCount;
     }
 
-    public synchronized void setMarketCount(Integer marketCount) {
+    public synchronized void setMarketCount(final Integer marketCount) {
         this.marketCount = marketCount;
     }
 }

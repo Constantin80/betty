@@ -1,7 +1,6 @@
 package info.fmro.betty.entities;
 
 public class MarketTypeResult {
-
     private String marketType;
     private Integer marketCount;
 
@@ -12,7 +11,7 @@ public class MarketTypeResult {
         return marketType;
     }
 
-    public synchronized void setMarketType(String marketType) {
+    public synchronized void setMarketType(final String marketType) {
         this.marketType = marketType;
     }
 
@@ -20,7 +19,7 @@ public class MarketTypeResult {
         return marketCount;
     }
 
-    public synchronized void setMarketCount(Integer marketCount) {
+    public synchronized void setMarketCount(final Integer marketCount) {
         this.marketCount = marketCount;
     }
 }

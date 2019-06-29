@@ -1,7 +1,6 @@
 package info.fmro.betty.enums;
 
 public enum MatchStatus {
-
     // Postponed, Not started, Start delayed, 1st half, Half Time, 2nd half, Awaiting extra time, 1st extra, Extra time halftime, 2nd extra, AET, Penalties, AP, Ended
     NOT_STARTED,
     POSTPONED,

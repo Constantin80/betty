@@ -16,7 +16,7 @@ public class AverageLogger {
     private final int nLists;
     private final ArrayList<ArrayList<Long>> lists;
 
-    public AverageLogger(AverageLoggerInterface loggerInterface, String standardPattern, String errorPattern, int nLists) {
+    public AverageLogger(final AverageLoggerInterface loggerInterface, final String standardPattern, final String errorPattern, final int nLists) {
         this.loggerInterface = loggerInterface;
         this.standardPattern = standardPattern;
         this.errorPattern = errorPattern;
@@ -31,7 +31,7 @@ public class AverageLogger {
         decimalFormat.setRoundingMode(roundingMode);
     }
 
-    public synchronized void addRecords(long... records) {
+    public synchronized void addRecords(final long... records) {
         for (int i = 0; i < this.nLists; i++) {
             this.lists.get(i).add(records[i]);
         }

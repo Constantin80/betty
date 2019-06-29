@@ -23,21 +23,21 @@ public class RequestResponse {
     private StatusMessage statusMessage;
     private final long creationTime;
 
-    public RequestResponse(RequestMessage request, Consumer<RequestResponse> onSuccess) {
+    public RequestResponse(final RequestMessage request, final Consumer<RequestResponse> onSuccess) {
         creationTime = System.currentTimeMillis();
 //        this.id = id;
         this.request = request;
         this.onSuccess = onSuccess;
     }
 
-    public RequestResponse(RequestResponse other) {
+    public RequestResponse(final RequestResponse other) {
         creationTime = System.currentTimeMillis();
 //        this.id = other.getId();
         this.request = other.getRequest();
         this.onSuccess = other.getOnSuccess();
     }
 
-    public synchronized void processStatusMessage(StatusMessage statusMessage) {
+    public synchronized void processStatusMessage(final StatusMessage statusMessage) {
         if (statusMessage == null) {
             logger.error("null statusMessage for task: {}", Generic.objectToString(this));
         } else {
@@ -84,7 +84,7 @@ public class RequestResponse {
         return isExpired(defaultExpirationPeriod);
     }
 
-    public synchronized boolean isExpired(long expirationPeriod) {
+    public synchronized boolean isExpired(final long expirationPeriod) {
         final boolean isExpired;
         final long currentTime = System.currentTimeMillis();
         final long timeSinceCreation = currentTime - this.creationTime;

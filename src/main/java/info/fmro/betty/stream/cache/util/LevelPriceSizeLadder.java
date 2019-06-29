@@ -1,18 +1,16 @@
 package info.fmro.betty.stream.cache.util;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-/**
- * A level price size ladder with copy on write snapshot
- */
-public class LevelPriceSizeLadder {
-    private Map<Integer, LevelPriceSize> levelToPriceSize = new TreeMap<>();
-//    private List<LevelPriceSize> snap = Collections.emptyList();
+public class LevelPriceSizeLadder
+        implements Serializable {
+    private static final long serialVersionUID = 990070832400710390L;
+    private final Map<Integer, LevelPriceSize> levelToPriceSize = new TreeMap<>();
 
-    //    public synchronized List<LevelPriceSize> onPriceChange(boolean isImage, List<List<Double>> prices) {
-    public synchronized void onPriceChange(boolean isImage, List<List<Double>> prices) {
+    public synchronized void onPriceChange(final boolean isImage, final List<List<Double>> prices) {
         if (isImage) {
             //image is replace
             levelToPriceSize.clear();
@@ -21,15 +19,9 @@ public class LevelPriceSizeLadder {
         if (prices != null) {
             //changes to apply
             for (List<Double> price : prices) {
-                LevelPriceSize levelPriceSize = new LevelPriceSize(price);
+                final LevelPriceSize levelPriceSize = new LevelPriceSize(price);
                 levelToPriceSize.put(levelPriceSize.getLevel(), levelPriceSize);
             }
         }
-
-//        if (isImage || prices != null) {
-//            //update snap on image or if we had cell changes
-//            snap = new ArrayList<>(levelToPriceSize.values());
-//        }
-//        return snap;
     }
 }

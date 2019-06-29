@@ -1,13 +1,13 @@
 package info.fmro.betty.entities;
 
 import info.fmro.betty.enums.MarketBettingType;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
 public class MarketDescription
         implements Serializable {
-
     private static final long serialVersionUID = -2877536783333417777L;
     private Boolean persistenceEnabled;
     private Boolean bspMarket;
@@ -25,13 +25,15 @@ public class MarketDescription
     private Boolean rulesHasDate;
     private Double eachWayDivisor; // The divisor is returned for the marketType EACH_WAY only
     private String clarifications;
+    private MarketLineRangeInfo lineRangeInfo; // Line range info for line markets
+    private String raceType; // An external identifier of a race type
+    private PriceLadderDescription priceLadderDescription; // Details about the price ladder in use for this market.
 
     public MarketDescription() {
     }
 
-    public MarketDescription(Boolean persistenceEnabled, Boolean bspMarket, Date marketTime, Date suspendTime, Date settleTime, MarketBettingType bettingType,
-            Boolean turnInPlayEnabled, String marketType, String regulator, Double marketBaseRate, Boolean discountAllowed, String wallet, String rules, Boolean rulesHasDate,
-            String clarifications) {
+    public MarketDescription(final Boolean persistenceEnabled, final Boolean bspMarket, final Date marketTime, final Date suspendTime, final Date settleTime, final MarketBettingType bettingType, final Boolean turnInPlayEnabled, final String marketType, final String regulator, final Double marketBaseRate,
+                             final Boolean discountAllowed, final String wallet, final String rules, final Boolean rulesHasDate, final String clarifications) {
         this.persistenceEnabled = persistenceEnabled;
         this.bspMarket = bspMarket;
         this.marketTime = marketTime;
@@ -53,117 +55,117 @@ public class MarketDescription
         return persistenceEnabled;
     }
 
-//    public synchronized void setPersistenceEnabled(Boolean persistenceEnabled) {
+    //    public synchronized void setPersistenceEnabled(Boolean persistenceEnabled) {
 //        this.persistenceEnabled = persistenceEnabled;
 //    }
     public synchronized Boolean getBspMarket() {
         return bspMarket;
     }
 
-//    public synchronized void setBspMarket(Boolean bspMarket) {
+    //    public synchronized void setBspMarket(Boolean bspMarket) {
 //        this.bspMarket = bspMarket;
 //    }
     public synchronized Date getMarketTime() {
         return marketTime == null ? null : (Date) marketTime.clone();
     }
 
-//    public synchronized void setMarketTime(Date marketTime) {
+    //    public synchronized void setMarketTime(Date marketTime) {
 //        this.marketTime = marketTime == null ? null : (Date) marketTime.clone();
 //    }
     public synchronized Date getSuspendTime() {
         return suspendTime == null ? null : (Date) suspendTime.clone();
     }
 
-//    public synchronized void setSuspendTime(Date suspendTime) {
+    //    public synchronized void setSuspendTime(Date suspendTime) {
 //        this.suspendTime = suspendTime == null ? null : (Date) suspendTime.clone();
 //    }
     public synchronized Date getSettleTime() {
         return settleTime == null ? null : (Date) settleTime.clone();
     }
 
-//    public synchronized void setSettleTime(Date settleTime) {
+    //    public synchronized void setSettleTime(Date settleTime) {
 //        this.settleTime = settleTime == null ? null : (Date) settleTime.clone();
 //    }
     public synchronized MarketBettingType getBettingType() {
         return bettingType;
     }
 
-//    public synchronized void setBettingType(MarketBettingType bettingType) {
+    //    public synchronized void setBettingType(MarketBettingType bettingType) {
 //        this.bettingType = bettingType;
 //    }
     public synchronized Boolean getTurnInPlayEnabled() {
         return turnInPlayEnabled;
     }
 
-//    public synchronized void setTurnInPlayEnabled(Boolean turnInPlayEnabled) {
+    //    public synchronized void setTurnInPlayEnabled(Boolean turnInPlayEnabled) {
 //        this.turnInPlayEnabled = turnInPlayEnabled;
 //    }
     public synchronized String getMarketType() {
         return marketType;
     }
 
-//    public synchronized void setMarketType(String marketType) {
+    //    public synchronized void setMarketType(String marketType) {
 //        this.marketType = marketType;
 //    }
     public synchronized String getRegulator() {
         return regulator;
     }
 
-//    public synchronized void setRegulator(String regulator) {
+    //    public synchronized void setRegulator(String regulator) {
 //        this.regulator = regulator;
 //    }
     public synchronized Double getMarketBaseRate() {
         return marketBaseRate;
     }
 
-//    public synchronized void setMarketBaseRate(Double marketBaseRate) {
+    //    public synchronized void setMarketBaseRate(Double marketBaseRate) {
 //        this.marketBaseRate = marketBaseRate;
 //    }
     public synchronized Boolean getDiscountAllowed() {
         return discountAllowed;
     }
 
-//    public synchronized void setDiscountAllowed(Boolean discountAllowed) {
+    //    public synchronized void setDiscountAllowed(Boolean discountAllowed) {
 //        this.discountAllowed = discountAllowed;
 //    }
     public synchronized String getWallet() {
         return wallet;
     }
 
-//    public synchronized void setWallet(String wallet) {
+    //    public synchronized void setWallet(String wallet) {
 //        this.wallet = wallet;
 //    }
     public synchronized String getRules() {
         return rules;
     }
 
-//    public synchronized void setRules(String rules) {
+    //    public synchronized void setRules(String rules) {
 //        this.rules = rules;
 //    }
     public synchronized Boolean getRulesHasDate() {
         return rulesHasDate;
     }
 
-//    public synchronized void setRulesHasDate(Boolean rulesHasDate) {
+    //    public synchronized void setRulesHasDate(Boolean rulesHasDate) {
 //        this.rulesHasDate = rulesHasDate;
 //    }
     public synchronized Double getEachWayDivisor() {
         return eachWayDivisor;
     }
 
-//    public synchronized void setEachWayDivisor(Double eachWayDivisor) {
+    //    public synchronized void setEachWayDivisor(Double eachWayDivisor) {
 //        this.eachWayDivisor = eachWayDivisor;
 //    }
     public synchronized String getClarifications() {
         return clarifications;
     }
 
-//    public synchronized void setClarifications(String clarifications) {
+    //    public synchronized void setClarifications(String clarifications) {
 //        this.clarifications = clarifications;
 //    }
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized boolean equals(Object obj) {
+    public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }

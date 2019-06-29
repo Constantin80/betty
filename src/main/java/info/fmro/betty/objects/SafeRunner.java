@@ -32,8 +32,8 @@ public class SafeRunner
 //    private double placedAmount; // only used for the specialLimitPeriod
 
     @SuppressWarnings("LeakingThisInConstructor")
-    public SafeRunner(String marketId, Long selectionId, Side side, long timeStamp, Map<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapers,
-                      ScrapedField... scrapedFields) {
+    public SafeRunner(final String marketId, final Long selectionId, final Side side, final long timeStamp, final Map<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapers,
+                      final ScrapedField... scrapedFields) {
         this.marketId = marketId;
         this.selectionId = selectionId;
         this.side = side;
@@ -57,12 +57,12 @@ public class SafeRunner
         addedStamp = timeStamp;
     }
 
-    public SafeRunner(String marketId, Long selectionId, Side side, Map<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapers,
-                      ScrapedField... scrapedFields) {
+    public SafeRunner(final String marketId, final Long selectionId, final Side side, final Map<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapers,
+                      final ScrapedField... scrapedFields) {
         this(marketId, selectionId, side, System.currentTimeMillis(), usedScrapers, scrapedFields);
     }
 
-    public SafeRunner(String marketId, Long selectionId, Side side) {
+    public SafeRunner(final String marketId, final Long selectionId, final Side side) {
         // create stump for SafetyLimits use
         this.marketId = marketId;
         this.selectionId = selectionId;
@@ -70,16 +70,16 @@ public class SafeRunner
         this.addedStamp = System.currentTimeMillis();
     }
 
-    public boolean hasBeenRemoved() {
+    public synchronized boolean hasBeenRemoved() {
         return this.hasBeenRemoved;
     }
 
-    public void setHasBeenRemoved(boolean hasBeenRemoved) {
+    public synchronized void setHasBeenRemoved(final boolean hasBeenRemoved) {
         this.hasBeenRemoved = hasBeenRemoved;
     }
 
     @Override
-    public int runOnRemoval() {
+    public synchronized int runAfterRemoval() {
         final int modified;
         if (!this.hasBeenRemoved()) {
             modified = 1;
@@ -92,14 +92,14 @@ public class SafeRunner
     }
 
     @Override
-    public int runOnAdd() {
+    public synchronized int runAfterAdd() {
         final int modified;
         modified = 0; // method not used so far
 
         return modified;
     }
 
-    public String getMarketId() {
+    public synchronized String getMarketId() {
         return marketId;
     }
 
@@ -115,7 +115,7 @@ public class SafeRunner
 //        this.placedAmount += placedAmount;
 //        return placedAmount;
 //    }
-    public synchronized int getMatchedScrapers(ScrapedField scrapedField) {
+    public synchronized int getMatchedScrapers(final ScrapedField scrapedField) {
         SynchronizedMap<Class<? extends ScraperEvent>, Long> map = usedScrapers.get(scrapedField);
         int result;
         if (map == null) {
@@ -269,7 +269,7 @@ public class SafeRunner
         return modified;
     }
 
-    public synchronized int updateUsedScrapers(SafeRunner safeRunner) {
+    public synchronized int updateUsedScrapers(final SafeRunner safeRunner) {
         int modified;
         if (this == safeRunner) {
             logger.error("update from same object in SafeRunner.update: {}", Generic.objectToString(this));
@@ -323,7 +323,7 @@ public class SafeRunner
 
     @Override
     @SuppressWarnings(value = "AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(SafeRunner other) {
+    public synchronized int compareTo(final SafeRunner other) {
         if (other == null) {
             return AFTER;
         }
@@ -370,7 +370,7 @@ public class SafeRunner
     }
 
     @Override
-    public int hashCode() {
+    public synchronized int hashCode() {
         int hash = 5;
         hash = 53 * hash + Objects.hashCode(this.marketId);
         hash = 53 * hash + Objects.hashCode(this.selectionId);
@@ -380,7 +380,7 @@ public class SafeRunner
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized boolean equals(Object obj) {
+    public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }

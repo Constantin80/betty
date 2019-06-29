@@ -19,7 +19,7 @@ public class SavePageThread
     @SuppressWarnings("PublicField")
     public boolean hasRun;
 
-    public SavePageThread(ScraperThread scraperThread, String savePrefix, WebClient webClient, HtmlPage htmlPage, Cache cache) {
+    public SavePageThread(final ScraperThread scraperThread, final String savePrefix, final WebClient webClient, final HtmlPage htmlPage, final Cache cache) {
         this.scraperThread = scraperThread;
         this.savePrefix = savePrefix;
         this.webClient = webClient;

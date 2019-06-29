@@ -4,27 +4,100 @@ import info.fmro.shared.utility.Generic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class OrderRunnerChange {
+// objects of this class are read from the stream
+public class OrderRunnerChange
+        implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(OrderRunnerChange.class);
+    private static final long serialVersionUID = -7515170337276827530L;
     private Boolean fullImage;
     private Double hc; // Handicap - the handicap of the runner (selection) (null if not applicable)
     private Long id; // Selection Id - the id of the runner (selection)
     private List<List<Double>> mb; // Matched Backs - matched amounts by distinct matched price on the Back side for this runner (selection)
     private List<List<Double>> ml; // Matched Lays - matched amounts by distinct matched price on the Lay side for this runner (selection)
-    private StrategyMatchChange smc; // Strategy Matches - Matched Backs and Matched Lays grouped by strategy reference
+    private Map<String, StrategyMatchChange> smc; // Strategy Matches - Matched Backs and Matched Lays grouped by strategy reference (customerStrategyRef)
     private List<Order> uo; // Unmatched Orders - orders on this runner (selection) that are not fully matched
 
     public OrderRunnerChange() {
+    }
+
+    public synchronized double getMatchedSize(final Side side, final double price) {
+        double matchedSize = 0d;
+        final List<List<Double>> chosenList;
+        if (side.equals(Side.B)) {
+            chosenList = this.mb;
+        } else if (side.equals(Side.L)) {
+            chosenList = this.ml;
+        } else {
+            logger.error("unknown Side in getMatchedSize for: {} {}", side, price); // matchedSize remains 0d
+            chosenList = null;
+        }
+
+        if (chosenList != null) {
+            for (List<Double> priceSizeList : chosenList) {
+                if (priceSizeList != null) {
+                    final int listSize = priceSizeList.size();
+                    if (listSize == 2) {
+                        final Double foundPrice = priceSizeList.get(0);
+                        if (foundPrice != null && foundPrice == price) {
+                            final Double foundSize = priceSizeList.get(0);
+                            if (foundSize != null) {
+                                matchedSize = foundSize;
+                                break;
+                            } else {
+                                logger.error("foundSize null in getMatchedSize for: {} {} {}", foundPrice, Generic.objectToString(priceSizeList), Generic.objectToString(this)); // matchedSize remains 0d
+                            }
+                        } else { // matchedSize remains 0d
+                            if (foundPrice == null) {
+                                logger.error("foundPrice null in getMatchedSize for: {} {}", Generic.objectToString(priceSizeList), Generic.objectToString(this)); // matchedSize remains 0d
+                            } else { // no error, but proper price not found, nothing to be done
+                            }
+                        }
+                    } else {
+                        logger.error("wrong size {} for priceSizeList getMatchedSize for: {} {}", listSize, Generic.objectToString(priceSizeList), Generic.objectToString(this)); // matchedSize remains 0d
+                    }
+                } else {
+                    logger.error("null priceSizeList in getMatchedSize for: {} {} {}", side, price, Generic.objectToString(this)); // matchedSize remains 0d
+                }
+            } // end for
+        } else { // matchedSize remains 0d, nothing to be done
+        }
+
+        return matchedSize;
+    }
+
+    public synchronized Order getUnmatchedOrder(final String betId) {
+        Order returnValue = null;
+
+        if (betId != null) {
+            if (uo != null) {
+                for (Order order : uo) {
+                    final String orderBetId = order.getId();
+                    if (betId.equals(orderBetId)) {
+                        returnValue = order;
+                        break;
+                    } else { // not returnValue yet, returnValue stays null, nothing to be done
+                    }
+                } // end for
+            } else { // returnValue stays null, nothing to be done
+            }
+        } else {
+            logger.error("null betId in getUnmatchedOrder"); // returnValue stays null
+        }
+
+        return returnValue;
     }
 
     public synchronized Boolean getFullImage() {
         return fullImage;
     }
 
-    public synchronized void setFullImage(Boolean fullImage) {
+    public synchronized void setFullImage(final Boolean fullImage) {
         this.fullImage = fullImage;
     }
 
@@ -32,7 +105,7 @@ public class OrderRunnerChange {
         return hc;
     }
 
-    public synchronized void setHc(Double hc) {
+    public synchronized void setHc(final Double hc) {
         this.hc = hc;
     }
 
@@ -40,7 +113,7 @@ public class OrderRunnerChange {
         return id;
     }
 
-    public synchronized void setId(Long id) {
+    public synchronized void setId(final Long id) {
         this.id = id;
     }
 
@@ -64,7 +137,7 @@ public class OrderRunnerChange {
         return result;
     }
 
-    public synchronized void setMb(List<List<Double>> mb) {
+    public synchronized void setMb(final List<List<Double>> mb) {
         if (mb == null) {
             this.mb = null;
         } else {
@@ -100,7 +173,7 @@ public class OrderRunnerChange {
         return result;
     }
 
-    public synchronized void setMl(List<List<Double>> ml) {
+    public synchronized void setMl(final List<List<Double>> ml) {
         if (ml == null) {
             this.ml = null;
         } else {
@@ -116,19 +189,19 @@ public class OrderRunnerChange {
         }
     }
 
-    public synchronized StrategyMatchChange getSmc() {
-        return smc;
+    public synchronized Map<String, StrategyMatchChange> getSmc() {
+        return smc == null ? null : new HashMap<>(smc);
     }
 
-    public synchronized void setSmc(StrategyMatchChange smc) {
-        this.smc = smc;
+    public synchronized void setSmc(final Map<String, StrategyMatchChange> smc) {
+        this.smc = smc == null ? null : new HashMap<>(smc);
     }
 
     public synchronized List<Order> getUo() {
         return uo == null ? null : new ArrayList<>(uo);
     }
 
-    public synchronized void setUo(List<Order> uo) {
+    public synchronized void setUo(final List<Order> uo) {
         this.uo = uo == null ? null : new ArrayList<>(uo);
     }
 }

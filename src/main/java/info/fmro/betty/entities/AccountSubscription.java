@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AccountSubscription {
-
     private List<SubscriptionTokenInfo> subscriptionTokens; // List of subscription token details
     private String applicationName; // Application name
     private String applicationVersionId; // Application version Id
@@ -16,7 +15,7 @@ public class AccountSubscription {
         return subscriptionTokens == null ? null : new ArrayList<>(subscriptionTokens);
     }
 
-    public synchronized void setSubscriptionTokens(List<SubscriptionTokenInfo> subscriptionTokens) {
+    public synchronized void setSubscriptionTokens(final List<SubscriptionTokenInfo> subscriptionTokens) {
         this.subscriptionTokens = subscriptionTokens == null ? null : new ArrayList<>(subscriptionTokens);
     }
 
@@ -24,7 +23,7 @@ public class AccountSubscription {
         return applicationName;
     }
 
-    public synchronized void setApplicationName(String applicationName) {
+    public synchronized void setApplicationName(final String applicationName) {
         this.applicationName = applicationName;
     }
 
@@ -32,7 +31,7 @@ public class AccountSubscription {
         return applicationVersionId;
     }
 
-    public synchronized void setApplicationVersionId(String applicationVersionId) {
+    public synchronized void setApplicationVersionId(final String applicationVersionId) {
         this.applicationVersionId = applicationVersionId;
     }
 }

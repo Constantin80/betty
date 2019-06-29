@@ -1,10 +1,10 @@
 package info.fmro.betty.entities;
 
 public class RunnerProfitAndLoss {
-
     private Long selectionId; // SelectionId alias Long
     private Double ifWin;
     private Double ifLose;
+    private Double ifPlace;
 
     public RunnerProfitAndLoss() {
     }
@@ -13,7 +13,7 @@ public class RunnerProfitAndLoss {
         return selectionId;
     }
 
-    public synchronized void setSelectionId(Long selectionId) {
+    public synchronized void setSelectionId(final Long selectionId) {
         this.selectionId = selectionId;
     }
 
@@ -21,7 +21,7 @@ public class RunnerProfitAndLoss {
         return ifWin;
     }
 
-    public synchronized void setIfWin(Double ifWin) {
+    public synchronized void setIfWin(final Double ifWin) {
         this.ifWin = ifWin;
     }
 
@@ -29,7 +29,7 @@ public class RunnerProfitAndLoss {
         return ifLose;
     }
 
-    public synchronized void setIfLose(Double ifLose) {
+    public synchronized void setIfLose(final Double ifLose) {
         this.ifLose = ifLose;
     }
 }

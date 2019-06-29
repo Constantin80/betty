@@ -4,13 +4,13 @@ import info.fmro.betty.enums.BetOutcome;
 import info.fmro.betty.enums.OrderType;
 import info.fmro.betty.enums.PersistenceType;
 import info.fmro.betty.enums.Side;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
 public class ClearedOrderSummary
         implements Serializable, Comparable<ClearedOrderSummary> {
-
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
     private static final long serialVersionUID = -3436677384425242662L;
     private String eventTypeId; // EventTypeId alias String
@@ -35,8 +35,10 @@ public class ClearedOrderSummary
     private Double sizeSettled; // Size alias Double
     private Double profit; // Size alias Double
     private Double sizeCancelled; // Size alias Double
+    private String customerOrderRef; // The order reference defined by the customer for the bet order
+    private String customerStrategyRef; // The strategy reference defined by the customer for the bet order
 
-    public ClearedOrderSummary(String betId, String marketId, Long selectionId) {
+    public ClearedOrderSummary(final String betId, final String marketId, final Long selectionId) {
         this.betId = betId;
         this.marketId = marketId;
         this.selectionId = selectionId;
@@ -46,7 +48,7 @@ public class ClearedOrderSummary
         return eventTypeId;
     }
 
-    public synchronized void setEventTypeId(String eventTypeId) {
+    public synchronized void setEventTypeId(final String eventTypeId) {
         this.eventTypeId = eventTypeId;
     }
 
@@ -54,7 +56,7 @@ public class ClearedOrderSummary
         return eventId;
     }
 
-    public synchronized void setEventId(String eventId) {
+    public synchronized void setEventId(final String eventId) {
         this.eventId = eventId;
     }
 
@@ -70,7 +72,7 @@ public class ClearedOrderSummary
         return handicap;
     }
 
-    public synchronized void setHandicap(Double handicap) {
+    public synchronized void setHandicap(final Double handicap) {
         this.handicap = handicap;
     }
 
@@ -82,7 +84,7 @@ public class ClearedOrderSummary
         return placedDate == null ? null : (Date) placedDate.clone();
     }
 
-    public synchronized void setPlacedDate(Date placedDate) {
+    public synchronized void setPlacedDate(final Date placedDate) {
         this.placedDate = placedDate == null ? null : (Date) placedDate.clone();
     }
 
@@ -90,7 +92,7 @@ public class ClearedOrderSummary
         return persistenceType;
     }
 
-    public synchronized void setPersistenceType(PersistenceType persistenceType) {
+    public synchronized void setPersistenceType(final PersistenceType persistenceType) {
         this.persistenceType = persistenceType;
     }
 
@@ -98,7 +100,7 @@ public class ClearedOrderSummary
         return orderType;
     }
 
-    public synchronized void setOrderType(OrderType orderType) {
+    public synchronized void setOrderType(final OrderType orderType) {
         this.orderType = orderType;
     }
 
@@ -106,7 +108,7 @@ public class ClearedOrderSummary
         return side;
     }
 
-    public synchronized void setSide(Side side) {
+    public synchronized void setSide(final Side side) {
         this.side = side;
     }
 
@@ -114,7 +116,7 @@ public class ClearedOrderSummary
         return itemDescription;
     }
 
-    public synchronized void setItemDescription(ItemDescription itemDescription) {
+    public synchronized void setItemDescription(final ItemDescription itemDescription) {
         this.itemDescription = itemDescription;
     }
 
@@ -122,7 +124,7 @@ public class ClearedOrderSummary
         return betOutcome;
     }
 
-    public synchronized void setBetOutcome(BetOutcome betOutcome) {
+    public synchronized void setBetOutcome(final BetOutcome betOutcome) {
         this.betOutcome = betOutcome;
     }
 
@@ -130,7 +132,7 @@ public class ClearedOrderSummary
         return priceRequested;
     }
 
-    public synchronized void setPriceRequested(Double priceRequested) {
+    public synchronized void setPriceRequested(final Double priceRequested) {
         this.priceRequested = priceRequested;
     }
 
@@ -138,7 +140,7 @@ public class ClearedOrderSummary
         return settledDate == null ? null : (Date) settledDate.clone();
     }
 
-    public synchronized void setSettledDate(Date settledDate) {
+    public synchronized void setSettledDate(final Date settledDate) {
         this.settledDate = settledDate == null ? null : (Date) settledDate.clone();
     }
 
@@ -146,7 +148,7 @@ public class ClearedOrderSummary
         return lastMatchedDate == null ? null : (Date) lastMatchedDate.clone();
     }
 
-    public synchronized void setLastMatchedDate(Date lastMatchedDate) {
+    public synchronized void setLastMatchedDate(final Date lastMatchedDate) {
         this.lastMatchedDate = lastMatchedDate == null ? null : (Date) lastMatchedDate.clone();
     }
 
@@ -154,7 +156,7 @@ public class ClearedOrderSummary
         return betCount;
     }
 
-    public synchronized void setBetCount(Integer betCount) {
+    public synchronized void setBetCount(final Integer betCount) {
         this.betCount = betCount;
     }
 
@@ -162,7 +164,7 @@ public class ClearedOrderSummary
         return commission;
     }
 
-    public synchronized void setCommission(Double commission) {
+    public synchronized void setCommission(final Double commission) {
         this.commission = commission;
     }
 
@@ -170,7 +172,7 @@ public class ClearedOrderSummary
         return priceMatched;
     }
 
-    public synchronized void setPriceMatched(Double priceMatched) {
+    public synchronized void setPriceMatched(final Double priceMatched) {
         this.priceMatched = priceMatched;
     }
 
@@ -178,7 +180,7 @@ public class ClearedOrderSummary
         return priceReduced;
     }
 
-    public synchronized void setPriceReduced(Boolean priceReduced) {
+    public synchronized void setPriceReduced(final Boolean priceReduced) {
         this.priceReduced = priceReduced;
     }
 
@@ -186,7 +188,7 @@ public class ClearedOrderSummary
         return sizeSettled;
     }
 
-    public synchronized void setSizeSettled(Double sizeSettled) {
+    public synchronized void setSizeSettled(final Double sizeSettled) {
         this.sizeSettled = sizeSettled;
     }
 
@@ -194,7 +196,7 @@ public class ClearedOrderSummary
         return profit;
     }
 
-    public synchronized void setProfit(Double profit) {
+    public synchronized void setProfit(final Double profit) {
         this.profit = profit;
     }
 
@@ -202,13 +204,13 @@ public class ClearedOrderSummary
         return sizeCancelled;
     }
 
-    public synchronized void setSizeCancelled(Double sizeCancelled) {
+    public synchronized void setSizeCancelled(final Double sizeCancelled) {
         this.sizeCancelled = sizeCancelled;
     }
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(ClearedOrderSummary other) {
+    public synchronized int compareTo(final ClearedOrderSummary other) {
         if (other == null) {
             return AFTER;
         }
@@ -255,7 +257,7 @@ public class ClearedOrderSummary
     }
 
     @Override
-    public int hashCode() {
+    public synchronized int hashCode() {
         int hash = 3;
         hash = 73 * hash + Objects.hashCode(this.betId);
         hash = 73 * hash + Objects.hashCode(this.marketId);
@@ -265,7 +267,7 @@ public class ClearedOrderSummary
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public boolean equals(Object obj) {
+    public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }

@@ -17,7 +17,7 @@ public enum ApiNgAccountOperation {
 
     private final String operationName;
 
-    private ApiNgAccountOperation(String operationName) {
+    private ApiNgAccountOperation(final String operationName) {
         this.operationName = operationName;
     }
 

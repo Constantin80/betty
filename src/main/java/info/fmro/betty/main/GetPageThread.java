@@ -16,7 +16,7 @@ public class GetPageThread
     @SuppressWarnings("PublicField")
     public boolean hasRun;
 
-    public GetPageThread(ScraperThread scraperThread, WebClient webClient) {
+    public GetPageThread(final ScraperThread scraperThread, final WebClient webClient) {
         this.scraperThread = scraperThread;
         this.webClient = webClient;
     }

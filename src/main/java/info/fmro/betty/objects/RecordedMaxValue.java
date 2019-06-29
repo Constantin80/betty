@@ -13,12 +13,12 @@ public class RecordedMaxValue {
     private final int maxMapSize;
     private long lastCheckMap;
 
-    public RecordedMaxValue(long expiryTime) {
+    public RecordedMaxValue(final long expiryTime) {
         this.expiryTime = expiryTime;
         this.maxMapSize = 4;
     }
 
-    public RecordedMaxValue(long expiryTime, int maxMapSize) {
+    public RecordedMaxValue(final long expiryTime, final int maxMapSize) {
         this.expiryTime = expiryTime;
         if (maxMapSize >= 2) {
             this.maxMapSize = maxMapSize;
@@ -35,11 +35,11 @@ public class RecordedMaxValue {
         }
     }
 
-    public synchronized void setValue(int value) {
+    public synchronized void setValue(final int value) {
         setValue(value, System.currentTimeMillis());
     }
 
-    public synchronized void setValue(int key, long timeStamp) {
+    public synchronized void setValue(final int key, final long timeStamp) {
         if (map.size() < maxMapSize || map.containsKey(key) || checkMap(timeStamp)) {
             map.put(key, timeStamp);
         } else { // replace smallest key, even with a new lower key
@@ -56,7 +56,7 @@ public class RecordedMaxValue {
         return checkMap(System.currentTimeMillis());
     }
 
-    public synchronized boolean checkMap(long currentTime) {
+    public synchronized boolean checkMap(final long currentTime) {
         this.lastCheckMap = currentTime;
         boolean modified = false;
         Iterator<Long> iterator = map.values().iterator();

@@ -7,19 +7,18 @@ import java.util.Objects;
 
 public class ParsedRunner
         implements Serializable, Comparable<ParsedRunner> {
-
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
     private static final long serialVersionUID = 1449977052034070871L;
     private final Long selectionId;
     private final Double handicap;
     private ParsedRunnerType parsedRunnerType;
 
-    public ParsedRunner(Long selectionId, Double handicap) {
+    public ParsedRunner(final Long selectionId, final Double handicap) {
         this.selectionId = selectionId;
         this.handicap = handicap;
     }
 
-    public ParsedRunner(Long selectionId, Double handicap, ParsedRunnerType parsedRunnerType) {
+    public ParsedRunner(final Long selectionId, final Double handicap, final ParsedRunnerType parsedRunnerType) {
         this.selectionId = selectionId;
         this.handicap = handicap;
         this.parsedRunnerType = parsedRunnerType;
@@ -37,13 +36,13 @@ public class ParsedRunner
         return parsedRunnerType;
     }
 
-    public synchronized void setParsedRunnerType(ParsedRunnerType parsedRunnerType) {
+    public synchronized void setParsedRunnerType(final ParsedRunnerType parsedRunnerType) {
         this.parsedRunnerType = parsedRunnerType;
     }
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(ParsedRunner other) {
+    public synchronized int compareTo(final ParsedRunner other) {
         if (other == null) {
             return AFTER;
         }
@@ -80,7 +79,7 @@ public class ParsedRunner
     }
 
     @Override
-    public synchronized boolean equals(Object o) {
+    public synchronized boolean equals(final Object o) {
         if (this == o) {
             return true;
         }

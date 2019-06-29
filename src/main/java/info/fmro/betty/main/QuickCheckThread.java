@@ -41,7 +41,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class QuickCheckThread
         extends Thread
         implements AverageLoggerInterface {
-
     private static final Logger logger = LoggerFactory.getLogger(QuickCheckThread.class);
     public static final Map<Long, Integer> nThreadsMarketBook = Collections.synchronizedMap(new HashMap<Long, Integer>(16));
     public static final AtomicLong lastBooksFullRun = new AtomicLong();
@@ -65,7 +64,7 @@ public class QuickCheckThread
         priceProjectionBest.setExBestOffersOverrides(exBestOffersOverrides);
     }
 
-    public static Integer putNThreadsMarketBook(int size, int marketsPerOperation) {
+    public static Integer putNThreadsMarketBook(final int size, final int marketsPerOperation) {
         long currentTime = System.currentTimeMillis();
         synchronized (nThreadsMarketBook) {
             if (nThreadsMarketBook.containsKey(currentTime)) {
@@ -76,7 +75,7 @@ public class QuickCheckThread
         } // end synchronized
     }
 
-    public static LinkedHashMap<Class<? extends ScraperEvent>, Long> getTimeScraperEventCheck(String marketId) { // I decided to remove isIgnored support for this method
+    public static LinkedHashMap<Class<? extends ScraperEvent>, Long> getTimeScraperEventCheck(final String marketId) { // I decided to remove isIgnored support for this method
         final LinkedHashMap<Class<? extends ScraperEvent>, Long> timeScraperEventCheckMap = new LinkedHashMap<>(4);
         final MarketCatalogue marketCatalogue = Statics.marketCataloguesMap.get(marketId);
         if (marketCatalogue != null) {
@@ -138,7 +137,7 @@ public class QuickCheckThread
         return timeScraperEventCheckMap;
     }
 
-    public static int popNRunsMarketBook(long currentTime) {
+    public static int popNRunsMarketBook(final long currentTime) {
         final long cutoffTime = currentTime - Statics.N_MARKETBOOK_THREADS_INTERVAL;
         int nRuns = 0;
         synchronized (nThreadsMarketBook) {
@@ -185,11 +184,11 @@ public class QuickCheckThread
         return expectedRuns;
     }
 
-    public void getMarketBooks(Set<String> safeMarketsSet, int marketsPerOperation) {
+    public void getMarketBooks(final Set<String> safeMarketsSet, final int marketsPerOperation) {
         this.getMarketBooks(safeMarketsSet, Statics.DELAY_GETMARKETBOOKS, marketsPerOperation);
     }
 
-    public void getMarketBooks(Set<String> safeMarketsSet, long timeStamp, int marketsPerOperation) {
+    public void getMarketBooks(final Set<String> safeMarketsSet, final long timeStamp, final int marketsPerOperation) {
         if (timeStamp > 0) {
             Statics.timeStamps.lastGetMarketBooksStamp(timeStamp);
         }
@@ -208,11 +207,11 @@ public class QuickCheckThread
         }
     }
 
-    public void getMarketBooks(List<String> marketIdsList, int marketsPerOperation) {
+    public void getMarketBooks(final List<String> marketIdsList, final int marketsPerOperation) {
         this.getMarketBooks(marketIdsList, Statics.DELAY_GETMARKETBOOKS, marketsPerOperation);
     }
 
-    public void getMarketBooks(List<String> marketIdsList, long timeStamp, int marketsPerOperation) {
+    public void getMarketBooks(final List<String> marketIdsList, final long timeStamp, final int marketsPerOperation) {
         if (timeStamp > 0) {
             Statics.timeStamps.lastGetMarketBooksStamp(timeStamp);
         }
@@ -231,7 +230,7 @@ public class QuickCheckThread
         }
     }
 
-    public void singleGetMarketBooks(List<String> marketIdsListSplit) {
+    public void singleGetMarketBooks(final List<String> marketIdsListSplit) {
         if (marketIdsListSplit != null) {
             final int listSize = marketIdsListSplit.size();
             if (listSize > 0) {
@@ -249,8 +248,7 @@ public class QuickCheckThread
                 }
 
                 final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
-                final List<MarketBook> marketBooksList = ApiNgRescriptOperations.listMarketBook(marketIdsListSplit, localPriceProjection, null, null, null, Statics.appKey.get(),
-                                                                                                rescriptResponseHandler);
+                final List<MarketBook> marketBooksList = ApiNgRescriptOperations.listMarketBook(marketIdsListSplit, localPriceProjection, null, null, null, Statics.appKey.get(), rescriptResponseHandler);
 
                 // if (marketBooksList != null) {
                 //     returnSet.addAll(marketBooksList);
@@ -324,15 +322,13 @@ public class QuickCheckThread
                                     final MarketStatus marketStatus = marketBook.getStatus();
                                     final List<Runner> runnersList = marketBook.getRunners();
                                     if (marketStatus != null && runnersList != null) {
-                                        Statics.safetyLimits.createPlaceInstructionList(runnersList, safeRunnersSet, marketBook, marketId, startTime, endTime, marketStatus, inplay,
-                                                                                        betDelay, timePreviousMarketBookCheck);
+                                        Statics.safetyLimits.createPlaceInstructionList(runnersList, safeRunnersSet, marketBook, marketId, startTime, endTime, marketStatus, inplay, betDelay, timePreviousMarketBookCheck);
                                     } else {
                                         logger.error("null marketStatus or runnersList in getMarketBooks for: {}", Generic.objectToString(marketBook));
                                     }
                                 } else {
                                     long timeSinceLastRemoved = startTime - Statics.safeMarketsMap.getTimeStampRemoved();
-                                    String printedString = MessageFormatter.arrayFormat("null/empty safeRunnersSet in getMarketBooks for marketId: {} timeSinceLastRemoved: {}ms",
-                                                                                        new Object[]{marketId, timeSinceLastRemoved}).getMessage();
+                                    String printedString = MessageFormatter.arrayFormat("null/empty safeRunnersSet in getMarketBooks for marketId: {} timeSinceLastRemoved: {}ms", new Object[]{marketId, timeSinceLastRemoved}).getMessage();
                                     if (timeSinceLastRemoved < 1_000L) {
                                         logger.info(printedString);
                                     } else {

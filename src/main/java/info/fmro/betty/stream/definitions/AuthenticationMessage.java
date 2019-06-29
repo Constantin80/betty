@@ -12,7 +12,7 @@ public class AuthenticationMessage
         return appKey;
     }
 
-    public synchronized void setAppKey(String appKey) {
+    public synchronized void setAppKey(final String appKey) {
         this.appKey = appKey;
     }
 
@@ -20,7 +20,7 @@ public class AuthenticationMessage
         return session;
     }
 
-    public synchronized void setSession(String session) {
+    public synchronized void setSession(final String session) {
         this.session = session;
     }
 }

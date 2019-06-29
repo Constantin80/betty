@@ -7,7 +7,6 @@ import java.util.Objects;
 
 public class StartingPrices
         implements Serializable {
-
     private static final long serialVersionUID = -2616193533595542784L;
     private Double nearPrice;
     private Double farPrice;
@@ -18,7 +17,7 @@ public class StartingPrices
     public StartingPrices() {
     }
 
-    public StartingPrices(Double nearPrice, Double farPrice, List<PriceSize> backStakeTaken, List<PriceSize> layLiabilityTaken, Double actualSP) {
+    public StartingPrices(final Double nearPrice, final Double farPrice, final List<PriceSize> backStakeTaken, final List<PriceSize> layLiabilityTaken, final Double actualSP) {
         this.nearPrice = nearPrice;
         this.farPrice = farPrice;
         this.backStakeTaken = backStakeTaken;
@@ -30,35 +29,35 @@ public class StartingPrices
         return nearPrice;
     }
 
-//    public synchronized void setNearPrice(Double nearPrice) {
+    //    public synchronized void setNearPrice(Double nearPrice) {
 //        this.nearPrice = nearPrice;
 //    }
     public synchronized Double getFarPrice() {
         return farPrice;
     }
 
-//    public synchronized void setFarPrice(Double farPrice) {
+    //    public synchronized void setFarPrice(Double farPrice) {
 //        this.farPrice = farPrice;
 //    }
     public synchronized List<PriceSize> getBackStakeTaken() {
         return backStakeTaken == null ? null : new ArrayList<>(backStakeTaken);
     }
 
-//    public synchronized void setBackStakeTaken(List<PriceSize> backStakeTaken) {
+    //    public synchronized void setBackStakeTaken(List<PriceSize> backStakeTaken) {
 //        this.backStakeTaken = backStakeTaken == null ? null : new ArrayList<>(backStakeTaken);
 //    }
     public synchronized List<PriceSize> getLayLiabilityTaken() {
         return layLiabilityTaken == null ? null : new ArrayList<>(layLiabilityTaken);
     }
 
-//    public synchronized void setLayLiabilityTaken(List<PriceSize> layLiabilityTaken) {
+    //    public synchronized void setLayLiabilityTaken(List<PriceSize> layLiabilityTaken) {
 //        this.layLiabilityTaken = layLiabilityTaken == null ? null : new ArrayList<>(layLiabilityTaken);
 //    }
     public synchronized Double getActualSP() {
         return actualSP;
     }
 
-//    public synchronized void setActualSP(Double actualSP) {
+    //    public synchronized void setActualSP(Double actualSP) {
 //        this.actualSP = actualSP;
 //    }
     @Override
@@ -74,7 +73,7 @@ public class StartingPrices
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized boolean equals(Object obj) {
+    public synchronized boolean equals(final Object obj) {
         if (this == obj) {
             return true;
         }

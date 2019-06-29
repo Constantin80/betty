@@ -18,11 +18,11 @@ public class ReaderThread
     private LinkedList<String> linesList = new LinkedList<>();
     public final AtomicBoolean bufferNotEmpty = new AtomicBoolean();
 
-    ReaderThread(Client client) {
+    ReaderThread(final Client client) {
         this.client = client;
     }
 
-    synchronized void setBufferedReader(BufferedReader bufferedReader) {
+    synchronized void setBufferedReader(final BufferedReader bufferedReader) {
         if (this.bufferedReader != null) {
             try {
                 this.bufferedReader.close();
@@ -33,7 +33,7 @@ public class ReaderThread
         this.bufferedReader = bufferedReader;
     }
 
-    private synchronized void addLine(String line) {
+    private synchronized void addLine(final String line) {
         linesList.add(line);
         bufferNotEmpty.set(true);
 //        logger.info("[{}]added line: {}", client.id, line);

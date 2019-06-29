@@ -1,9 +1,13 @@
 package info.fmro.betty.stream.definitions;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MarketChange {
+// objects of this class are read from the stream
+public class MarketChange
+        implements Serializable {
+    private static final long serialVersionUID = 14266379627847118L;
     private Boolean con; // Conflated - have more than a single change been combined (or null if not conflated)
     private String id; // Market Id - the id of the market
     private Boolean img; // Image - replace existing prices / data with the data supplied: it is not a delta (or null if delta)
@@ -18,7 +22,7 @@ public class MarketChange {
         return con;
     }
 
-    public synchronized void setCon(Boolean con) {
+    public synchronized void setCon(final Boolean con) {
         this.con = con;
     }
 
@@ -26,7 +30,7 @@ public class MarketChange {
         return id;
     }
 
-    public synchronized void setId(String id) {
+    public synchronized void setId(final String id) {
         this.id = id;
     }
 
@@ -34,7 +38,7 @@ public class MarketChange {
         return img;
     }
 
-    public synchronized void setImg(Boolean img) {
+    public synchronized void setImg(final Boolean img) {
         this.img = img;
     }
 
@@ -42,7 +46,7 @@ public class MarketChange {
         return marketDefinition;
     }
 
-    public synchronized void setMarketDefinition(MarketDefinition marketDefinition) {
+    public synchronized void setMarketDefinition(final MarketDefinition marketDefinition) {
         this.marketDefinition = marketDefinition;
     }
 
@@ -50,7 +54,7 @@ public class MarketChange {
         return rc == null ? null : new ArrayList<>(rc);
     }
 
-    public synchronized void setRc(List<RunnerChange> rc) {
+    public synchronized void setRc(final List<RunnerChange> rc) {
         this.rc = rc == null ? null : new ArrayList<>(rc);
     }
 
@@ -58,7 +62,7 @@ public class MarketChange {
         return tv;
     }
 
-    public synchronized void setTv(Double tv) {
+    public synchronized void setTv(final Double tv) {
         this.tv = tv;
     }
 }

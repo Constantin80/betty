@@ -7,41 +7,39 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
-public class BlackList //        implements Serializable 
-{
-
+public class BlackList {
     private static final Logger logger = LoggerFactory.getLogger(BlackList.class);
     public static final long defaultSafetyPeriod = 10_000L;
 
     private BlackList() {
     }
 
-    private static <T> int setIgnored(Class<? extends Ignorable> clazz, T key) {
+    private static <T> int setIgnored(final Class<? extends Ignorable> clazz, final T key) {
         return setIgnored(clazz, key, BlackList.defaultSafetyPeriod);
     }
 
-    private static <T> int setIgnored(Class<? extends Ignorable> clazz, T key, long safetyPeriod) {
+    private static <T> int setIgnored(final Class<? extends Ignorable> clazz, final T key, final long safetyPeriod) {
         final long currentTime = System.currentTimeMillis();
         return setIgnored(clazz, key, safetyPeriod, currentTime);
     }
 
-    private static <T> int setIgnored(Class<? extends Ignorable> clazz, T key, long safetyPeriod, long currentTime) {
+    private static <T> int setIgnored(final Class<? extends Ignorable> clazz, final T key, final long safetyPeriod, final long currentTime) {
         @SuppressWarnings("unchecked")
         SynchronizedMap<T, ? extends Ignorable> synchronizedMap = (SynchronizedMap<T, ? extends Ignorable>) Formulas.getIgnorableMap(clazz);
 
         return setIgnored(synchronizedMap, key, safetyPeriod, currentTime);
     }
 
-    private static <T> int setIgnored(SynchronizedMap<T, ? extends Ignorable> synchronizedMap, T key) {
+    private static <T> int setIgnored(final SynchronizedMap<T, ? extends Ignorable> synchronizedMap, final T key) {
         return setIgnored(synchronizedMap, key, BlackList.defaultSafetyPeriod);
     }
 
-    private static <T> int setIgnored(SynchronizedMap<T, ? extends Ignorable> synchronizedMap, T key, long safetyPeriod) {
+    private static <T> int setIgnored(final SynchronizedMap<T, ? extends Ignorable> synchronizedMap, final T key, final long safetyPeriod) {
         final long currentTime = System.currentTimeMillis();
         return setIgnored(synchronizedMap, key, safetyPeriod, currentTime);
     }
 
-    private static <T> int setIgnored(SynchronizedMap<T, ? extends Ignorable> synchronizedMap, T key, long safetyPeriod, long currentTime) {
+    private static <T> int setIgnored(final SynchronizedMap<T, ? extends Ignorable> synchronizedMap, final T key, final long safetyPeriod, final long currentTime) {
         final int modified;
 
         if (synchronizedMap == null) {
@@ -63,7 +61,7 @@ public class BlackList //        implements Serializable
         return modified;
     }
 
-    public static <T> void printNotExistOrBannedErrorMessages(Class<? extends Ignorable> clazz, T key, String format) {
+    public static <T> void printNotExistOrBannedErrorMessages(final Class<? extends Ignorable> clazz, final T key, final String format) {
         @SuppressWarnings("unchecked")
         SynchronizedMap<T, ? extends Ignorable> synchronizedMap = (SynchronizedMap<T, ? extends Ignorable>) Formulas.getIgnorableMap(clazz);
         final long currentTime = System.currentTimeMillis();
@@ -71,28 +69,28 @@ public class BlackList //        implements Serializable
         printNotExistOrBannedErrorMessages(synchronizedMap, key, currentTime, Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, format);
     }
 
-    public static <T> void printNotExistOrBannedErrorMessages(SynchronizedMap<T, ? extends Ignorable> synchronizedMap, T key, String format) {
+    public static <T> void printNotExistOrBannedErrorMessages(final SynchronizedMap<T, ? extends Ignorable> synchronizedMap, final T key, final String format) {
         final long currentTime = System.currentTimeMillis();
         printNotExistOrBannedErrorMessages(synchronizedMap, key, currentTime, Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, format);
     }
 
-    public static <T> void printNotExistOrBannedErrorMessages(Class<? extends Ignorable> clazz, T key, long currentTime, String format) {
+    public static <T> void printNotExistOrBannedErrorMessages(final Class<? extends Ignorable> clazz, final T key, final long currentTime, final String format) {
         @SuppressWarnings("unchecked")
         SynchronizedMap<T, ? extends Ignorable> synchronizedMap = (SynchronizedMap<T, ? extends Ignorable>) Formulas.getIgnorableMap(clazz);
         printNotExistOrBannedErrorMessages(synchronizedMap, key, currentTime, Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, format);
     }
 
-    public static <T> void printNotExistOrBannedErrorMessages(SynchronizedMap<T, ? extends Ignorable> synchronizedMap, T key, long currentTime, String format) {
+    public static <T> void printNotExistOrBannedErrorMessages(final SynchronizedMap<T, ? extends Ignorable> synchronizedMap, final T key, final long currentTime, final String format) {
         printNotExistOrBannedErrorMessages(synchronizedMap, key, currentTime, Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, format);
     }
 
-    public static <T> void printNotExistOrBannedErrorMessages(Class<? extends Ignorable> clazz, T key, long currentTime, long safetyPeriod, String format) {
+    public static <T> void printNotExistOrBannedErrorMessages(final Class<? extends Ignorable> clazz, final T key, final long currentTime, final long safetyPeriod, final String format) {
         @SuppressWarnings("unchecked")
         SynchronizedMap<T, ? extends Ignorable> synchronizedMap = (SynchronizedMap<T, ? extends Ignorable>) Formulas.getIgnorableMap(clazz);
         printNotExistOrBannedErrorMessages(synchronizedMap, key, currentTime, safetyPeriod, format);
     }
 
-    public static <T> void printNotExistOrBannedErrorMessages(SynchronizedMap<T, ? extends Ignorable> synchronizedMap, T key, long currentTime, long safetyPeriod, String format) {
+    public static <T> void printNotExistOrBannedErrorMessages(final SynchronizedMap<T, ? extends Ignorable> synchronizedMap, final T key, final long currentTime, final long safetyPeriod, final String format) {
         if (BlackList.notExist(synchronizedMap, key)) {
             final long timeSinceLastRemoved = BlackList.timeSinceRemovalFromMap(synchronizedMap, currentTime);
             final String printedString =
@@ -113,12 +111,12 @@ public class BlackList //        implements Serializable
         }
     }
 
-    public static <T> long timeSinceBan(Ignorable ignorable, T key) {
+    public static <T> long timeSinceBan(final Ignorable ignorable, final T key) {
         final long currentTime = System.currentTimeMillis();
         return timeSinceBan(ignorable, key, currentTime);
     }
 
-    public static <T> long timeSinceBan(Ignorable ignorable, T key, long currentTime) {
+    public static <T> long timeSinceBan(final Ignorable ignorable, final T key, final long currentTime) {
         final long result;
         if (ignorable == null) {
             logger.error("null ignorable in timeSinceBan for {} {}", key, currentTime);
@@ -131,23 +129,23 @@ public class BlackList //        implements Serializable
         return result;
     }
 
-    public static <T> long timeSinceBan(Class<? extends Ignorable> clazz, T key) {
+    public static <T> long timeSinceBan(final Class<? extends Ignorable> clazz, final T key) {
         final long currentTime = System.currentTimeMillis();
         return timeSinceBan(clazz, key, currentTime);
     }
 
-    public static <T> long timeSinceBan(Class<? extends Ignorable> clazz, T key, long currentTime) {
+    public static <T> long timeSinceBan(final Class<? extends Ignorable> clazz, final T key, final long currentTime) {
         @SuppressWarnings("unchecked")
         SynchronizedMap<T, ? extends Ignorable> synchronizedMap = (SynchronizedMap<T, ? extends Ignorable>) Formulas.getIgnorableMap(clazz);
         return timeSinceBan(synchronizedMap, key, currentTime);
     }
 
-    public static <T> long timeSinceBan(SynchronizedMap<T, ? extends Ignorable> synchronizedMap, T key) {
+    public static <T> long timeSinceBan(final SynchronizedMap<T, ? extends Ignorable> synchronizedMap, final T key) {
         final long currentTime = System.currentTimeMillis();
         return timeSinceBan(synchronizedMap, key, currentTime);
     }
 
-    public static <T> long timeSinceBan(SynchronizedMap<T, ? extends Ignorable> synchronizedMap, T key, long currentTime) {
+    public static <T> long timeSinceBan(final SynchronizedMap<T, ? extends Ignorable> synchronizedMap, final T key, final long currentTime) {
         final long result;
 
         if (synchronizedMap == null) {
@@ -168,12 +166,12 @@ public class BlackList //        implements Serializable
         return result;
     }
 
-    public static <T> long timeSinceRemovalFromMap(Ignorable ignorable) {
+    public static <T> long timeSinceRemovalFromMap(final Ignorable ignorable) {
         final long currentTime = System.currentTimeMillis();
         return timeSinceRemovalFromMap(ignorable, currentTime);
     }
 
-    public static <T> long timeSinceRemovalFromMap(Ignorable ignorable, long currentTime) {
+    public static <T> long timeSinceRemovalFromMap(final Ignorable ignorable, final long currentTime) {
         final long result;
         if (ignorable == null) {
             logger.error("null ignorable in timeSinceRemovalFromMap for {}");
@@ -186,23 +184,23 @@ public class BlackList //        implements Serializable
         return result;
     }
 
-    public static <T> long timeSinceRemovalFromMap(Class<? extends Ignorable> clazz) {
+    public static <T> long timeSinceRemovalFromMap(final Class<? extends Ignorable> clazz) {
         final long currentTime = System.currentTimeMillis();
         return timeSinceRemovalFromMap(clazz, currentTime);
     }
 
-    public static <T> long timeSinceRemovalFromMap(Class<? extends Ignorable> clazz, long currentTime) {
+    public static <T> long timeSinceRemovalFromMap(final Class<? extends Ignorable> clazz, final long currentTime) {
         @SuppressWarnings("unchecked")
         SynchronizedMap<T, ? extends Ignorable> synchronizedMap = (SynchronizedMap<T, ? extends Ignorable>) Formulas.getIgnorableMap(clazz);
         return timeSinceRemovalFromMap(synchronizedMap, currentTime);
     }
 
-    public static <T> long timeSinceRemovalFromMap(SynchronizedMap<T, ? extends Ignorable> synchronizedMap) {
+    public static <T> long timeSinceRemovalFromMap(final SynchronizedMap<T, ? extends Ignorable> synchronizedMap) {
         final long currentTime = System.currentTimeMillis();
         return timeSinceRemovalFromMap(synchronizedMap, currentTime);
     }
 
-    public static <T> long timeSinceRemovalFromMap(SynchronizedMap<T, ? extends Ignorable> synchronizedMap, long currentTime) {
+    public static <T> long timeSinceRemovalFromMap(final SynchronizedMap<T, ? extends Ignorable> synchronizedMap, final long currentTime) {
         final long result;
 
         if (synchronizedMap == null) {
@@ -217,7 +215,7 @@ public class BlackList //        implements Serializable
         return result;
     }
 
-    public static <T> boolean notExist(Ignorable ignorable, T key) {
+    public static <T> boolean notExist(final Ignorable ignorable, final T key) {
         final boolean result;
         if (ignorable == null) {
             logger.error("null ignorable in notExist for {}", key);
@@ -230,12 +228,12 @@ public class BlackList //        implements Serializable
         return result;
     }
 
-    public static <T> boolean notExist(Class<? extends Ignorable> clazz, T key) {
+    public static <T> boolean notExist(final Class<? extends Ignorable> clazz, final T key) {
         @SuppressWarnings("unchecked") final SynchronizedMap<T, ? extends Ignorable> synchronizedMap = (SynchronizedMap<T, ? extends Ignorable>) Formulas.getIgnorableMap(clazz);
         return notExist(synchronizedMap, key);
     }
 
-    public static <T> boolean notExist(SynchronizedMap<T, ? extends Ignorable> synchronizedMap, T key) {
+    public static <T> boolean notExist(final SynchronizedMap<T, ? extends Ignorable> synchronizedMap, final T key) {
         final boolean result;
 
         if (synchronizedMap == null) {
@@ -257,12 +255,12 @@ public class BlackList //        implements Serializable
         return result;
     }
 
-    public static <T> boolean notExistOrIgnored(Ignorable ignorable, T key) {
+    public static <T> boolean notExistOrIgnored(final Ignorable ignorable, final T key) {
         final long currentTime = System.currentTimeMillis();
         return notExistOrIgnored(ignorable, key, currentTime);
     }
 
-    public static <T> boolean notExistOrIgnored(Ignorable ignorable, T key, long currentTime) {
+    public static <T> boolean notExistOrIgnored(final Ignorable ignorable, final T key, final long currentTime) {
         final boolean result;
         if (ignorable == null) {
             logger.error("null ignorable in notExistOrIgnored for {} {}", key, currentTime);
@@ -275,23 +273,23 @@ public class BlackList //        implements Serializable
         return result;
     }
 
-    public static <T> boolean notExistOrIgnored(Class<? extends Ignorable> clazz, T key) {
+    public static <T> boolean notExistOrIgnored(final Class<? extends Ignorable> clazz, final T key) {
         final long currentTime = System.currentTimeMillis();
         return notExistOrIgnored(clazz, key, currentTime);
     }
 
-    public static <T> boolean notExistOrIgnored(Class<? extends Ignorable> clazz, T key, long currentTime) {
+    public static <T> boolean notExistOrIgnored(final Class<? extends Ignorable> clazz, final T key, final long currentTime) {
         @SuppressWarnings("unchecked")
         SynchronizedMap<T, ? extends Ignorable> synchronizedMap = (SynchronizedMap<T, ? extends Ignorable>) Formulas.getIgnorableMap(clazz);
         return notExistOrIgnored(synchronizedMap, key, currentTime);
     }
 
-    public static <T> boolean notExistOrIgnored(SynchronizedMap<T, ? extends Ignorable> synchronizedMap, T key) {
+    public static <T> boolean notExistOrIgnored(final SynchronizedMap<T, ? extends Ignorable> synchronizedMap, final T key) {
         final long currentTime = System.currentTimeMillis();
         return notExistOrIgnored(synchronizedMap, key, currentTime);
     }
 
-    public static <T> boolean notExistOrIgnored(SynchronizedMap<T, ? extends Ignorable> synchronizedMap, T key, long currentTime) {
+    public static <T> boolean notExistOrIgnored(final SynchronizedMap<T, ? extends Ignorable> synchronizedMap, final T key, final long currentTime) {
         final boolean result;
 
         if (synchronizedMap == null) {

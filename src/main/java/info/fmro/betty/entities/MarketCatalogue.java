@@ -23,7 +23,6 @@ import java.util.Objects;
 public class MarketCatalogue
         extends Ignorable
         implements Serializable, Comparable<MarketCatalogue> {
-
     private static final Logger logger = LoggerFactory.getLogger(MarketCatalogue.class);
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
     private static final long serialVersionUID = 1172556202262757207L;
@@ -36,23 +35,24 @@ public class MarketCatalogue
     private EventType eventType;
     private Competition competition;
     private Event event;
-    private ParsedMarket parsedMarket;
+
+    private ParsedMarket parsedMarket; // only place where stored
     private long timeStamp;
 
     //    public MarketCatalogue() {
 //    }
-    public MarketCatalogue(String marketId) {
+    public MarketCatalogue(final String marketId) {
         this.marketId = marketId;
     }
 
     @Override
-    public synchronized int setIgnored(long period) {
+    public synchronized int setIgnored(final long period) {
         final long currentTime = System.currentTimeMillis();
         return setIgnored(period, currentTime);
     }
 
     @Override
-    public synchronized int setIgnored(long period, long currentTime) {
+    public synchronized int setIgnored(final long period, final long currentTime) {
         final int modified = super.setIgnored(period, currentTime);
 
         if (modified > 0 && this.isIgnored()) {
@@ -86,7 +86,7 @@ public class MarketCatalogue
         return marketName;
     }
 
-    public synchronized int setMarketName(String marketName) {
+    public synchronized int setMarketName(final String marketName) {
         final int modified;
         if (this.marketName == null) {
             if (marketName == null) {
@@ -108,7 +108,7 @@ public class MarketCatalogue
         return marketStartTime == null ? null : (Date) marketStartTime.clone();
     }
 
-    public synchronized int setMarketStartTime(Date marketStartTime) {
+    public synchronized int setMarketStartTime(final Date marketStartTime) {
         final int modified;
         if (this.marketStartTime == null) {
             if (marketStartTime == null) {
@@ -130,7 +130,7 @@ public class MarketCatalogue
         return description;
     }
 
-    public synchronized int setDescription(MarketDescription description) {
+    public synchronized int setDescription(final MarketDescription description) {
         final int modified;
         if (this.description == null) {
             if (description == null) {
@@ -152,7 +152,7 @@ public class MarketCatalogue
         return totalMatched;
     }
 
-    public synchronized int setTotalMatched(Double totalMatched) {
+    public synchronized int setTotalMatched(final Double totalMatched) {
         final int modified;
         if (this.totalMatched == null) {
             if (totalMatched == null) {
@@ -174,7 +174,7 @@ public class MarketCatalogue
         return runners == null ? null : new ArrayList<>(runners);
     }
 
-    public synchronized int setRunners(List<RunnerCatalog> runners) {
+    public synchronized int setRunners(final List<RunnerCatalog> runners) {
         final int modified;
         if (this.runners == null) {
             if (runners == null) {
@@ -196,7 +196,7 @@ public class MarketCatalogue
         return eventType;
     }
 
-    public synchronized int setEventType(EventType eventType) {
+    public synchronized int setEventType(final EventType eventType) {
         final int modified;
         if (this.eventType == null) {
             if (eventType == null) {
@@ -218,7 +218,7 @@ public class MarketCatalogue
         return competition;
     }
 
-    public synchronized int setCompetition(Competition competition) {
+    public synchronized int setCompetition(final Competition competition) {
         final int modified;
         if (this.competition == null) {
             if (competition == null) {
@@ -264,7 +264,7 @@ public class MarketCatalogue
         return event;
     }
 
-    public synchronized int setEvent(Event event) { // doesn't set equal Events and only does an equality check on id
+    public synchronized int setEvent(final Event event) { // doesn't set equal Events and only does an equality check on id
         final int modified;
         if (this.event == null) {
             if (event == null) {
@@ -286,7 +286,7 @@ public class MarketCatalogue
         return parsedMarket;
     }
 
-    public synchronized int setParsedMarket(ParsedMarket parsedMarket) {
+    public synchronized int setParsedMarket(final ParsedMarket parsedMarket) {
         final int modified;
         if (parsedMarket == null) {
             if (this.parsedMarket == null) {
@@ -317,7 +317,7 @@ public class MarketCatalogue
         return timeStamp;
     }
 
-    public synchronized void setTimeStamp(long timeStamp) {
+    public synchronized void setTimeStamp(final long timeStamp) {
         this.timeStamp = timeStamp;
     }
 
@@ -349,7 +349,7 @@ public class MarketCatalogue
 //        return modified;
 //    }
 
-    public synchronized int update(MarketCatalogue marketCatalogue) {
+    public synchronized int update(final MarketCatalogue marketCatalogue) {
         int modified;
         if (this == marketCatalogue) {
             logger.error("update from same object in MarketCatalogue.update: {}", Generic.objectToString(this));
@@ -397,7 +397,7 @@ public class MarketCatalogue
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(MarketCatalogue other) {
+    public synchronized int compareTo(final MarketCatalogue other) {
         if (other == null) {
             return AFTER;
         }
@@ -434,7 +434,7 @@ public class MarketCatalogue
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized boolean equals(Object obj) {
+    public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }

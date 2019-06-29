@@ -4,11 +4,15 @@ import info.fmro.shared.utility.Generic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RunnerChange {
+// objects of this class are read from the stream
+public class RunnerChange
+        implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(RunnerChange.class);
+    private static final long serialVersionUID = -3034311716396095048L;
     private List<List<Double>> atb; // Available To Back - PriceVol tuple delta of price changes (0 vol is remove)
     private List<List<Double>> atl; // Available To Lay - PriceVol tuple delta of price changes (0 vol is remove)
     private List<List<Double>> batb; // Best Available To Back - LevelPriceVol triple delta of price changes, keyed by level (0 vol is remove)
@@ -48,7 +52,7 @@ public class RunnerChange {
         return result;
     }
 
-    public synchronized void setAtb(List<List<Double>> atb) {
+    public synchronized void setAtb(final List<List<Double>> atb) {
         if (atb == null) {
             this.atb = null;
         } else {
@@ -84,7 +88,7 @@ public class RunnerChange {
         return result;
     }
 
-    public synchronized void setAtl(List<List<Double>> atl) {
+    public synchronized void setAtl(final List<List<Double>> atl) {
         if (atl == null) {
             this.atl = null;
         } else {
@@ -120,7 +124,7 @@ public class RunnerChange {
         return result;
     }
 
-    public synchronized void setBatb(List<List<Double>> batb) {
+    public synchronized void setBatb(final List<List<Double>> batb) {
         if (batb == null) {
             this.batb = null;
         } else {
@@ -156,7 +160,7 @@ public class RunnerChange {
         return result;
     }
 
-    public synchronized void setBatl(List<List<Double>> batl) {
+    public synchronized void setBatl(final List<List<Double>> batl) {
         if (batl == null) {
             this.batl = null;
         } else {
@@ -192,7 +196,7 @@ public class RunnerChange {
         return result;
     }
 
-    public synchronized void setBdatb(List<List<Double>> bdatb) {
+    public synchronized void setBdatb(final List<List<Double>> bdatb) {
         if (bdatb == null) {
             this.bdatb = null;
         } else {
@@ -228,7 +232,7 @@ public class RunnerChange {
         return result;
     }
 
-    public synchronized void setBdatl(List<List<Double>> bdatl) {
+    public synchronized void setBdatl(final List<List<Double>> bdatl) {
         if (bdatl == null) {
             this.bdatl = null;
         } else {
@@ -248,7 +252,7 @@ public class RunnerChange {
         return hc;
     }
 
-    public synchronized void setHc(Double hc) {
+    public synchronized void setHc(final Double hc) {
         this.hc = hc;
     }
 
@@ -256,7 +260,7 @@ public class RunnerChange {
         return id;
     }
 
-    public synchronized void setId(Long id) {
+    public synchronized void setId(final Long id) {
         this.id = id;
     }
 
@@ -264,7 +268,7 @@ public class RunnerChange {
         return ltp;
     }
 
-    public synchronized void setLtp(Double ltp) {
+    public synchronized void setLtp(final Double ltp) {
         this.ltp = ltp;
     }
 
@@ -288,7 +292,7 @@ public class RunnerChange {
         return result;
     }
 
-    public synchronized void setSpb(List<List<Double>> spb) {
+    public synchronized void setSpb(final List<List<Double>> spb) {
         if (spb == null) {
             this.spb = null;
         } else {
@@ -308,7 +312,7 @@ public class RunnerChange {
         return spf;
     }
 
-    public synchronized void setSpf(Double spf) {
+    public synchronized void setSpf(final Double spf) {
         this.spf = spf;
     }
 
@@ -332,7 +336,7 @@ public class RunnerChange {
         return result;
     }
 
-    public synchronized void setSpl(List<List<Double>> spl) {
+    public synchronized void setSpl(final List<List<Double>> spl) {
         if (spl == null) {
             this.spl = null;
         } else {
@@ -352,7 +356,7 @@ public class RunnerChange {
         return spn;
     }
 
-    public synchronized void setSpn(Double spn) {
+    public synchronized void setSpn(final Double spn) {
         this.spn = spn;
     }
 
@@ -376,7 +380,7 @@ public class RunnerChange {
         return result;
     }
 
-    public synchronized void setTrd(List<List<Double>> trd) {
+    public synchronized void setTrd(final List<List<Double>> trd) {
         if (trd == null) {
             this.trd = null;
         } else {
@@ -396,7 +400,7 @@ public class RunnerChange {
         return tv;
     }
 
-    public synchronized void setTv(Double tv) {
+    public synchronized void setTv(final Double tv) {
         this.tv = tv;
     }
 }

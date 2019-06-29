@@ -7,7 +7,6 @@ import java.util.Objects;
 
 public class RunnerCatalog
         implements Serializable {
-
     private static final long serialVersionUID = 8076707042221620993L;
     private Long selectionId;
     private String runnerName;
@@ -18,7 +17,7 @@ public class RunnerCatalog
     public RunnerCatalog() {
     }
 
-    public RunnerCatalog(Long selectionId, String runnerName, Double handicap, Integer sortPriority, Map<String, String> metadata) {
+    public RunnerCatalog(final Long selectionId, final String runnerName, final Double handicap, final Integer sortPriority, final Map<String, String> metadata) {
         this.selectionId = selectionId;
         this.runnerName = runnerName;
         this.handicap = handicap;
@@ -63,7 +62,7 @@ public class RunnerCatalog
 //    }
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized boolean equals(Object obj) {
+    public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }

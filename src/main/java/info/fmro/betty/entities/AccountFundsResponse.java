@@ -1,9 +1,8 @@
 package info.fmro.betty.entities;
 
 public class AccountFundsResponse {
-
     private Double availableToBetBalance; // Amount available to bet.
-    private Double exposure; // Current exposure.
+    private Double exposure; // Current exposure. Is a negative number
     private Double retainedCommission; // Sum of retained commission.
     private Double exposureLimit; // Exposure limit.
     private Double discountRate; // User Discount Rate.
@@ -16,7 +15,7 @@ public class AccountFundsResponse {
         return availableToBetBalance;
     }
 
-    public synchronized void setAvailableToBetBalance(Double availableToBetBalance) {
+    public synchronized void setAvailableToBetBalance(final Double availableToBetBalance) {
         this.availableToBetBalance = availableToBetBalance;
     }
 
@@ -24,7 +23,7 @@ public class AccountFundsResponse {
         return exposure;
     }
 
-    public synchronized void setExposure(Double exposure) {
+    public synchronized void setExposure(final Double exposure) {
         this.exposure = exposure;
     }
 
@@ -32,7 +31,7 @@ public class AccountFundsResponse {
         return retainedCommission;
     }
 
-    public synchronized void setRetainedCommission(Double retainedCommission) {
+    public synchronized void setRetainedCommission(final Double retainedCommission) {
         this.retainedCommission = retainedCommission;
     }
 
@@ -40,7 +39,7 @@ public class AccountFundsResponse {
         return exposureLimit;
     }
 
-    public synchronized void setExposureLimit(Double exposureLimit) {
+    public synchronized void setExposureLimit(final Double exposureLimit) {
         this.exposureLimit = exposureLimit;
     }
 
@@ -48,7 +47,7 @@ public class AccountFundsResponse {
         return discountRate;
     }
 
-    public synchronized void setDiscountRate(Double discountRate) {
+    public synchronized void setDiscountRate(final Double discountRate) {
         this.discountRate = discountRate;
     }
 
@@ -56,7 +55,7 @@ public class AccountFundsResponse {
         return pointsBalance;
     }
 
-    public synchronized void setPointsBalance(Integer pointsBalance) {
+    public synchronized void setPointsBalance(final Integer pointsBalance) {
         this.pointsBalance = pointsBalance;
     }
 }

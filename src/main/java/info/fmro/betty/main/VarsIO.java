@@ -6,6 +6,7 @@ import info.fmro.betty.entities.MarketCatalogue;
 import info.fmro.betty.objects.BetradarEvent;
 import info.fmro.betty.objects.CoralEvent;
 import info.fmro.betty.objects.DebugLevel;
+import info.fmro.betty.objects.RulesManager;
 import info.fmro.betty.objects.SafeRunner;
 import info.fmro.betty.objects.SafetyLimits;
 import info.fmro.betty.objects.SessionTokenObject;
@@ -33,21 +34,21 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class VarsIO {
-
     private static final Logger logger = LoggerFactory.getLogger(VarsIO.class);
+    public static final AtomicLong writeSettingsCounter = new AtomicLong();
 
     private VarsIO() {
     }
 
-    public static long fileLastModified(String fileName) {
+    public static long fileLastModified(final String fileName) {
         return (new File(fileName)).lastModified();
     }
 
-    public static List<String> getUnescapedSplits(String string, char marker) {
+    public static List<String> getUnescapedSplits(final String string, final char marker) {
         return getUnescapedSplits(string, marker, 0);
     }
 
-    public static List<String> getUnescapedSplits(String string, char marker, int nExpected) {
+    public static List<String> getUnescapedSplits(final String string, final char marker, final int nExpected) {
         // doesn't get empty strings
         List<String> matchList = new ArrayList<>(nExpected);
         Pattern regex = Pattern.compile("(?:\\\\.|[^" + marker + "\\\\]++)+");
@@ -58,7 +59,7 @@ public class VarsIO {
         return matchList;
     }
 
-    public static boolean readAliases(String fileName, Map<String, String> map) {
+    public static boolean readAliases(final String fileName, final Map<String, String> map) {
         boolean success;
         SynchronizedReader localSynchronizedReader = null;
 
@@ -155,7 +156,7 @@ public class VarsIO {
         return success;
     }
 
-    public static boolean checkAliasesFile(String fileName, AtomicLong fileTimeStamp, Map<String, String> map) {
+    public static boolean checkAliasesFile(final String fileName, final AtomicLong fileTimeStamp, final Map<String, String> map) {
         boolean haveRead;
         long newFileStamp = fileLastModified(fileName);
         if (newFileStamp > fileTimeStamp.get()) {
@@ -176,7 +177,7 @@ public class VarsIO {
         return haveRead;
     }
 
-    public static void readVarsFromFile(String fileName) {
+    public static void readVarsFromFile(final String fileName) {
         SynchronizedReader localSynchronizedReader = null;
 
         if (fileName != null) {
@@ -217,72 +218,83 @@ public class VarsIO {
     }
 
     public static void readObjectsFromFiles() {
-        Set<String> keySet = Statics.objectFileNamesMap.keySet();
+        final Set<String> keySet = Statics.objectFileNamesMap.keySet();
         for (String key : keySet) {
-            Object objectFromFile = Generic.readObjectFromFile(Statics.objectFileNamesMap.get(key));
+            final Object objectFromFile = Generic.readObjectFromFile(Statics.objectFileNamesMap.get(key));
             if (objectFromFile != null) {
                 try {
                     switch (key) {
                         case "timeStamps":
-                            TimeStamps timeStamps = (TimeStamps) objectFromFile;
+                            final TimeStamps timeStamps = (TimeStamps) objectFromFile;
                             Statics.timeStamps.copyFrom(timeStamps);
                             break;
                         case "debugLevel":
-                            DebugLevel debugLevel = (DebugLevel) objectFromFile;
+                            final DebugLevel debugLevel = (DebugLevel) objectFromFile;
                             Statics.debugLevel.copyFrom(debugLevel);
                             break;
                         case "sessionTokenObject":
-                            SessionTokenObject sessionTokenObject = (SessionTokenObject) objectFromFile;
+                            final SessionTokenObject sessionTokenObject = (SessionTokenObject) objectFromFile;
                             Statics.sessionTokenObject.copyFrom(sessionTokenObject);
                             break;
                         case "safetyLimits":
-                            SafetyLimits safetyLimits = (SafetyLimits) objectFromFile;
+                            final SafetyLimits safetyLimits = (SafetyLimits) objectFromFile;
                             Statics.safetyLimits.copyFrom(safetyLimits);
                             break;
 //                        case "blackList":
-//                            BlackList blackList = (BlackList) objectFromFile;
+//                            final BlackList blackList = (BlackList) objectFromFile;
 //                            BlackList.copyFrom(blackList);
 //                            break;
 //                        case "placedAmounts":
-//                            PlacedAmounts placedAmounts = (PlacedAmounts) objectFromFile;
+//                            final PlacedAmounts placedAmounts = (PlacedAmounts) objectFromFile;
 //                            Statics.placedAmounts.copyFrom(placedAmounts);
 //                            break;
                         case "betradarEventsMap":
-                            @SuppressWarnings("unchecked") SynchronizedMap<Long, BetradarEvent> betradarEventsMap = (SynchronizedMap<Long, BetradarEvent>) objectFromFile;
+                            @SuppressWarnings("unchecked") final SynchronizedMap<Long, BetradarEvent> betradarEventsMap = (SynchronizedMap<Long, BetradarEvent>) objectFromFile;
                             Statics.betradarEventsMap.copyFrom(betradarEventsMap);
                             break;
                         case "coralEventsMap":
-                            @SuppressWarnings("unchecked") SynchronizedMap<Long, CoralEvent> coralEventsMap = (SynchronizedMap<Long, CoralEvent>) objectFromFile;
+                            @SuppressWarnings("unchecked") final SynchronizedMap<Long, CoralEvent> coralEventsMap = (SynchronizedMap<Long, CoralEvent>) objectFromFile;
                             Statics.coralEventsMap.copyFrom(coralEventsMap);
                             break;
                         case "eventsMap":
-                            @SuppressWarnings("unchecked") SynchronizedMap<String, Event> eventsMap = (SynchronizedMap<String, Event>) objectFromFile;
+                            @SuppressWarnings("unchecked") final SynchronizedMap<String, Event> eventsMap = (SynchronizedMap<String, Event>) objectFromFile;
                             Statics.eventsMap.copyFrom(eventsMap);
                             break;
                         case "marketCataloguesMap":
-                            @SuppressWarnings("unchecked") SynchronizedMap<String, MarketCatalogue> marketCataloguesMap = (SynchronizedMap<String, MarketCatalogue>) objectFromFile;
+                            @SuppressWarnings("unchecked") final SynchronizedMap<String, MarketCatalogue> marketCataloguesMap = (SynchronizedMap<String, MarketCatalogue>) objectFromFile;
                             Statics.marketCataloguesMap.copyFrom(marketCataloguesMap);
                             break;
                         case "safeMarketsMap":
-                            @SuppressWarnings("unchecked") SynchronizedMap<String, SynchronizedSafeSet<SafeRunner>> safeMarketsMap =
-                                    (SynchronizedMap<String, SynchronizedSafeSet<SafeRunner>>) objectFromFile;
+                            @SuppressWarnings("unchecked") final SynchronizedMap<String, SynchronizedSafeSet<SafeRunner>> safeMarketsMap = (SynchronizedMap<String, SynchronizedSafeSet<SafeRunner>>) objectFromFile;
                             Statics.safeMarketsMap.copyFrom(safeMarketsMap);
                             break;
                         case "safeMarketBooksMap":
-                            @SuppressWarnings("unchecked") SynchronizedMap<String, MarketBook> safeMarketBooksMap = (SynchronizedMap<String, MarketBook>) objectFromFile;
+                            @SuppressWarnings("unchecked") final SynchronizedMap<String, MarketBook> safeMarketBooksMap = (SynchronizedMap<String, MarketBook>) objectFromFile;
                             Statics.safeMarketBooksMap.copyFrom(safeMarketBooksMap);
                             break;
 //                        case "alreadyPrintedMap":
-//                            @SuppressWarnings("unchecked") AlreadyPrintedMap alreadyPrintedMap = (AlreadyPrintedMap) objectFromFile;
+//                            final AlreadyPrintedMap alreadyPrintedMap = (AlreadyPrintedMap) objectFromFile;
 //                            Generic.alreadyPrintedMap.copyFrom(alreadyPrintedMap);
 //                            break;
                         case "timedWarningsMap":
-                            @SuppressWarnings("unchecked") SynchronizedMap<String, Long> timedWarningsMap = (SynchronizedMap<String, Long>) objectFromFile;
+                            @SuppressWarnings("unchecked") final SynchronizedMap<String, Long> timedWarningsMap = (SynchronizedMap<String, Long>) objectFromFile;
                             Statics.timedWarningsMap.copyFrom(timedWarningsMap);
                             break;
 //                        case "ignorableDatabase":
-//                            @SuppressWarnings("unchecked") IgnorableDatabase ignorableDatabase = (IgnorableDatabase) objectFromFile;
+//                            final IgnorableDatabase ignorableDatabase = (IgnorableDatabase) objectFromFile;
 //                            Ignorable.database.copyFrom(ignorableDatabase);
+//                            break;
+//                        case "rulesManager":
+//                            final RulesManager rulesManager = (RulesManager) objectFromFile;
+//                            Statics.rulesManager.copyFrom(rulesManager);
+//                            break;
+//                        case "marketCache":
+//                            @SuppressWarnings("unchecked") final MarketCache marketCache = (MarketCache) objectFromFile;
+//                            Statics.offlineMarketCache.copyFrom(marketCache);
+//                            break;
+//                        case "orderCache":
+//                            @SuppressWarnings("unchecked") final OrderCache orderCache = (OrderCache) objectFromFile;
+//                            Statics.offlineOrderCache.copyFrom(orderCache);
 //                            break;
                         default:
                             logger.error("unknown object in the fileNames map: {} {}", key, Statics.objectFileNamesMap.get(key));
@@ -306,7 +318,7 @@ public class VarsIO {
     public static void writeObjectsToFiles() {
         Statics.timeStamps.lastObjectsSaveStamp(Generic.MINUTE_LENGTH_MILLISECONDS * 10L);
         Statics.timeLastSaveToDisk.set(System.currentTimeMillis());
-        Set<String> keyset = Statics.objectFileNamesMap.keySet();
+        final Set<String> keyset = Statics.objectFileNamesMap.keySet();
         for (String key : keyset) {
             switch (key) {
                 case "timeStamps":
@@ -354,11 +366,95 @@ public class VarsIO {
 //                case "ignorableDatabase":
 //                    Generic.synchronizedWriteObjectToFile(Ignorable.database, Statics.objectFileNamesMap.get(key));
 //                    break;
+//                case "rulesManager":
+//                    Generic.synchronizedWriteObjectToFile(Statics.rulesManager, Statics.objectFileNamesMap.get(key));
+//                    break;
+//                case "marketCache":
+//                    Generic.synchronizedWriteObjectToFile(Statics.marketCache, Statics.objectFileNamesMap.get(key));
+//                    break;
+//                case "orderCache":
+//                    Generic.synchronizedWriteObjectToFile(Statics.orderCache, Statics.objectFileNamesMap.get(key));
+//                    break;
                 default:
                     logger.error("unknown key in the fileNames map: {} {}", key, Statics.objectFileNamesMap.get(key));
                     break;
             } // end switch
         } // end for
-        logger.info("have written objects to files");
+//        logger.info("have written objects to files");
     }
+
+    public static void writeSettings() {
+        Statics.timeStamps.lastSettingsSaveStamp(Generic.MINUTE_LENGTH_MILLISECONDS);
+        Statics.rulesManager.rulesHaveChanged.set(false);
+        Generic.synchronizedWriteObjectToFile(Statics.rulesManager, Statics.SETTINGS_FILE_NAME);
+        writeSettingsCounter.incrementAndGet();
+    }
+
+    public static boolean readSettings() {
+        final boolean readSuccessful;
+        final Object objectFromFile = Generic.readObjectFromFile(Statics.SETTINGS_FILE_NAME);
+        if (objectFromFile != null) {
+            final RulesManager rulesManager = (RulesManager) objectFromFile;
+            readSuccessful = Statics.rulesManager.copyFrom(rulesManager);
+        } else {
+            readSuccessful = false;
+            logger.error("objectFromFile null in readSettings");
+            if (Statics.resetTestMarker) {
+                Statics.rulesManager.copyFrom(new RulesManager()); // I need copyFrom to run for reset to work
+            }
+        }
+
+        return readSuccessful;
+    }
+//    public static void readPropertiesFromFiles() {
+//        final File folder = new File(Statics.PROPERTIES_FOLDER_NAME);
+//        final File[] fileNames = folder.listFiles();
+//        if (fileNames == null) {
+//            logger.error("null fileNames in readPropertiesFromFiles");
+//        } else {
+//            for (File file : fileNames) {
+//                if (file.isDirectory()) {
+//                    logger.error("subdirectory found in readPropertiesFromFiles");
+//                } else {
+//                    readPropertiesFile(file);
+//                }
+//            } // end for
+//        }
+//    }
+//
+//    public static void readPropertiesFile(File file) {
+//        if (file == null) {
+//            logger.error("null file in readPropertiesFile");
+//        } else {
+//            final String fileName = file.getName();
+//            final Properties properties = new Properties();
+//            try {
+//                final FileInputStream fileInputStream = new FileInputStream(file);
+//                try {
+//                    properties.load(fileInputStream);
+//                    try {
+//                        final Enumeration<?> enumeration = properties.propertyNames();
+//                        while (enumeration.hasMoreElements()) {
+//                            final String key = (String) enumeration.nextElement();
+//                            final String value = properties.getProperty(key);
+//                            switch (key) {
+//                                case "":
+//                                    -
+//                                    break;
+//                                default:
+//                                    logger.error("unknown key in readPropertiesFile enumeration: {} {} {}", key, value, fileName);
+//                                    break;
+//                            }
+//                        } // end while
+//                    } catch (ClassCastException e) {
+//                        logger.error("ClassCastException in readPropertiesFile for: {} {}", fileName, Generic.objectToString(properties));
+//                    }
+//                } catch (IOException e) {
+//                    logger.error("IOException in readPropertiesFile for: {}", fileName);
+//                }
+//            } catch (FileNotFoundException e) {
+//                logger.error("FileNotFoundException in readPropertiesFile for: {}", fileName);
+//            }
+//        }
+//    }
 }

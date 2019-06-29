@@ -1,7 +1,6 @@
 package info.fmro.betty.entities;
 
 public class MarketLicence {
-
     private String wallet;
     private String rules;
     private Boolean rulesHasDate;
@@ -14,7 +13,7 @@ public class MarketLicence {
         return wallet;
     }
 
-    public synchronized void setWallet(String wallet) {
+    public synchronized void setWallet(final String wallet) {
         this.wallet = wallet;
     }
 
@@ -22,7 +21,7 @@ public class MarketLicence {
         return rules;
     }
 
-    public synchronized void setRules(String rules) {
+    public synchronized void setRules(final String rules) {
         this.rules = rules;
     }
 
@@ -30,7 +29,7 @@ public class MarketLicence {
         return rulesHasDate;
     }
 
-    public synchronized void setRulesHasDate(Boolean rulesHasDate) {
+    public synchronized void setRulesHasDate(final Boolean rulesHasDate) {
         this.rulesHasDate = rulesHasDate;
     }
 
@@ -38,7 +37,7 @@ public class MarketLicence {
         return clarifications;
     }
 
-    public synchronized void setClarifications(String clarifications) {
+    public synchronized void setClarifications(final String clarifications) {
         this.clarifications = clarifications;
     }
 }

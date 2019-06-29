@@ -8,7 +8,7 @@ public class GetMarketBooksThread
     private final List<String> marketIdsListSplit;
     private final QuickCheckThread quickCheckThread;
 
-    public GetMarketBooksThread(QuickCheckThread quickCheckThread, List<String> marketIdsListSplit) {
+    public GetMarketBooksThread(final QuickCheckThread quickCheckThread, final List<String> marketIdsListSplit) {
         this.marketIdsListSplit = marketIdsListSplit;
         this.quickCheckThread = quickCheckThread;
     }

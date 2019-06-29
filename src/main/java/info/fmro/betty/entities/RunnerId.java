@@ -3,10 +3,9 @@ package info.fmro.betty.entities;
 import java.util.Objects;
 
 public class RunnerId {
-
-    private String marketId; // MarketId alias String
-    private Long selectionId; // SelectionId alias Long
-    private Double handicap; // Handicap alias Double
+    private String marketId; // The id of the market bet on
+    private Long selectionId; // The id of the selection bet on
+    private Double handicap; // The handicap associated with the runner in case of asian handicap markets, otherwise returns '0.0'.
 
     public RunnerId() {
     }
@@ -15,7 +14,7 @@ public class RunnerId {
         return marketId;
     }
 
-    public synchronized void setMarketId(String marketId) {
+    public synchronized void setMarketId(final String marketId) {
         this.marketId = marketId;
     }
 
@@ -23,7 +22,7 @@ public class RunnerId {
         return selectionId;
     }
 
-    public synchronized void setSelectionId(Long selectionId) {
+    public synchronized void setSelectionId(final Long selectionId) {
         this.selectionId = selectionId;
     }
 
@@ -31,12 +30,12 @@ public class RunnerId {
         return handicap;
     }
 
-    public synchronized void setHandicap(Double handicap) {
+    public synchronized void setHandicap(final Double handicap) {
         this.handicap = handicap;
     }
 
     @Override
-    public boolean equals(Object o) {
+    public synchronized boolean equals(final Object o) {
         if (this == o) {
             return true;
         }
@@ -50,7 +49,7 @@ public class RunnerId {
     }
 
     @Override
-    public int hashCode() {
+    public synchronized int hashCode() {
         return Objects.hash(marketId, selectionId, handicap);
     }
 }

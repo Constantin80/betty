@@ -1,13 +1,17 @@
 package info.fmro.betty.stream.definitions;
 
-public class RequestMessage {
+import java.io.Serializable;
+
+public class RequestMessage
+        implements Serializable {
+    private static final long serialVersionUID = 6566614737849166532L;
     private Integer id; // Client generated unique id to link request with response (like json rpc)
     private RequestOperationType op; // The operation type
 
     public RequestMessage() {
     }
 
-    public RequestMessage(RequestMessage other) {
+    public RequestMessage(final RequestMessage other) {
         this.id = other.getId();
         this.op = other.getOp();
     }
@@ -16,7 +20,7 @@ public class RequestMessage {
         return id;
     }
 
-    public synchronized void setId(Integer id) {
+    public synchronized void setId(final Integer id) {
         this.id = id;
     }
 
@@ -24,7 +28,7 @@ public class RequestMessage {
         return op;
     }
 
-    public synchronized void setOp(RequestOperationType op) {
+    public synchronized void setOp(final RequestOperationType op) {
         this.op = op;
     }
 }

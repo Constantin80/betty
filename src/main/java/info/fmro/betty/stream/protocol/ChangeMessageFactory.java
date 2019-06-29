@@ -12,7 +12,7 @@ import info.fmro.betty.stream.definitions.SegmentType;
  * Created by mulveyj on 07/07/2016.
  */
 public class ChangeMessageFactory {
-    public static ChangeMessage<MarketChange> ToChangeMessage(int clientId, MarketChangeMessage message) {
+    public static ChangeMessage<MarketChange> ToChangeMessage(final int clientId, final MarketChangeMessage message) {
         final ChangeMessage<MarketChange> change = new ChangeMessage<>(clientId);
         change.setId(message.getId());
         change.setPublishTime(message.getPt());
@@ -58,7 +58,7 @@ public class ChangeMessageFactory {
         return change;
     }
 
-    public static ChangeMessage<OrderMarketChange> ToChangeMessage(int clientId, OrderChangeMessage message) {
+    public static ChangeMessage<OrderMarketChange> ToChangeMessage(final int clientId, final OrderChangeMessage message) {
         ChangeMessage<OrderMarketChange> change = new ChangeMessage<>(clientId);
         change.setId(message.getId());
         change.setPublishTime(message.getPt());

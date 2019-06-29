@@ -1,12 +1,12 @@
 package info.fmro.betty.entities;
 
 import info.fmro.betty.enums.ItemClass;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 public class StatementItem {
-
     private String refId; // An external reference, eg. equivalent to betId in the case of an exchange bet statement item.
     private Date itemDate; // The date and time of the statement item, eg. equivalent to settledData for an exchange bet statement item. (in ISO-8601 format, not translated)
     private Double amount; // The amount of money the balance is adjusted by
@@ -23,7 +23,7 @@ public class StatementItem {
         return refId;
     }
 
-    public synchronized void setRefId(String refId) {
+    public synchronized void setRefId(final String refId) {
         this.refId = refId;
     }
 
@@ -31,7 +31,7 @@ public class StatementItem {
         return itemDate == null ? null : (Date) itemDate.clone();
     }
 
-    public synchronized void setItemDate(Date itemDate) {
+    public synchronized void setItemDate(final Date itemDate) {
         this.itemDate = itemDate == null ? null : (Date) itemDate.clone();
     }
 
@@ -39,7 +39,7 @@ public class StatementItem {
         return amount;
     }
 
-    public synchronized void setAmount(Double amount) {
+    public synchronized void setAmount(final Double amount) {
         this.amount = amount;
     }
 
@@ -47,7 +47,7 @@ public class StatementItem {
         return balance;
     }
 
-    public synchronized void setBalance(Double balance) {
+    public synchronized void setBalance(final Double balance) {
         this.balance = balance;
     }
 
@@ -55,7 +55,7 @@ public class StatementItem {
         return itemClass;
     }
 
-    public synchronized void setItemClass(ItemClass itemClass) {
+    public synchronized void setItemClass(final ItemClass itemClass) {
         this.itemClass = itemClass;
     }
 
@@ -63,7 +63,7 @@ public class StatementItem {
         return itemClassData == null ? null : new HashMap<>(itemClassData);
     }
 
-    public synchronized void setItemClassData(Map<String, String> itemClassData) {
+    public synchronized void setItemClassData(final Map<String, String> itemClassData) {
         this.itemClassData = itemClassData == null ? null : new HashMap<>(itemClassData);
     }
 
@@ -71,7 +71,7 @@ public class StatementItem {
         return legacyData;
     }
 
-    public synchronized void setLegacyData(StatementLegacyData legacyData) {
+    public synchronized void setLegacyData(final StatementLegacyData legacyData) {
         this.legacyData = legacyData;
     }
 }

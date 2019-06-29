@@ -11,17 +11,17 @@ public class NullChangeHandler
     private static final Logger logger = LoggerFactory.getLogger(NullChangeHandler.class);
 
     @Override
-    public synchronized void onOrderChange(ChangeMessage<OrderMarketChange> change) {
+    public synchronized void onOrderChange(final ChangeMessage<OrderMarketChange> change) {
         logger.info("onOrderChange: " + change);
     }
 
     @Override
-    public synchronized void onMarketChange(ChangeMessage<MarketChange> change) {
+    public synchronized void onMarketChange(final ChangeMessage<MarketChange> change) {
         logger.info("onMarketChange: " + change);
     }
 
     @Override
-    public synchronized void onErrorStatusNotification(StatusMessage message) {
+    public synchronized void onErrorStatusNotification(final StatusMessage message) {
         logger.info("onErrorStatusNotification: " + message);
     }
 }

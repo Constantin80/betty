@@ -3,7 +3,6 @@ package info.fmro.betty.entities;
 import info.fmro.betty.enums.RollupModel;
 
 public class ExBestOffersOverrides {
-
     private Integer bestPricesDepth;
     private RollupModel rollupModel;
     private Integer rollupLimit;
@@ -17,7 +16,7 @@ public class ExBestOffersOverrides {
         return bestPricesDepth;
     }
 
-    public synchronized void setBestPricesDepth(Integer bestPricesDepth) {
+    public synchronized void setBestPricesDepth(final Integer bestPricesDepth) {
         this.bestPricesDepth = bestPricesDepth;
     }
 
@@ -25,7 +24,7 @@ public class ExBestOffersOverrides {
         return rollupModel;
     }
 
-    public synchronized void setRollupModel(RollupModel rollupModel) {
+    public synchronized void setRollupModel(final RollupModel rollupModel) {
         this.rollupModel = rollupModel;
     }
 
@@ -33,7 +32,7 @@ public class ExBestOffersOverrides {
         return rollupLimit;
     }
 
-    public synchronized void setRollupLimit(Integer rollupLimit) {
+    public synchronized void setRollupLimit(final Integer rollupLimit) {
         this.rollupLimit = rollupLimit;
     }
 
@@ -41,7 +40,7 @@ public class ExBestOffersOverrides {
         return rollupLiabilityThreshold;
     }
 
-    public synchronized void setRollupLiabilityThreshold(Double rollupLiabilityThreshold) {
+    public synchronized void setRollupLiabilityThreshold(final Double rollupLiabilityThreshold) {
         this.rollupLiabilityThreshold = rollupLiabilityThreshold;
     }
 
@@ -49,7 +48,7 @@ public class ExBestOffersOverrides {
         return rollupLiabilityFactor;
     }
 
-    public synchronized void setRollupLiabilityFactor(Integer rollupLiabilityFactor) {
+    public synchronized void setRollupLiabilityFactor(final Integer rollupLiabilityFactor) {
         this.rollupLiabilityFactor = rollupLiabilityFactor;
     }
 }

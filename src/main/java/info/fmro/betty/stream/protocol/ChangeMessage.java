@@ -3,6 +3,7 @@ package info.fmro.betty.stream.protocol;
 import info.fmro.betty.stream.definitions.ChangeType;
 import info.fmro.betty.stream.definitions.SegmentType;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -10,7 +11,9 @@ import java.util.List;
 /**
  * Created by mulveyj on 07/07/2016.
  */
-public class ChangeMessage<T> {
+public class ChangeMessage<T>
+        implements Serializable {
+    private static final long serialVersionUID = -5486319357290474083L;
     private Date arrivalTime;
     private Date publishTime;
     private final int clientId;
@@ -23,7 +26,7 @@ public class ChangeMessage<T> {
     private SegmentType segmentType;
     private ChangeType changeType;
 
-    public ChangeMessage(int clientId) {
+    public ChangeMessage(final int clientId) {
         this.clientId = clientId;
         arrivalTime = new Date(System.currentTimeMillis());
     }
@@ -66,7 +69,7 @@ public class ChangeMessage<T> {
         return changeType;
     }
 
-    public synchronized void setChangeType(ChangeType changeType) {
+    public synchronized void setChangeType(final ChangeType changeType) {
         this.changeType = changeType;
     }
 
@@ -74,7 +77,7 @@ public class ChangeMessage<T> {
         return arrivalTime == null ? null : (Date) arrivalTime.clone();
     }
 
-    public synchronized void setArrivalTime(Date arrivalTime) {
+    public synchronized void setArrivalTime(final Date arrivalTime) {
         this.arrivalTime = arrivalTime == null ? null : (Date) arrivalTime.clone();
     }
 
@@ -82,7 +85,7 @@ public class ChangeMessage<T> {
         return publishTime == null ? null : (Date) publishTime.clone();
     }
 
-    public synchronized void setPublishTime(Date publishTime) {
+    public synchronized void setPublishTime(final Date publishTime) {
         this.publishTime = publishTime == null ? null : (Date) publishTime.clone();
     }
 
@@ -90,7 +93,7 @@ public class ChangeMessage<T> {
         return id;
     }
 
-    public synchronized void setId(Integer id) {
+    public synchronized void setId(final Integer id) {
         this.id = id;
     }
 
@@ -98,7 +101,7 @@ public class ChangeMessage<T> {
         return clk;
     }
 
-    public synchronized void setClk(String clk) {
+    public synchronized void setClk(final String clk) {
         this.clk = clk;
     }
 
@@ -106,7 +109,7 @@ public class ChangeMessage<T> {
         return initialClk;
     }
 
-    public synchronized void setInitialClk(String initialClk) {
+    public synchronized void setInitialClk(final String initialClk) {
         this.initialClk = initialClk;
     }
 
@@ -114,7 +117,7 @@ public class ChangeMessage<T> {
         return heartbeatMs;
     }
 
-    public synchronized void setHeartbeatMs(Long heartbeatMs) {
+    public synchronized void setHeartbeatMs(final Long heartbeatMs) {
         this.heartbeatMs = heartbeatMs;
     }
 
@@ -122,7 +125,7 @@ public class ChangeMessage<T> {
         return conflateMs;
     }
 
-    public synchronized void setConflateMs(Long conflateMs) {
+    public synchronized void setConflateMs(final Long conflateMs) {
         this.conflateMs = conflateMs;
     }
 
@@ -130,7 +133,7 @@ public class ChangeMessage<T> {
         return items == null ? null : new ArrayList<>(items);
     }
 
-    public synchronized void setItems(List<T> items) {
+    public synchronized void setItems(final List<T> items) {
         this.items = items == null ? null : new ArrayList<>(items);
     }
 
@@ -138,7 +141,7 @@ public class ChangeMessage<T> {
         return segmentType;
     }
 
-    public synchronized void setSegmentType(SegmentType segmentType) {
+    public synchronized void setSegmentType(final SegmentType segmentType) {
         this.segmentType = segmentType;
     }
 }

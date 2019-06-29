@@ -52,7 +52,7 @@ public class Client
     public final AtomicLong heartbeatMs = new AtomicLong();
     public final MarketDataFilter marketDataFilter = new MarketDataFilter(FilterFlag.EX_ALL_OFFERS, FilterFlag.EX_TRADED, FilterFlag.EX_TRADED_VOL, FilterFlag.EX_LTP, FilterFlag.EX_MARKET_DEF);
 
-    public Client(int id, String hostName, int port) {
+    public Client(final int id, final String hostName, final int port) {
         this.id = id;
         this.hostName = hostName;
         this.port = port;
@@ -74,7 +74,7 @@ public class Client
 //        processor.setChangeHandler(changeHandler);
 //    }
 
-    void setStreamError(boolean newValue) { // not synchronized, as it's not needed and I have sleep inside, and synchronization would lead to deadlocks
+    void setStreamError(final boolean newValue) { // not synchronized, as it's not needed and I have sleep inside, and synchronization would lead to deadlocks
         if (newValue == false) {
             streamError.set(newValue);
         } else {
@@ -169,7 +169,7 @@ public class Client
         }
     }
 
-    private synchronized Socket createSocket(String hostName, int port) {
+    private synchronized Socket createSocket(final String hostName, final int port) {
         if (port != 443) {
             logger.error("[{}]streamClient trying to connect on a port other than 443, I'll still use SSL", this.id);
         }
@@ -263,7 +263,7 @@ public class Client
         disconnect(false);
     }
 
-    private synchronized void disconnect(boolean stoppingClient) {
+    private synchronized void disconnect(final boolean stoppingClient) {
         if (socket != null) {
             if (socket.isClosed()) {
                 if (stoppingClient) {

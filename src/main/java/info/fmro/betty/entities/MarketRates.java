@@ -1,7 +1,6 @@
 package info.fmro.betty.entities;
 
 public class MarketRates {
-
     private Double marketBaseRate;
     private Boolean discountAllowed;
 
@@ -12,7 +11,7 @@ public class MarketRates {
         return marketBaseRate;
     }
 
-    public synchronized void setMarketBaseRate(Double marketBaseRate) {
+    public synchronized void setMarketBaseRate(final Double marketBaseRate) {
         this.marketBaseRate = marketBaseRate;
     }
 
@@ -20,7 +19,7 @@ public class MarketRates {
         return discountAllowed;
     }
 
-    public synchronized void setDiscountAllowed(Boolean discountAllowed) {
+    public synchronized void setDiscountAllowed(final Boolean discountAllowed) {
         this.discountAllowed = discountAllowed;
     }
 }

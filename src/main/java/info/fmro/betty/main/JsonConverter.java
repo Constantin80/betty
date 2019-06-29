@@ -29,7 +29,7 @@ public class JsonConverter {
     /**
      * This method deserializes the specified Json into an object of the specified class.
      */
-    public static <T> T convertFromJson(String toConvertString, Class<T> clazz) {
+    public static <T> T convertFromJson(final String toConvertString, final Class<T> clazz) {
         try {
             return gson.fromJson(toConvertString, clazz);
         } catch (JsonSyntaxException jsonSyntaxException) {
@@ -45,7 +45,7 @@ public class JsonConverter {
     /**
      * This method deserializes the specified Json into an object of the specified Type.
      */
-    public static <T> T convertFromJson(String toConvertString, Type typeOfT) {
+    public static <T> T convertFromJson(final String toConvertString, final Type typeOfT) {
         try {
             return gson.fromJson(toConvertString, typeOfT);
         } catch (JsonSyntaxException jsonSyntaxException) {
@@ -62,7 +62,7 @@ public class JsonConverter {
     /**
      * This method serializes the specified object into its equivalent Json representation.
      */
-    public static String convertToJson(Object toConvertObject) {
+    public static String convertToJson(final Object toConvertObject) {
         return gson.toJson(toConvertObject);
     }
 }

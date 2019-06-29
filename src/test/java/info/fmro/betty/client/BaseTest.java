@@ -10,7 +10,6 @@ import org.junit.jupiter.api.BeforeAll;
  * Created by mulveyj on 08/07/2016.
  */
 public class BaseTest {
-
     private static String appKey;
     private static String userName;
     private static String password;

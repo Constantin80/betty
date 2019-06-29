@@ -15,7 +15,7 @@ public class CurrencyRate
         return currencyCode;
     }
 
-    public synchronized void setCurrencyCode(String currencyCode) {
+    public synchronized void setCurrencyCode(final String currencyCode) {
         this.currencyCode = currencyCode;
     }
 
@@ -23,7 +23,7 @@ public class CurrencyRate
         return rate;
     }
 
-    public synchronized void setRate(Double rate) {
+    public synchronized void setRate(final Double rate) {
         this.rate = rate;
     }
 }

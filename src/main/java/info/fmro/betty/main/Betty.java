@@ -50,9 +50,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Betty {
-
     private static final Logger logger = LoggerFactory.getLogger(Betty.class);
-    public static final QuickCheckThread quickCheckThread = new QuickCheckThread();
 
     private Betty() {
     }
@@ -68,16 +66,17 @@ public class Betty {
 
         try {
 //            new File(Statics.LOGS_FOLDER_NAME).mkdirs(); // moved to Generic.replaceStandardStreams
-            if (Statics.safeBetModuleActivated) {
-                new File(Statics.betradarScraperThread.SAVE_FOLDER).mkdirs();
-                new File(Statics.coralScraperThread.SAVE_FOLDER).mkdirs();
-            }
-            new File(Statics.DATA_FOLDER_NAME).mkdirs();
 
             outFileOutputStream = (FileOutputStream) Statics.standardStreamsList.get(0);
             outPrintStream = (PrintStream) Statics.standardStreamsList.get(1);
             errFileOutputStream = (FileOutputStream) Statics.standardStreamsList.get(2);
             errPrintStream = (PrintStream) Statics.standardStreamsList.get(3);
+
+            if (Statics.safeBetModuleActivated) {
+                new File(Statics.betradarScraperThread.SAVE_FOLDER).mkdirs();
+                new File(Statics.coralScraperThread.SAVE_FOLDER).mkdirs();
+            }
+            new File(Statics.DATA_FOLDER_NAME).mkdirs();
 
             int debugLevel = 0;
             for (final String arg : args) {
@@ -96,6 +95,14 @@ public class Betty {
                 }
             }
             Statics.debugLevel.setLevel(debugLevel);
+
+            Generic.backupFiles(Statics.LOGS_FOLDER_NAME, Statics.SETTINGS_FILE_NAME); // backup before read, as read can, in some cases, overwrite the file
+
+            if (!VarsIO.readSettings()) {
+                logger.error("error reading settings, program will exit");
+                return;
+            } else { // settings have been read fine, program will run
+            }
 
             // if (Statics.debugger.getDebugLevel() >= 2) {
             //     Statics.debugger.addWriter(Statics.DEBUG_VARS_FILE_NAME, false, 2);
@@ -150,8 +157,8 @@ public class Betty {
             } else {
                 coralThread = new Thread();
             }
-            Betty.quickCheckThread.start();
-            final Thread cancelOrdersThread = new Thread(new CancelOrdersThread());
+            Statics.quickCheckThread.start();
+            final Thread cancelOrdersThread = new Thread(Statics.ordersThread);
             cancelOrdersThread.start();
             final Thread placedAmountsThread = new Thread(new PlacedAmountsThread());
             placedAmountsThread.start();
@@ -162,6 +169,7 @@ public class Betty {
             for (int i = 0; i < ClientHandler.streamClients.length; i++) {
                 ClientHandler.streamClients[i].start();
             }
+            Statics.rulesManager.start();
 
             if (Statics.safeBetModuleActivated) {
                 if (!BrowserVersion.BEST_SUPPORTED.equals(BrowserVersion.FIREFOX_52)) {
@@ -188,9 +196,6 @@ public class Betty {
                 }
             } // end while
 
-            Statics.threadPoolExecutor.shutdown();
-            Statics.threadPoolExecutorMarketBooks.shutdown();
-            Statics.threadPoolExecutorImportant.shutdown();
             synchronized (Statics.inputConnectionSocketsSet) {
                 for (final Socket socket : Statics.inputConnectionSocketsSet) {
                     Generic.closeObject(socket);
@@ -233,9 +238,13 @@ public class Betty {
                 logger.info("joining coralScraper thread");
                 coralThread.join();
             }
-            if (quickCheckThread.isAlive()) {
+            if (Statics.quickCheckThread.isAlive()) {
                 logger.info("joining quickCheck thread");
-                quickCheckThread.join();
+                Statics.quickCheckThread.join();
+            }
+            if (Statics.rulesManager.isAlive()) {
+                logger.info("joining rulesManager thread");
+                Statics.rulesManager.join();
             }
             if (cancelOrdersThread.isAlive()) {
                 logger.info("joining cancelOrdersThread");
@@ -267,6 +276,10 @@ public class Betty {
                     ClientHandler.streamClients[i].join();
                 }
             }
+
+            Statics.threadPoolExecutor.shutdown();
+            Statics.threadPoolExecutorMarketBooks.shutdown();
+            Statics.threadPoolExecutorImportant.shutdown();
 
             if (!Statics.threadPoolExecutor.awaitTermination(10L, TimeUnit.MINUTES)) {
                 logger.error("threadPoolExecutor hanged: {}", Statics.threadPoolExecutor.getActiveCount());
@@ -304,6 +317,7 @@ public class Betty {
             }
 
             VarsIO.writeObjectsToFiles();
+            VarsIO.writeSettings();
             Generic.alreadyPrintedMap.clear(); // also prints the important properties
         } catch (FileNotFoundException | NumberFormatException | InterruptedException exception) {
             logger.error("STRANGE ERROR inside Betty", exception);
@@ -318,7 +332,8 @@ public class Betty {
         }
     }
 
-    public static boolean authenticate(String authURL, AtomicReference<String> bu, AtomicReference<String> bp, SessionTokenObject sessionTokenObject, String keyStoreFileName, String keyStorePassword, String keyStoreType, AtomicReference<String> appKey) {
+    public static boolean authenticate(final String authURL, final AtomicReference<String> bu, final AtomicReference<String> bp, final SessionTokenObject sessionTokenObject, final String keyStoreFileName, final String keyStorePassword,
+                                       final String keyStoreType, final AtomicReference<String> appKey) {
         boolean success = false;
         long beginTime = System.currentTimeMillis();
         HttpClientBuilder httpClientBuilder = HttpClients.custom();
@@ -444,7 +459,7 @@ public class Betty {
         return success;
     }
 
-    public static KeyManager[] getKeyManagers(String keyStoreFileName, String keyStorePassword, String keyStoreType) {
+    public static KeyManager[] getKeyManagers(final String keyStoreFileName, final String keyStorePassword, final String keyStoreType) {
         File keyFile = new File(keyStoreFileName);
         FileInputStream keyStoreFileInputStream = null;
         KeyManagerFactory keyManagerFactory = null;
@@ -465,7 +480,7 @@ public class Betty {
         return keyManagerFactory == null ? null : keyManagerFactory.getKeyManagers();
     }
 
-    public static void programSleeps(AtomicBoolean mustSleep, AtomicBoolean mustStop, String id) {
+    public static void programSleeps(final AtomicBoolean mustSleep, final AtomicBoolean mustStop, final String id) {
         if (mustSleep.get()) {
             logger.info("{} sleeping ...", id);
             while (mustSleep.get() && !mustStop.get()) {

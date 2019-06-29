@@ -4,7 +4,6 @@ import info.fmro.betty.enums.InstructionReportErrorCode;
 import info.fmro.betty.enums.InstructionReportStatus;
 
 public class ReplaceInstructionReport {
-
     private InstructionReportStatus status;
     private InstructionReportErrorCode errorCode;
     private CancelInstructionReport cancelInstructionReport;
@@ -17,7 +16,7 @@ public class ReplaceInstructionReport {
         return status;
     }
 
-    public synchronized void setStatus(InstructionReportStatus status) {
+    public synchronized void setStatus(final InstructionReportStatus status) {
         this.status = status;
     }
 
@@ -25,7 +24,7 @@ public class ReplaceInstructionReport {
         return errorCode;
     }
 
-    public synchronized void setErrorCode(InstructionReportErrorCode errorCode) {
+    public synchronized void setErrorCode(final InstructionReportErrorCode errorCode) {
         this.errorCode = errorCode;
     }
 
@@ -33,7 +32,7 @@ public class ReplaceInstructionReport {
         return cancelInstructionReport;
     }
 
-    public synchronized void setCancelInstructionReport(CancelInstructionReport cancelInstructionReport) {
+    public synchronized void setCancelInstructionReport(final CancelInstructionReport cancelInstructionReport) {
         this.cancelInstructionReport = cancelInstructionReport;
     }
 
@@ -41,7 +40,7 @@ public class ReplaceInstructionReport {
         return placeInstructionReport;
     }
 
-    public synchronized void setPlaceInstructionReport(PlaceInstructionReport placeInstructionReport) {
+    public synchronized void setPlaceInstructionReport(final PlaceInstructionReport placeInstructionReport) {
         this.placeInstructionReport = placeInstructionReport;
     }
 }

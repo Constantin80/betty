@@ -14,7 +14,6 @@ import java.util.Objects;
 
 public class MarketBook
         implements Serializable, Comparable<MarketBook> {
-
     private static final Logger logger = LoggerFactory.getLogger(MarketBook.class);
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
     private static final long serialVersionUID = -690691726819586172L;
@@ -24,6 +23,7 @@ public class MarketBook
     private Integer betDelay;
     private Boolean bspReconciled;
     private Boolean complete;
+    @SuppressWarnings("SpellCheckingInspection")
     private Boolean inplay;
     private Integer numberOfWinners;
     private Integer numberOfRunners;
@@ -34,12 +34,13 @@ public class MarketBook
     private Boolean crossMatching;
     private Boolean runnersVoidable;
     private Long version;
-    private List<Runner> runners;
+    private ArrayList<Runner> runners;
+    private KeyLineDescription keyLineDescription;
     private long timeStamp;
 
     //    public MarketBook() {
 //    }
-    public MarketBook(String marketId) {
+    public MarketBook(final String marketId) {
         this.marketId = marketId;
     }
 
@@ -51,7 +52,7 @@ public class MarketBook
         return isMarketDataDelayed;
     }
 
-    public synchronized int setIsMarketDataDelayed(Boolean isMarketDataDelayed) {
+    public synchronized int setIsMarketDataDelayed(final Boolean isMarketDataDelayed) {
         final int modified;
         if (this.isMarketDataDelayed == null) {
             if (isMarketDataDelayed == null) {
@@ -73,7 +74,7 @@ public class MarketBook
         return status;
     }
 
-    public synchronized int setStatus(MarketStatus status) {
+    public synchronized int setStatus(final MarketStatus status) {
         final int modified;
         if (this.status == null) {
             if (status == null) {
@@ -95,7 +96,7 @@ public class MarketBook
         return betDelay;
     }
 
-    public synchronized int setBetDelay(Integer betDelay) {
+    public synchronized int setBetDelay(final Integer betDelay) {
         final int modified;
         if (this.betDelay == null) {
             if (betDelay == null) {
@@ -117,7 +118,7 @@ public class MarketBook
         return bspReconciled;
     }
 
-    public synchronized int setBspReconciled(Boolean bspReconciled) {
+    public synchronized int setBspReconciled(final Boolean bspReconciled) {
         final int modified;
         if (this.bspReconciled == null) {
             if (bspReconciled == null) {
@@ -139,7 +140,7 @@ public class MarketBook
         return complete;
     }
 
-    public synchronized int setComplete(Boolean complete) {
+    public synchronized int setComplete(final Boolean complete) {
         final int modified;
         if (this.complete == null) {
             if (complete == null) {
@@ -161,7 +162,7 @@ public class MarketBook
         return inplay;
     }
 
-    public synchronized int setInplay(Boolean inplay) {
+    public synchronized int setInplay(final Boolean inplay) {
         final int modified;
         if (this.inplay == null) {
             if (inplay == null) {
@@ -183,7 +184,7 @@ public class MarketBook
         return numberOfWinners;
     }
 
-    public synchronized int setNumberOfWinners(Integer numberOfWinners) {
+    public synchronized int setNumberOfWinners(final Integer numberOfWinners) {
         final int modified;
         if (this.numberOfWinners == null) {
             if (numberOfWinners == null) {
@@ -205,7 +206,7 @@ public class MarketBook
         return numberOfRunners;
     }
 
-    public synchronized int setNumberOfRunners(Integer numberOfRunners) {
+    public synchronized int setNumberOfRunners(final Integer numberOfRunners) {
         final int modified;
         if (this.numberOfRunners == null) {
             if (numberOfRunners == null) {
@@ -227,7 +228,7 @@ public class MarketBook
         return numberOfActiveRunners;
     }
 
-    public synchronized int setNumberOfActiveRunners(Integer numberOfActiveRunners) {
+    public synchronized int setNumberOfActiveRunners(final Integer numberOfActiveRunners) {
         final int modified;
         if (this.numberOfActiveRunners == null) {
             if (numberOfActiveRunners == null) {
@@ -249,7 +250,7 @@ public class MarketBook
         return lastMatchTime == null ? null : (Date) lastMatchTime.clone();
     }
 
-    public synchronized int setLastMatchTime(Date lastMatchTime) {
+    public synchronized int setLastMatchTime(final Date lastMatchTime) {
         final int modified;
         if (this.lastMatchTime == null) {
             if (lastMatchTime == null) {
@@ -271,7 +272,7 @@ public class MarketBook
         return totalMatched;
     }
 
-    public synchronized int setTotalMatched(Double totalMatched) {
+    public synchronized int setTotalMatched(final Double totalMatched) {
         final int modified;
         if (this.totalMatched == null) {
             if (totalMatched == null) {
@@ -293,7 +294,7 @@ public class MarketBook
         return totalAvailable;
     }
 
-    public synchronized int setTotalAvailable(Double totalAvailable) {
+    public synchronized int setTotalAvailable(final Double totalAvailable) {
         final int modified;
         if (this.totalAvailable == null) {
             if (totalAvailable == null) {
@@ -315,7 +316,7 @@ public class MarketBook
         return crossMatching;
     }
 
-    public synchronized int setCrossMatching(Boolean crossMatching) {
+    public synchronized int setCrossMatching(final Boolean crossMatching) {
         final int modified;
         if (this.crossMatching == null) {
             if (crossMatching == null) {
@@ -337,7 +338,7 @@ public class MarketBook
         return runnersVoidable;
     }
 
-    public synchronized int setRunnersVoidable(Boolean runnersVoidable) {
+    public synchronized int setRunnersVoidable(final Boolean runnersVoidable) {
         final int modified;
         if (this.runnersVoidable == null) {
             if (runnersVoidable == null) {
@@ -359,7 +360,7 @@ public class MarketBook
         return version;
     }
 
-    public synchronized int setVersion(Long version) {
+    public synchronized int setVersion(final Long version) {
         final int modified;
         if (this.version == null) {
             if (version == null) {
@@ -381,7 +382,7 @@ public class MarketBook
         return runners == null ? null : new ArrayList<>(runners);
     }
 
-    public synchronized int setRunners(List<Runner> runners) {
+    public synchronized int setRunners(final List<Runner> runners) {
         final int modified;
         if (this.runners == null) {
             if (runners == null) {
@@ -399,11 +400,35 @@ public class MarketBook
         return modified;
     }
 
+    public synchronized KeyLineDescription getKeyLineDescription() {
+        return keyLineDescription;
+    }
+
+    public synchronized int setKeyLineDescription(final KeyLineDescription keyLineDescription) {
+        final int modified;
+
+        if (this.keyLineDescription == null) {
+            if (keyLineDescription == null) {
+                modified = 0;
+            } else {
+                this.keyLineDescription = keyLineDescription;
+                modified = 1;
+            }
+        } else if (this.keyLineDescription.equals(keyLineDescription)) {
+            modified = 0;
+        } else {
+            this.keyLineDescription = keyLineDescription;
+            modified = 1;
+        }
+
+        return modified;
+    }
+
     public synchronized long getTimeStamp() {
         return timeStamp;
     }
 
-    public synchronized void setTimeStamp(long timeStamp) {
+    public synchronized void setTimeStamp(final long timeStamp) {
         this.timeStamp = timeStamp;
     }
 
@@ -411,7 +436,7 @@ public class MarketBook
         this.timeStamp = System.currentTimeMillis();
     }
 
-    public synchronized int update(MarketBook marketBook) {
+    public synchronized int update(final MarketBook marketBook) {
         int modified;
         if (this == marketBook) {
             logger.error("update from same object in MarketBook.update: {}", Generic.objectToString(this));
@@ -458,6 +483,7 @@ public class MarketBook
                 modified += this.setRunnersVoidable(marketBook.getRunnersVoidable());
                 modified += this.setVersion(marketBook.getVersion());
                 modified += this.setRunners(marketBook.getRunners());
+                modified += this.setKeyLineDescription(marketBook.getKeyLineDescription());
             }
         }
         return modified;
@@ -465,7 +491,7 @@ public class MarketBook
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(MarketBook other) {
+    public synchronized int compareTo(final MarketBook other) {
         if (other == null) {
             return AFTER;
         }
@@ -495,7 +521,7 @@ public class MarketBook
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized boolean equals(Object obj) {
+    public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }

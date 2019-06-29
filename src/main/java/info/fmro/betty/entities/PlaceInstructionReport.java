@@ -2,12 +2,14 @@ package info.fmro.betty.entities;
 
 import info.fmro.betty.enums.InstructionReportErrorCode;
 import info.fmro.betty.enums.InstructionReportStatus;
+import info.fmro.betty.enums.OrderStatus;
+
 import java.util.Date;
 
 public class PlaceInstructionReport {
-
     private InstructionReportStatus status;
     private InstructionReportErrorCode errorCode;
+    private OrderStatus orderStatus;
     private PlaceInstruction instruction;
     private String betId;
     private Date placedDate;
@@ -21,7 +23,7 @@ public class PlaceInstructionReport {
         return status;
     }
 
-    public synchronized void setStatus(InstructionReportStatus status) {
+    public synchronized void setStatus(final InstructionReportStatus status) {
         this.status = status;
     }
 
@@ -29,7 +31,7 @@ public class PlaceInstructionReport {
         return errorCode;
     }
 
-    public synchronized void setErrorCode(InstructionReportErrorCode errorCode) {
+    public synchronized void setErrorCode(final InstructionReportErrorCode errorCode) {
         this.errorCode = errorCode;
     }
 
@@ -37,7 +39,7 @@ public class PlaceInstructionReport {
         return instruction;
     }
 
-    public synchronized void setInstruction(PlaceInstruction instruction) {
+    public synchronized void setInstruction(final PlaceInstruction instruction) {
         this.instruction = instruction;
     }
 
@@ -45,7 +47,7 @@ public class PlaceInstructionReport {
         return betId;
     }
 
-    public synchronized void setBetId(String betId) {
+    public synchronized void setBetId(final String betId) {
         this.betId = betId;
     }
 
@@ -53,7 +55,7 @@ public class PlaceInstructionReport {
         return placedDate == null ? null : (Date) placedDate.clone();
     }
 
-    public synchronized void setPlacedDate(Date placedDate) {
+    public synchronized void setPlacedDate(final Date placedDate) {
         this.placedDate = placedDate == null ? null : (Date) placedDate.clone();
     }
 
@@ -61,7 +63,7 @@ public class PlaceInstructionReport {
         return averagePriceMatched;
     }
 
-    public synchronized void setAveragePriceMatched(Double averagePriceMatched) {
+    public synchronized void setAveragePriceMatched(final Double averagePriceMatched) {
         this.averagePriceMatched = averagePriceMatched;
     }
 
@@ -69,7 +71,7 @@ public class PlaceInstructionReport {
         return sizeMatched;
     }
 
-    public synchronized void setSizeMatched(Double sizeMatched) {
+    public synchronized void setSizeMatched(final Double sizeMatched) {
         this.sizeMatched = sizeMatched;
     }
 }

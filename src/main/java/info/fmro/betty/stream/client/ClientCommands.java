@@ -1,6 +1,5 @@
 package info.fmro.betty.stream.client;
 
-import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.definitions.MarketFilter;
 import info.fmro.betty.stream.definitions.MarketSubscriptionMessage;
 import info.fmro.betty.stream.definitions.OrderSubscriptionMessage;
@@ -27,7 +26,7 @@ public class ClientCommands
     }
 
     @CliCommand(value = "marketFirehose", help = "subscribes to all markets")
-    public static MarketSubscriptionMessage marketFirehose(Client client) {
+    public static MarketSubscriptionMessage marketFirehose(final Client client) {
 //        1=Soccer  10k markets
 //        2=Tennis  6k markets
 //        3=Golf    everything else has very few markets
@@ -58,14 +57,13 @@ public class ClientCommands
     /**
      * Subscribe to the specified market ids. (starting the client if needed).
      */
-
-    public static MarketSubscriptionMessage createMarketSubscriptionMessage(Client client, String... markets) {
+    public static MarketSubscriptionMessage createMarketSubscriptionMessage(final Client client, final String... markets) {
         final MarketFilter marketFilter = new MarketFilter();
         marketFilter.setMarketIds(new HashSet<>(Arrays.asList(markets)));
         return createMarketSubscriptionMessage(client, marketFilter);
     }
 
-    public static MarketSubscriptionMessage createMarketSubscriptionMessage(Client client, HashSet<String> markets) {
+    public static MarketSubscriptionMessage createMarketSubscriptionMessage(final Client client, final HashSet<String> markets) {
         final MarketFilter marketFilter = new MarketFilter();
         marketFilter.setMarketIds(markets);
         return createMarketSubscriptionMessage(client, marketFilter);
@@ -74,14 +72,14 @@ public class ClientCommands
     /**
      * Subscribe to the specified markets (matching your filter). (starting the client if needed).
      */
-    public static MarketSubscriptionMessage createMarketSubscriptionMessage(Client client, MarketFilter marketFilter) {
+    public static MarketSubscriptionMessage createMarketSubscriptionMessage(final Client client, final MarketFilter marketFilter) {
         final MarketSubscriptionMessage marketSubscriptionMessage = new MarketSubscriptionMessage();
         marketSubscriptionMessage.setMarketFilter(marketFilter);
         return createMarketSubscriptionMessage(client, marketSubscriptionMessage);
     }
 
     // Explicit order subscription.
-    public static MarketSubscriptionMessage createMarketSubscriptionMessage(Client client, MarketSubscriptionMessage message) {
+    public static MarketSubscriptionMessage createMarketSubscriptionMessage(final Client client, final MarketSubscriptionMessage message) {
         message.setConflateMs(client.conflateMs.get());
         message.setHeartbeatMs(client.heartbeatMs.get());
         message.setMarketDataFilter(client.marketDataFilter);
@@ -94,14 +92,14 @@ public class ClientCommands
     /**
      * Subscribe to all orders.
      */
-    public static OrderSubscriptionMessage createOrderSubscriptionMessage(Client client) {
+    public static OrderSubscriptionMessage createOrderSubscriptionMessage(final Client client) {
         return createOrderSubscriptionMessage(client, new OrderSubscriptionMessage());
     }
 
     /**
      * Explict order subscription.
      */
-    public static OrderSubscriptionMessage createOrderSubscriptionMessage(Client client, OrderSubscriptionMessage message) {
+    public static OrderSubscriptionMessage createOrderSubscriptionMessage(final Client client, final OrderSubscriptionMessage message) {
         message.setConflateMs(client.conflateMs.get());
         message.setHeartbeatMs(client.heartbeatMs.get());
         return message;
@@ -110,86 +108,8 @@ public class ClientCommands
 //        client.processor.orderSubscription(message);
     }
 
-//    @CliCommand(value = "listMarkets", help = "lists the cached markets")
-//    public static void listMarkets() {
-//        for (Market market : Statics.marketCache.getMarkets()) {
-//            Utils.printMarket(market.getSnap());
-//        }
-//    }
-//
-//    public static void listMarkets(String... marketIds) {
-//        if (marketIds != null) {
-//            for (String marketId : marketIds) {
-//                final Market market = Statics.marketCache.getMarket(marketId);
-//                if (market != null) {
-//                    Utils.printMarket(market.getSnap());
-//                } else {
-//                    logger.error("null market in listMarkets for: {}", marketId);
-//                }
-//            }
-//        } else {
-//            logger.error("null marketIds in listMarkets");
-//        }
-//    }
-//
-//    @CliCommand(value = "listOrders", help = "lists the cached orders")
-//    public static void listOrders() {
-//        for (OrderMarket orderMarket : Statics.orderCache.getOrderMarkets()) {
-//            Utils.printOrderMarket(orderMarket.getOrderMarketSnap());
-//        }
-//    }
-
-    @CliCommand(value = "traceMarkets", help = "trace Markets")
-    public static void traceMarkets() {
-        Statics.marketCache.traceMarkets();
-    }
-
-    @CliCommand(value = "traceOrders", help = "trace Orders")
-    public static void traceOrders() {
-        Statics.orderCache.traceOrders();
-    }
-
     @CliCommand(value = "traceMessages", help = "trace Messages (Markets and Orders)")
-    public static void traceMessages(@CliOption(key = {""}, mandatory = false, help = "truncate", unspecifiedDefaultValue = "200", specifiedDefaultValue = "200") Client client, int truncate) {
+    public static void traceMessages(@CliOption(key = {""}, mandatory = false, help = "truncate", unspecifiedDefaultValue = "200", specifiedDefaultValue = "200") final Client client, final int truncate) {
         client.processor.setTraceChangeTruncation(truncate);
     }
-
-//    public static FutureResponse<StatusMessage> waitFor(Client client, FutureResponse<StatusMessage> task) {
-//        StatusMessage statusMessage = null;
-//        FutureResponse<StatusMessage> result = null;
-//
-//        try {
-//            statusMessage = task.get(client.timeout, TimeUnit.MILLISECONDS);
-//            if (statusMessage != null) { //server responded
-//                if (statusMessage.getStatusCode() == StatusCode.SUCCESS) {
-//                    result = task;
-//                } else { //status error
-//                    if (statusMessage.getErrorCode() == ErrorCode.INVALID_SESSION_INFORMATION) {
-//                        logger.info("INVALID_SESSION_INFORMATION, needSessionToken[{}]: {}", client.id, Generic.objectToString(statusMessage));
-//                        Statics.needSessionToken.set(true);
-//                    } else {
-//                        logger.error("StatusCode.FAILURE in streamClient[{}]: {}", client.id, Generic.objectToString(statusMessage));
-//                    }
-//                }
-//            } else {
-//                logger.error("statusMessage null in streamClient[{}]: {}", client.id, Generic.objectToString(task, "backtrace"));
-//            }
-//        } catch (InterruptedException e) {
-//            logger.error("InterruptedException in streamClient[{}]: {}", client.id, Generic.objectToString(task, "backtrace"), e);
-//        } catch (ExecutionException e) {
-//            logger.error("ExecutionException in streamClient[{}]: {}", client.id, Generic.objectToString(task, "backtrace"), e);
-//        } catch (CancellationException e) {
-//            logger.error("CancellationException in streamClient[{}]: {}", client.id, Generic.objectToString(task, "backtrace"), e);
-//        } catch (TimeoutException e) {
-//            logger.error("TimeoutException in streamClient[{}]: {}", client.id, Generic.objectToString(task, "backtrace"), e);
-//        }
-//
-//        if (statusMessage == null || (statusMessage.getStatusCode() == StatusCode.FAILURE && statusMessage.getErrorCode() != ErrorCode.SUBSCRIPTION_LIMIT_EXCEEDED)) {
-//            logger.error("failure in waitFor[{}]: {} {}", client.id, Generic.objectToString(statusMessage), Generic.objectToString(task, "backtrace"));
-////            disconnect();
-//            client.setStreamError(true);
-//        }
-//
-//        return result;
-//    }
 }

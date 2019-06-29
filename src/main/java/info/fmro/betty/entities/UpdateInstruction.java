@@ -3,7 +3,6 @@ package info.fmro.betty.entities;
 import info.fmro.betty.enums.PersistenceType;
 
 public class UpdateInstruction {
-
     private String betId;
     private PersistenceType newPersistenceType;
 
@@ -14,7 +13,7 @@ public class UpdateInstruction {
         return betId;
     }
 
-    public synchronized void setBetId(String betId) {
+    public synchronized void setBetId(final String betId) {
         this.betId = betId;
     }
 
@@ -22,7 +21,7 @@ public class UpdateInstruction {
         return newPersistenceType;
     }
 
-    public synchronized void setNewPersistenceType(PersistenceType newPersistenceType) {
+    public synchronized void setNewPersistenceType(final PersistenceType newPersistenceType) {
         this.newPersistenceType = newPersistenceType;
     }
 }

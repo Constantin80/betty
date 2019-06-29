@@ -1,6 +1,7 @@
 package info.fmro.betty.stream.cache.market;
 
 import info.fmro.betty.enums.MarketStatus;
+import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.cache.util.RunnerId;
 import info.fmro.betty.stream.cache.util.Utils;
 import info.fmro.betty.stream.definitions.MarketChange;
@@ -8,27 +9,25 @@ import info.fmro.betty.stream.definitions.MarketDefinition;
 import info.fmro.betty.stream.definitions.RunnerChange;
 import info.fmro.betty.stream.definitions.RunnerDefinition;
 
+import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Thread safe, reference invariant reference to a market.
- * Repeatedly calling <see cref="Snap"/> will return atomic snapshots of the market.
- */
-public class Market {
+public class Market
+        implements Serializable {
+    private static final long serialVersionUID = -288902433432290477L;
     private final String marketId;
-    private Map<RunnerId, MarketRunner> marketRunners = new ConcurrentHashMap<>();
+    private Map<RunnerId, MarketRunner> marketRunners = new ConcurrentHashMap<>(); // the only place where MarketRunners are permanently stored
     private MarketDefinition marketDefinition;
-    private double tv;
-    //An atomic snapshot of the state of the market.
-//    private MarketSnap snap;
+    private double tv; //total value traded
 
-    public Market(String marketId) {
+    public Market(final String marketId) {
         this.marketId = marketId;
     }
 
-    synchronized void onMarketChange(MarketChange marketChange) {
+    synchronized void onMarketChange(final MarketChange marketChange) {
         //initial image means we need to wipe our data
         final boolean isImage = Boolean.TRUE.equals(marketChange.getImg());
         //market definition changed
@@ -36,35 +35,45 @@ public class Market {
         //runners changed
         Optional.ofNullable(marketChange.getRc()).ifPresent(l -> l.forEach(p -> onPriceChange(isImage, p)));
 
-//        final MarketSnap newSnap = new MarketSnap();
-//        newSnap.setMarketId(marketId);
-//        newSnap.setMarketDefinition(marketDefinition);
-//        newSnap.setMarketRunners(marketRunners.entrySet().stream().map(l -> l.getValue().getSnap()).collect(Collectors.toList()));
-//        newSnap.setTradedVolume(tv = Utils.selectPrice(isImage, tv, marketChange.getTv()));
-//        snap = newSnap;
         tv = Utils.selectPrice(isImage, tv, marketChange.getTv());
     }
 
-    private synchronized void onPriceChange(boolean isImage, RunnerChange runnerChange) {
+    private synchronized void onPriceChange(final boolean isImage, final RunnerChange runnerChange) {
         final MarketRunner marketRunner = getOrAdd(new RunnerId(runnerChange.getId(), runnerChange.getHc()));
         //update runner
         marketRunner.onPriceChange(isImage, runnerChange);
     }
 
-    private synchronized void onMarketDefinitionChange(MarketDefinition marketDefinition) {
+    private synchronized void onMarketDefinitionChange(final MarketDefinition marketDefinition) {
         this.marketDefinition = marketDefinition;
         Optional.ofNullable(marketDefinition.getRunners()).ifPresent(rds -> rds.forEach(this::onRunnerDefinitionChange));
     }
 
-    private synchronized void onRunnerDefinitionChange(RunnerDefinition runnerDefinition) {
+    private synchronized void onRunnerDefinitionChange(final RunnerDefinition runnerDefinition) {
         final MarketRunner marketRunner = getOrAdd(new RunnerId(runnerDefinition.getId(), runnerDefinition.getHc()));
         //update runner
         marketRunner.onRunnerDefinitionChange(runnerDefinition);
     }
 
-    private synchronized MarketRunner getOrAdd(RunnerId runnerId) {
+    private synchronized MarketRunner getOrAdd(final RunnerId runnerId) {
         final MarketRunner runner = marketRunners.computeIfAbsent(runnerId, k -> new MarketRunner(getMarketId(), k));
         return runner;
+    }
+
+    public synchronized MarketRunner getMarketRunner(final RunnerId runnerId) {
+        return this.marketRunners.get(runnerId);
+    }
+
+    public synchronized HashSet<RunnerId> getRunnerIds() {
+        return new HashSet<>(marketRunners.keySet());
+    }
+
+    private synchronized double getTv() {
+        return tv;
+    }
+
+    public synchronized double getTvEUR() {
+        return getTv() * Statics.safetyLimits.currencyRate.get();
     }
 
     public synchronized String getMarketId() {
@@ -76,9 +85,9 @@ public class Market {
         return (marketDefinition != null && marketDefinition.getStatus() == MarketStatus.CLOSED);
     }
 
-//    public synchronized MarketSnap getSnap() {
-//        return snap;
-//    }
+    public synchronized MarketDefinition getMarketDefinition() {
+        return marketDefinition;
+    }
 
     @Override
     public synchronized String toString() {

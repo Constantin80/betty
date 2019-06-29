@@ -4,18 +4,18 @@ import info.fmro.betty.entities.PriceProjection;
 import info.fmro.betty.main.QuickCheckThread;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.SynchronizedMap;
-import java.io.Serializable;
-import java.util.LinkedHashMap;
-import java.util.Map.Entry;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.io.Serializable;
+import java.util.LinkedHashMap;
+import java.util.Map.Entry;
+import java.util.Set;
+
 public class SafeBetsMap<K extends SafeBet>
         extends SynchronizedMap<String, SynchronizedMap<K, SafeBetStats>>
         implements Serializable {
-
     private static final Logger logger = LoggerFactory.getLogger(SafeBetsMap.class);
     private static final long serialVersionUID = 6744057008225898485L;
 
@@ -23,11 +23,11 @@ public class SafeBetsMap<K extends SafeBet>
         super();
     }
 
-    public SafeBetsMap(int initialSize) {
+    public SafeBetsMap(final int initialSize) {
         super(initialSize);
     }
 
-    public SafeBetsMap(int initialSize, float loadFactor) {
+    public SafeBetsMap(final int initialSize, final float loadFactor) {
         super(initialSize, loadFactor);
     }
 //
@@ -43,7 +43,7 @@ public class SafeBetsMap<K extends SafeBet>
 //        return map;
 //    }
 
-    public synchronized void parseNoLongerSeenSafeBets(String marketId, PriceProjection localPriceProjection, long endTime) {
+    public synchronized void parseNoLongerSeenSafeBets(final String marketId, final PriceProjection localPriceProjection, final long endTime) {
         final SynchronizedMap<K, SafeBetStats> safeBetsStatsMap = this.get(marketId); // will be null if no such key exists
 
         if (safeBetsStatsMap != null && !safeBetsStatsMap.isEmpty()) {
@@ -57,7 +57,7 @@ public class SafeBetsMap<K extends SafeBet>
                             value.setTimeFirstNotAppeared(endTime);
 
                             String printedString = MessageFormatter.arrayFormat("{} {} {} {}", new Object[]{value.printStats(), key.printStats(),
-                                Generic.objectToString(key), Generic.objectToString(value)}).getMessage();
+                                                                                                            Generic.objectToString(key), Generic.objectToString(value)}).getMessage();
                             logger.info(printedString);
                             Statics.safebetsSynchronizedWriter.writeAndFlush(Generic.properTimeStamp() + " " + printedString + "\r\n");
 
@@ -81,7 +81,7 @@ public class SafeBetsMap<K extends SafeBet>
         }
     }
 
-    public synchronized SafeBetStats addAndGetSafeBetStats(String marketId, K safeBet, long endTime, long timePreviousMarketBookCheck) {
+    public synchronized SafeBetStats addAndGetSafeBetStats(final String marketId, final K safeBet, final long endTime, final long timePreviousMarketBookCheck) {
         final SynchronizedMap<K, SafeBetStats> safeBetsStatsMap;
         if (this.containsKey(marketId)) {
             safeBetsStatsMap = super.get(marketId); // real map value
@@ -109,7 +109,7 @@ public class SafeBetsMap<K extends SafeBet>
         return safeBetStats;
     }
 
-    public synchronized SafeBetStats removeSafeBet(String key, K safeBet) {
+    public synchronized SafeBetStats removeSafeBet(final String key, final K safeBet) {
         final SynchronizedMap<K, SafeBetStats> map = super.get(key); // real map value
         return map == null ? null : map.remove(safeBet);
     }

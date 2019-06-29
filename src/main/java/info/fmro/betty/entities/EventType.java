@@ -5,7 +5,6 @@ import java.util.Objects;
 
 public class EventType
         implements Serializable {
-
     private static final long serialVersionUID = -2158475045630703415L;
     private String id;
     private String name;
@@ -13,7 +12,7 @@ public class EventType
     public EventType() {
     }
 
-    public EventType(String id, String name) {
+    public EventType(final String id, final String name) {
         this.id = id;
         this.name = name;
     }
@@ -22,19 +21,19 @@ public class EventType
         return id;
     }
 
-//    public synchronized void setId(String id) {
+    //    public synchronized void setId(String id) {
 //        this.id = id;
 //    }
     public synchronized String getName() {
         return name;
     }
 
-//    public synchronized void setName(String name) {
+    //    public synchronized void setName(String name) {
 //        this.name = name;
 //    }
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized boolean equals(Object obj) {
+    public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }

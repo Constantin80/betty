@@ -12,7 +12,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class BetradarEvent
         extends ScraperEvent
         implements Serializable {
-
     private static final Logger logger = LoggerFactory.getLogger(BetradarEvent.class);
     private static final long serialVersionUID = -6590032889145745147L;
     private Date startTime;
@@ -22,7 +21,7 @@ public class BetradarEvent
     //    public BetradarEvent(long eventId) {
 //        super("betradar", eventId);
 //    }
-    public BetradarEvent(long eventId, long timeStamp) {
+    public BetradarEvent(final long eventId, final long timeStamp) {
         super("betradar", eventId, timeStamp);
     }
 
@@ -30,7 +29,7 @@ public class BetradarEvent
         return startTime == null ? null : (Date) startTime.clone();
     }
 
-    public synchronized int setStartTime(Date startTime) {
+    public synchronized int setStartTime(final Date startTime) {
         final int modified;
         if (startTime == null) {
             if (this.startTime == null) {
@@ -75,7 +74,7 @@ public class BetradarEvent
         return classModifiers;
     }
 
-    public synchronized int setClassModifiers(String classModifiers) {
+    public synchronized int setClassModifiers(final String classModifiers) {
         final int modified;
         if (classModifiers == null) {
             if (this.classModifiers == null) {
@@ -100,12 +99,12 @@ public class BetradarEvent
     }
 
     @Override
-    public synchronized int setHomeHtScore(int homeHtScore) {
+    public synchronized int setHomeHtScore(final int homeHtScore) {
         return super.setHomeHtScore(homeHtScore, true);
     }
 
     @Override
-    public synchronized int setAwayHtScore(int awayHtScore) {
+    public synchronized int setAwayHtScore(final int awayHtScore) {
         return super.setAwayHtScore(awayHtScore, true);
     }
 
@@ -134,7 +133,7 @@ public class BetradarEvent
     }
 
     @Override
-    public synchronized int innerUpdate(ScraperEvent scraperEvent) {
+    public synchronized int innerUpdate(final ScraperEvent scraperEvent) {
         int modified = super.innerUpdate(scraperEvent);
         BetradarEvent betradarEvent = (BetradarEvent) scraperEvent;
 
@@ -150,7 +149,7 @@ public class BetradarEvent
     }
 
     @Override
-    public synchronized long innerErrors(AtomicLong blackListPeriod) {
+    public synchronized long innerErrors(final AtomicLong blackListPeriod) {
         long errors = super.innerErrors(blackListPeriod);
         int minutesPlayed = this.getMinutesPlayed(), homeScore = this.getHomeScore(), awayScore = this.getAwayScore(), homeHtScore = this.getHomeHtScore(),
                 awayHtScore = this.getAwayHtScore(), homeRedCards = this.getHomeRedCards(), awayRedCards = this.getAwayRedCards();

@@ -1,9 +1,12 @@
 package info.fmro.betty.stream.definitions;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
-public class OrderFilter {
+public class OrderFilter
+        implements Serializable {
+    private static final long serialVersionUID = 2933689998723721000L;
     private Set<Integer> accountIds; // This is for internal use only & should not be set on your filter (your subscription is already locked to your account).
     private Boolean includeOverallPosition = true; // Returns overall / net position (OrderRunnerChange.mb / OrderRunnerChange.ml) Default true
     private Set<String> customerStrategyRefs; // Restricts to specified customerStrategyRefs; this will filter orders and StrategyMatchChanges accordingly (Note: overall postition is not filtered)
@@ -16,7 +19,7 @@ public class OrderFilter {
         return customerStrategyRefs == null ? null : new HashSet<>(customerStrategyRefs);
     }
 
-    public synchronized void setCustomerStrategyRefs(Set<String> customerStrategyRefs) {
+    public synchronized void setCustomerStrategyRefs(final Set<String> customerStrategyRefs) {
         this.customerStrategyRefs = customerStrategyRefs == null ? null : new HashSet<>(customerStrategyRefs);
     }
 
@@ -24,7 +27,7 @@ public class OrderFilter {
         return accountIds == null ? null : new HashSet<>(accountIds);
     }
 
-    public synchronized void setAccountIds(Set<Integer> accountIds) {
+    public synchronized void setAccountIds(final Set<Integer> accountIds) {
         this.accountIds = accountIds == null ? null : new HashSet<>(accountIds);
     }
 
@@ -32,7 +35,7 @@ public class OrderFilter {
         return includeOverallPosition;
     }
 
-    public synchronized void setIncludeOverallPosition(Boolean includeOverallPosition) {
+    public synchronized void setIncludeOverallPosition(final Boolean includeOverallPosition) {
         this.includeOverallPosition = includeOverallPosition;
     }
 
@@ -40,7 +43,7 @@ public class OrderFilter {
         return partitionMatchedByStrategyRef;
     }
 
-    public synchronized void setPartitionMatchedByStrategyRef(Boolean partitionMatchedByStrategyRef) {
+    public synchronized void setPartitionMatchedByStrategyRef(final Boolean partitionMatchedByStrategyRef) {
         this.partitionMatchedByStrategyRef = partitionMatchedByStrategyRef;
     }
 }

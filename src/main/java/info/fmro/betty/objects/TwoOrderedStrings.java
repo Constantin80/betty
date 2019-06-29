@@ -11,7 +11,7 @@ public class TwoOrderedStrings
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
     private final String first, second;
 
-    public TwoOrderedStrings(String first, String second) {
+    public TwoOrderedStrings(final String first, final String second) {
         if (first == null) {
             this.first = first;
             this.second = second;
@@ -37,7 +37,7 @@ public class TwoOrderedStrings
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(TwoOrderedStrings other) {
+    public synchronized int compareTo(final TwoOrderedStrings other) {
         if (other == null) {
             return AFTER;
         }
@@ -84,7 +84,7 @@ public class TwoOrderedStrings
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized boolean equals(Object obj) {
+    public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }

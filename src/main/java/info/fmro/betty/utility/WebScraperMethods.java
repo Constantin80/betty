@@ -50,23 +50,23 @@ public class WebScraperMethods {
 //        return success;
 //    }
 
-    public static boolean savePage(HtmlPage htmlPage, AtomicBoolean mustSavePage, String threadId) {
+    public static boolean savePage(final HtmlPage htmlPage, final AtomicBoolean mustSavePage, final String threadId) {
         return savePage(htmlPage, mustSavePage, "pages/", "page", ".html", threadId);
     }
 
-    public static boolean savePage(HtmlPage htmlPage, AtomicBoolean mustSavePage, String prefix, String threadId) {
+    public static boolean savePage(final HtmlPage htmlPage, final AtomicBoolean mustSavePage, final String prefix, final String threadId) {
         return savePage(htmlPage, mustSavePage, prefix, "page", ".html", threadId);
     }
 
-    public static boolean savePage(HtmlPage htmlPage, AtomicBoolean mustSavePage, String prefix, String baseName, String threadId) {
+    public static boolean savePage(final HtmlPage htmlPage, final AtomicBoolean mustSavePage, final String prefix, final String baseName, final String threadId) {
         return savePage(htmlPage, mustSavePage, prefix, baseName, ".html", threadId);
     }
 
-    public static boolean savePage(HtmlPage htmlPage, AtomicBoolean mustSavePage, String prefix, String baseName, String suffix, String threadId) {
+    public static boolean savePage(final HtmlPage htmlPage, final AtomicBoolean mustSavePage, final String prefix, final String baseName, final String suffix, final String threadId) {
         boolean success;
         try {
             final long timeBegin = System.currentTimeMillis();
-            final String fileName = prefix + Generic.tempFileName(baseName) + suffix;
+            final String fileName = Generic.tempFileName(prefix + baseName + suffix);
             try {
                 htmlPage.save(new File(fileName));
             } catch (NullPointerException nullPointerException) { // HtmlUnit has a NullPointerException bug, that I reported, in build 2.21
@@ -86,11 +86,11 @@ public class WebScraperMethods {
         return success;
     }
 
-    public static void clearCache(Cache cache, String threadId) {
+    public static void clearCache(final Cache cache, final String threadId) {
         clearCache(cache, null, threadId);
     }
 
-    public static void clearCache(Cache cache, String fileName, String threadId) {
+    public static void clearCache(final Cache cache, final String fileName, final String threadId) {
         if (cache != null) {
             if (fileName != null) {
                 Generic.synchronizedWriteObjectToFile(cache, fileName);
@@ -103,7 +103,7 @@ public class WebScraperMethods {
         }
     }
 
-    public static void closeTopLevelWindow(HtmlPage htmlPage, String threadId) {
+    public static void closeTopLevelWindow(final HtmlPage htmlPage, final String threadId) {
         if (htmlPage != null) {
             final TopLevelWindow topLevelWindow = (TopLevelWindow) htmlPage.getEnclosingWindow().getTopWindow();
             topLevelWindow.close();
@@ -156,20 +156,20 @@ public class WebScraperMethods {
 //
 //        return success;
 //    }
-    public static HtmlPage getPage(WebClient webClient, String savePrefix, AtomicBoolean mustRefreshPage, AtomicBoolean mustSavePage, String url, String threadId,
-                                   String... expressionXPaths) {
+    public static HtmlPage getPage(final WebClient webClient, final String savePrefix, final AtomicBoolean mustRefreshPage, final AtomicBoolean mustSavePage, final String url, final String threadId,
+                                   final String... expressionXPaths) {
         return getPage(webClient, savePrefix, mustRefreshPage, mustSavePage, defaultInitialWaitForScripts, defaultSecondaryWaitForScripts, defaultFinalWaitForScripts, url, threadId,
                        expressionXPaths);
     }
 
-    public static HtmlPage getPage(WebClient webClient, String savePrefix, AtomicBoolean mustRefreshPage, AtomicBoolean mustSavePage, long waitForScripts, String url,
-                                   String threadId, String... expressionXPaths) {
+    public static HtmlPage getPage(final WebClient webClient, final String savePrefix, final AtomicBoolean mustRefreshPage, final AtomicBoolean mustSavePage, final long waitForScripts, final String url,
+                                   final String threadId, final String... expressionXPaths) {
         return getPage(webClient, savePrefix, mustRefreshPage, mustSavePage, waitForScripts, defaultSecondaryWaitForScripts, defaultFinalWaitForScripts, url, threadId,
                        expressionXPaths);
     }
 
-    public static HtmlPage getPage(WebClient webClient, String savePrefix, AtomicBoolean mustRefreshPage, AtomicBoolean mustSavePage, long waitForScripts,
-                                   long secondaryWaitForScripts, long finalWaitForScripts, String url, String threadId, String... expressionXPaths) {
+    public static HtmlPage getPage(final WebClient webClient, final String savePrefix, final AtomicBoolean mustRefreshPage, final AtomicBoolean mustSavePage, final long waitForScripts,
+                                   final long secondaryWaitForScripts, final long finalWaitForScripts, final String url, final String threadId, final String... expressionXPaths) {
         HtmlPage htmlPage;
         final long beginLoadPageTime = System.currentTimeMillis();
         try {
@@ -203,14 +203,14 @@ public class WebScraperMethods {
         return htmlPage;
     }
 
-    public static HtmlPage clickElement(WebClient webClient, AtomicBoolean mustRefreshPage, HtmlPage htmlPage, String expressionXPath, String threadId, String savePrefix,
-                                        AtomicBoolean mustSavePage) {
+    public static HtmlPage clickElement(final WebClient webClient, final AtomicBoolean mustRefreshPage, final HtmlPage htmlPage, final String expressionXPath, final String threadId, final String savePrefix,
+                                        final AtomicBoolean mustSavePage) {
         return clickElement(webClient, mustRefreshPage, htmlPage, defaultSecondaryWaitForScripts, expressionXPath, threadId, savePrefix, mustSavePage);
     }
 
     @SuppressWarnings("AssignmentToMethodParameter")
-    public static HtmlPage clickElement(WebClient webClient, AtomicBoolean mustRefreshPage, HtmlPage htmlPage, long secondaryWaitForScripts, String expressionXPath, String threadId,
-                                        String savePrefix, AtomicBoolean mustSavePage) {
+    public static HtmlPage clickElement(final WebClient webClient, final AtomicBoolean mustRefreshPage, HtmlPage htmlPage, final long secondaryWaitForScripts, String expressionXPath, final String threadId,
+                                        final String savePrefix, final AtomicBoolean mustSavePage) {
         // clicks only the first found element
 
         final boolean onlyPrintInfoIfFail;
@@ -245,14 +245,14 @@ public class WebScraperMethods {
         return htmlPage;
     }
 
-    public static HtmlPage clickElements(WebClient webClient, AtomicBoolean mustRefreshPage, HtmlPage htmlPage, String expressionXPath, String threadId, String savePrefix,
-                                         AtomicBoolean mustSavePage) {
+    public static HtmlPage clickElements(final WebClient webClient, final AtomicBoolean mustRefreshPage, final HtmlPage htmlPage, final String expressionXPath, final String threadId, final String savePrefix,
+                                         final AtomicBoolean mustSavePage) {
         return clickElements(webClient, mustRefreshPage, htmlPage, defaultSecondaryWaitForScripts, expressionXPath, threadId, savePrefix, mustSavePage);
     }
 
     @SuppressWarnings("AssignmentToMethodParameter")
-    public static HtmlPage clickElements(WebClient webClient, AtomicBoolean mustRefreshPage, HtmlPage htmlPage, long secondaryWaitForScripts, String expressionXPath,
-                                         String threadId, String savePrefix, AtomicBoolean mustSavePage) {
+    public static HtmlPage clickElements(final WebClient webClient, final AtomicBoolean mustRefreshPage, HtmlPage htmlPage, final long secondaryWaitForScripts, String expressionXPath,
+                                         final String threadId, final String savePrefix, final AtomicBoolean mustSavePage) {
         // clicks all found elements
 
         final boolean onlyPrintInfoIfFail;
@@ -297,11 +297,11 @@ public class WebScraperMethods {
         return htmlPage;
     }
 
-    public static void waitForScripts(WebClient webClient, String threadId) {
+    public static void waitForScripts(final WebClient webClient, final String threadId) {
         waitForScripts(webClient, defaultInitialWaitForScripts, threadId);
     }
 
-    public static void waitForScripts(WebClient webClient, long waitForScripts, String threadId) {
+    public static void waitForScripts(final WebClient webClient, final long waitForScripts, final String threadId) {
         if (waitForScripts >= 0) {
             final long beginExecuteScriptsTime = System.currentTimeMillis();
             final int jobsStillActive = webClient.waitForBackgroundJavaScriptStartingBefore(waitForScripts);
@@ -310,7 +310,7 @@ public class WebScraperMethods {
         }
     }
 
-    public static ArrayList<String> getAlertsList(WebClient webClient) {
+    public static ArrayList<String> getAlertsList(final WebClient webClient) {
         final ArrayList<String> collectedAlertsList = new ArrayList<>(0);
         final CollectingAlertHandler collectingAlertHandler = new CollectingAlertHandler(collectedAlertsList);
         webClient.setAlertHandler(collectingAlertHandler);
@@ -318,31 +318,31 @@ public class WebScraperMethods {
         return collectedAlertsList;
     }
 
-    public static Cache initializeCache(WebClient webClient, String threadId) {
+    public static Cache initializeCache(final WebClient webClient, final String threadId) {
         return initializeCache(webClient, null, null, defaultCacheMaxSize, threadId);
     }
 
-    public static Cache initializeCache(WebClient webClient, String fileName, String threadId) {
+    public static Cache initializeCache(final WebClient webClient, final String fileName, final String threadId) {
         return initializeCache(webClient, fileName, null, defaultCacheMaxSize, threadId);
     }
 
-    public static Cache initializeCache(WebClient webClient, String fileName, int cacheMaxSize, String threadId) {
+    public static Cache initializeCache(final WebClient webClient, final String fileName, final int cacheMaxSize, final String threadId) {
         return initializeCache(webClient, fileName, null, cacheMaxSize, threadId);
     }
 
-    public static Cache initializeCache(WebClient webClient, Cache sourceCache, String threadId) {
+    public static Cache initializeCache(final WebClient webClient, final Cache sourceCache, final String threadId) {
         return initializeCache(webClient, null, sourceCache, defaultCacheMaxSize, threadId);
     }
 
-    public static Cache initializeCache(WebClient webClient, Cache sourceCache, int cacheMaxSize, String threadId) {
+    public static Cache initializeCache(final WebClient webClient, final Cache sourceCache, final int cacheMaxSize, final String threadId) {
         return initializeCache(webClient, null, sourceCache, cacheMaxSize, threadId);
     }
 
-    public static Cache initializeCache(WebClient webClient, int cacheMaxSize, String threadId) {
+    public static Cache initializeCache(final WebClient webClient, final int cacheMaxSize, final String threadId) {
         return initializeCache(webClient, null, null, cacheMaxSize, threadId);
     }
 
-    public static Cache initializeCache(WebClient webClient, String fileName, Cache sourceCache, int cacheMaxSize, String threadId) {
+    public static Cache initializeCache(final WebClient webClient, final String fileName, final Cache sourceCache, final int cacheMaxSize, final String threadId) {
         Cache cache;
         if (sourceCache != null) {
             cache = SerialClone.clone(sourceCache);
@@ -364,14 +364,12 @@ public class WebScraperMethods {
         return cache;
     }
 
-    //    @SuppressWarnings("deprecation")
-    public static WebClient getNewWebClient(String threadId) {
+    public static WebClient getNewWebClient(final String threadId) {
         // return getNewWebClient(BrowserVersion.INTERNET_EXPLORER_8, threadId);
         return getNewWebClient(BrowserVersion.FIREFOX_52, threadId);
     }
 
-    //    @SuppressWarnings("deprecation")
-    public static WebClient getNewWebClient(BrowserVersion browserVersion, String threadId) {
+    public static WebClient getNewWebClient(final BrowserVersion browserVersion, final String threadId) {
 //        browserVersion.setApplicationCodeName(BrowserVersion.INTERNET_EXPLORER_8.getApplicationCodeName());
 //        browserVersion.setApplicationMinorVersion(BrowserVersion.INTERNET_EXPLORER_8.getApplicationMinorVersion());
 //        browserVersion.setApplicationName(BrowserVersion.INTERNET_EXPLORER_8.getApplicationName());

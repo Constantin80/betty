@@ -40,20 +40,16 @@ public class DebuggingMethods {
     }
 
     public static void printCachedOrders() {
-//        ClientCommands.listOrders();
         final Iterable<OrderMarket> orderMarkets = Statics.orderCache.getOrderMarkets();
         for (OrderMarket orderMarket : orderMarkets) {
-//            logger.info("listing orderMarket: {}", Generic.objectToString(orderMarket, "Snap", "snap"));
             logger.info("listing orderMarket: {}", Generic.objectToString(orderMarket));
         }
     }
 
-    public static void printCachedMarkets(String marketIds) {
+    public static void printCachedMarkets(final String marketIds) {
         final String[] marketIdsArray = marketIds.split(" ");
-//        ClientCommands.listMarkets(marketIdsArray);
         for (String marketId : marketIdsArray) {
             final Market market = Statics.marketCache.getMarket(marketId);
-//            logger.info("listing market: {}", Generic.objectToString(market, "Snap", "snap"));
             final String toPrint = market == null ? "null " + marketId : Generic.objectToString(market);
             logger.info("listing market: {}", toPrint);
         }
@@ -99,7 +95,7 @@ public class DebuggingMethods {
         logger.info("new marketTypes: {}", counterNewMarketType);
     }
 
-    public static void printMarket(String marketId) {
+    public static void printMarket(final String marketId) {
         final List<String> marketIdsList = Arrays.asList(marketId);
         final PriceProjection priceProjection = new PriceProjection();
         // priceProjection.setVirtualise(true);
@@ -111,8 +107,7 @@ public class DebuggingMethods {
         priceProjection.setPriceData(priceDataSet);
 
         RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
-        final List<MarketBook> marketBookList = ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, Statics.appKey.get(),
-                                                                                       rescriptResponseHandler);
+        final List<MarketBook> marketBookList = ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, Statics.appKey.get(), rescriptResponseHandler);
 
         logger.info("printing marketBookList EX_ALL_OFFERS for {}: {}", marketId, Generic.objectToString(marketBookList));
 
@@ -159,7 +154,7 @@ public class DebuggingMethods {
         logger.info("printing marketTypeResultList for {}: {}", marketId, Generic.objectToString(marketTypeResultList));
     }
 
-    public static void printEvent(String eventId) {
+    public static void printEvent(final String eventId) {
         MarketFilter marketFilter = new MarketFilter();
         final Set<String> eventIds = new HashSet<>(2, 0.75f);
         eventIds.add(eventId);
@@ -187,8 +182,7 @@ public class DebuggingMethods {
         marketFilter.setEventIds(eventIds);
 
         rescriptResponseHandler = new RescriptResponseHandler();
-        final List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, Statics.appKey.get(),
-                                                                                                      rescriptResponseHandler);
+        final List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, Statics.appKey.get(), rescriptResponseHandler);
 
         if (marketCatalogueList != null) {
             final HashSet<String> unknownMarketTypesSet = new HashSet<>(0, 0.75f), unknownMarketNamesSet = new HashSet<>(0, 0.75f);
@@ -219,7 +213,7 @@ public class DebuggingMethods {
         }
     }
 
-    public static void printMarketType(String marketType) {
+    public static void printMarketType(final String marketType) {
         final HashSet<String> eventTypeIdsSet = new HashSet<>(2, 0.75f);
         eventTypeIdsSet.add("1"); // soccer
         final Set<String> marketTypeCodes = new HashSet<>(2, 0.75f);
@@ -242,8 +236,7 @@ public class DebuggingMethods {
         marketProjectionsSet.add(MarketProjection.MARKET_START_TIME);
 
         rescriptResponseHandler = new RescriptResponseHandler();
-        final List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, Statics.appKey.get(),
-                                                                                                      rescriptResponseHandler);
+        final List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, Statics.appKey.get(), rescriptResponseHandler);
 
         logger.info("printing marketCatalogueList for {}: {}", marketType, Generic.objectToString(marketCatalogueList));
     }
@@ -252,7 +245,7 @@ public class DebuggingMethods {
         weightTest(null);
     }
 
-    public static void weightTest(String argMarketId) {
+    public static void weightTest(final String argMarketId) {
         // test ex all offers for weight 17/16 -> 11/12 ids; wieght 17 as expected
         // test EX_BEST_OFFERS 10 for weight 11/12/14/15 -> 18/16/14/13; weight 11
         // test EX_BEST_OFFERS 1 for weight 2/3/4/5 -> 100/66/50/40; weight 2

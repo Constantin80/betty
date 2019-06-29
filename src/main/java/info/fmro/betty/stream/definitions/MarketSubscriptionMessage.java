@@ -1,7 +1,11 @@
 package info.fmro.betty.stream.definitions;
 
+import java.io.Serializable;
+
 public class MarketSubscriptionMessage
-        extends RequestMessage {
+        extends RequestMessage
+        implements Serializable {
+    private static final long serialVersionUID = -5514747219419338428L;
     private String clk; // Token value (non-null) should be stored and passed in a MarketSubscriptionMessage to resume subscription (in case of disconnect)
     private Long conflateMs; // Conflate Milliseconds - the conflation rate (may differ from that requested if subscription is delayed)
     private Long heartbeatMs; // Heartbeat Milliseconds - the heartbeat rate (may differ from requested: bounds are 500 to 30000)
@@ -17,7 +21,7 @@ public class MarketSubscriptionMessage
         return clk;
     }
 
-    public synchronized void setClk(String clk) {
+    public synchronized void setClk(final String clk) {
         this.clk = clk;
     }
 
@@ -25,7 +29,7 @@ public class MarketSubscriptionMessage
         return conflateMs;
     }
 
-    public synchronized void setConflateMs(Long conflateMs) {
+    public synchronized void setConflateMs(final Long conflateMs) {
         this.conflateMs = conflateMs;
     }
 
@@ -33,7 +37,7 @@ public class MarketSubscriptionMessage
         return heartbeatMs;
     }
 
-    public synchronized void setHeartbeatMs(Long heartbeatMs) {
+    public synchronized void setHeartbeatMs(final Long heartbeatMs) {
         this.heartbeatMs = heartbeatMs;
     }
 
@@ -41,7 +45,7 @@ public class MarketSubscriptionMessage
         return initialClk;
     }
 
-    public synchronized void setInitialClk(String initialClk) {
+    public synchronized void setInitialClk(final String initialClk) {
         this.initialClk = initialClk;
     }
 
@@ -49,7 +53,7 @@ public class MarketSubscriptionMessage
         return marketDataFilter;
     }
 
-    public synchronized void setMarketDataFilter(MarketDataFilter marketDataFilter) {
+    public synchronized void setMarketDataFilter(final MarketDataFilter marketDataFilter) {
         this.marketDataFilter = marketDataFilter;
     }
 
@@ -57,7 +61,7 @@ public class MarketSubscriptionMessage
         return marketFilter;
     }
 
-    public synchronized void setMarketFilter(MarketFilter marketFilter) {
+    public synchronized void setMarketFilter(final MarketFilter marketFilter) {
         this.marketFilter = marketFilter;
     }
 
@@ -65,7 +69,7 @@ public class MarketSubscriptionMessage
         return segmentationEnabled;
     }
 
-    public synchronized void setSegmentationEnabled(Boolean segmentationEnabled) {
+    public synchronized void setSegmentationEnabled(final Boolean segmentationEnabled) {
         this.segmentationEnabled = segmentationEnabled;
     }
 }

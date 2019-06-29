@@ -1,9 +1,13 @@
 package info.fmro.betty.stream.definitions;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OrderMarketChange {
+// objects of this class are read from the stream
+public class OrderMarketChange
+        implements Serializable {
+    private static final long serialVersionUID = -4363278428265553269L;
     private Long accountId;
     private Boolean closed;
     private String id; // Market Id - the id of the market the order is on
@@ -16,7 +20,7 @@ public class OrderMarketChange {
         return accountId;
     }
 
-    public synchronized void setAccountId(Long accountId) {
+    public synchronized void setAccountId(final Long accountId) {
         this.accountId = accountId;
     }
 
@@ -24,7 +28,7 @@ public class OrderMarketChange {
         return closed;
     }
 
-    public synchronized void setClosed(Boolean closed) {
+    public synchronized void setClosed(final Boolean closed) {
         this.closed = closed;
     }
 
@@ -32,7 +36,7 @@ public class OrderMarketChange {
         return id;
     }
 
-    public synchronized void setId(String id) {
+    public synchronized void setId(final String id) {
         this.id = id;
     }
 
@@ -40,7 +44,7 @@ public class OrderMarketChange {
         return orc == null ? null : new ArrayList<>(orc);
     }
 
-    public synchronized void setOrc(List<OrderRunnerChange> orc) {
+    public synchronized void setOrc(final List<OrderRunnerChange> orc) {
         this.orc = orc == null ? null : new ArrayList<>(orc);
     }
 }

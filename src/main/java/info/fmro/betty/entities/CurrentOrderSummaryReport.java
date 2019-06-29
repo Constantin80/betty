@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CurrentOrderSummaryReport {
-
     private List<CurrentOrderSummary> currentOrders;
     private Boolean moreAvailable;
 
@@ -19,7 +18,7 @@ public class CurrentOrderSummaryReport {
         return currentOrders == null ? null : new ArrayList<>(currentOrders);
     }
 
-    public synchronized void setCurrentOrders(List<CurrentOrderSummary> currentOrders) {
+    public synchronized void setCurrentOrders(final List<CurrentOrderSummary> currentOrders) {
         this.currentOrders = currentOrders == null ? null : new ArrayList<>(currentOrders);
     }
 
@@ -27,7 +26,7 @@ public class CurrentOrderSummaryReport {
         return moreAvailable;
     }
 
-    public synchronized void setMoreAvailable(Boolean moreAvailable) {
+    public synchronized void setMoreAvailable(final Boolean moreAvailable) {
         this.moreAvailable = moreAvailable;
     }
 }

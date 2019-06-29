@@ -25,7 +25,7 @@ public class ApiNGJRescriptDemo {
     private ApiNGJRescriptDemo() {
     }
 
-    public static List<EventResult> getEventList(String appKeyString) {
+    public static List<EventResult> getEventList(final String appKeyString) {
         final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
         final List<EventResult> eventResultList = ApiNgRescriptOperations.listEvents(marketFilter, appKeyString, rescriptResponseHandler);
 

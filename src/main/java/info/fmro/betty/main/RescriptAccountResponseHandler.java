@@ -31,7 +31,7 @@ public class RescriptAccountResponseHandler
     //     this.tooMuchData = tooMuchData;
     // }
     @Override
-    public synchronized String handleResponse(HttpResponse httpResponse)
+    public synchronized String handleResponse(final HttpResponse httpResponse)
             throws ClientProtocolException, IOException {
         final StatusLine statusLine = httpResponse.getStatusLine();
         final HttpEntity httpEntity = httpResponse.getEntity();

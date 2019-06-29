@@ -16,12 +16,10 @@ import java.util.concurrent.atomic.AtomicLong;
 public class ScraperEvent
         extends Ignorable
         implements Serializable, Comparable<ScraperEvent> {
-
     private static final Logger logger = LoggerFactory.getLogger(ScraperEvent.class);
     private static final long serialVersionUID = 5045581708147478634L;
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
-    public static final long standardBlackListPeriod = Generic.MINUTE_LENGTH_MILLISECONDS * 5L, shortBlackListPeriod = Generic.MINUTE_LENGTH_MILLISECONDS * 2L,
-            minimalBlackListPeriod = 10_000L;
+    public static final long standardBlackListPeriod = Generic.MINUTE_LENGTH_MILLISECONDS * 5L, shortBlackListPeriod = Generic.MINUTE_LENGTH_MILLISECONDS * 2L, minimalBlackListPeriod = 10_000L;
     public final String objectId;
     private final long eventId;
     private long timeStamp, homeScoreTimeStamp, awayScoreTimeStamp, matchedTimeStamp; // score stamps for last time a valid & >=0 score was seen
@@ -30,13 +28,13 @@ public class ScraperEvent
     private MatchStatus matchStatus;
     private boolean htIgnored;
 
-    public ScraperEvent(String objectId, long eventId) {
+    public ScraperEvent(final String objectId, final long eventId) {
         this.objectId = objectId;
         this.eventId = eventId;
         this.timeStamp();
     }
 
-    public ScraperEvent(String objectId, long eventId, long timeStamp) {
+    public ScraperEvent(final String objectId, final long eventId, final long timeStamp) {
         this.objectId = objectId;
         this.eventId = eventId;
         this.setTimeStamp(timeStamp);
@@ -79,7 +77,7 @@ public class ScraperEvent
         return setHtIgnored(true);
     }
 
-    public synchronized int setHtIgnored(boolean htIgnored) {
+    public synchronized int setHtIgnored(final boolean htIgnored) {
         final int modified;
         if (this.htIgnored == htIgnored) {
             modified = 0;
@@ -110,7 +108,7 @@ public class ScraperEvent
         return homeTeam;
     }
 
-    public synchronized int setHomeTeam(String homeTeam) {
+    public synchronized int setHomeTeam(final String homeTeam) {
         final int modified;
         if (this.homeTeam == null) {
             if (homeTeam == null) {
@@ -141,7 +139,7 @@ public class ScraperEvent
         return awayTeam;
     }
 
-    public synchronized int setAwayTeam(String awayTeam) {
+    public synchronized int setAwayTeam(final String awayTeam) {
         final int modified;
         if (this.awayTeam == null) {
             if (awayTeam == null) {
@@ -172,7 +170,7 @@ public class ScraperEvent
         return homeRedCards;
     }
 
-    public synchronized int setHomeRedCards(int homeRedCards) {
+    public synchronized int setHomeRedCards(final int homeRedCards) {
         final int modified;
         if (this.homeRedCards == homeRedCards) {
             modified = 0;
@@ -194,7 +192,7 @@ public class ScraperEvent
         return awayRedCards;
     }
 
-    public synchronized int setAwayRedCards(int awayRedCards) {
+    public synchronized int setAwayRedCards(final int awayRedCards) {
         final int modified;
         if (this.awayRedCards == awayRedCards) {
             modified = 0;
@@ -216,11 +214,11 @@ public class ScraperEvent
         return homeScore;
     }
 
-    public synchronized int setHomeScore(int homeScore) {
+    public synchronized int setHomeScore(final int homeScore) {
         return setHomeScore(homeScore, isPenalties());
     }
 
-    public synchronized int setHomeScore(int homeScore, boolean isPenalties) {
+    public synchronized int setHomeScore(final int homeScore, final boolean isPenalties) {
         final int modified;
         final long currentTime = System.currentTimeMillis();
         final long timeLapsed = currentTime - this.getHomeScoreTimeStamp();
@@ -281,7 +279,7 @@ public class ScraperEvent
         return homeScoreTimeStamp;
     }
 
-    public synchronized void setHomeScoreTimeStamp(long homeScoreTimeStamp) {
+    public synchronized void setHomeScoreTimeStamp(final long homeScoreTimeStamp) {
         this.homeScoreTimeStamp = homeScoreTimeStamp;
     }
 
@@ -289,11 +287,11 @@ public class ScraperEvent
         return awayScore;
     }
 
-    public synchronized int setAwayScore(int awayScore) {
+    public synchronized int setAwayScore(final int awayScore) {
         return setAwayScore(awayScore, isPenalties());
     }
 
-    public synchronized int setAwayScore(int awayScore, boolean isPenalties) {
+    public synchronized int setAwayScore(final int awayScore, final boolean isPenalties) {
         final int modified;
         final long currentTime = System.currentTimeMillis();
         final long timeLapsed = currentTime - this.getAwayScoreTimeStamp();
@@ -354,7 +352,7 @@ public class ScraperEvent
         return awayScoreTimeStamp;
     }
 
-    public synchronized void setAwayScoreTimeStamp(long awayScoreTimeStamp) {
+    public synchronized void setAwayScoreTimeStamp(final long awayScoreTimeStamp) {
         this.awayScoreTimeStamp = awayScoreTimeStamp;
     }
 
@@ -368,11 +366,11 @@ public class ScraperEvent
         return result;
     }
 
-    public synchronized int setHomeHtScore(int homeHtScore) {
+    public synchronized int setHomeHtScore(final int homeHtScore) {
         return setHomeHtScore(homeHtScore, false);
     }
 
-    public synchronized int setHomeHtScore(int homeHtScore, boolean allowedReset) {
+    public synchronized int setHomeHtScore(final int homeHtScore, final boolean allowedReset) {
         final int modified;
         if (this.homeHtScore == homeHtScore) {
             modified = 0;
@@ -409,11 +407,11 @@ public class ScraperEvent
         return result;
     }
 
-    public synchronized int setAwayHtScore(int awayHtScore) {
+    public synchronized int setAwayHtScore(final int awayHtScore) {
         return setAwayHtScore(awayHtScore, false);
     }
 
-    public synchronized int setAwayHtScore(int awayHtScore, boolean allowedReset) {
+    public synchronized int setAwayHtScore(final int awayHtScore, final boolean allowedReset) {
         final int modified;
         if (this.awayHtScore == awayHtScore) {
             modified = 0;
@@ -444,11 +442,11 @@ public class ScraperEvent
         return matchStatus;
     }
 
-    public synchronized int setMatchStatus(MatchStatus matchStatus) {
+    public synchronized int setMatchStatus(final MatchStatus matchStatus) {
         return setMatchStatus(matchStatus, false);
     }
 
-    public synchronized int setMatchStatus(MatchStatus matchStatus, boolean resetToNullIgnored) {
+    public synchronized int setMatchStatus(final MatchStatus matchStatus, final boolean resetToNullIgnored) {
         final int modified;
         if (this.matchStatus == null) {
             if (matchStatus == null) {
@@ -516,7 +514,7 @@ public class ScraperEvent
         return minutesPlayed;
     }
 
-    public synchronized int setMinutesPlayedUnckeched(int minutesPlayed) {
+    public synchronized int setMinutesPlayedUnckeched(final int minutesPlayed) {
         final int modified;
         if (this.minutesPlayed == minutesPlayed) {
             modified = 0;
@@ -527,7 +525,7 @@ public class ScraperEvent
         return modified;
     }
 
-    public synchronized int setMinutesPlayed(int minutesPlayed) {
+    public synchronized int setMinutesPlayed(final int minutesPlayed) {
         final int modified;
         if (this.minutesPlayed == minutesPlayed) {
             modified = 0;
@@ -578,7 +576,7 @@ public class ScraperEvent
         return stoppageTime;
     }
 
-    public synchronized int setStoppageTime(int stoppageTime) {
+    public synchronized int setStoppageTime(final int stoppageTime) {
         final int modified;
         if (this.stoppageTime == stoppageTime) {
             modified = 0;
@@ -615,19 +613,19 @@ public class ScraperEvent
         return isTooOldForMatching(currentTime);
     }
 
-    public synchronized boolean isTooOldForMatching(long currentTime) {
+    public synchronized boolean isTooOldForMatching(final long currentTime) {
         final long timeSinceUpdate = currentTime - this.getTimeStamp();
         return timeSinceUpdate > Generic.HOUR_LENGTH_MILLISECONDS;
     }
 
     @Override
-    public synchronized int setIgnored(long period) {
+    public synchronized int setIgnored(final long period) {
         final long currentTime = System.currentTimeMillis();
         return setIgnored(period, currentTime);
     }
 
     @Override
-    public synchronized int setIgnored(long period, long currentTime) {
+    public synchronized int setIgnored(final long period, final long currentTime) {
         final int modified = super.setIgnored(period, currentTime);
 
         if (modified > 0) {
@@ -667,7 +665,7 @@ public class ScraperEvent
     }
 
     @SuppressWarnings("FinalMethod")
-    public final synchronized int setTimeStamp(long timeStamp) {
+    public final synchronized int setTimeStamp(final long timeStamp) {
         final int modified;
         if (timeStamp > this.timeStamp) {
             this.timeStamp = timeStamp;
@@ -695,7 +693,7 @@ public class ScraperEvent
         return matchedTimeStamp;
     }
 
-    public synchronized int setMatchedTimeStamp(long timeStamp) {
+    public synchronized int setMatchedTimeStamp(final long timeStamp) {
         final int modified;
         if (timeStamp > this.matchedTimeStamp) {
             this.matchedTimeStamp = timeStamp;
@@ -722,7 +720,7 @@ public class ScraperEvent
         return matchedEventId;
     }
 
-    public synchronized int setMatchedEventId(String matchedEventId) {
+    public synchronized int setMatchedEventId(final String matchedEventId) {
         final int modified;
         if (this.matchedEventId == null) {
             if (matchedEventId == null) {
@@ -832,19 +830,19 @@ public class ScraperEvent
         return homeHtScoreExists() || awayHtScoreExists();
     }
 
-    public synchronized boolean minutesExistsAndNot(int minute) {
+    public synchronized boolean minutesExistsAndNot(final int minute) {
         return minutesPlayedExists() && minutesNot(minute);
     }
 
-    public synchronized boolean minutesExistsAndNot(int... minutes) {
+    public synchronized boolean minutesExistsAndNot(final int... minutes) {
         return minutesPlayedExists() && minutesNot(minutes);
     }
 
-    public synchronized boolean minutesNot(int minute) {
+    public synchronized boolean minutesNot(final int minute) {
         return this.getMinutesPlayed() != minute;
     }
 
-    public synchronized boolean minutesNot(int... minutes) {
+    public synchronized boolean minutesNot(final int... minutes) {
         boolean returnVar = true;
         if (minutes != null && minutes.length > 0) {
             int length = minutes.length;
@@ -856,11 +854,11 @@ public class ScraperEvent
         return returnVar;
     }
 
-    public synchronized boolean minutesExistsAndNotInterval(int minuteBegin, int minuteEnd) {
+    public synchronized boolean minutesExistsAndNotInterval(final int minuteBegin, final int minuteEnd) {
         return minutesPlayedExists() && !minutesInInterval(minuteBegin, minuteEnd);
     }
 
-    public synchronized boolean minutesInInterval(int minuteBegin, int minuteEnd) {
+    public synchronized boolean minutesInInterval(final int minuteBegin, final int minuteEnd) {
         final int localMinutesPlayed = this.getMinutesPlayed();
         return localMinutesPlayed >= minuteBegin && localMinutesPlayed <= minuteEnd;
     }
@@ -869,19 +867,19 @@ public class ScraperEvent
         return minutesPlayedExists() || stoppageTimeExists();
     }
 
-    public synchronized boolean stoppageExistsOrMinutesAre(int minute) {
+    public synchronized boolean stoppageExistsOrMinutesAre(final int minute) {
         return stoppageTimeExists() || minutesAre(minute);
     }
 
-    public synchronized boolean stoppageExistsOrMinutesAre(int... minutes) {
+    public synchronized boolean stoppageExistsOrMinutesAre(final int... minutes) {
         return stoppageTimeExists() || minutesAre(minutes);
     }
 
-    public synchronized boolean minutesAre(int minute) {
+    public synchronized boolean minutesAre(final int minute) {
         return this.getMinutesPlayed() == minute;
     }
 
-    public synchronized boolean minutesAre(int... minutes) {
+    public synchronized boolean minutesAre(final int... minutes) {
         boolean returnVar = false;
         if (minutes != null && minutes.length > 0) {
             int length = minutes.length;
@@ -893,7 +891,7 @@ public class ScraperEvent
         return returnVar;
     }
 
-    public synchronized int update(ScraperEvent scraperEvent) {
+    public synchronized int update(final ScraperEvent scraperEvent) {
         int modified;
         if (this == scraperEvent) {
             logger.error("{} update from same object in ScraperEvent.update: {}", objectId, Generic.objectToString(this));
@@ -944,7 +942,7 @@ public class ScraperEvent
         return modified;
     }
 
-    public synchronized int innerUpdate(ScraperEvent scraperEvent) {
+    public synchronized int innerUpdate(final ScraperEvent scraperEvent) {
         int modified = 0;
 
         modified += this.setHomeTeam(scraperEvent.getHomeTeam());
@@ -1022,7 +1020,7 @@ public class ScraperEvent
         return errors;
     }
 
-    public synchronized long innerErrors(AtomicLong blackListPeriod) {
+    public synchronized long innerErrors(final AtomicLong blackListPeriod) {
         return 0L; // dummy method, normally overriden
     }
 
@@ -1075,7 +1073,7 @@ public class ScraperEvent
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(ScraperEvent other) {
+    public synchronized int compareTo(final ScraperEvent other) {
         if (other == null) {
             return AFTER;
         }
@@ -1110,7 +1108,7 @@ public class ScraperEvent
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized boolean equals(Object obj) {
+    public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }

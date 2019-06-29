@@ -1,7 +1,6 @@
 package info.fmro.betty.entities;
 
 public class TimeRangeResult {
-
     private TimeRange timeRange;
     private Integer marketCount;
 
@@ -12,7 +11,7 @@ public class TimeRangeResult {
         return timeRange;
     }
 
-    public synchronized void setTimeRange(TimeRange timeRange) {
+    public synchronized void setTimeRange(final TimeRange timeRange) {
         this.timeRange = timeRange;
     }
 
@@ -20,7 +19,7 @@ public class TimeRangeResult {
         return marketCount;
     }
 
-    public synchronized void setMarketCount(Integer marketCount) {
+    public synchronized void setMarketCount(final Integer marketCount) {
         this.marketCount = marketCount;
     }
 }

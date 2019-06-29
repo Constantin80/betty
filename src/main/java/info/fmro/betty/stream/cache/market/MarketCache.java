@@ -5,19 +5,17 @@ import info.fmro.betty.stream.protocol.ChangeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Thread safe cache of markets
- */
-public class MarketCache {
+public class MarketCache
+        implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(MarketCache.class);
-    private final Map<String, Market> markets = new ConcurrentHashMap<>();
-
-    //whether markets are automatically removed on close (default is True)
+    private static final long serialVersionUID = -6721530926161875702L;
+    private final Map<String, Market> markets = new ConcurrentHashMap<>(); // only place where markets are permanently stored
     private boolean isMarketRemovedOnClose = true; // default
-    private boolean traceMarkets;
+//    private long timeClean; // time for maintenance clean of marketCache
 
     //conflation indicates slow consumption
     private int conflatedCount;
@@ -25,12 +23,30 @@ public class MarketCache {
     public MarketCache() {
     }
 
-    public synchronized void traceMarkets() {
-        traceMarkets = true;
-    }
+//    public synchronized void copyFrom(MarketCache marketCache) {
+//        if (!this.markets.isEmpty()) {
+//            logger.error("not empty map in MarketCache copyFrom: {}", Generic.objectToString(this));
+//        }
+//
+//        if (marketCache == null) {
+//            logger.error("null marketCache in copyFrom for: {}", Generic.objectToString(this));
+//        } else {
+//            this.markets.clear();
+//            if (marketCache.markets != null) {
+//                this.markets.putAll(marketCache.markets);
+//            } else {
+//                logger.error("null markets in MarketCache copyFrom: {}", Generic.objectToString(marketCache));
+//            }
+//
+//            this.isMarketRemovedOnClose = marketCache.isMarketRemovedOnClose;
+//            this.conflatedCount = marketCache.conflatedCount;
+//        }
+//        copyFromStamp();
+//    }
 
-    public synchronized void onMarketChange(ChangeMessage<MarketChange> changeMessage) {
+    public synchronized void onMarketChange(final ChangeMessage<MarketChange> changeMessage) {
         if (changeMessage.isStartOfNewSubscription()) {
+            // was it right to disable markets.clear() in isStartOfNewSubscription ?; maybe, it seems markets are properly updated, although some old no longer used markets are probably not removed, I'll see more with testing
             //clear cache ... no clear anymore, because of multiple clients
 //            markets.clear();
         }
@@ -42,17 +58,16 @@ public class MarketCache {
                     //remove on close
                     markets.remove(market.getMarketId());
                 }
-
-                dispatchMarketChanged(market, marketChange);
+//                dispatchMarketChanged(market, marketChange);
             } // end for
         }
     }
 
-    private synchronized Market onMarketChange(MarketChange marketChange) {
+    private synchronized Market onMarketChange(final MarketChange marketChange) {
         if (Boolean.TRUE.equals(marketChange.getCon())) {
             conflatedCount++;
         }
-        final Market market = markets.computeIfAbsent(marketChange.getId(), k -> new Market(k));
+        final Market market = markets.computeIfAbsent(marketChange.getId(), Market::new);
         market.onMarketChange(marketChange);
         return market;
     }
@@ -61,7 +76,7 @@ public class MarketCache {
         return conflatedCount;
     }
 
-    public synchronized void setConflatedCount(int conflatedCount) {
+    public synchronized void setConflatedCount(final int conflatedCount) {
         this.conflatedCount = conflatedCount;
     }
 
@@ -69,11 +84,11 @@ public class MarketCache {
         return isMarketRemovedOnClose;
     }
 
-    public synchronized void setMarketRemovedOnClose(boolean marketRemovedOnClose) {
+    public synchronized void setMarketRemovedOnClose(final boolean marketRemovedOnClose) {
         isMarketRemovedOnClose = marketRemovedOnClose;
     }
 
-    public synchronized Market getMarket(String marketId) {
+    public synchronized Market getMarket(final String marketId) {
         //queries by market id - the result is invariant for the lifetime of the market.
         return markets.get(marketId);
     }
@@ -83,24 +98,45 @@ public class MarketCache {
         return markets.values();
     }
 
-    public synchronized int getCount() {
+    public synchronized int getMarketCount() {
         //market count
         return markets.size();
     }
 
+//    public synchronized long getTimeClean() {
+//        return timeClean;
+//    }
+//
+//    public synchronized void setTimeClean(long timeClean) {
+//        this.timeClean = timeClean;
+//    }
+//
+//    public synchronized void timeCleanStamp() {
+//        this.timeClean = System.currentTimeMillis();
+//    }
+//
+//    public synchronized void timeCleanAdd(long addedTime) {
+//        final long currentTime = System.currentTimeMillis();
+//        if (currentTime - this.timeClean >= addedTime) {
+//            this.timeClean = currentTime + addedTime;
+//        } else {
+//            this.timeClean += addedTime;
+//        }
+//    }
+
+//    public synchronized void maintenanceClean() {
+//        this.timeCleanAdd(Generic.MINUTE_LENGTH_MILLISECONDS * 30L);
+//        // Maintenance method for removing old no longer used markets from marketCache
+//        // I don't have timeStamps on the markets, so I can't do maintenance properly
+//        // 2 possible solutions:
+//        // 1: add proper stamps, with each onMarketChange, but some markets with no activity won't get stamped, except in the beginning
+//        // 2: no cache persistence on the disk or cache picking up where it left, which means I don't need maintenance; management of markets would only start after the caches are updated by the stream
+//    }
+
     // Event for each market change
-
-    private synchronized void dispatchMarketChanged(Market market, MarketChange marketChange) {
-        final MarketChangeEvent marketChangeEvent = new MarketChangeEvent(this);
-        marketChangeEvent.setMarket(market);
-        marketChangeEvent.setChange(marketChange);
-
-        try {
-            if (traceMarkets) { // does nothing now, I'll either add something or remove it completely in the future
-//                Utils.printMarket(marketChangeEvent.getSnap());
-            }
-        } catch (Exception e) {
-            logger.error("Exception from event listener", e);
-        }
-    }
+//    private synchronized void dispatchMarketChanged(Market market, MarketChange marketChange) {
+//        final MarketChangeEvent marketChangeEvent = new MarketChangeEvent(this);
+//        marketChangeEvent.setMarket(market);
+//        marketChangeEvent.setChange(marketChange);
+//    }
 }

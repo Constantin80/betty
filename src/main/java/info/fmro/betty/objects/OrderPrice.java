@@ -12,7 +12,7 @@ public class OrderPrice
     private final Side side;
     private final double price;
 
-    public OrderPrice(String marketId, long selectionId, Side side, double price) {
+    public OrderPrice(final String marketId, final long selectionId, final Side side, final double price) {
         this.marketId = marketId;
         this.selectionId = selectionId;
         this.side = side;
@@ -37,7 +37,7 @@ public class OrderPrice
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(OrderPrice other) {
+    public synchronized int compareTo(final OrderPrice other) {
         if (other == null) {
             return AFTER;
         }
@@ -90,7 +90,7 @@ public class OrderPrice
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized boolean equals(Object obj) {
+    public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }

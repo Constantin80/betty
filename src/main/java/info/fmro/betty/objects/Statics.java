@@ -8,6 +8,8 @@ import info.fmro.betty.main.BetradarScraperThread;
 import info.fmro.betty.main.CoralScraperThread;
 import info.fmro.betty.main.InputConnectionThread;
 import info.fmro.betty.main.LoggerThread;
+import info.fmro.betty.main.OrdersThread;
+import info.fmro.betty.main.QuickCheckThread;
 import info.fmro.betty.main.ScraperThread;
 import info.fmro.betty.stream.cache.market.MarketCache;
 import info.fmro.betty.stream.cache.order.OrderCache;
@@ -47,16 +49,20 @@ public class Statics {
     private static final Logger logger = LoggerFactory.getLogger(Statics.class);
     public static final boolean notPlacingOrders = true; // hard stop for order placing; true for testing, false enables order placing
     public static final boolean safeBetModuleActivated = false; // false for now, I won't be using this module for quite a while
+    public static final boolean resetTestMarker = false; // when true, resets rulesManager testMarker variable, and then exits the program
     public static final NullComparator nullComparator = new NullComparator(false);
     public static final double threshold = .8d, highThreshold = .9d;
     public static final int ENCRYPTION_KEY = 0, DECRYPTION_KEY = 2, SOCKET_CONNECT_TIMEOUT = 30_000, SOCKET_READ_TIMEOUT = 30_000, PAGE_GET_TIMEOUT = 120_000, N_BEST = 100, N_ALL = 11, N_MARKETBOOK_THREADS_LIMIT = 50,
-            MIN_MATCHED = safeBetModuleActivated ? 2 : 0, SSL_PORT = 443;
+            MIN_MATCHED = safeBetModuleActivated ? 2 : 0, SSL_PORT = 443, TEST_MARKER = 346562;
     public static final long DELAY_GETMARKETBOOKS = 200L, EXECUTOR_KEEPALIVE = 10_000L, DELAY_PRINTAVERAGES = 20_000L, DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD = 1_000L, N_MARKETBOOK_THREADS_INTERVAL = 2_000L, INITIAL_EVENT_SAFETY_PERIOD =
             Generic.MINUTE_LENGTH_MILLISECONDS, PROGRAM_START_TIME = System.currentTimeMillis(), MINIMUM_BAD_STUFF_HAPPENED_IGNORE = 2L * Generic.MINUTE_LENGTH_MILLISECONDS;
     public static final String VARS_FILE_NAME = "input/vars.txt", STDOUT_FILE_NAME = "out.txt", STDERR_FILE_NAME = "err.txt", MATCHER_FILE_NAME = "matcher.txt", SAFEBETS_FILE_NAME = "bets.txt", NEWMARKET_FILE_NAME = "newmarket.txt",
-            SSO_HOST_RO = "identitysso.betfair.ro", AUTH_URL = "https://" + SSO_HOST_RO + "/api/certlogin", KEY_STORE_FILE_NAME = "input/client-2048.p12", KEY_STORE_PASSWORD = "", KEY_STORE_TYPE = "pkcs12",
+            SSO_HOST_RO = "identitysso-cert.betfair.ro", AUTH_URL = "https://" + SSO_HOST_RO + "/api/certlogin", KEY_STORE_FILE_NAME = "input/client-2048.p12", KEY_STORE_PASSWORD = "", KEY_STORE_TYPE = "pkcs12",
             APING_URL = "https://api.betfair.com/exchange/betting/", RESCRIPT_SUFFIX = "rest/v1.0/", APPLICATION_JSON = "application/json", ACCOUNT_APING_URL = "https://api.betfair.com/exchange/account/", ALIASES_FILE_NAME = "input/aliases.txt",
-            FULL_ALIASES_FILE_NAME = "input/aliasesfull.txt", PROJECT_PREFIX = "info.fmro", LOGS_FOLDER_NAME = "logs", DATA_FOLDER_NAME = "data", STREAM_HOST = "stream-api.betfair.com";
+            FULL_ALIASES_FILE_NAME = "input/aliasesfull.txt", PROJECT_PREFIX = "info.fmro", LOGS_FOLDER_NAME = "logs", DATA_FOLDER_NAME = "data", STREAM_HOST = "stream-api.betfair.com", SETTINGS_FILE_NAME = Statics.DATA_FOLDER_NAME + "/rulesmanager.txt";
+    //    public static final List<Double> pricesList = List.of(1.01, 1.02,1.03,1.04,1.05,1.06,1.07,1.08,1.09,1.1,1.11,1.12,1.13,1.14 ...);
+    public static final ArrayList<Integer> pricesList = new ArrayList<>(); // odds prices, multiplied by 100, to have them stored as int
+
     public static final String[] supportedEventTypes = {"1"}; // "1" = soccer
 
     //    public static AtomicBoolean closeStandardStreams = new AtomicBoolean(true); // modified by reflection for tests
@@ -95,6 +101,9 @@ public class Statics {
     public static final BetradarScraperThread betradarScraperThread = new BetradarScraperThread();
     public static final CoralScraperThread coralScraperThread = new CoralScraperThread();
     public static final LoggerThread loggerThread = new LoggerThread();
+    public static final RulesManager rulesManager = new RulesManager();
+    public static final QuickCheckThread quickCheckThread = new QuickCheckThread();
+    public static final OrdersThread ordersThread = new OrdersThread();
 
     public static final TimeStamps timeStamps = new TimeStamps();
     public static final DebugLevel debugLevel = new DebugLevel();
@@ -121,8 +130,8 @@ public class Statics {
 
     public static final SubclassMaps<ScraperEvent> scraperEventMaps = new SubclassMaps<>(scraperEventSubclassesSet);
 
-    public static final MarketCache marketCache = new MarketCache();
-    public static final OrderCache orderCache = new OrderCache();
+    public static final MarketCache marketCache = new MarketCache(); // , offlineMarketCache = new MarketCache();
+    public static final OrderCache orderCache = new OrderCache(); // , offlineOrderCache = new OrderCache();
 
     private Statics() {
     }
@@ -130,6 +139,37 @@ public class Statics {
 //    public Statics(boolean dontCloseStandardStreams) {
 //        Statics.closeStandardStreamsNotInitialized = dontCloseStandardStreams;
 //    }
+
+    static { // initialize priceList
+        int counter = 101;
+        do {
+            pricesList.add(counter);
+            final int step;
+            if (counter < 200) {
+                step = 1;
+            } else if (counter < 300) {
+                step = 2;
+            } else if (counter < 400) {
+                step = 5;
+            } else if (counter < 600) {
+                step = 10;
+            } else if (counter < 1_000) {
+                step = 20;
+            } else if (counter < 2_000) {
+                step = 50;
+            } else if (counter < 3_000) {
+                step = 100;
+            } else if (counter < 5_000) {
+                step = 200;
+            } else if (counter < 10_000) {
+                step = 500;
+            } else {
+                step = 1_000;
+            }
+
+            counter += step;
+        } while (counter <= 100_000);
+    }
 
     static {
         connManager.setMaxTotal(32768);
@@ -162,6 +202,10 @@ public class Statics {
 //        privateObjectFileNamesMap.put("alreadyPrintedMap", Statics.DATA_FOLDER_NAME + "/alreadyprinted.txt");
         privateObjectFileNamesMap.put("timedWarningsMap", Statics.DATA_FOLDER_NAME + "/timedwarnings.txt");
 //        privateObjectFileNamesMap.put("ignorableDatabase", Statics.DATA_FOLDER_NAME + "/ignorabledatabase.txt");
+//        privateObjectFileNamesMap.put("rulesManager", Statics.DATA_FOLDER_NAME + "/rulesmanager.txt");
+
+//        privateObjectFileNamesMap.put("marketCache", Statics.DATA_FOLDER_NAME + "/marketcache.txt");
+//        privateObjectFileNamesMap.put("orderCache", Statics.DATA_FOLDER_NAME + "/ordercache.txt");
     }
 
     public static final Map<String, String> objectFileNamesMap = Collections.unmodifiableMap(privateObjectFileNamesMap);

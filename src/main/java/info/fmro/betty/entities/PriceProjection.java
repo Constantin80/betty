@@ -1,11 +1,11 @@
 package info.fmro.betty.entities;
 
 import info.fmro.betty.enums.PriceData;
+
 import java.util.HashSet;
 import java.util.Set;
 
 public class PriceProjection {
-
     private Set<PriceData> priceData;
     private ExBestOffersOverrides exBestOffersOverrides;
     private Boolean virtualise;
@@ -18,7 +18,7 @@ public class PriceProjection {
         return priceData == null ? null : new HashSet<>(priceData);
     }
 
-    public synchronized void setPriceData(Set<PriceData> priceData) {
+    public synchronized void setPriceData(final Set<PriceData> priceData) {
         this.priceData = priceData == null ? null : new HashSet<>(priceData);
     }
 
@@ -27,7 +27,7 @@ public class PriceProjection {
     }
 
     public synchronized void setExBestOffersOverrides(
-            ExBestOffersOverrides exBestOffersOverrides) {
+            final ExBestOffersOverrides exBestOffersOverrides) {
         this.exBestOffersOverrides = exBestOffersOverrides;
     }
 
@@ -35,7 +35,7 @@ public class PriceProjection {
         return virtualise;
     }
 
-    public synchronized void setVirtualise(Boolean virtualise) {
+    public synchronized void setVirtualise(final Boolean virtualise) {
         this.virtualise = virtualise;
     }
 
@@ -43,7 +43,7 @@ public class PriceProjection {
         return rolloverStakes;
     }
 
-    public synchronized void setRolloverStakes(Boolean rolloverStakes) {
+    public synchronized void setRolloverStakes(final Boolean rolloverStakes) {
         this.rolloverStakes = rolloverStakes;
     }
 }

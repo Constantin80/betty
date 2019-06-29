@@ -53,23 +53,23 @@ public class ScraperThread
     public final boolean singleLogger;
     private int loggerCounter;
 
-    public ScraperThread(String id) {
+    public ScraperThread(final String id) {
         this(id, DEFAULT_DELAY, defaultBrowserVersion, defaultCacheMaxSize, defaultSingleLogger);
     }
 
-    public ScraperThread(String id, BrowserVersion browserVersion) {
+    public ScraperThread(final String id, final BrowserVersion browserVersion) {
         this(id, DEFAULT_DELAY, browserVersion, defaultCacheMaxSize, defaultSingleLogger);
     }
 
-    public ScraperThread(String id, long delay) {
+    public ScraperThread(final String id, final long delay) {
         this(id, delay, defaultBrowserVersion, defaultCacheMaxSize, defaultSingleLogger);
     }
 
-    public ScraperThread(String id, long delay, BrowserVersion browserVersion) {
+    public ScraperThread(final String id, final long delay, final BrowserVersion browserVersion) {
         this(id, delay, browserVersion, defaultCacheMaxSize, defaultSingleLogger);
     }
 
-    public ScraperThread(String id, long delay, BrowserVersion browserVersion, int cacheMaxSize, boolean singleLogger) {
+    public ScraperThread(final String id, final long delay, final BrowserVersion browserVersion, final int cacheMaxSize, final boolean singleLogger) {
         this.threadId = id;
         this.cacheFileName = Statics.DATA_FOLDER_NAME + "/cache" + id + ".txt";
         this.SAVE_FOLDER = "pages." + id;
@@ -99,12 +99,12 @@ public class ScraperThread
         return (int) (Statics.DELAY_PRINTAVERAGES / Statics.betradarScraperThread.DELAY_GETSCRAPEREVENTS * factor);
     }
 
-    public void getScraperEventsInner(long startTime, boolean fullRun, boolean checkAll, AutoPilot autoPilot, VTDNav vtdNav, AtomicInteger listSize,
-                                      AtomicInteger scrapedEventsCounter)
+    public void getScraperEventsInner(final long startTime, final boolean fullRun, final boolean checkAll, final AutoPilot autoPilot, final VTDNav vtdNav, final AtomicInteger listSize,
+                                      final AtomicInteger scrapedEventsCounter)
             throws XPathParseException, XPathEvalException, NavException { // should be overriden
     }
 
-    public void getScraperEvents(HtmlPage htmlPage) {
+    public void getScraperEvents(final HtmlPage htmlPage) {
         final int currentCounter = timedScraperCounter.getAndIncrement();
         boolean checkAll = currentCounter % 100 == 0;
         final boolean fullRun = !checkAll && currentCounter % 10 == 0;
@@ -197,7 +197,7 @@ public class ScraperThread
         }
     }
 
-    public long timedGetScraperEvents(HtmlPage htmlPage) {
+    public long timedGetScraperEvents(final HtmlPage htmlPage) {
         long timeForNext = Formulas.getLastGetScraperEvents(lastGetScraperEvents);
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0) {
@@ -210,11 +210,11 @@ public class ScraperThread
         return timeTillNext;
     }
 
-    public HtmlPage getHtmlPage(WebClient webClient) { // has to be overriden
+    public HtmlPage getHtmlPage(final WebClient webClient) { // has to be overriden
         return null;
     }
 
-    public void pageManipulation(WebClient webClient, HtmlPage htmlPage)
+    public void pageManipulation(final WebClient webClient, final HtmlPage htmlPage)
             throws IOException { // should be overriden if used; should contain condional checks for running it
     }
 

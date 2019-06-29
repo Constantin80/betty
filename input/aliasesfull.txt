@@ -610,3 +610,5 @@
 "Oli Cruz","Olimpia Cluj"
 "Slovan U2","Slovan Liberec U21"
 "Rods JC","Roda JC Kerkrade"
+"Paide Linnamee","Paide Linnameeskond"
+"M Boro U23","Middlesbrough U23"

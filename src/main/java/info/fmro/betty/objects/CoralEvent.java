@@ -13,7 +13,6 @@ import java.util.concurrent.atomic.AtomicLong;
 public class CoralEvent
         extends ScraperEvent
         implements Serializable {
-
     private static final Logger logger = LoggerFactory.getLogger(CoralEvent.class);
     private static final long serialVersionUID = -1908827012627039399L;
     private String eventName;
@@ -22,7 +21,7 @@ public class CoralEvent
     //    public CoralEvent(long eventId) {
 //        super("coral", eventId);
 //    }
-    public CoralEvent(long eventId, long timeStamp) {
+    public CoralEvent(final long eventId, final long timeStamp) {
         super("coral", eventId, timeStamp);
     }
 
@@ -48,7 +47,7 @@ public class CoralEvent
         return eventName;
     }
 
-    public synchronized int setEventName(String eventName) {
+    public synchronized int setEventName(final String eventName) {
         final int modified;
         if (this.eventName == null) {
             if (eventName == null) {
@@ -82,7 +81,7 @@ public class CoralEvent
     }
 
     @Override
-    public synchronized int setMinutesPlayed(int minutesPlayed) {
+    public synchronized int setMinutesPlayed(final int minutesPlayed) {
         final int modified;
         final int existingMinutesPlayed = this.getMinutesPlayed();
         if (existingMinutesPlayed == minutesPlayed) {
@@ -121,7 +120,7 @@ public class CoralEvent
         return seconds;
     }
 
-    public synchronized int setSeconds(int seconds) {
+    public synchronized int setSeconds(final int seconds) {
         final int modified;
         if (this.seconds == seconds) {
             modified = 0;
@@ -136,7 +135,7 @@ public class CoralEvent
     }
 
     @Override
-    public synchronized int setMatchStatus(MatchStatus matchStatus) {
+    public synchronized int setMatchStatus(final MatchStatus matchStatus) {
         int modified = 0;
         modified += super.setMatchStatus(matchStatus, true);
         if (modified > 0 && matchStatus == MatchStatus.HALF_TIME) {
@@ -148,7 +147,7 @@ public class CoralEvent
     }
 
     @Override
-    public synchronized int innerUpdate(ScraperEvent scraperEvent) {
+    public synchronized int innerUpdate(final ScraperEvent scraperEvent) {
         int modified = super.innerUpdate(scraperEvent);
         CoralEvent coralEvent = (CoralEvent) scraperEvent;
 
@@ -159,7 +158,7 @@ public class CoralEvent
     }
 
     @Override
-    public synchronized long innerErrors(AtomicLong blackListPeriod) {
+    public synchronized long innerErrors(final AtomicLong blackListPeriod) {
         long errors = super.innerErrors(blackListPeriod);
         int minutesPlayed = this.getMinutesPlayed(), homeScore = this.getHomeScore(), awayScore = this.getAwayScore(), homeHtScore = this.getHomeHtScore(),
                 awayHtScore = this.getAwayHtScore();

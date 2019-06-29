@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class RescriptOpThread<T>
         implements Runnable {
-
     private static final Logger logger = LoggerFactory.getLogger(RescriptOpThread.class);
     private final OperationType operation;
     private String marketId;
@@ -42,40 +41,40 @@ public class RescriptOpThread<T>
     private AtomicInteger threadCounter;
     private boolean isStartedGettingOrders;
 
-    public RescriptOpThread(Set<T> returnSet, HashSet<String> eventIdsSet, HashSet<MarketProjection> marketProjectionsSet) {
+    public RescriptOpThread(final Set<T> returnSet, final HashSet<String> eventIdsSet, final HashSet<MarketProjection> marketProjectionsSet) {
         this.operation = OperationType.listMarketCatalogue;
         this.returnSet = returnSet;
         this.eventIdsSet = eventIdsSet;
         this.marketProjectionsSet = marketProjectionsSet;
     }
 
-    public RescriptOpThread(Set<T> returnSet, TreeSet<String> marketIdsSet, HashSet<MarketProjection> marketProjectionsSet) {
+    public RescriptOpThread(final Set<T> returnSet, final TreeSet<String> marketIdsSet, final HashSet<MarketProjection> marketProjectionsSet) {
         this.operation = OperationType.listMarketCatalogue;
         this.returnSet = returnSet;
         this.marketIdsSet = marketIdsSet;
         this.marketProjectionsSet = marketProjectionsSet;
     }
 
-    public RescriptOpThread(SafetyLimits safetyLimits, AtomicInteger threadCounter) {
+    public RescriptOpThread(final SafetyLimits safetyLimits, final AtomicInteger threadCounter) {
         this.operation = OperationType.getAccountFunds;
         this.safetyLimits = safetyLimits;
         this.threadCounter = threadCounter;
     }
 
-    public RescriptOpThread(SafetyLimits safetyLimits) {
+    public RescriptOpThread(final SafetyLimits safetyLimits) {
         this.operation = OperationType.listCurrencyRates;
         this.safetyLimits = safetyLimits;
     }
 
-    public RescriptOpThread(String marketId, List<PlaceInstruction> placeInstructionsList, boolean isStartedGettingOrders) {
-        this.operation = OperationType.placeOrders;
+    public RescriptOpThread(final String marketId, final List<PlaceInstruction> placeInstructionsList, final boolean isStartedGettingOrders) {
+        this.operation = OperationType.oldPlaceOrders;
         this.marketId = marketId;
         this.placeInstructionsList = placeInstructionsList;
         this.isStartedGettingOrders = isStartedGettingOrders;
     }
 
     public RescriptOpThread() {
-        this.operation = OperationType.cancelOrders;
+        this.operation = OperationType.cancelAllOrders;
     }
 
     @Override
@@ -127,13 +126,14 @@ public class RescriptOpThread<T>
 
                         if (accountFundsResponse != null) {
                             final Double availableToBetBalance = accountFundsResponse.getAvailableToBetBalance();
-                            if (availableToBetBalance != null) {
-                                safetyLimits.processFunds(availableToBetBalance);
+                            final Double exposure = accountFundsResponse.getExposure();
+                            if (availableToBetBalance != null && exposure != null) {
+                                safetyLimits.processFunds(availableToBetBalance, exposure);
                                 // atomicAvailableToBetBalance.set(availableToBetBalance - Statics.safetyLimits.getReserve());
 
                                 Generic.alreadyPrintedMap.logOnce(Statics.debugLevel.check(3, 102), logger, LogLevel.INFO, "accountFundsResponse: {}", Generic.objectToString(accountFundsResponse));
                             } else {
-                                logger.error("availableToBetBalance null for: {}", Generic.objectToString(accountFundsResponse));
+                                logger.error("availableToBetBalance or exposure null for: {}", Generic.objectToString(accountFundsResponse));
                             }
                         } else {
                             if (Statics.mustStop.get() && Statics.needSessionToken.get()) { // normal to happen during program stop, if not logged in
@@ -162,7 +162,8 @@ public class RescriptOpThread<T>
                     logger.error("null or empty variables in RescriptOpThread listCurrencyRates");
                 }
                 break;
-            case placeOrders:
+            case oldPlaceOrders:
+                logger.error("oldPlaceOrders is an old operation from the old disabled safeBets support; it needs heavy modifications and it should not be used");
                 if (marketId != null && placeInstructionsList != null) {
                     String customerRef = null;
                     final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
@@ -217,7 +218,7 @@ public class RescriptOpThread<T>
                         logger.warn("order placing denied {} {}: marketId = {}, placeInstructionsList = {}", Statics.notPlacingOrders, Statics.denyBetting.get(), marketId, Generic.objectToString(placeInstructionsList));
                     }
 
-                    CancelOrdersThread.addOrder(0L);
+                    Statics.ordersThread.addCancelAllOrder(0L);
 
                     Generic.threadSleep(100L); // avoid some double posting right after the order is placed; setting the delay too large might pose other problems
 
@@ -238,7 +239,8 @@ public class RescriptOpThread<T>
                     logger.error("STRANGE null or empty variables in RescriptOpThread placeOrders");
                 }
                 break;
-            case cancelOrders:
+            case cancelAllOrders:
+                logger.error("cancelAllOrders is an old operation from the old disabled safeBets support; it should not be used");
                 final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
                 Statics.timeLastFundsOp.set(System.currentTimeMillis());
                 if (!Statics.fundsQuickRun.getAndSet(true)) {

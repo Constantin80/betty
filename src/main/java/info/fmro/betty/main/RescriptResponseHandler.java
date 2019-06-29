@@ -29,12 +29,12 @@ public class RescriptResponseHandler
         return tooMuchData;
     }
 
-    public synchronized void setTooMuchData(boolean tooMuchData) {
+    public synchronized void setTooMuchData(final boolean tooMuchData) {
         this.tooMuchData = tooMuchData;
     }
 
     @Override
-    public synchronized String handleResponse(HttpResponse httpResponse)
+    public synchronized String handleResponse(final HttpResponse httpResponse)
             throws ClientProtocolException, IOException {
         final StatusLine statusLine = httpResponse.getStatusLine();
         final HttpEntity httpEntity = httpResponse.getEntity();

@@ -7,7 +7,7 @@ public class InvalidCredentialException
         extends Exception {
     private static final long serialVersionUID = -2368243618695042927L;
 
-    public InvalidCredentialException(String message) {
+    public InvalidCredentialException(final String message) {
         super(message);
     }
 }

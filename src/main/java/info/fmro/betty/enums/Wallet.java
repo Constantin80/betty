@@ -1,7 +1,6 @@
 package info.fmro.betty.enums;
 
 public enum Wallet {
-
-    UK, // The UK Exchange wallet
-    AUSTRALIAN; // The Australian Exchange wallet
+    UK // The Global Exchange wallet
+//    AUSTRALIAN; // The Australian Exchange wallet
 }

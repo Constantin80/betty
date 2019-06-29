@@ -5,11 +5,11 @@ package info.fmro.betty.stream.protocol;
  */
 public class ConnectionException
         extends Exception {
-    public ConnectionException(String message) {
+    public ConnectionException(final String message) {
         super(message);
     }
 
-    public ConnectionException(String message, Throwable cause) {
+    public ConnectionException(final String message, final Throwable cause) {
         super(message, cause);
     }
 }

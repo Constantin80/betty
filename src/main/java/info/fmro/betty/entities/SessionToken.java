@@ -12,7 +12,7 @@ public class SessionToken {
         return sessionToken;
     }
 
-    public synchronized void setSessionToken(String sessionToken) {
+    public synchronized void setSessionToken(final String sessionToken) {
         this.sessionToken = sessionToken;
     }
 
@@ -24,7 +24,7 @@ public class SessionToken {
         return loginStatus;
     }
 
-    public synchronized void setLoginStatus(String loginStatus) {
+    public synchronized void setLoginStatus(final String loginStatus) {
         this.loginStatus = loginStatus;
     }
 }

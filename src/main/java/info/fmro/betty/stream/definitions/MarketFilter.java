@@ -4,12 +4,14 @@ import info.fmro.betty.entities.TimeRange;
 import info.fmro.betty.enums.MarketBettingType;
 import info.fmro.betty.enums.OrderStatus;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class MarketFilter {
-
+public class MarketFilter
+        implements Serializable {
+    private static final long serialVersionUID = 6993130569488828844L;
     private Set<String> marketIds; // If no marketIds passed user will be subscribed to all markets
     private Boolean bspMarket; // Restrict to bsp markets only, if True or non-bsp markets if False. If not specified then returns both BSP and non-BSP markets
     private Set<MarketBettingType> bettingTypes; // Restrict to markets that match the betting type of the market (i.e. Odds, Asian Handicap Singles, or Asian Handicap Doubles)
@@ -36,7 +38,7 @@ public class MarketFilter {
         return textQuery;
     }
 
-    public synchronized void setTextQuery(String textQuery) {
+    public synchronized void setTextQuery(final String textQuery) {
         this.textQuery = textQuery;
     }
 
@@ -44,7 +46,7 @@ public class MarketFilter {
         return raceTypes == null ? null : new HashSet<>(raceTypes);
     }
 
-    public synchronized void setRaceTypes(Set<String> raceTypes) {
+    public synchronized void setRaceTypes(final Set<String> raceTypes) {
         this.raceTypes = raceTypes == null ? null : new HashSet<>(raceTypes);
     }
 
@@ -52,7 +54,7 @@ public class MarketFilter {
         return exchangeIds == null ? null : new HashSet<>(exchangeIds);
     }
 
-    public synchronized void setExchangeIds(Set<String> exchangeIds) {
+    public synchronized void setExchangeIds(final Set<String> exchangeIds) {
         this.exchangeIds = exchangeIds == null ? null : new HashSet<>(exchangeIds);
     }
 
@@ -60,11 +62,11 @@ public class MarketFilter {
         return eventTypeIds == null ? null : new HashSet<>(eventTypeIds);
     }
 
-    public synchronized void setEventTypeIds(Set<String> eventTypeIds) {
+    public synchronized void setEventTypeIds(final Set<String> eventTypeIds) {
         this.eventTypeIds = eventTypeIds == null ? null : new HashSet<>(eventTypeIds);
     }
 
-    public synchronized void setEventTypeIds(String... eventTypeIds) {
+    public synchronized void setEventTypeIds(final String... eventTypeIds) {
         setEventTypeIds(new HashSet<>(Arrays.asList(eventTypeIds)));
     }
 
@@ -72,7 +74,7 @@ public class MarketFilter {
         return marketIds == null ? null : new HashSet<>(marketIds);
     }
 
-    public synchronized void setMarketIds(Set<String> marketIds) {
+    public synchronized void setMarketIds(final Set<String> marketIds) {
         this.marketIds = marketIds == null ? null : new HashSet<>(marketIds);
     }
 
@@ -80,7 +82,7 @@ public class MarketFilter {
         return inPlayOnly;
     }
 
-    public synchronized void setInPlayOnly(Boolean inPlayOnly) {
+    public synchronized void setInPlayOnly(final Boolean inPlayOnly) {
         this.inPlayOnly = inPlayOnly;
     }
 
@@ -88,7 +90,7 @@ public class MarketFilter {
         return eventIds == null ? null : new HashSet<>(eventIds);
     }
 
-    public synchronized void setEventIds(Set<String> eventIds) {
+    public synchronized void setEventIds(final Set<String> eventIds) {
         this.eventIds = eventIds == null ? null : new HashSet<>(eventIds);
     }
 
@@ -96,7 +98,7 @@ public class MarketFilter {
         return competitionIds == null ? null : new HashSet<>(competitionIds);
     }
 
-    public synchronized void setCompetitionIds(Set<String> competitionIds) {
+    public synchronized void setCompetitionIds(final Set<String> competitionIds) {
         this.competitionIds = competitionIds == null ? null : new HashSet<>(competitionIds);
     }
 
@@ -104,7 +106,7 @@ public class MarketFilter {
         return venues == null ? null : new HashSet<>(venues);
     }
 
-    public synchronized void setVenues(Set<String> venues) {
+    public synchronized void setVenues(final Set<String> venues) {
         this.venues = venues == null ? null : new HashSet<>(venues);
     }
 
@@ -112,7 +114,7 @@ public class MarketFilter {
         return bspMarket;
     }
 
-    public synchronized void setBspMarket(Boolean bspMarket) {
+    public synchronized void setBspMarket(final Boolean bspMarket) {
         this.bspMarket = bspMarket;
     }
 
@@ -120,7 +122,7 @@ public class MarketFilter {
         return turnInPlayEnabled;
     }
 
-    public synchronized void setTurnInPlayEnabled(Boolean turnInPlayEnabled) {
+    public synchronized void setTurnInPlayEnabled(final Boolean turnInPlayEnabled) {
         this.turnInPlayEnabled = turnInPlayEnabled;
     }
 
@@ -128,7 +130,7 @@ public class MarketFilter {
         return bettingTypes == null ? null : new HashSet<>(bettingTypes);
     }
 
-    public synchronized void setBettingTypes(Set<MarketBettingType> bettingTypes) {
+    public synchronized void setBettingTypes(final Set<MarketBettingType> bettingTypes) {
         this.bettingTypes = bettingTypes == null ? null : new HashSet<>(bettingTypes);
     }
 
@@ -136,7 +138,7 @@ public class MarketFilter {
         return countryCodes == null ? null : new HashSet<>(countryCodes);
     }
 
-    public synchronized void setCountryCodes(Set<String> countryCodes) {
+    public synchronized void setCountryCodes(final Set<String> countryCodes) {
         this.countryCodes = countryCodes == null ? null : new HashSet<>(countryCodes);
     }
 
@@ -144,11 +146,11 @@ public class MarketFilter {
         return marketTypes == null ? null : new HashSet<>(marketTypes);
     }
 
-    public synchronized void setMarketTypes(Set<String> marketTypes) {
+    public synchronized void setMarketTypes(final Set<String> marketTypes) {
         this.marketTypes = marketTypes == null ? null : new HashSet<>(marketTypes);
     }
 
-    public synchronized void setMarketTypes(String... marketTypes) {
+    public synchronized void setMarketTypes(final String... marketTypes) {
         setMarketTypes(new HashSet<>(Arrays.asList(marketTypes)));
     }
 
@@ -156,7 +158,7 @@ public class MarketFilter {
         return marketStartTime;
     }
 
-    public synchronized void setMarketStartTime(TimeRange marketStartTime) {
+    public synchronized void setMarketStartTime(final TimeRange marketStartTime) {
         this.marketStartTime = marketStartTime;
     }
 
@@ -164,7 +166,7 @@ public class MarketFilter {
         return withOrders == null ? null : new HashSet<>(withOrders);
     }
 
-    public synchronized void setWithOrders(Set<OrderStatus> withOrders) {
+    public synchronized void setWithOrders(final Set<OrderStatus> withOrders) {
         this.withOrders = withOrders == null ? null : new HashSet<>(withOrders);
     }
 }

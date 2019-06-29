@@ -1,7 +1,6 @@
 package info.fmro.betty.enums;
 
 public enum ApiNgOperation {
-
     LISTEVENTTYPES("listEventTypes"),
     LISTCOMPETITIONS("listCompetitions"),
     LISTTIMERANGES("listTimeRanges"),
@@ -21,7 +20,7 @@ public enum ApiNgOperation {
 
     private final String operationName;
 
-    private ApiNgOperation(String operationName) {
+    private ApiNgOperation(final String operationName) {
         this.operationName = operationName;
     }
 

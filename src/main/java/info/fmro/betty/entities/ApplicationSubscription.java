@@ -1,10 +1,10 @@
 package info.fmro.betty.entities;
 
 import info.fmro.betty.enums.SubscriptionStatus;
+
 import java.util.Date;
 
 public class ApplicationSubscription {
-
     private String subscriptionToken; // Application key identifier
     private Date expiryDateTime; // Subscription Expiry date
     private Date expiredDateTime; // Subscription Expired date
@@ -22,7 +22,7 @@ public class ApplicationSubscription {
         return subscriptionToken;
     }
 
-    public synchronized void setSubscriptionToken(String subscriptionToken) {
+    public synchronized void setSubscriptionToken(final String subscriptionToken) {
         this.subscriptionToken = subscriptionToken;
     }
 
@@ -30,7 +30,7 @@ public class ApplicationSubscription {
         return expiryDateTime == null ? null : (Date) expiryDateTime.clone();
     }
 
-    public synchronized void setExpiryDateTime(Date expiryDateTime) {
+    public synchronized void setExpiryDateTime(final Date expiryDateTime) {
         this.expiryDateTime = expiryDateTime == null ? null : (Date) expiryDateTime.clone();
     }
 
@@ -38,7 +38,7 @@ public class ApplicationSubscription {
         return expiredDateTime == null ? null : (Date) expiredDateTime.clone();
     }
 
-    public synchronized void setExpiredDateTime(Date expiredDateTime) {
+    public synchronized void setExpiredDateTime(final Date expiredDateTime) {
         this.expiredDateTime = expiredDateTime == null ? null : (Date) expiredDateTime.clone();
     }
 
@@ -46,7 +46,7 @@ public class ApplicationSubscription {
         return createdDateTime == null ? null : (Date) createdDateTime.clone();
     }
 
-    public synchronized void setCreatedDateTime(Date createdDateTime) {
+    public synchronized void setCreatedDateTime(final Date createdDateTime) {
         this.createdDateTime = createdDateTime == null ? null : (Date) createdDateTime.clone();
     }
 
@@ -54,7 +54,7 @@ public class ApplicationSubscription {
         return activationDateTime == null ? null : (Date) activationDateTime.clone();
     }
 
-    public synchronized void setActivationDateTime(Date activationDateTime) {
+    public synchronized void setActivationDateTime(final Date activationDateTime) {
         this.activationDateTime = activationDateTime == null ? null : (Date) activationDateTime.clone();
     }
 
@@ -62,7 +62,7 @@ public class ApplicationSubscription {
         return cancellationDateTime == null ? null : (Date) cancellationDateTime.clone();
     }
 
-    public synchronized void setCancellationDateTime(Date cancellationDateTime) {
+    public synchronized void setCancellationDateTime(final Date cancellationDateTime) {
         this.cancellationDateTime = cancellationDateTime == null ? null : (Date) cancellationDateTime.clone();
     }
 
@@ -70,7 +70,7 @@ public class ApplicationSubscription {
         return subscriptionStatus;
     }
 
-    public synchronized void setSubscriptionStatus(SubscriptionStatus subscriptionStatus) {
+    public synchronized void setSubscriptionStatus(final SubscriptionStatus subscriptionStatus) {
         this.subscriptionStatus = subscriptionStatus;
     }
 
@@ -78,7 +78,7 @@ public class ApplicationSubscription {
         return clientReference;
     }
 
-    public synchronized void setClientReference(String clientReference) {
+    public synchronized void setClientReference(final String clientReference) {
         this.clientReference = clientReference;
     }
 
@@ -86,7 +86,7 @@ public class ApplicationSubscription {
         return vendorClientId;
     }
 
-    public synchronized void setVendorClientId(String vendorClientId) {
+    public synchronized void setVendorClientId(final String vendorClientId) {
         this.vendorClientId = vendorClientId;
     }
 }

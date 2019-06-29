@@ -1,21 +1,24 @@
 package info.fmro.betty.stream.definitions;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-public class MarketDataFilter {
+public class MarketDataFilter
+        implements Serializable {
+    private static final long serialVersionUID = -1848801841041872639L;
     private Set<FilterFlag> fields; // A set of field filter flags
     private Integer ladderLevels; // For depth based ladders the number of levels to send (1 to 10)
 
     public MarketDataFilter() {
     }
 
-    public MarketDataFilter(FilterFlag... flags) {
+    public MarketDataFilter(final FilterFlag... flags) {
         fields = new HashSet<>(Arrays.asList(flags));
     }
 
-    public MarketDataFilter(Integer ladderLevels, FilterFlag... flags) {
+    public MarketDataFilter(final Integer ladderLevels, final FilterFlag... flags) {
         this.ladderLevels = ladderLevels;
         fields = new HashSet<>(Arrays.asList(flags));
     }
@@ -24,7 +27,7 @@ public class MarketDataFilter {
         return fields == null ? null : new HashSet<>(fields);
     }
 
-    public synchronized void setFields(Set<FilterFlag> fields) {
+    public synchronized void setFields(final Set<FilterFlag> fields) {
         this.fields = fields == null ? null : new HashSet<>(fields);
     }
 
@@ -32,7 +35,7 @@ public class MarketDataFilter {
         return ladderLevels;
     }
 
-    public synchronized void setLadderLevels(Integer ladderLevels) {
+    public synchronized void setLadderLevels(final Integer ladderLevels) {
         this.ladderLevels = ladderLevels;
     }
 }

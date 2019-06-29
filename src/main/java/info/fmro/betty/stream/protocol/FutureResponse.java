@@ -17,11 +17,11 @@ public class FutureResponse<T>
         super(NULL, null);
     }
 
-    public synchronized void setResponse(T response) {
+    public synchronized void setResponse(final T response) {
         set(response);
     }
 
-    public synchronized void setException(Throwable t) {
+    public synchronized void setException(final Throwable t) {
         super.setException(t);
     }
 }

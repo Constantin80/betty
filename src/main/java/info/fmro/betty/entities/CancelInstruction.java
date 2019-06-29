@@ -1,7 +1,6 @@
 package info.fmro.betty.entities;
 
 public class CancelInstruction {
-
     private String betId;
     private Double sizeReduction;
 
@@ -12,7 +11,7 @@ public class CancelInstruction {
         return betId;
     }
 
-    public synchronized void setBetId(String betId) {
+    public synchronized void setBetId(final String betId) {
         this.betId = betId;
     }
 
@@ -20,7 +19,7 @@ public class CancelInstruction {
         return sizeReduction;
     }
 
-    public synchronized void setSizeReduction(Double sizeReduction) {
+    public synchronized void setSizeReduction(final Double sizeReduction) {
         this.sizeReduction = sizeReduction;
     }
 }

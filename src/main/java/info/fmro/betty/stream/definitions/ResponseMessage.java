@@ -1,6 +1,11 @@
 package info.fmro.betty.stream.definitions;
 
-public class ResponseMessage {
+import java.io.Serializable;
+
+// objects of this class are read from the stream
+public class ResponseMessage
+        implements Serializable {
+    private static final long serialVersionUID = -3489834279217007833L;
     private Integer id; // Client generated unique id to link request with response (like json rpc)
     private ResponseOperationType op; // The operation type
 
@@ -11,7 +16,7 @@ public class ResponseMessage {
         return id;
     }
 
-    public synchronized void setId(Integer id) {
+    public synchronized void setId(final Integer id) {
         this.id = id;
     }
 
@@ -19,7 +24,7 @@ public class ResponseMessage {
         return op;
     }
 
-    public synchronized void setOp(ResponseOperationType op) {
+    public synchronized void setOp(final ResponseOperationType op) {
         this.op = op;
     }
 }

@@ -1,23 +1,23 @@
 package info.fmro.betty.objects;
 
 import info.fmro.shared.utility.SynchronizedMap;
-import java.io.Serializable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SubclassMaps<T>
-        implements Serializable {
-
-    private static final long serialVersionUID = 3963261546843195228L;
+//        implements Serializable
+{
+    //    private static final long serialVersionUID = 3963261546843195228L;
     private static final Logger logger = LoggerFactory.getLogger(SubclassMaps.class);
     private final LinkedHashMap<Class<? extends T>, SynchronizedMap<Long, ? extends T>> mapsList = new LinkedHashMap<>(Statics.scraperEventSubclassesSet.size());
 
     @SuppressWarnings("unchecked")
-    public SubclassMaps(Set<Class<? extends T>> set) {
+    public SubclassMaps(final Set<Class<? extends T>> set) {
         // this will be used in the final object
 //        for (Class<? extends T> clazz: set){
 //            mapsList.put(clazz, );
@@ -32,11 +32,11 @@ public class SubclassMaps<T>
         return mapsList.size();
     }
 
-    public synchronized long getTimeStamp(Class<? extends T> clazz) {
+    public synchronized long getTimeStamp(final Class<? extends T> clazz) {
         return mapsList.get(clazz).getTimeStamp();
     }
 
-    public synchronized long getTimeStampRemoved(Class<? extends T> clazz) {
+    public synchronized long getTimeStampRemoved(final Class<? extends T> clazz) {
         return mapsList.get(clazz).getTimeStampRemoved();
     }
 
@@ -44,7 +44,7 @@ public class SubclassMaps<T>
         return getNTimeStampRemoved(Statics.MIN_MATCHED);
     }
 
-    public synchronized long getNTimeStampRemoved(int minNMultiple) {
+    public synchronized long getNTimeStampRemoved(final int minNMultiple) {
         long returnValue;
         if (minNMultiple < 1) {
             logger.error("minNMultiple {} too small in getNTimeStampRemoved", minNMultiple);
@@ -71,7 +71,7 @@ public class SubclassMaps<T>
         return getNTimeStamp(Statics.MIN_MATCHED);
     }
 
-    public synchronized long getNTimeStamp(int minNMultiple) {
+    public synchronized long getNTimeStamp(final int minNMultiple) {
         long returnValue;
         if (minNMultiple < 1) {
             logger.error("minNMultiple {} too small in getNTimeStamp", minNMultiple);

@@ -1,12 +1,12 @@
 package info.fmro.betty.entities;
 
 import info.fmro.betty.enums.AccountAPINGExceptionErrorCode;
+
 import java.io.Serializable;
 
 public class AccountAPINGException
         extends Throwable
         implements Serializable {
-
     private static final long serialVersionUID = -7836726656077478149L;
     private String errorDetails, requestUUID;
     private AccountAPINGExceptionErrorCode errorCode;
@@ -15,7 +15,7 @@ public class AccountAPINGException
         super((Throwable) null);
     }
 
-    public AccountAPINGException(String errorDetails, AccountAPINGExceptionErrorCode errorCode, String requestUUID) {
+    public AccountAPINGException(final String errorDetails, final AccountAPINGExceptionErrorCode errorCode, final String requestUUID) {
         super((Throwable) null);
         this.errorCode = errorCode;
         this.errorDetails = errorDetails;
@@ -26,7 +26,7 @@ public class AccountAPINGException
         return errorDetails;
     }
 
-    public synchronized void setErrorDetails(String errorDetails) {
+    public synchronized void setErrorDetails(final String errorDetails) {
         this.errorDetails = errorDetails;
     }
 
@@ -34,7 +34,7 @@ public class AccountAPINGException
         return errorCode;
     }
 
-    public synchronized void setErrorCode(AccountAPINGExceptionErrorCode errorCode) {
+    public synchronized void setErrorCode(final AccountAPINGExceptionErrorCode errorCode) {
         this.errorCode = errorCode;
     }
 
@@ -42,7 +42,7 @@ public class AccountAPINGException
         return requestUUID;
     }
 
-    public synchronized void setRequestUUID(String requestUUID) {
+    public synchronized void setRequestUUID(final String requestUUID) {
         this.requestUUID = requestUUID;
     }
 }

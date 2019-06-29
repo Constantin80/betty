@@ -1,7 +1,6 @@
 package info.fmro.betty.entities;
 
 public class CompetitionResult {
-
     private Competition competition;
     private Integer marketCount;
     private String competitionRegion;
@@ -13,7 +12,7 @@ public class CompetitionResult {
         return competition;
     }
 
-    public synchronized void setCompetition(Competition competition) {
+    public synchronized void setCompetition(final Competition competition) {
         this.competition = competition;
     }
 
@@ -21,7 +20,7 @@ public class CompetitionResult {
         return marketCount;
     }
 
-    public synchronized void setMarketCount(Integer marketCount) {
+    public synchronized void setMarketCount(final Integer marketCount) {
         this.marketCount = marketCount;
     }
 
@@ -29,7 +28,7 @@ public class CompetitionResult {
         return competitionRegion;
     }
 
-    public synchronized void setCompetitionRegion(String competitionRegion) {
+    public synchronized void setCompetitionRegion(final String competitionRegion) {
         this.competitionRegion = competitionRegion;
     }
 }

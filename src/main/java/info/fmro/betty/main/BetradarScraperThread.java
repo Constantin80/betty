@@ -49,7 +49,7 @@ public class BetradarScraperThread
         super("betradar", 500L, BrowserVersion.FIREFOX_52, 50, false);
     }
 
-    public boolean scrapeStartTime(BetradarEvent scraperEvent, BookMark bookMark) {
+    public boolean scrapeStartTime(final BetradarEvent scraperEvent, final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
         final VTDNav vtdNav = bookMark.getNav();
@@ -115,7 +115,7 @@ public class BetradarScraperThread
         return success;
     }
 
-    public boolean scrapeHomeTeam(BetradarEvent scraperEvent, BookMark bookMark) {
+    public boolean scrapeHomeTeam(final BetradarEvent scraperEvent, final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
         final VTDNav vtdNav = bookMark.getNav();
@@ -172,7 +172,7 @@ public class BetradarScraperThread
         return success;
     }
 
-    public boolean scrapeAwayTeam(BetradarEvent scraperEvent, BookMark bookMark) {
+    public boolean scrapeAwayTeam(final BetradarEvent scraperEvent, final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
         final VTDNav vtdNav = bookMark.getNav();
@@ -229,7 +229,7 @@ public class BetradarScraperThread
         return success;
     }
 
-    public boolean scrapeScore(BetradarEvent scraperEvent, BookMark bookMark) {
+    public boolean scrapeScore(final BetradarEvent scraperEvent, final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
         final VTDNav vtdNav = bookMark.getNav();
@@ -334,7 +334,7 @@ public class BetradarScraperThread
         return success;
     }
 
-    public boolean scrapeHtScore(BetradarEvent scraperEvent, BookMark bookMark) {
+    public boolean scrapeHtScore(final BetradarEvent scraperEvent, final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
         final VTDNav vtdNav = bookMark.getNav();
@@ -423,7 +423,7 @@ public class BetradarScraperThread
         return success;
     }
 
-    public boolean scrapeMatchStatus(BetradarEvent scraperEvent, BookMark bookMark) {
+    public boolean scrapeMatchStatus(final BetradarEvent scraperEvent, final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
         final VTDNav vtdNav = bookMark.getNav();
@@ -556,7 +556,7 @@ public class BetradarScraperThread
         return success;
     }
 
-    public boolean scrapeMinutesPlayed(BetradarEvent scraperEvent, BookMark bookMark) {
+    public boolean scrapeMinutesPlayed(final BetradarEvent scraperEvent, final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
         final VTDNav vtdNav = bookMark.getNav();
@@ -619,7 +619,7 @@ public class BetradarScraperThread
     }
 
     @Override
-    public void pageManipulation(WebClient webClient, HtmlPage htmlPage) {
+    public void pageManipulation(final WebClient webClient, final HtmlPage htmlPage) {
         if (mustSelectFootball.getAndSet(false)) {
             timeLastPageManipulation.set(System.currentTimeMillis());
             WebScraperMethods.clickElements(webClient, mustRefreshPage, htmlPage, 5_000L, selectFootballXPath, threadId, SAVE_FOLDER + "/click", mustSavePage);
@@ -642,8 +642,8 @@ public class BetradarScraperThread
     }
 
     @Override
-    public void getScraperEventsInner(long startTime, boolean fullRun, boolean checkAll, AutoPilot autoPilot, VTDNav vtdNav, AtomicInteger listSize,
-                                      AtomicInteger scrapedEventsCounter)
+    public void getScraperEventsInner(final long startTime, final boolean fullRun, final boolean checkAll, final AutoPilot autoPilot, final VTDNav vtdNav, final AtomicInteger listSize,
+                                      final AtomicInteger scrapedEventsCounter)
             throws XPathParseException, XPathEvalException, NavException {
 
         final boolean checkForErrors = (timedScraperCounter.get() - 1) % 10 == 0;
@@ -1076,7 +1076,7 @@ public class BetradarScraperThread
     }
 
     @Override
-    public HtmlPage getHtmlPage(WebClient webClient) {
+    public HtmlPage getHtmlPage(final WebClient webClient) {
         HtmlPage htmlPage = WebScraperMethods.getPage(webClient, SAVE_FOLDER + "/start", mustRefreshPage, mustSavePage,
                                                       "http://livescore.betradar.com/ls/livescore/?/betfair/en/page", threadId, selectFootballXPath, orderByKickoffXPath, tickerZeroXPath);
         //                onclick="SRLive.trigger('treefilter:select', { _id: '1', selected: { type: 'sports', property: '_sid', value: '1' }})"

@@ -28,7 +28,6 @@ import java.util.Set;
 public class Event
         extends Ignorable
         implements Serializable, Comparable<Event> {
-
     private static final Logger logger = LoggerFactory.getLogger(Event.class);
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
     private static final long serialVersionUID = -6755870038911915452L;
@@ -48,7 +47,7 @@ public class Event
 
     //    public Event() {
 //    }
-    public Event(String id) {
+    public Event(final String id) {
         this.id = id;
         this.initializeCollections();
     }
@@ -123,13 +122,13 @@ public class Event
     }
 
     @Override
-    public synchronized int setIgnored(long period) {
+    public synchronized int setIgnored(final long period) {
         final long currentTime = System.currentTimeMillis();
         return setIgnored(period, currentTime);
     }
 
     @Override
-    public synchronized int setIgnored(long period, long currentTime) {
+    public synchronized int setIgnored(final long period, final long currentTime) {
         final int modified = super.setIgnored(period, currentTime);
 
         if (modified > 0) {
@@ -181,7 +180,7 @@ public class Event
         return name;
     }
 
-    public synchronized int setName(String name) {
+    public synchronized int setName(final String name) {
         final int modified;
         if (this.name == null) {
             if (name == null) {
@@ -203,7 +202,7 @@ public class Event
         return countryCode;
     }
 
-    public synchronized int setCountryCode(String countryCode) {
+    public synchronized int setCountryCode(final String countryCode) {
         final int modified;
         if (this.countryCode == null) {
             if (countryCode == null) {
@@ -225,7 +224,7 @@ public class Event
         return timezone;
     }
 
-    public synchronized int setTimezone(String timezone) {
+    public synchronized int setTimezone(final String timezone) {
         final int modified;
         if (this.timezone == null) {
             if (timezone == null) {
@@ -247,7 +246,7 @@ public class Event
         return venue;
     }
 
-    public synchronized int setVenue(String venue) {
+    public synchronized int setVenue(final String venue) {
         final int modified;
         if (this.venue == null) {
             if (venue == null) {
@@ -270,7 +269,7 @@ public class Event
         return openDate == null ? null : (Date) openDate.clone();
     }
 
-    public synchronized int setOpenDate(Date openDate) {
+    public synchronized int setOpenDate(final Date openDate) {
         final int modified;
         if (this.openDate == null) {
             if (openDate == null) {
@@ -292,7 +291,7 @@ public class Event
         return marketCount;
     }
 
-    public synchronized int setMarketCount(Integer marketCount) {
+    public synchronized int setMarketCount(final Integer marketCount) {
         final int modified;
 
         if (marketCount == null) {
@@ -343,7 +342,7 @@ public class Event
         return homeName;
     }
 
-    public synchronized int setHomeName(String homeName) {
+    public synchronized int setHomeName(final String homeName) {
         final int modified;
         if (homeName == null) {
             if (this.homeName == null) {
@@ -370,7 +369,7 @@ public class Event
         return awayName;
     }
 
-    public synchronized int setAwayName(String awayName) {
+    public synchronized int setAwayName(final String awayName) {
         final int modified;
         if (awayName == null) {
             if (this.awayName == null) {
@@ -419,7 +418,7 @@ public class Event
         return timeFirstSeen;
     }
 
-    public synchronized int setTimeFirstSeen(long timeFirstSeen) {
+    public synchronized int setTimeFirstSeen(final long timeFirstSeen) {
         final int modified;
         if (this.timeFirstSeen > 0) {
             if (this.timeFirstSeen > timeFirstSeen) {
@@ -442,7 +441,7 @@ public class Event
         return timeStamp;
     }
 
-    public synchronized int setTimeStamp(long timeStamp) {
+    public synchronized int setTimeStamp(final long timeStamp) {
         this.timeStamp = timeStamp;
         return setTimeFirstSeen(this.timeStamp);
     }
@@ -456,7 +455,7 @@ public class Event
         return matchedTimeStamp;
     }
 
-    public synchronized int setMatchedTimeStamp(long timeStamp) {
+    public synchronized int setMatchedTimeStamp(final long timeStamp) {
         final int modified;
         if (this.matchedTimeStamp > 0) {
             if (this.matchedTimeStamp < timeStamp) {
@@ -479,7 +478,7 @@ public class Event
         return matchedTimeStamp(true); // default behavior is true
     }
 
-    public synchronized int matchedTimeStamp(boolean runIgnoredScrapersCheck) {
+    public synchronized int matchedTimeStamp(final boolean runIgnoredScrapersCheck) {
         if (runIgnoredScrapersCheck) {
             this.ignoredScrapersCheck(); // check at every modification
         } else { // not running ignoredScrapersCheck, that's likely because this method was invoked from within ignoredScrapersCheck
@@ -551,7 +550,7 @@ public class Event
         return nScraperEventIds;
     }
 
-    public synchronized Long getScraperEventId(Class<? extends ScraperEvent> clazz) {
+    public synchronized Long getScraperEventId(final Class<? extends ScraperEvent> clazz) {
 //        Long returnValue;
 //        if (this.scraperEventIds.containsKey(clazz)) {
 //            returnValue = this.scraperEventIds.get(clazz);
@@ -579,7 +578,7 @@ public class Event
 //        return returnValue;
 //    }
 
-    public synchronized int setScraperEventId(Class<? extends ScraperEvent> clazz, long scraperEventId) {
+    public synchronized int setScraperEventId(final Class<? extends ScraperEvent> clazz, final long scraperEventId) {
         final int modified;
         long existingScraperEventId;
         if (this.scraperEventIds.containsKey(clazz)) {
@@ -640,7 +639,7 @@ public class Event
 //        return modified;
 //    }
 
-    public synchronized int update(Event event) {
+    public synchronized int update(final Event event) {
         int modified;
         if (this == event) {
             logger.error("update from same object in Event.update: {}", Generic.objectToString(this));
@@ -697,7 +696,7 @@ public class Event
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(Event other) {
+    public synchronized int compareTo(final Event other) {
         if (other == null) {
             return AFTER;
         }
@@ -734,7 +733,7 @@ public class Event
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized boolean equals(Object obj) {
+    public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }

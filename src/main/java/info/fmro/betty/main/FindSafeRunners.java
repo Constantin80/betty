@@ -46,8 +46,8 @@ public class FindSafeRunners {
     private FindSafeRunners() {
     }
 
-    public static void safeRunnersSetSizeCheck(SynchronizedSafeSet<SafeRunner> safeRunnersSet, int nSafeRunners, MarketCatalogue marketCatalogue, String marketId,
-                                               ParsedMarketType parsedMarketType, String eventName, List<String> modifiedMarketsList, long startTime, HashSet<ParsedRunner> usedParsedRunnersSet, String scraperData) {
+    public static void safeRunnersSetSizeCheck(final SynchronizedSafeSet<SafeRunner> safeRunnersSet, final int nSafeRunners, final MarketCatalogue marketCatalogue, final String marketId,
+                                               final ParsedMarketType parsedMarketType, final String eventName, final List<String> modifiedMarketsList, final long startTime, final HashSet<ParsedRunner> usedParsedRunnersSet, final String scraperData) {
         if (safeRunnersSet.size() == nSafeRunners) {
             if (BlackList.notExistOrIgnored(Statics.marketCataloguesMap, marketId, startTime)) {
                 BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "marketCatalogue in safeRunnersSetSizeCheck");
@@ -86,7 +86,7 @@ public class FindSafeRunners {
         }
     }
 
-    public static int updateSafeRunnersSet(SynchronizedSafeSet<SafeRunner> existingSafeRunnersSet, SynchronizedSafeSet<SafeRunner> newSafeRunnersSet) {
+    public static int updateSafeRunnersSet(final SynchronizedSafeSet<SafeRunner> existingSafeRunnersSet, final SynchronizedSafeSet<SafeRunner> newSafeRunnersSet) {
         int modified;
         if (existingSafeRunnersSet == null || newSafeRunnersSet == null) {
             logger.error("existingSafeRunnersSet or newSafeRunnersSet null in updateSafeRunnersSet: {} {}", Generic.objectToString(existingSafeRunnersSet), Generic.objectToString(newSafeRunnersSet));
@@ -124,12 +124,12 @@ public class FindSafeRunners {
         return modified;
     }
 
-    public static SynchronizedSafeSet<SafeRunner> createSafeRunnersSet(int nSafeRunners) {
+    public static SynchronizedSafeSet<SafeRunner> createSafeRunnersSet(final int nSafeRunners) {
         final int capacity = Generic.getCollectionCapacity(nSafeRunners);
         return new SynchronizedSafeSet<>(capacity);
     }
 
-    public static void addSafeRunner(SynchronizedSafeSet<SafeRunner> safeRunnersSet, SafeRunner safeRunner, HashSet<ParsedRunner> usedParsedRunnersSet, ParsedRunner parsedRunner) {
+    public static void addSafeRunner(final SynchronizedSafeSet<SafeRunner> safeRunnersSet, final SafeRunner safeRunner, final HashSet<ParsedRunner> usedParsedRunnersSet, final ParsedRunner parsedRunner) {
         if (safeRunner != null) {
             safeRunnersSet.add(safeRunner);
             usedParsedRunnersSet.add(parsedRunner);
@@ -137,34 +137,34 @@ public class FindSafeRunners {
         }
     }
 
-    public static void defaultParsedRunnerTypeError(ParsedRunnerType parsedRunnerType, MarketCatalogue marketCatalogue) {
+    public static void defaultParsedRunnerTypeError(final ParsedRunnerType parsedRunnerType, final MarketCatalogue marketCatalogue) {
         Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "STRANGE unknown parsedRunnerType: {} in findSafeRunners for: {}",
                                           parsedRunnerType, Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
     }
 
-    public static boolean during90Minutes(MatchStatus matchStatus) {
+    public static boolean during90Minutes(final MatchStatus matchStatus) {
         return matchStatus == MatchStatus.FIRST_HALF || matchStatus == MatchStatus.HALF_TIME || matchStatus == MatchStatus.SECOND_HALF || matchStatus == MatchStatus.AWAITING_ET;
     }
 
-    public static boolean during90MinutesWithoutFirstHalf(MatchStatus matchStatus) {
+    public static boolean during90MinutesWithoutFirstHalf(final MatchStatus matchStatus) {
         return matchStatus == MatchStatus.HALF_TIME || matchStatus == MatchStatus.SECOND_HALF || matchStatus == MatchStatus.AWAITING_ET;
     }
 
-    public static boolean duringFirstHalf(MatchStatus matchStatus) {
+    public static boolean duringFirstHalf(final MatchStatus matchStatus) {
         return matchStatus == MatchStatus.FIRST_HALF || matchStatus == MatchStatus.HALF_TIME;
     }
 
-    public static boolean duringSecondHalf(MatchStatus matchStatus) {
+    public static boolean duringSecondHalf(final MatchStatus matchStatus) {
         return matchStatus == MatchStatus.SECOND_HALF || matchStatus == MatchStatus.AWAITING_ET;
     }
 
     public static SynchronizedMap<Class<? extends ScraperEvent>, Long> putUsedScrapersSet(
-            HashMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapersMap, ScrapedField scrapedField) {
+            final HashMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapersMap, final ScrapedField scrapedField) {
         return putUsedScrapersMap(usedScrapersMap, scrapedField, 4);
     }
 
     public static SynchronizedMap<Class<? extends ScraperEvent>, Long> putUsedScrapersMap(
-            HashMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapersMap, ScrapedField scrapedField, int initialSetSize) {
+            final HashMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapersMap, final ScrapedField scrapedField, final int initialSetSize) {
         SynchronizedMap<Class<? extends ScraperEvent>, Long> map = new SynchronizedMap<>(initialSetSize);
         usedScrapersMap.put(scrapedField, map);
         return map;
@@ -174,16 +174,16 @@ public class FindSafeRunners {
         findSafeRunners(null, null);
     }
 
-    public static void findSafeRunners(HashSet<Event> eventsSet) {
+    public static void findSafeRunners(final HashSet<Event> eventsSet) {
         findSafeRunners(eventsSet, null);
     }
 
-    public static void findSafeRunners(LinkedHashSet<Entry<String, MarketCatalogue>> entrySet) {
+    public static void findSafeRunners(final LinkedHashSet<Entry<String, MarketCatalogue>> entrySet) {
         findSafeRunners(null, entrySet);
     }
 
     @SuppressWarnings("unchecked")
-    public static void findSafeRunners(HashSet<Event> eventsSet, LinkedHashSet<Entry<String, MarketCatalogue>> entrySet) {
+    public static void findSafeRunners(final HashSet<Event> eventsSet, final LinkedHashSet<Entry<String, MarketCatalogue>> entrySet) {
         if (System.currentTimeMillis() - Statics.scraperEventMaps.getNTimeStamp() <= Generic.HOUR_LENGTH_MILLISECONDS * 3L) {
             final long startTime = System.currentTimeMillis();
             final boolean fullRun = eventsSet == null && entrySet == null;
@@ -3203,7 +3203,7 @@ public class FindSafeRunners {
                 } else {
                     logger.info(printedString);
                 }
-                Betty.quickCheckThread.getMarketBooks(modifiedMarketsList, 0L, Statics.N_ALL); // no delay, as that would affect timed runs
+                Statics.quickCheckThread.getMarketBooks(modifiedMarketsList, 0L, Statics.N_ALL); // no delay, as that would affect timed runs
             }
         } else {
             logger.info("scraperEventsMap too old in findSafeRunners");

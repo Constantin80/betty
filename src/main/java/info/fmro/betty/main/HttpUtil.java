@@ -3,12 +3,6 @@ package info.fmro.betty.main;
 import info.fmro.betty.enums.ApiNgOperation;
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
-import java.util.concurrent.atomic.AtomicLong;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpPost;
@@ -16,6 +10,13 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.StringEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class HttpUtil {
 
@@ -51,7 +52,7 @@ public class HttpUtil {
 //        } // end synchronized
     }
 
-    public static String sendPostRequest(String paramString, String operationString, String appKeyString, String URLString, RescriptResponseHandler rescriptResponseHandler) {
+    public static String sendPostRequest(final String paramString, final String operationString, final String appKeyString, final String URLString, final RescriptResponseHandler rescriptResponseHandler) {
         String jsonRequest = paramString;
         String responseString = null;
         boolean success;
@@ -60,7 +61,7 @@ public class HttpUtil {
 
         do {
             try {
-                HttpPost httpPost = new HttpPost(URLString);
+                final HttpPost httpPost = new HttpPost(URLString);
 
                 httpPost.setHeader(HTTP_HEADER_CONTENT_TYPE, Statics.APPLICATION_JSON);
                 httpPost.setHeader(HTTP_HEADER_ACCEPT, Statics.APPLICATION_JSON);
@@ -90,8 +91,7 @@ public class HttpUtil {
                 success = false;
             } catch (SocketTimeoutException socketTimeoutException) {
                 if (isPlacingOrder || (errorCounter >= 10L && errorCounter % 10L == 0 && canLogError())) {
-                    logger.error("socketTimeoutException in sendPostRequest, errorCounter: {}, isPlacingOrder: {}, operationString: {}", errorCounter, isPlacingOrder,
-                            operationString, socketTimeoutException);
+                    logger.error("socketTimeoutException in sendPostRequest, errorCounter: {}, isPlacingOrder: {}, operationString: {}", errorCounter, isPlacingOrder, operationString, socketTimeoutException);
                 } else if (Statics.debugLevel.check(3, 123)) {
                     logger.warn("socketTimeoutException in sendPostRequest", socketTimeoutException);
                 } else {
@@ -100,8 +100,7 @@ public class HttpUtil {
                 success = false;
             } catch (ConnectTimeoutException connectTimeoutException) {
                 if (isPlacingOrder || (errorCounter >= 10L && errorCounter % 10L == 0 && canLogError())) {
-                    logger.error("connectTimeoutException in sendPostRequest, errorCounter: {}, isPlacingOrder: {}, operationString: {}", errorCounter, isPlacingOrder,
-                            operationString, connectTimeoutException);
+                    logger.error("connectTimeoutException in sendPostRequest, errorCounter: {}, isPlacingOrder: {}, operationString: {}", errorCounter, isPlacingOrder, operationString, connectTimeoutException);
                 } else if (Statics.debugLevel.check(3, 124)) {
                     logger.warn("connectTimeoutException in sendPostRequest", connectTimeoutException);
                 } else {
@@ -110,8 +109,7 @@ public class HttpUtil {
                 success = false;
             } catch (UnknownHostException unknownHostException) {
                 if (isPlacingOrder || (errorCounter >= 10L && errorCounter % 10L == 0 && canLogError())) {
-                    logger.error("unknownHostException in sendPostRequest, errorCounter: {}, isPlacingOrder: {}, operationString: {}", errorCounter, isPlacingOrder,
-                            operationString, unknownHostException);
+                    logger.error("unknownHostException in sendPostRequest, errorCounter: {}, isPlacingOrder: {}, operationString: {}", errorCounter, isPlacingOrder, operationString, unknownHostException);
                 } else if (Statics.debugLevel.check(3, 157)) {
                     logger.warn("unknownHostException in sendPostRequest", unknownHostException);
                 } else {
@@ -121,8 +119,7 @@ public class HttpUtil {
                 success = false;
             } catch (SocketException socketException) {
                 if (isPlacingOrder || (errorCounter >= 10L && errorCounter % 10L == 0 && canLogError())) {
-                    logger.error("socketException in sendPostRequest, errorCounter: {}, isPlacingOrder: {}, operationString: {}", errorCounter, isPlacingOrder, operationString,
-                            socketException);
+                    logger.error("socketException in sendPostRequest, errorCounter: {}, isPlacingOrder: {}, operationString: {}", errorCounter, isPlacingOrder, operationString, socketException);
                 } else if (Statics.debugLevel.check(3, 175)) {
                     logger.warn("socketException in sendPostRequest", socketException);
                 } else {
@@ -131,8 +128,7 @@ public class HttpUtil {
                 success = false;
             } catch (NoHttpResponseException noHttpResponseException) {
                 if (isPlacingOrder || (errorCounter >= 10L && errorCounter % 10L == 0 && canLogError())) {
-                    logger.error("noHttpResponseException in sendPostRequest, errorCounter: {}, isPlacingOrder: {}, operationString: {}", errorCounter, isPlacingOrder,
-                            operationString, noHttpResponseException);
+                    logger.error("noHttpResponseException in sendPostRequest, errorCounter: {}, isPlacingOrder: {}, operationString: {}", errorCounter, isPlacingOrder, operationString, noHttpResponseException);
                 } else if (Statics.debugLevel.check(3, 184)) {
                     logger.warn("noHttpResponseException in sendPostRequest", noHttpResponseException);
                 } else {
@@ -142,8 +138,7 @@ public class HttpUtil {
                 errorCounter--; // avoid anti-throttle for this exception
             } catch (IOException iOException) {
                 if (isPlacingOrder || (errorCounter >= 10L && errorCounter % 10L == 0 && canLogError())) {
-                    logger.error("iOException in sendPostRequest, errorCounter: {}, isPlacingOrder: {}, operationString: {}", errorCounter, isPlacingOrder, operationString,
-                            iOException);
+                    logger.error("iOException in sendPostRequest, errorCounter: {}, isPlacingOrder: {}, operationString: {}", errorCounter, isPlacingOrder, operationString, iOException);
                 } else if (Statics.debugLevel.check(3, 176)) {
                     logger.warn("iOException in sendPostRequest", iOException);
                 } else {
@@ -166,8 +161,7 @@ public class HttpUtil {
         return responseString;
     }
 
-    public static String sendAccountPostRequest(String paramString, String operationString, String appKeyString, String URLString,
-            RescriptAccountResponseHandler rescriptAccountResponseHandler) {
+    public static String sendAccountPostRequest(final String paramString, final String operationString, final String appKeyString, final String URLString, final RescriptAccountResponseHandler rescriptAccountResponseHandler) {
         String jsonRequest = paramString;
         String responseString = null;
         boolean success;
@@ -175,7 +169,7 @@ public class HttpUtil {
 
         do {
             try {
-                HttpPost httpPost = new HttpPost(URLString);
+                final HttpPost httpPost = new HttpPost(URLString);
                 httpPost.setHeader(HTTP_HEADER_CONTENT_TYPE, Statics.APPLICATION_JSON);
                 httpPost.setHeader(HTTP_HEADER_ACCEPT, Statics.APPLICATION_JSON);
                 httpPost.setHeader(HTTP_HEADER_ACCEPT_CHARSET, Generic.UTF8_CHARSET);
@@ -270,14 +264,13 @@ public class HttpUtil {
         return responseString;
     }
 
-    public static String sendPostRequestAccountRescript(String paramString, String operationString, String appKeyString,
-            RescriptAccountResponseHandler rescriptAccountResponseHandler) {
+    public static String sendPostRequestAccountRescript(final String paramString, final String operationString, final String appKeyString, final RescriptAccountResponseHandler rescriptAccountResponseHandler) {
         String apiNgURLString = Statics.ACCOUNT_APING_URL + Statics.RESCRIPT_SUFFIX + operationString + "/";
 
         return sendAccountPostRequest(paramString, operationString, appKeyString, apiNgURLString, rescriptAccountResponseHandler);
     }
 
-    public static String sendPostRequestRescript(String paramString, String operationString, String appKeyString, RescriptResponseHandler rescriptResponseHandler) {
+    public static String sendPostRequestRescript(final String paramString, final String operationString, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
         String apiNgURLString = Statics.APING_URL + Statics.RESCRIPT_SUFFIX + operationString + "/";
 
         return sendPostRequest(paramString, operationString, appKeyString, apiNgURLString, rescriptResponseHandler);

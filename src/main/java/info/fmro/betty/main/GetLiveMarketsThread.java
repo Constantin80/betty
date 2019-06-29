@@ -175,7 +175,7 @@ public class GetLiveMarketsThread
         return timeTillNext;
     }
 
-    public static boolean waitForSessionToken(String id) {
+    public static boolean waitForSessionToken(final String id) {
         boolean neededToken = false;
         int whileCounter = 0;
         while (Statics.needSessionToken.get() && !Statics.mustStop.get()) {

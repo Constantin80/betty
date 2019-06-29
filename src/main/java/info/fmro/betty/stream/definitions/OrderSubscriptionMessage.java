@@ -1,7 +1,11 @@
 package info.fmro.betty.stream.definitions;
 
+import java.io.Serializable;
+
 public class OrderSubscriptionMessage
-        extends RequestMessage {
+        extends RequestMessage
+        implements Serializable {
+    private static final long serialVersionUID = 4971337324003024539L;
     private String clk; // Token value (non-null) should be stored and passed in a MarketSubscriptionMessage to resume subscription (in case of disconnect)
     private Long conflateMs; // Conflate Milliseconds - the conflation rate (may differ from that requested if subscription is delayed)
     private Long heartbeatMs; // Heartbeat Milliseconds - the heartbeat rate (may differ from requested: bounds are 500 to 30000)
@@ -16,7 +20,7 @@ public class OrderSubscriptionMessage
         return clk;
     }
 
-    public synchronized void setClk(String clk) {
+    public synchronized void setClk(final String clk) {
         this.clk = clk;
     }
 
@@ -24,7 +28,7 @@ public class OrderSubscriptionMessage
         return conflateMs;
     }
 
-    public synchronized void setConflateMs(Long conflateMs) {
+    public synchronized void setConflateMs(final Long conflateMs) {
         this.conflateMs = conflateMs;
     }
 
@@ -32,7 +36,7 @@ public class OrderSubscriptionMessage
         return heartbeatMs;
     }
 
-    public synchronized void setHeartbeatMs(Long heartbeatMs) {
+    public synchronized void setHeartbeatMs(final Long heartbeatMs) {
         this.heartbeatMs = heartbeatMs;
     }
 
@@ -40,7 +44,7 @@ public class OrderSubscriptionMessage
         return initialClk;
     }
 
-    public synchronized void setInitialClk(String initialClk) {
+    public synchronized void setInitialClk(final String initialClk) {
         this.initialClk = initialClk;
     }
 
@@ -48,7 +52,7 @@ public class OrderSubscriptionMessage
         return orderFilter;
     }
 
-    public synchronized void setOrderFilter(OrderFilter orderFilter) {
+    public synchronized void setOrderFilter(final OrderFilter orderFilter) {
         this.orderFilter = orderFilter;
     }
 
@@ -56,7 +60,7 @@ public class OrderSubscriptionMessage
         return segmentationEnabled;
     }
 
-    public synchronized void setSegmentationEnabled(Boolean segmentationEnabled) {
+    public synchronized void setSegmentationEnabled(final Boolean segmentationEnabled) {
         this.segmentationEnabled = segmentationEnabled;
     }
 }

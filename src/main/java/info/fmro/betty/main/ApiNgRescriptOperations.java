@@ -78,8 +78,8 @@ public class ApiNgRescriptOperations {
     private ApiNgRescriptOperations() {
     }
 
-    public static HashSet<CurrentOrderSummary> listCurrentOrders(Set<String> betIds, Set<String> marketIds, OrderProjection orderProjection, TimeRange placedDateRange, OrderBy orderBy, SortDir sortDir, int fromRecord, int recordCount, String appKeyString,
-                                                                 RescriptResponseHandler rescriptResponseHandler) {
+    public static HashSet<CurrentOrderSummary> listCurrentOrders(final Set<String> betIds, final Set<String> marketIds, final OrderProjection orderProjection, final TimeRange placedDateRange, final OrderBy orderBy, final SortDir sortDir, final int fromRecord, final int recordCount, final String appKeyString,
+                                                                 final RescriptResponseHandler rescriptResponseHandler) {
 
         final HashSet<CurrentOrderSummary> currentOrderSummarySet = new HashSet<>(16, 0.75f); // empty in the beginning; its size will be used in the loop
         boolean moreAvailable;
@@ -107,8 +107,8 @@ public class ApiNgRescriptOperations {
         return currentOrderSummarySet;
     }
 
-    public static CurrentOrderSummaryReport listCurrentOrdersReport(Set<String> betIds, Set<String> marketIds, OrderProjection orderProjection, TimeRange placedDateRange, OrderBy orderBy, SortDir sortDir, int fromRecord, int recordCount,
-                                                                    String appKeyString, RescriptResponseHandler rescriptResponseHandler) {
+    public static CurrentOrderSummaryReport listCurrentOrdersReport(final Set<String> betIds, final Set<String> marketIds, final OrderProjection orderProjection, final TimeRange placedDateRange, final OrderBy orderBy, final SortDir sortDir, final int fromRecord, final int recordCount,
+                                                                    final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
         final HashMap<String, Object> paramsHashMap = new HashMap<>(16, 0.75f);
         paramsHashMap.put(BET_IDS, betIds);
         paramsHashMap.put(MARKET_IDS, marketIds);
@@ -128,8 +128,8 @@ public class ApiNgRescriptOperations {
         return containerCurrentOrderSummaryReport;
     }
 
-    public static HashSet<ClearedOrderSummary> listClearedOrders(BetStatus betStatus, Set<String> eventTypeIds, Set<String> eventIds, Set<String> marketIds, Set<RunnerId> runnerIds, Set<String> betIds, Side side, TimeRange settledDateRange,
-                                                                 GroupBy groupBy, boolean includeItemDescription, int fromRecord, int recordCount, String appKeyString, RescriptResponseHandler rescriptResponseHandler) {
+    public static HashSet<ClearedOrderSummary> listClearedOrders(final BetStatus betStatus, final Set<String> eventTypeIds, final Set<String> eventIds, final Set<String> marketIds, final Set<RunnerId> runnerIds, final Set<String> betIds, final Side side, final TimeRange settledDateRange,
+                                                                 final GroupBy groupBy, final boolean includeItemDescription, final int fromRecord, final int recordCount, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
 
         final HashSet<ClearedOrderSummary> clearedOrderSummarySet = new HashSet<>(16, 0.75f); // empty in the beginning; its size will be used in the loop
         boolean moreAvailable;
@@ -158,8 +158,8 @@ public class ApiNgRescriptOperations {
         return clearedOrderSummarySet;
     }
 
-    public static ClearedOrderSummaryReport listClearedOrdersReport(BetStatus betStatus, Set<String> eventTypeIds, Set<String> eventIds, Set<String> marketIds, Set<RunnerId> runnerIds, Set<String> betIds, Side side, TimeRange settledDateRange,
-                                                                    GroupBy groupBy, boolean includeItemDescription, int fromRecord, int recordCount, String appKeyString, RescriptResponseHandler rescriptResponseHandler) {
+    public static ClearedOrderSummaryReport listClearedOrdersReport(final BetStatus betStatus, final Set<String> eventTypeIds, final Set<String> eventIds, final Set<String> marketIds, final Set<RunnerId> runnerIds, final Set<String> betIds, final Side side, final TimeRange settledDateRange,
+                                                                    final GroupBy groupBy, final boolean includeItemDescription, final int fromRecord, final int recordCount, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
         final HashMap<String, Object> paramsHashMap = new HashMap<>(16, 0.75f);
         paramsHashMap.put(BET_STATUS, betStatus);
         paramsHashMap.put(EVENT_TYPE_IDS, eventTypeIds);
@@ -184,7 +184,7 @@ public class ApiNgRescriptOperations {
         return containerClearedOrderSummaryReport;
     }
 
-    public static List<MarketTypeResult> listMarketTypes(MarketFilter marketFilter, String appKeyString, RescriptResponseHandler rescriptResponseHandler) {
+    public static List<MarketTypeResult> listMarketTypes(final MarketFilter marketFilter, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
         final HashMap<String, Object> paramsHashMap = new HashMap<>(4, 0.75f);
         paramsHashMap.put(FILTER, marketFilter);
         final String responseString = ApiNgRescriptOperations.makeRequest(ApiNgOperation.LISTMARKETTYPES.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
@@ -198,7 +198,7 @@ public class ApiNgRescriptOperations {
         return marketTypeResultList;
     }
 
-    public static List<EventTypeResult> listEventTypes(MarketFilter marketFilter, String appKeyString, RescriptResponseHandler rescriptResponseHandler) {
+    public static List<EventTypeResult> listEventTypes(final MarketFilter marketFilter, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
         final HashMap<String, Object> paramsHashMap = new HashMap<>(4, 0.75f);
         paramsHashMap.put(FILTER, marketFilter);
         final String responseString = ApiNgRescriptOperations.makeRequest(ApiNgOperation.LISTEVENTTYPES.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
@@ -212,8 +212,8 @@ public class ApiNgRescriptOperations {
         return containerEventTypeResult;
     }
 
-    public static List<MarketBook> listMarketBook(List<String> marketIdsList, PriceProjection priceProjection, OrderProjection orderProjection, MatchProjection matchProjection, String currencyCodeString, String appKeyString,
-                                                  RescriptResponseHandler rescriptResponseHandler) {
+    public static List<MarketBook> listMarketBook(final List<String> marketIdsList, final PriceProjection priceProjection, final OrderProjection orderProjection, final MatchProjection matchProjection, final String currencyCodeString, final String appKeyString,
+                                                  final RescriptResponseHandler rescriptResponseHandler) {
         final HashMap<String, Object> paramsHashMap = new HashMap<>(8, 0.75f);
         // paramsHashMap.put(LOCALE, localeString);
         paramsHashMap.put(MARKET_IDS, marketIdsList);
@@ -231,7 +231,7 @@ public class ApiNgRescriptOperations {
         return containerMarketBook;
     }
 
-    public static List<EventResult> listEvents(MarketFilter marketFilter, String appKeyString, RescriptResponseHandler rescriptResponseHandler) {
+    public static List<EventResult> listEvents(final MarketFilter marketFilter, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
         final HashMap<String, Object> paramsHashMap = new HashMap<>(4, 0.75f);
         // paramsHashMap.put(LOCALE, localeString);
         paramsHashMap.put(FILTER, marketFilter); // mandatory
@@ -247,7 +247,7 @@ public class ApiNgRescriptOperations {
         return eventResultsList;
     }
 
-    public static List<MarketCatalogue> listMarketCatalogue(MarketFilter marketFilter, Set<MarketProjection> marketProjectionsSet, MarketSort marketSort, int maxResults, String appKeyString, RescriptResponseHandler rescriptResponseHandler) {
+    public static List<MarketCatalogue> listMarketCatalogue(final MarketFilter marketFilter, final Set<MarketProjection> marketProjectionsSet, final MarketSort marketSort, final int maxResults, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
         final HashMap<String, Object> paramsHashMap = new HashMap<>(8, 0.75f);
         // paramsHashMap.put(LOCALE, localeString);
         paramsHashMap.put(FILTER, marketFilter);
@@ -269,12 +269,18 @@ public class ApiNgRescriptOperations {
         return containerMarketCatalogue;
     }
 
-    public static PlaceExecutionReport placeOrders(String marketIdString, List<PlaceInstruction> placeInstructionsList, String customerRefString, String appKeyString, RescriptResponseHandler rescriptResponseHandler) {
+    public static PlaceExecutionReport placeOrders(final String marketIdString, final List<PlaceInstruction> placeInstructionsList, final String customerRefString, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
         final HashMap<String, Object> paramsHashMap = new HashMap<>(8, 0.75f);
         // paramsHashMap.put(LOCALE, localeString);
         paramsHashMap.put(MARKET_ID, marketIdString);
         paramsHashMap.put(INSTRUCTIONS, placeInstructionsList);
         paramsHashMap.put(CUSTOMER_REF, customerRefString);
+
+        if (placeInstructionsList != null) {
+            Statics.safetyLimits.speedLimit.newOrders(placeInstructionsList.size());
+        } else {
+            logger.error("null placeInstructionsList in placeOrders for: {}", marketIdString);
+        }
         final String responseString = ApiNgRescriptOperations.makeRequest(ApiNgOperation.PLACEORDERS.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
         if (Statics.debugLevel.check(3, 119)) {
             logger.info("params: {} Response: {} timeStamp={}", Generic.objectToString(paramsHashMap, false, false), responseString, System.currentTimeMillis());
@@ -283,7 +289,13 @@ public class ApiNgRescriptOperations {
         return JsonConverter.convertFromJson(responseString, PlaceExecutionReport.class);
     }
 
-    public static CancelExecutionReport cancelOrders(String marketIdString, List<CancelInstruction> cancelInstructionsList, String customerRefString, String appKeyString, RescriptResponseHandler rescriptResponseHandler) {
+    public static CancelExecutionReport cancelOrders(final String marketIdString, final List<CancelInstruction> cancelInstructionsList, final String customerRefString, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
+        if (marketIdString == null || cancelInstructionsList == null) {
+            logger.error("null marketIdString or cancelInstructionsList in cancelOrders for: {} {}", marketIdString, Generic.objectToString(cancelInstructionsList));
+        } else if (cancelInstructionsList.size() > 60) {
+            logger.error("too many {} instructions in cancelInstructionsList for: {} {}", cancelInstructionsList.size(), marketIdString, Generic.objectToString(cancelInstructionsList));
+        }
+
         final HashMap<String, Object> paramsHashMap = new HashMap<>(8, 0.75f);
         // paramsHashMap.put(LOCALE, localeString);
         paramsHashMap.put(MARKET_ID, marketIdString);
@@ -297,7 +309,7 @@ public class ApiNgRescriptOperations {
         return JsonConverter.convertFromJson(responseString, CancelExecutionReport.class);
     }
 
-    public static AccountFundsResponse getAccountFunds(String appKeyString, String ssoIdString, RescriptAccountResponseHandler rescriptAccountResponseHandler) {
+    public static AccountFundsResponse getAccountFunds(final String appKeyString, final String ssoIdString, final RescriptAccountResponseHandler rescriptAccountResponseHandler) {
         final HashMap<String, Object> paramsHashMap = new HashMap<>(2, 0.75f);
 
         final String responseString = ApiNgRescriptOperations.makeAccountRequest(ApiNgAccountOperation.GETACCOUNTFUNDS.getOperationName(), paramsHashMap, appKeyString, rescriptAccountResponseHandler);
@@ -308,7 +320,7 @@ public class ApiNgRescriptOperations {
         return JsonConverter.convertFromJson(responseString, AccountFundsResponse.class);
     }
 
-    public static List<CurrencyRate> listCurrencyRates(String appKeyString, String ssoIdString, RescriptAccountResponseHandler rescriptAccountResponseHandler) {
+    public static List<CurrencyRate> listCurrencyRates(final String appKeyString, final String ssoIdString, final RescriptAccountResponseHandler rescriptAccountResponseHandler) {
         final HashMap<String, Object> paramsHashMap = new HashMap<>(2, 0.75f);
 
         final String responseString = ApiNgRescriptOperations.makeAccountRequest(ApiNgAccountOperation.LISTCURRENCYRATES.getOperationName(), paramsHashMap, appKeyString, rescriptAccountResponseHandler);
@@ -322,7 +334,7 @@ public class ApiNgRescriptOperations {
         return containerCurrencyRate;
     }
 
-    public static String makeRequest(String operationString, Map<String, Object> paramsMap, String appKeyString, RescriptResponseHandler rescriptResponseHandler) {
+    public static String makeRequest(final String operationString, final Map<String, Object> paramsMap, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
         final String requestString;
         //Handling the Rescript request
         paramsMap.put("id", 1);
@@ -338,7 +350,7 @@ public class ApiNgRescriptOperations {
         return responseString;
     }
 
-    public static String makeAccountRequest(String operationString, Map<String, Object> paramsMap, String appKeyString, RescriptAccountResponseHandler rescriptAccountResponseHandler) {
+    public static String makeAccountRequest(final String operationString, final Map<String, Object> paramsMap, final String appKeyString, final RescriptAccountResponseHandler rescriptAccountResponseHandler) {
         final String requestString;
         //Handling the Rescript request
         paramsMap.put("id", 1);

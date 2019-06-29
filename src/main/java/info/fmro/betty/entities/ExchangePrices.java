@@ -7,16 +7,15 @@ import java.util.Objects;
 
 public class ExchangePrices
         implements Serializable {
-
     private static final long serialVersionUID = -5031011635000589001L;
-    private List<PriceSize> availableToBack;
-    private List<PriceSize> availableToLay;
-    private List<PriceSize> tradedVolume;
+    private ArrayList<PriceSize> availableToBack;
+    private ArrayList<PriceSize> availableToLay;
+    private ArrayList<PriceSize> tradedVolume;
 
     public ExchangePrices() {
     }
 
-    public ExchangePrices(List<PriceSize> availableToBack, List<PriceSize> availableToLay, List<PriceSize> tradedVolume) {
+    public ExchangePrices(final List<PriceSize> availableToBack, final List<PriceSize> availableToLay, final List<PriceSize> tradedVolume) {
         this.availableToBack = new ArrayList<>(availableToBack);
         this.availableToLay = new ArrayList<>(availableToLay);
         this.tradedVolume = new ArrayList<>(tradedVolume);
@@ -26,21 +25,21 @@ public class ExchangePrices
         return availableToBack == null ? null : new ArrayList<>(availableToBack);
     }
 
-//    public synchronized void setAvailableToBack(List<PriceSize> availableToBack) {
+    //    public synchronized void setAvailableToBack(List<PriceSize> availableToBack) {
 //        this.availableToBack = availableToBack == null ? null : new ArrayList<>(availableToBack);
 //    }
     public synchronized List<PriceSize> getAvailableToLay() {
         return availableToLay == null ? null : new ArrayList<>(availableToLay);
     }
 
-//    public synchronized void setAvailableToLay(List<PriceSize> availableToLay) {
+    //    public synchronized void setAvailableToLay(List<PriceSize> availableToLay) {
 //        this.availableToLay = availableToLay == null ? null : new ArrayList<>(availableToLay);
 //    }
     public synchronized List<PriceSize> getTradedVolume() {
         return tradedVolume == null ? null : new ArrayList<>(tradedVolume);
     }
 
-//    public synchronized void setTradedVolume(List<PriceSize> tradedVolume) {
+    //    public synchronized void setTradedVolume(List<PriceSize> tradedVolume) {
 //        this.tradedVolume = tradedVolume == null ? null : new ArrayList<>(tradedVolume);
 //    }
     @Override
@@ -54,7 +53,7 @@ public class ExchangePrices
 
     @Override
     @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized boolean equals(Object obj) {
+    public synchronized boolean equals(final Object obj) {
         if (this == obj) {
             return true;
         }

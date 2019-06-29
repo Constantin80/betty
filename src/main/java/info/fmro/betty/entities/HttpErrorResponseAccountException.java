@@ -12,7 +12,7 @@ public class HttpErrorResponseAccountException {
         return exceptionname;
     }
 
-    public synchronized void setExceptionname(String exceptionname) {
+    public synchronized void setExceptionname(final String exceptionname) {
         this.exceptionname = exceptionname;
     }
 
@@ -20,7 +20,7 @@ public class HttpErrorResponseAccountException {
         return AccountAPINGException;
     }
 
-    public synchronized void setAccountAPINGException(AccountAPINGException AccountAPINGException) {
+    public synchronized void setAccountAPINGException(final AccountAPINGException AccountAPINGException) {
         this.AccountAPINGException = AccountAPINGException;
     }
 }

@@ -14,6 +14,7 @@ import info.fmro.betty.objects.ScraperEvent;
 import info.fmro.betty.objects.StampedDouble;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.objects.TwoOrderedStrings;
+import info.fmro.betty.stream.definitions.Side;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
 import info.fmro.shared.utility.LogLevel;
@@ -124,6 +125,7 @@ public class Formulas {
         charactersMap.put("’", " ");
         charactersMap.put("&", "and");
         charactersMap.put(".", " ");
+        charactersMap.put("|||", "iii");
         charactersMap.put("||", "ii");
         charactersMap.put("[", "(");
         charactersMap.put("]", ")");
@@ -156,7 +158,7 @@ public class Formulas {
         VarsIO.checkAliasesFile(Statics.FULL_ALIASES_FILE_NAME, Statics.fullAliasesTimeStamp, Formulas.fullAliasesMap);
     }
 
-    public static String removeStrangeChars(String teamString) {
+    public static String removeStrangeChars(final String teamString) {
         String modifiedString = null;
         if (teamString != null) {
             modifiedString = teamString.toLowerCase().trim();
@@ -175,7 +177,7 @@ public class Formulas {
         return modifiedString;
     }
 
-    public static boolean containsStrangeChars(String teamString) {
+    public static boolean containsStrangeChars(final String teamString) {
         boolean result = false;
         if (teamString != null) {
             synchronized (charactersMap) {
@@ -194,7 +196,7 @@ public class Formulas {
         return result;
     }
 
-    public static String parseTeamString(String teamString) {
+    public static String parseTeamString(final String teamString) {
         String modifiedString = null;
         if (teamString != null) {
 //            modifiedString = teamString.toLowerCase().trim(); // before initial processing
@@ -344,7 +346,7 @@ public class Formulas {
         return modifiedString;
     }
 
-    public static String getCoreString(String teamString) {
+    public static String getCoreString(final String teamString) {
         String modifiedString = null;
         if (teamString != null) {
             modifiedString = teamString.toLowerCase().trim(); // before initial processing
@@ -493,7 +495,7 @@ public class Formulas {
         return modifiedString;
     }
 
-    public static double matchTeams(String firstString, String secondString) {
+    public static double matchTeams(final String firstString, final String secondString) {
         double result;
         final TwoOrderedStrings twoOrderedStrings = new TwoOrderedStrings(firstString, secondString);
         final StampedDouble cachedResult = Formulas.matchesCache.get(twoOrderedStrings);
@@ -551,7 +553,7 @@ public class Formulas {
         return result;
     }
 
-    public static boolean shouldAddInstruction(OrderPrice orderPrice, double limitOrderSize) {
+    public static boolean shouldAddInstruction(final OrderPrice orderPrice, final double limitOrderSize) {
         final boolean shouldAddInstruction;
         synchronized (Statics.executingOrdersMap) { // shouldAddInstruction check
             if (Statics.executingOrdersMap.containsKey(orderPrice)) {
@@ -570,7 +572,7 @@ public class Formulas {
         return shouldAddInstruction;
     }
 
-    public static void removeInstruction(OrderPrice orderPrice, double orderSize) {
+    public static void removeInstruction(final OrderPrice orderPrice, final double orderSize) {
         synchronized (Statics.executingOrdersMap) {
             final double existingSize;
             if (Statics.executingOrdersMap.containsKey(orderPrice)) {
@@ -597,7 +599,7 @@ public class Formulas {
         } // end synchronized block
     }
 
-    public static void addInstruction(OrderPrice orderPrice, double orderSize, String marketId, PlaceInstruction placeInstruction) {
+    public static void addInstruction(final OrderPrice orderPrice, final double orderSize, final String marketId, final PlaceInstruction placeInstruction) {
         synchronized (Statics.executingOrdersMap) { // shouldAddInstruction check
             if (Statics.executingOrdersMap.containsKey(orderPrice)) {
                 final double existingSize = Statics.executingOrdersMap.get(orderPrice);
@@ -611,31 +613,31 @@ public class Formulas {
         } // end synchronized block    
     }
 
-    public static long getLastGetScraperEvents(AtomicLong lastGetScraperEvents) {
+    public static long getLastGetScraperEvents(final AtomicLong lastGetScraperEvents) {
 //        synchronized (lastGetScraperEvents) {
         return lastGetScraperEvents.get();
 //        }
     }
 
-    public static void setLastGetScraperEvents(AtomicLong lastGetScraperEvents, long newValue) {
+    public static void setLastGetScraperEvents(final AtomicLong lastGetScraperEvents, final long newValue) {
 //        synchronized (lastGetScraperEvents) {
         lastGetScraperEvents.set(newValue);
 //        }
     }
 
-    public static long addAndGetLastGetScraperEvents(AtomicLong lastGetScraperEvents, long addedValue) {
+    public static long addAndGetLastGetScraperEvents(final AtomicLong lastGetScraperEvents, final long addedValue) {
 //        synchronized (lastGetScraperEvents) {
         return lastGetScraperEvents.addAndGet(addedValue);
 //        }
     }
 
-    public static void lastGetScraperEventsStamp(AtomicLong lastGetScraperEvents) {
+    public static void lastGetScraperEventsStamp(final AtomicLong lastGetScraperEvents) {
 //        synchronized (lastGetScraperEvents) {
         lastGetScraperEvents.set(System.currentTimeMillis());
 //        }
     }
 
-    public static void lastGetScraperEventsStamp(AtomicLong lastGetScraperEvents, long timeStamp) {
+    public static void lastGetScraperEventsStamp(final AtomicLong lastGetScraperEvents, final long timeStamp) {
         long currentTime = System.currentTimeMillis();
         synchronized (lastGetScraperEvents) {
             if (currentTime - lastGetScraperEvents.get() >= timeStamp) {
@@ -647,7 +649,7 @@ public class Formulas {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends Ignorable> SynchronizedMap<?, T> getIgnorableMap(Class<T> clazz) {
+    public static <T extends Ignorable> SynchronizedMap<?, T> getIgnorableMap(final Class<T> clazz) {
         SynchronizedMap<?, T> returnValue;
         if (clazz == null) {
             logger.error("null clazz value in getIgnorableMap");
@@ -665,7 +667,7 @@ public class Formulas {
         return returnValue;
     }
 
-    public static SynchronizedMap<Long, ? extends ScraperEvent> getScraperEventsMap(Class<? extends ScraperEvent> clazz) {
+    public static SynchronizedMap<Long, ? extends ScraperEvent> getScraperEventsMap(final Class<? extends ScraperEvent> clazz) {
         SynchronizedMap<Long, ? extends ScraperEvent> returnValue;
         if (clazz == null) {
             logger.error("null clazz value in getScraperEventMap");
@@ -681,7 +683,7 @@ public class Formulas {
         return returnValue;
     }
 
-    public static ScraperThread getScraperThread(Class<? extends ScraperEvent> clazz) {
+    public static ScraperThread getScraperThread(final Class<? extends ScraperEvent> clazz) {
         ScraperThread returnValue;
         if (clazz == null) {
             logger.error("null clazz value in getScraperThread");
@@ -697,23 +699,23 @@ public class Formulas {
         return returnValue;
     }
 
-    public static <T extends Comparable<? super T>> T getMaxMultiple(List<T> list) {
+    public static <T extends Comparable<? super T>> T getMaxMultiple(final List<T> list) {
         return getMaxMultiple(list, null, null, Statics.MIN_MATCHED);
     }
 
-    public static <T extends Comparable<? super T>> T getMaxMultiple(List<T> list, Comparator<? super T> comparator) {
+    public static <T extends Comparable<? super T>> T getMaxMultiple(final List<T> list, final Comparator<? super T> comparator) {
         return getMaxMultiple(list, null, comparator, Statics.MIN_MATCHED);
     }
 
-    public static <T extends Comparable<? super T>> T getMaxMultiple(List<T> list, T defaultValue) {
+    public static <T extends Comparable<? super T>> T getMaxMultiple(final List<T> list, final T defaultValue) {
         return getMaxMultiple(list, defaultValue, null, Statics.MIN_MATCHED);
     }
 
-    public static <T extends Comparable<? super T>> T getMaxMultiple(List<T> list, T defaultValue, Comparator<? super T> comparator) {
+    public static <T extends Comparable<? super T>> T getMaxMultiple(final List<T> list, final T defaultValue, final Comparator<? super T> comparator) {
         return getMaxMultiple(list, defaultValue, comparator, Statics.MIN_MATCHED);
     }
 
-    public static <T extends Comparable<? super T>> T getMaxMultiple(List<T> list, T defaultValue, Comparator<? super T> comparator, int minNMultiple) {
+    public static <T extends Comparable<? super T>> T getMaxMultiple(final List<T> list, final T defaultValue, final Comparator<? super T> comparator, final int minNMultiple) {
         T returnValue;
         if (list == null) {
             returnValue = defaultValue;
@@ -734,7 +736,7 @@ public class Formulas {
         return returnValue;
     }
 
-    public static String getEventIdOfMarketCatalogue(MarketCatalogue marketCatalogue) {
+    public static String getEventIdOfMarketCatalogue(final MarketCatalogue marketCatalogue) {
         String result;
 
         if (marketCatalogue != null) {
@@ -753,7 +755,7 @@ public class Formulas {
         return result;
     }
 
-    public static String getEventIdOfMarketId(String marketId) {
+    public static String getEventIdOfMarketId(final String marketId) {
         String result;
 
         final MarketCatalogue marketCatalogue = Statics.marketCataloguesMap.get(marketId);
@@ -767,19 +769,19 @@ public class Formulas {
         return result;
     }
 
-    public static Event getStoredEventOfMarketId(String marketId) {
+    public static Event getStoredEventOfMarketId(final String marketId) {
         final String eventId = getEventIdOfMarketId(marketId);
         final Event event = Statics.eventsMap.get(eventId);
         return event;
     }
 
-    public static Event getStoredEventOfMarketCatalogue(MarketCatalogue marketCatalogue) {
+    public static Event getStoredEventOfMarketCatalogue(final MarketCatalogue marketCatalogue) {
         final String eventId = getEventIdOfMarketCatalogue(marketCatalogue);
         final Event event = Statics.eventsMap.get(eventId);
         return event;
     }
 
-    public static boolean isMarketType(MarketCatalogue marketCatalogue, String... types) {
+    public static boolean isMarketType(final MarketCatalogue marketCatalogue, final String... types) {
         final boolean result;
 
         if (marketCatalogue != null && types != null) {
@@ -805,7 +807,7 @@ public class Formulas {
         return result;
     }
 
-    public static boolean isEachWayMarketType(String marketId) { // assumes the worst in case it doesn't find an answer
+    public static boolean isEachWayMarketType(final String marketId) { // assumes the worst in case it doesn't find an answer
         final boolean isEachWay;
 
         final MarketCatalogue marketCatalogue = Statics.marketCataloguesMap.get(marketId);
@@ -824,5 +826,168 @@ public class Formulas {
         }
 
         return isEachWay;
+    }
+
+    public static double getNStepDifferentOdds(final double baseOdds, final int nSteps) {
+        final int intBaseOdds = (int) (baseOdds * 100d);
+
+        return getNStepDifferentOdds(intBaseOdds, nSteps);
+    }
+
+    public static double getNStepDifferentOdds(final int baseOdds, final int nSteps) {
+        final double result;
+        final int baseOddsPosition = Statics.pricesList.indexOf(baseOdds);
+        if (baseOddsPosition < 0) {
+            logger.error("baseOdds {} not found in pricesList during getNStepDifferentOdds {}: {}", baseOdds, nSteps, baseOddsPosition);
+            if (nSteps <= 0) {
+                result = 1.01d;
+            } else {
+                result = 1_000d;
+            }
+        } else {
+            final int listSize = Statics.pricesList.size();
+            final int resultPosition = Math.max(Math.min(baseOddsPosition + nSteps, listSize - 1), 0);
+            result = (double) (Statics.pricesList.get(resultPosition)) / 100d;
+        }
+
+        return result;
+    }
+
+    public static boolean oddsAreUsable(final double odds) {
+        final boolean areUsable;
+        if (odds <= 1_000d && odds >= 1.01d) {
+            areUsable = true;
+        } else {
+            areUsable = false;
+        }
+        return areUsable;
+    }
+
+    public static double inverseOdds(final double odds) {
+        final double returnValue;
+        if (oddsAreUsable(odds)) {
+            returnValue = 1d / (odds - 1d) + 1d;
+        } else {
+            logger.error("unusable odds in Formulas.inverseOdds for: {}", odds);
+            returnValue = 0d;
+        }
+        return returnValue;
+    }
+
+    public static int getOddsPosition(final double odds) {
+        final int intOdds = (int) (odds * 100d);
+        final int oddsPosition = Statics.pricesList.indexOf(intOdds);
+        return oddsPosition;
+    }
+
+    public static boolean oddsAreInverse(final double firstOdds, final double secondOdds) {
+        final boolean areInverse;
+        if (oddsAreUsable(firstOdds) && oddsAreUsable(secondOdds)) {
+            final int secondOddsPosition = getOddsPosition(secondOdds);
+            if (secondOddsPosition >= 0) {
+                final double inverseFirstOdds = inverseOdds(firstOdds);
+                final int intInverseFirstOdds = (int) (inverseFirstOdds * 100d);
+                if (intInverseFirstOdds > 10_100 || intInverseFirstOdds < 100) {
+                    logger.error("bad value for intInverseFirstOdds in Formulas.oddsAreInverse for: {} {} {}", intInverseFirstOdds, firstOdds, secondOdds);
+                    areInverse = false;
+                } else {
+                    if (inverseFirstOdds <= 101) {
+                        if (secondOddsPosition == 0) {
+                            areInverse = true;
+                        } else {
+                            areInverse = false;
+                        }
+                    } else if (intInverseFirstOdds == 10_100) {
+                        if (secondOdds >= inverseFirstOdds) {
+                            areInverse = true;
+                        } else {
+                            areInverse = false;
+                        }
+                    } else {
+                        final int intSecondOdds = (int) (secondOdds * 100d);
+                        if (intInverseFirstOdds == intSecondOdds) {
+                            areInverse = true;
+                        } else {
+                            if (intInverseFirstOdds > intSecondOdds) {
+                                final int intNextOdds = Statics.pricesList.get(secondOddsPosition + 1);
+                                if (intInverseFirstOdds < intNextOdds) {
+                                    areInverse = true;
+                                } else {
+                                    areInverse = false;
+                                }
+                            } else {
+                                final int intPreviousOdds = Statics.pricesList.get(secondOddsPosition - 1);
+                                if (intInverseFirstOdds > intPreviousOdds) {
+                                    areInverse = true;
+                                } else {
+                                    areInverse = false;
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                logger.error("secondOddsPosition negative in Formulas.oddsAreInverse for: {} {}", firstOdds, secondOdds);
+                areInverse = false;
+            }
+        } else {
+            logger.error("unusable odds in Formulas.oddsAreInverse for: {} {}", firstOdds, secondOdds);
+            areInverse = false;
+        }
+
+        return areInverse;
+    }
+
+    public static double exposure(final Side side, final double price, final double size) {
+        final double exposure;
+        if (side == null || size < 0d || !oddsAreUsable(price)) {
+            logger.error("bad arguments in Formulas.exposure for: {} {} {}", side, price, size);
+            exposure = 0d;
+        } else if (side.equals(Side.B)) {
+            exposure = size;
+        } else if (side.equals(Side.L)) {
+            exposure = size * (price - 1d);
+        } else {
+            logger.error("bogus side {} in Formulas.exposure for: {} {}", side, price, size);
+            exposure = 0d;
+        }
+
+        return exposure;
+    }
+
+    public static double layExposure(final double price, final double size) {
+        return exposure(Side.L, price, size);
+    }
+
+    public static boolean oddsAreWorse(final Side side, final double worstAcceptedOdds, final double price) {
+        final boolean areWorse;
+
+        if (side == null) {
+            logger.error("null side in oddsAreWorse for: {} {} {}", side, worstAcceptedOdds, price);
+            areWorse = false;
+        } else if (!oddsAreUsable(worstAcceptedOdds)) {
+            logger.error("unusable worstAcceptedOdds in oddsAreWorse for: {} {} {}", side, worstAcceptedOdds, price);
+            areWorse = false;
+        } else if (!oddsAreUsable(price)) {
+            logger.error("unusable price in oddsAreWorse for: {} {} {}", side, worstAcceptedOdds, price);
+            areWorse = true;
+        } else if (side.equals(Side.B)) {
+            if (price >= worstAcceptedOdds) {
+                areWorse = false;
+            } else {
+                areWorse = true;
+            }
+        } else if (side.equals(Side.L)) {
+            if (price <= worstAcceptedOdds) {
+                areWorse = false;
+            } else {
+                areWorse = true;
+            }
+        } else {
+            logger.error("strange unsupported side in oddsAreWorse for: {} {} {}", side, worstAcceptedOdds, price);
+            areWorse = false;
+        }
+
+        return areWorse;
     }
 }

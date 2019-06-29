@@ -44,65 +44,65 @@ public class LaunchCommandThread
     private LinkedHashSet<Entry<String, MarketCatalogue>> entrySet;
     private Class<? extends ScraperEvent> clazz;
 
-    public LaunchCommandThread(CommandType command) {
+    public LaunchCommandThread(final CommandType command) {
         this.command = command;
     }
 
-    public LaunchCommandThread(CommandType command, boolean checkAll) {
+    public LaunchCommandThread(final CommandType command, final boolean checkAll) {
         this.command = command;
         this.checkAll = checkAll;
     }
 
-    public LaunchCommandThread(CommandType command, TreeSet<String> marketIdsSet) {
+    public LaunchCommandThread(final CommandType command, final TreeSet<String> marketIdsSet) {
         this.command = command;
         this.marketIdsSet = marketIdsSet;
     }
 
-    public LaunchCommandThread(CommandType command, HashSet<Event> eventsSet) {
+    public LaunchCommandThread(final CommandType command, final HashSet<Event> eventsSet) {
         this.command = command;
         this.eventsSet = eventsSet;
     }
 
-    public LaunchCommandThread(CommandType command, HashSet<Event> eventsSet, long delay) {
+    public LaunchCommandThread(final CommandType command, final HashSet<Event> eventsSet, final long delay) {
         this.command = command;
         this.eventsSet = eventsSet;
         this.delay = delay;
     }
 
-    public LaunchCommandThread(CommandType command, Set<?> scraperEventsSet, Class<? extends ScraperEvent> clazz) {
+    public LaunchCommandThread(final CommandType command, final Set<?> scraperEventsSet, final Class<? extends ScraperEvent> clazz) {
         this.command = command;
         this.scraperEventsSet = scraperEventsSet;
         this.clazz = clazz;
     }
 
-    public LaunchCommandThread(CommandType command, LinkedHashSet<Entry<String, MarketCatalogue>> entrySet) {
+    public LaunchCommandThread(final CommandType command, final LinkedHashSet<Entry<String, MarketCatalogue>> entrySet) {
         this.command = command;
         this.entrySet = entrySet;
     }
 
-    public LaunchCommandThread(CommandType command, LinkedHashSet<Entry<String, MarketCatalogue>> entrySet, long delay) {
+    public LaunchCommandThread(final CommandType command, final LinkedHashSet<Entry<String, MarketCatalogue>> entrySet, final long delay) {
         this.command = command;
         this.entrySet = entrySet;
         this.delay = delay;
     }
 
-    public static void mapEventsToScraperEvents(Class<? extends ScraperEvent> clazz) {
+    public static void mapEventsToScraperEvents(final Class<? extends ScraperEvent> clazz) {
         LaunchCommandThread.mapEventsToScraperEvents(clazz, false, null, null);
     }
 
-    public static void mapEventsToScraperEvents(Class<? extends ScraperEvent> clazz, boolean checkAll) {
+    public static void mapEventsToScraperEvents(final Class<? extends ScraperEvent> clazz, final boolean checkAll) {
         LaunchCommandThread.mapEventsToScraperEvents(clazz, checkAll, null, null);
     }
 
-    public static void mapEventsToScraperEvents(Class<? extends ScraperEvent> clazz, Set<ScraperEvent> scraperEventsSet) {
+    public static void mapEventsToScraperEvents(final Class<? extends ScraperEvent> clazz, final Set<ScraperEvent> scraperEventsSet) {
         LaunchCommandThread.mapEventsToScraperEvents(clazz, false, null, scraperEventsSet);
     }
 
-    public static void mapEventsToScraperEvents(Class<? extends ScraperEvent> clazz, HashSet<Event> eventsSet) {
+    public static void mapEventsToScraperEvents(final Class<? extends ScraperEvent> clazz, final HashSet<Event> eventsSet) {
         LaunchCommandThread.mapEventsToScraperEvents(clazz, false, eventsSet, null);
     }
 
-    public static void mapEventsToScraperEvents(Class<? extends ScraperEvent> clazz, boolean checkAll, Set<Event> eventsSet, Set<ScraperEvent> scraperEventsSet) {
+    public static void mapEventsToScraperEvents(final Class<? extends ScraperEvent> clazz, final boolean checkAll, final Set<Event> eventsSet, final Set<ScraperEvent> scraperEventsSet) {
         // Statics.timeStamps.lastMapEventsToScraperEventsStamp(); // stamp added in the timed method now, and is only used for that method when running with checkAll
         if (clazz == null) {
             if (scraperEventsSet != null) { // error printed, but method will continue
@@ -503,7 +503,7 @@ public class LaunchCommandThread
         } // end else clazz == null
     }
 
-    public static void checkRecentlyUsed(HashSet<Event> eventsSet) {
+    public static void checkRecentlyUsed(final HashSet<Event> eventsSet) {
         final long currentTime = System.currentTimeMillis();
         cleanRecentlyUsed(currentTime);
 
@@ -520,7 +520,7 @@ public class LaunchCommandThread
         } // end while
     }
 
-    public static void checkRecentlyUsed(TreeSet<String> marketIdsSet) {
+    public static void checkRecentlyUsed(final TreeSet<String> marketIdsSet) {
         final long currentTime = System.currentTimeMillis();
         cleanRecentlyUsed(currentTime);
 
@@ -537,7 +537,7 @@ public class LaunchCommandThread
         } // end while
     }
 
-    public static <T extends Long> void cleanRecentlyUsedMap(SynchronizedMap<?, T> synchronizedMap) {
+    public static <T extends Long> void cleanRecentlyUsedMap(final SynchronizedMap<?, T> synchronizedMap) {
         final Collection<T> valuesCopy = synchronizedMap.valuesCopy();
         final long currentTime = System.currentTimeMillis();
         for (T recentTimeStamp : valuesCopy) {
@@ -551,7 +551,7 @@ public class LaunchCommandThread
         cleanRecentlyUsed(System.currentTimeMillis());
     }
 
-    public static void cleanRecentlyUsed(long currentTime) {
+    public static void cleanRecentlyUsed(final long currentTime) {
         if (currentTime - lastRecentlyUsedCleanStamp.get() > Generic.MINUTE_LENGTH_MILLISECONDS * 10L) {
             lastRecentlyUsedCleanStamp.set(currentTime);
             cleanRecentlyUsedMap(recentlyUsedEvents);

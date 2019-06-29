@@ -31,7 +31,7 @@ import java.util.TreeSet;
 public class SafeBetModuleMethods {
     private static final Logger logger = LoggerFactory.getLogger(SafeBetModuleMethods.class);
 
-    public static List<EventResult> getLiveEventResultList(String appKeyString) {
+    public static List<EventResult> getLiveEventResultList(final String appKeyString) {
         final HashSet<String> eventTypeIdsSet = new HashSet<>(2, 0.75f);
         eventTypeIdsSet.add("1"); // soccer
 
@@ -125,7 +125,7 @@ public class SafeBetModuleMethods {
         logger.info("parseEventResultList finished in {} ms eventResultList size: {}", System.currentTimeMillis() - startTime, eventResultList == null ? null : eventResultList.size());
     }
 
-    public static void findInterestingMarkets(TreeSet<String> marketIdsSet) {
+    public static void findInterestingMarkets(final TreeSet<String> marketIdsSet) {
         if (marketIdsSet != null) {
             final long methodStartTime = System.currentTimeMillis();
             final Set<MarketCatalogue> returnSet = Collections.synchronizedSet(new HashSet<>(Generic.getCollectionCapacity(marketIdsSet.size())));
@@ -265,7 +265,7 @@ public class SafeBetModuleMethods {
         }
     }
 
-    public static void findInterestingMarkets(HashSet<Event> eventsSet, boolean checkAll) {
+    public static void findInterestingMarkets(final HashSet<Event> eventsSet, final boolean checkAll) {
         if (!Statics.safeBetModuleActivated || System.currentTimeMillis() - Statics.scraperEventMaps.getNTimeStamp() <= Generic.HOUR_LENGTH_MILLISECONDS * 3L) {
             final long methodStartTime = System.currentTimeMillis();
 

@@ -16,7 +16,7 @@ public class SafeBetStats {
     private long timeFirstNotAppeared;
     private int nAppeared;
 
-    public SafeBetStats(long timeFirstAppear, long timeMarketBookCheckBeforeAppear, LinkedHashMap<Class<? extends ScraperEvent>, Long> timeScraperEventCheckBeforeAppear) {
+    public SafeBetStats(final long timeFirstAppear, final long timeMarketBookCheckBeforeAppear, final LinkedHashMap<Class<? extends ScraperEvent>, Long> timeScraperEventCheckBeforeAppear) {
         this.timeFirstAppear = timeFirstAppear;
         this.timeMarketBookCheckBeforeAppear = timeMarketBookCheckBeforeAppear;
         this.timeScraperEventCheckBeforeAppearMap = timeScraperEventCheckBeforeAppear;
@@ -74,7 +74,7 @@ public class SafeBetStats {
         return timeLastAppear;
     }
 
-    public synchronized void setTimeLastAppear(long timeLastAppear) {
+    public synchronized void setTimeLastAppear(final long timeLastAppear) {
         if (this.timeLastAppear != timeLastAppear) {
             if (this.timeLastAppear < timeLastAppear) {
                 this.timeLastAppear = timeLastAppear;
@@ -102,7 +102,7 @@ public class SafeBetStats {
         return timeFirstNotAppeared;
     }
 
-    public synchronized void setTimeFirstNotAppeared(long timeFirstNotAppeared) {
+    public synchronized void setTimeFirstNotAppeared(final long timeFirstNotAppeared) {
         this.timeFirstNotAppeared = timeFirstNotAppeared;
     }
 
@@ -110,7 +110,7 @@ public class SafeBetStats {
         return nAppeared;
     }
 
-    public synchronized void setnAppeared(int nAppeared) {
+    public synchronized void setnAppeared(final int nAppeared) {
         this.nAppeared = nAppeared;
     }
 }

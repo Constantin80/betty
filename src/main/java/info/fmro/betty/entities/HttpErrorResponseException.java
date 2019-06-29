@@ -12,7 +12,7 @@ public class HttpErrorResponseException {
         return exceptionname;
     }
 
-    public synchronized void setExceptionname(String exceptionname) {
+    public synchronized void setExceptionname(final String exceptionname) {
         this.exceptionname = exceptionname;
     }
 
@@ -20,7 +20,7 @@ public class HttpErrorResponseException {
         return APINGException;
     }
 
-    public synchronized void setAPINGException(APINGException APINGException) {
+    public synchronized void setAPINGException(final APINGException APINGException) {
         this.APINGException = APINGException;
     }
 }

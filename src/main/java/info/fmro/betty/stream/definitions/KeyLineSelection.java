@@ -1,6 +1,11 @@
 package info.fmro.betty.stream.definitions;
 
-public class KeyLineSelection {
+import java.io.Serializable;
+
+// objects of this class are read from the stream
+public class KeyLineSelection
+        implements Serializable {
+    private static final long serialVersionUID = 3971286653165540247L;
     private Double hc;
     private Long id;
 
@@ -11,7 +16,7 @@ public class KeyLineSelection {
         return hc;
     }
 
-    public synchronized void setHc(Double hc) {
+    public synchronized void setHc(final Double hc) {
         this.hc = hc;
     }
 
@@ -19,7 +24,7 @@ public class KeyLineSelection {
         return id;
     }
 
-    public synchronized void setId(Long id) {
+    public synchronized void setId(final Long id) {
         this.id = id;
     }
 }

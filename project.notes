@@ -1075,29 +1075,30 @@ betradar doesn't show UK scores on UK ip, which reduces its usefulness
 //when amounts listed on the market are important for making decisions (present amounts, matched etc); after implementation of streamAPI, this seems obsolete
 	//-check that the currency is right; sometimes there's an error regarding currency between RON and EUR; after implementation of streamAPI, this seems obsolete
     //-sometimes the market has lag, and the amounts listed might no longer exist; after implementation of streamAPI, this seems obsolete
+//save market and order cache and use Re-connection / Re-subscription; I would need to serialize the clientHandler and the associated clients, which is not easy; I decided not to implement this
 
-no more than 1000 bets placed or edited (whether matched, cancelled or lapsed) per hour
-    -hours start and end at the exact hour, 00:00 minutes:seconds
-    -I could slow down a bit before 1000, depending how long from the hour is left
-    -after the limit is reached or the slowdown is in effect, I'll still place important bets; charge is 1 pence per bet, but the daily commission generated counts against that
-
-cancel all orders is incompatible with trading
-	-cancel all methods should be removed, or kept with an error message if used
-	-orders should be canceled based on their ID
-		-the queue for cancelling orders has to be executed even if the program is stopping
-		-if there's an error cancelling, the ID should be added to a list that is saved to disk, and checked in the list of unmatched orders later
+//no more than 1000 bets placed or edited (whether matched, cancelled or lapsed) per hour; I implemented basic support for counting the orders, the rest later; full support for running managedMarket.manage()
+    //-hours start and end at the exact hour, 00:00 minutes:seconds
+    //-I could slow down a bit before 1000, depending how long from the hour is left
+    //-after the limit is reached or the slowdown is in effect, I'll still place important bets; charge is 1 pence per bet, but the daily commission generated counts against that
+//cancel all orders is incompatible with trading; error message implemented for now, the rest later
+	//-cancel all methods should be removed, or kept with an error message if used
+	//-orders should be canceled based on their ID
+		//-the queue for cancelling orders has to be executed even if the program is stopping; no queue
+		//-if there's an error cancelling, the ID should be added to a list that is saved to disk, and checked in the list of unmatched orders later
+//add proper order management; orderCache + tempOrders pentru un numar mic de secunde dupa ce sunt plasate pana apar in orderCache
+//orderCache si marketCache vor fi serializate pe disk, ordere noi vor fi plasate doar daca orderCache este activ; am decis sa nu folosesc offline caches
+//trebuie un nou placeOrders in rescriptOpThread, cel existent va fi dezactivat si plasat in plus un mesaj de eroare daca se incearca folosirea lui
 
 trading bot
     //-what happens when I match my own amount? -> it seems I match my own amount just fine
         //-on small scale this can probably be used, but on a large scale I would probably be banned for exploiting
         //-careful that others don't use this exploit against my bot
     //-amount traded on a runner is counted twice, once for the amount backed and once for layed (ex: 100 EUR matched at any odds, from 1.01 to 1000, will result in 200 EUR matched)
-	-sleep/awake settings
-		-activated with a command, or with a scheduler
-		-during sleep, getting into the market bets should be moved to safe locations
-	-settings for getting out of the market
-	-client with GUI
-	-client for phone with alert sounds
+	//-sleep/awake settings; I'm not implementing this kind of settings, as I don't think babysitting the markets is the best idea, I don't want to turn into a trader myself
+		//-activated with a command, or with a scheduler
+		//-during sleep, getting into the market bets should be moved to safe locations
+	//-settings for getting out of the market
 	-sometimes, when makets are created, odds can be way off from what bookies offer (seen in OU 4.5/5.5/6.5/7.5 markets)
 	-placing amounts on some low liquidity markets, with variable odds, depending on the other amounts
 		-ex: amounts at 1.79 back and 7 lay; set limits of 2.8 back and 4.5 lay; amounts initially will be at 1.78 and 6.9, but this will also depend on the amounts on the market and amounts being placed
@@ -1151,8 +1152,17 @@ arbitrage bot for exchange markets
 
 competition support with flags (friendly, women, youth, low quality, cup)
 tennis module
+client with GUI
+    -communication through SSL socket, and I can easily implement certificate auth
+    -ObjectInput(Output)Stream to transfer information
+client for phone with alert sounds
+
+not a priority:
+Application Class-DataSharing, pentru restart mai rapid al programului; delayed, I don't think it will improve startup speed by a lot
+migrate from Maven to Gradle; as Gradle support keeps improving, this can wait a while
+get Junit 5 parallel testing working; delayed, as it's not priority and Junit 5 parallel testing is new and experimental (16-05-2019)
 ----------
-modificari nefolositoare pentru modulul curent (trade):
+sub aceasta linie sunt modificari nefolositoare pentru modulul curent (trade):
 REVIEW errors fix:
 	-errors(or warn) with small ignore when first value read after page update, else errors with large ignore
 	-errors with small ignore reset when score returns to previous value, else they stay for as much as the large ignore
@@ -1168,7 +1178,6 @@ create unsafeRunner, similar to safeRunner, with own safetyLimits (it might not 
 	-the split will probably happen at (un)safeRunner level
 	-FindInteresting markets might remain in a single piece
 add unsafeRunner for something simple initially (like match odds for 3+ goal difference) and get it to work
-
 
 same mechanism as coral ht score can be used for betfair/coral ET score
 	-support for ET score and cards, by knowing the score/cards at awaiting_et
