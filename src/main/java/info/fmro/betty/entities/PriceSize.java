@@ -1,40 +1,44 @@
 package info.fmro.betty.entities;
 
+import org.jetbrains.annotations.Contract;
+
 import java.io.Serializable;
 import java.util.Objects;
 
 public class PriceSize
         implements Serializable {
     private static final long serialVersionUID = 6795917492745798841L;
+    @SuppressWarnings("unused")
     private Double price;
+    @SuppressWarnings("unused")
     private Double size; // info.fmro.betty.entities.PriceSize has size in EUR
 
-    public PriceSize() {
-    }
-
     public synchronized Double getPrice() {
-        return price;
+        return this.price;
     }
 
     public synchronized Double getSize() {
-        return size;
+        return this.size;
     }
 
+    @SuppressWarnings("NonFinalFieldReferenceInEquals")
+    @Contract(value = "null -> false", pure = true)
     @Override
-    public boolean equals(final Object o) {
-        if (this == o) {
+    public synchronized boolean equals(final Object obj) {
+        if (this == obj) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final PriceSize priceSize = (PriceSize) o;
-        return Objects.equals(price, priceSize.price) &&
-               Objects.equals(size, priceSize.size);
+        final PriceSize priceSize = (PriceSize) obj;
+        return Objects.equals(this.price, priceSize.price) &&
+               Objects.equals(this.size, priceSize.size);
     }
 
+    @SuppressWarnings("NonFinalFieldReferencedInHashCode")
     @Override
-    public int hashCode() {
-        return Objects.hash(price, size);
+    public synchronized int hashCode() {
+        return Objects.hash(this.price, this.size);
     }
 }

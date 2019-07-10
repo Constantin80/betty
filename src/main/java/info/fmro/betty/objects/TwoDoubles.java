@@ -1,14 +1,13 @@
 package info.fmro.betty.objects;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jetbrains.annotations.Contract;
 
 import java.io.Serializable;
 import java.util.Objects;
 
 public class TwoDoubles
         implements Serializable {
-    private static final Logger logger = LoggerFactory.getLogger(TwoDoubles.class);
+    private static final long serialVersionUID = -5306509572507853826L;
     private final double firstDouble, secondDouble;
 
     public TwoDoubles(final double firstDouble, final double secondDouble) {
@@ -17,28 +16,29 @@ public class TwoDoubles
     }
 
     public synchronized double getFirstDouble() {
-        return firstDouble;
+        return this.firstDouble;
     }
 
     public synchronized double getSecondDouble() {
-        return secondDouble;
+        return this.secondDouble;
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
-    public synchronized boolean equals(final Object o) {
-        if (this == o) {
+    public synchronized boolean equals(final Object obj) {
+        if (this == obj) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final TwoDoubles that = (TwoDoubles) o;
-        return Double.compare(that.firstDouble, firstDouble) == 0 &&
-               Double.compare(that.secondDouble, secondDouble) == 0;
+        final TwoDoubles that = (TwoDoubles) obj;
+        return Double.compare(that.firstDouble, this.firstDouble) == 0 &&
+               Double.compare(that.secondDouble, this.secondDouble) == 0;
     }
 
     @Override
     public synchronized int hashCode() {
-        return Objects.hash(firstDouble, secondDouble);
+        return Objects.hash(this.firstDouble, this.secondDouble);
     }
 }

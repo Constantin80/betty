@@ -6,6 +6,7 @@ import info.fmro.betty.enums.Side;
 import info.fmro.betty.enums.TimeInForce;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,22 +20,24 @@ public class LimitOrder
     private static final long serialVersionUID = 4803372723542992243L;
     private static final DecimalFormat decimalFormat = new DecimalFormat("#0.0#");
     private static final RoundingMode roundingMode = RoundingMode.DOWN;
+    @Nullable
     private String size; // String instead of Double for 2 digit formatting
     private Double price;
     private PersistenceType persistenceType;
+    @SuppressWarnings("unused")
     private TimeInForce timeInForce;
+    @SuppressWarnings("unused")
     private Double minFillSize;
+    @SuppressWarnings("unused")
     private BetTargetType betTargetType;
+    @SuppressWarnings("unused")
     private Double betTargetSize;
-
-    public LimitOrder() {
-    }
 
     static {
         decimalFormat.setRoundingMode(roundingMode);
     }
 
-    public synchronized double getLiability(final Side side, final boolean isEachWayMarket) { // assumes the worst case
+    synchronized double getLiability(final Side side, final boolean isEachWayMarket) { // assumes the worst case
         final double liability;
         final Double sizeObject = this.getSize();
         double primitiveSize = sizeObject == null ? 0d : sizeObject;
@@ -43,8 +46,8 @@ public class LimitOrder
         }
         final double primitivePrice;
         if (this.price == null) {
-            logger.error("null price in LimitOrder during getLibility {} for: {}", side, Generic.objectToString(this));
-            primitivePrice = 1000d; // assumes worst case
+            logger.error("null price in LimitOrder during getLiability {} for: {}", side, Generic.objectToString(this));
+            primitivePrice = 1_000d; // assumes worst case
         } else {
             primitivePrice = this.price;
         }
@@ -52,9 +55,9 @@ public class LimitOrder
         if (side == null) {
             logger.error("side null in LimitOrder.getLiability: {}", Generic.objectToString(this));
             liability = Math.max(primitiveSize, primitiveSize * (primitivePrice - 1d)); // assume the worst
-        } else if (side.equals(Side.BACK)) {
+        } else if (side == Side.BACK) {
             liability = primitiveSize;
-        } else if (side.equals(Side.LAY)) {
+        } else if (side == Side.LAY) {
             liability = Formulas.layExposure(primitivePrice, primitiveSize);
         } else { // unsupported Side
             liability = Math.max(primitiveSize, primitiveSize * (primitivePrice - 1d)); // assume the worst
@@ -65,7 +68,7 @@ public class LimitOrder
     }
 
     public synchronized Double getSize() {
-        Double returnValue;
+        @Nullable Double returnValue;
 
         if (this.size == null) {
             returnValue = null;
@@ -96,16 +99,18 @@ public class LimitOrder
         }
     }
 
+    @SuppressWarnings("SuspiciousGetterSetter")
     public synchronized String getSizeString() {
-        return size;
+        return this.size;
     }
 
+    @SuppressWarnings("SuspiciousGetterSetter")
     public synchronized void setSizeString(final String size) {
         this.size = size;
     }
 
     public synchronized Double getPrice() { // get cents
-        return price;
+        return this.price;
     }
 
     public synchronized void setPrice(final Double price) {
@@ -113,7 +118,7 @@ public class LimitOrder
     }
 
     public synchronized PersistenceType getPersistenceType() {
-        return persistenceType;
+        return this.persistenceType;
     }
 
     public synchronized void setPersistenceType(final PersistenceType persistenceType) {

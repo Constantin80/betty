@@ -53,15 +53,15 @@ public class LevelPriceSize
 //    }
 
     public synchronized int getLevel() {
-        return level;
+        return this.level;
     }
 
     public synchronized double getPrice() {
-        return price;
+        return this.price;
     }
 
     private synchronized double getSize() {
-        return size;
+        return this.size;
     }
 
     public synchronized double getSizeEUR() {
@@ -77,18 +77,18 @@ public class LevelPriceSize
             return false;
         }
         final LevelPriceSize that = (LevelPriceSize) o;
-        return level == that.level &&
-               Double.compare(that.price, price) == 0 &&
-               Double.compare(that.size, size) == 0;
+        return this.level == that.level &&
+               Double.compare(that.price, this.price) == 0 &&
+               Double.compare(that.size, this.size) == 0;
     }
 
     @Override
     public synchronized int hashCode() {
-        return Objects.hash(level, price, size);
+        return Objects.hash(this.level, this.price, this.size);
     }
 
     @Override
     public synchronized String toString() {
-        return level + ":" + size + "@" + price;
+        return this.level + ":" + this.size + "@" + this.price;
     }
 }

@@ -1,5 +1,6 @@
 package info.fmro.betty.objects;
 
+@SuppressWarnings("unused")
 public class AverageLoggerTest {
 //    @Test
 //    public void testGetMarketBooksExpectedRuns()

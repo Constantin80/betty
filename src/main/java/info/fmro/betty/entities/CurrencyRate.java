@@ -8,11 +8,8 @@ public class CurrencyRate
     private String currencyCode; // Three letter ISO 4217 code
     private Double rate; // Exchange rate for the currency specified in the request
 
-    public CurrencyRate() {
-    }
-
     public synchronized String getCurrencyCode() {
-        return currencyCode;
+        return this.currencyCode;
     }
 
     public synchronized void setCurrencyCode(final String currencyCode) {
@@ -20,7 +17,7 @@ public class CurrencyRate
     }
 
     public synchronized Double getRate() {
-        return rate;
+        return this.rate;
     }
 
     public synchronized void setRate(final Double rate) {

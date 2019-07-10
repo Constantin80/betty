@@ -1,11 +1,13 @@
 package info.fmro.betty.stream.definitions;
 
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 // objects of this class are read from the stream
@@ -13,14 +15,13 @@ public class StrategyMatchChange
         implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(StrategyMatchChange.class);
     private static final long serialVersionUID = -3731593485034448217L;
+    @Nullable
     private List<List<Double>> mb; // Matched Backs - matched amounts by distinct matched price on the Back side for this strategy
+    @Nullable
     private List<List<Double>> ml; // Matched Lays - matched amounts by distinct matched price on the Lay side for this strategy
 
-    public StrategyMatchChange() {
-    }
-
     public synchronized List<List<Double>> getMb() {
-        final List<List<Double>> result;
+        @Nullable final List<List<Double>> result;
 
         if (this.mb == null) {
             result = null;
@@ -39,7 +40,7 @@ public class StrategyMatchChange
         return result;
     }
 
-    public synchronized void setMb(final List<List<Double>> mb) {
+    public synchronized void setMb(final Collection<? extends List<Double>> mb) {
         if (mb == null) {
             this.mb = null;
         } else {
@@ -56,7 +57,7 @@ public class StrategyMatchChange
     }
 
     public synchronized List<List<Double>> getMl() {
-        final List<List<Double>> result;
+        @Nullable final List<List<Double>> result;
 
         if (this.ml == null) {
             result = null;
@@ -75,7 +76,7 @@ public class StrategyMatchChange
         return result;
     }
 
-    public synchronized void setMl(final List<List<Double>> ml) {
+    public synchronized void setMl(final Collection<? extends List<Double>> ml) {
         if (ml == null) {
             this.ml = null;
         } else {

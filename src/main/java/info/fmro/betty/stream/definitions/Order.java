@@ -4,6 +4,7 @@ import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.cache.util.RunnerId;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,10 +21,13 @@ public class Order
     //                     This value is not meaningful for activity on Line markets and is not guaranteed to be returned or maintained for these markets.
     private Double bsp; // BSP Liability - the BSP liability of the order (null if the order is not a BSP order)
     private String id; // Bet Id - the id of the order
+    @Nullable
     private Date ld; // Lapsed Date - the date the order was lapsed (null if the order is not lapsed)
+    @Nullable
     private Date md; //  Matched Date - the date the order was matched (null if the order is not matched)
     private OrderType ot; // Order Type - the type of the order (L = LIMIT, MOC = MARKET_ON_CLOSE, LOC = LIMIT_ON_CLOSE)
     private Double p; // Price - the original placed price of the order. Line markets operate at even-money odds of 2.0. However, price for these markets refers to the line positions available as defined by the markets min-max range and interval steps
+    @Nullable
     private Date pd; // Placed Date - the date the order was placed
     private PersistenceType pt; // Persistence Type - whether the order will persist at in play or not (L = LAPSE, P = PERSIST, MOC = Market On Close)
     private String rac; // Regulator Auth Code - the auth code returned by the regulator
@@ -40,46 +44,43 @@ public class Order
     private Double sv; // Size Voided - the amount of the order that has been voided
     private double backExposure, layExposure, backProfit, layProfit;
 
-    public Order() {
-    }
-
     public synchronized void calculateExposureAndProfit() {
-        if (p == null || p <= 1d || sr == null || status == null || side == null) {
-            logger.error("null or bogus fields in Order calculateExposureAndProfit: {} {} {} {} {}", p, sr, status, side, Generic.objectToString(this));
-            backExposure = 0d;
-            layExposure = 0d;
-            backProfit = 0d;
-            layProfit = 0d;
-        } else if (status == OrderStatus.EC) { // execution complete, nothing should be remaining
-            backExposure = 0d;
-            layExposure = 0d;
-            backProfit = 0d;
-            layProfit = 0d;
+        if (this.p == null || this.p <= 1d || this.sr == null || this.status == null || this.side == null) {
+            logger.error("null or bogus fields in Order calculateExposureAndProfit: {} {} {} {} {}", this.p, this.sr, this.status, this.side, Generic.objectToString(this));
+            this.backExposure = 0d;
+            this.layExposure = 0d;
+            this.backProfit = 0d;
+            this.layProfit = 0d;
+        } else if (this.status == OrderStatus.EC) { // execution complete, nothing should be remaining
+            this.backExposure = 0d;
+            this.layExposure = 0d;
+            this.backProfit = 0d;
+            this.layProfit = 0d;
         } else {
-            switch (side) {
+            switch (this.side) {
                 case B:
-                    backExposure = sr;
-                    backProfit = Formulas.layExposure(p, sr);
-                    layExposure = 0d;
-                    layProfit = 0d;
+                    this.backExposure = this.sr;
+                    this.backProfit = Formulas.layExposure(this.p, this.sr);
+                    this.layExposure = 0d;
+                    this.layProfit = 0d;
                     break;
                 case L:
-                    backExposure = 0d;
-                    backProfit = 0d;
-                    layExposure = Formulas.layExposure(p, sr);
-                    layProfit = sr;
+                    this.backExposure = 0d;
+                    this.backProfit = 0d;
+                    this.layExposure = Formulas.layExposure(this.p, this.sr);
+                    this.layProfit = this.sr;
                     break;
                 default:
-                    logger.error("strange side in Order calculateExposureAndProfit: {} {}", side, Generic.objectToString(this));
-                    backExposure = 0d;
-                    layExposure = 0d;
-                    backProfit = 0d;
-                    layProfit = 0d;
+                    logger.error("strange side in Order calculateExposureAndProfit: {} {}", this.side, Generic.objectToString(this));
+                    this.backExposure = 0d;
+                    this.layExposure = 0d;
+                    this.backProfit = 0d;
+                    this.layProfit = 0d;
                     break;
             }
         }
-        if (backExposure != 0d && layExposure != 0d) { // this condition should always be false, only one type of exposure should exist
-            logger.error("strange exposure in Order calculateExposureAndProfit: {} {} {}", backExposure, layExposure, Generic.objectToString(this));
+        if (this.backExposure != 0d && this.layExposure != 0d) { // this condition should always be false, only one type of exposure should exist
+            logger.error("strange exposure in Order calculateExposureAndProfit: {} {} {}", this.backExposure, this.layExposure, Generic.objectToString(this));
         }
     }
 
@@ -106,9 +107,9 @@ public class Order
         if (this.p == null || this.side == null || this.id == null) {
             logger.error("null variables during removeBackExposure for: {} {} {} {}", this.p, this.side, this.id, Generic.objectToString(this));
             exposureReduction = 0d;
-        } else if (Objects.equals(this.side, Side.B)) {
+        } else if (this.side == Side.B) {
             final double sizeRemaining = this.sr == null ? 0d : this.sr;
-            final Double sizeReduction;
+            @Nullable final Double sizeReduction;
             if (excessExposure >= sizeRemaining) {
                 sizeReduction = null;
                 if (Statics.ordersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction)) {
@@ -136,9 +137,9 @@ public class Order
         if (this.p == null || this.side == null || this.id == null) {
             logger.error("null variables during removeLayExposure for: {} {} {} {}", this.p, this.side, this.id, Generic.objectToString(this));
             exposureReduction = 0d;
-        } else if (Objects.equals(this.side, Side.L)) {
+        } else if (this.side == Side.L) {
             final double sizeRemaining = this.sr == null ? 0d : this.sr;
-            final Double sizeReduction;
+            @Nullable final Double sizeReduction;
             if (excessExposure >= Formulas.layExposure(this.p, sizeRemaining)) {
                 sizeReduction = null;
                 if (Statics.ordersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction)) {
@@ -162,31 +163,33 @@ public class Order
     }
 
     public synchronized double getBackExposure() {
-        return backExposure;
+        return this.backExposure;
     }
 
     public synchronized double getLayExposure() {
-        return layExposure;
+        return this.layExposure;
     }
 
     public synchronized double getBackProfit() {
-        return backProfit;
+        return this.backProfit;
     }
 
     public synchronized double getLayProfit() {
-        return layProfit;
+        return this.layProfit;
     }
 
+    @Nullable
     public synchronized Date getLd() {
-        return ld == null ? null : (Date) ld.clone();
+        return this.ld == null ? null : (Date) this.ld.clone();
     }
 
     public synchronized void setLd(final Date ld) {
         this.ld = ld == null ? null : (Date) ld.clone();
     }
 
+    @Nullable
     public synchronized Date getMd() {
-        return md == null ? null : (Date) md.clone();
+        return this.md == null ? null : (Date) this.md.clone();
     }
 
     public synchronized void setMd(final Date md) {
@@ -194,7 +197,7 @@ public class Order
     }
 
     public synchronized String getRac() {
-        return rac;
+        return this.rac;
     }
 
     public synchronized void setRac(final String rac) {
@@ -202,7 +205,7 @@ public class Order
     }
 
     public synchronized String getRc() {
-        return rc;
+        return this.rc;
     }
 
     public synchronized void setRc(final String rc) {
@@ -210,7 +213,7 @@ public class Order
     }
 
     public synchronized String getRfo() {
-        return rfo;
+        return this.rfo;
     }
 
     public synchronized void setRfo(final String rfo) {
@@ -218,7 +221,7 @@ public class Order
     }
 
     public synchronized String getRfs() {
-        return rfs;
+        return this.rfs;
     }
 
     public synchronized void setRfs(final String rfs) {
@@ -226,7 +229,7 @@ public class Order
     }
 
     public synchronized String getId() {
-        return id;
+        return this.id;
     }
 
     public synchronized void setId(final String id) {
@@ -234,7 +237,7 @@ public class Order
     }
 
     public synchronized OrderType getOt() {
-        return ot;
+        return this.ot;
     }
 
     public synchronized void setOt(final OrderType ot) {
@@ -242,7 +245,7 @@ public class Order
     }
 
     public synchronized OrderStatus getStatus() {
-        return status;
+        return this.status;
     }
 
     public synchronized void setStatus(final OrderStatus status) {
@@ -250,7 +253,7 @@ public class Order
     }
 
     public synchronized PersistenceType getPt() {
-        return pt;
+        return this.pt;
     }
 
     public synchronized void setPt(final PersistenceType pt) {
@@ -258,7 +261,7 @@ public class Order
     }
 
     public synchronized Side getSide() {
-        return side;
+        return this.side;
     }
 
     public synchronized void setSide(final Side side) {
@@ -266,7 +269,7 @@ public class Order
     }
 
     public synchronized Double getP() {
-        return p;
+        return this.p;
     }
 
     public synchronized void setP(final Double p) {
@@ -274,7 +277,7 @@ public class Order
     }
 
     public synchronized Double getS() {
-        return s;
+        return this.s;
     }
 
     public synchronized void setS(final Double s) {
@@ -282,15 +285,16 @@ public class Order
     }
 
     public synchronized Double getBsp() {
-        return bsp;
+        return this.bsp;
     }
 
     public synchronized void setBsp(final Double bsp) {
         this.bsp = bsp;
     }
 
+    @Nullable
     public synchronized Date getPd() {
-        return pd == null ? null : (Date) pd.clone();
+        return this.pd == null ? null : (Date) this.pd.clone();
     }
 
     public synchronized void setPd(final Date pd) {
@@ -298,7 +302,7 @@ public class Order
     }
 
     public synchronized Double getAvp() {
-        return avp;
+        return this.avp;
     }
 
     public synchronized void setAvp(final Double avp) {
@@ -306,7 +310,7 @@ public class Order
     }
 
     public synchronized Double getSm() {
-        return sm;
+        return this.sm;
     }
 
     public synchronized void setSm(final Double sm) {
@@ -314,7 +318,7 @@ public class Order
     }
 
     public synchronized Double getSr() {
-        return sr;
+        return this.sr;
     }
 
     public synchronized void setSr(final Double sr) {
@@ -322,7 +326,7 @@ public class Order
     }
 
     public synchronized Double getSl() {
-        return sl;
+        return this.sl;
     }
 
     public synchronized void setSl(final Double sl) {
@@ -330,7 +334,7 @@ public class Order
     }
 
     public synchronized Double getSc() {
-        return sc;
+        return this.sc;
     }
 
     public synchronized void setSc(final Double sc) {
@@ -338,7 +342,7 @@ public class Order
     }
 
     public synchronized Double getSv() {
-        return sv;
+        return this.sv;
     }
 
     public synchronized void setSv(final Double sv) {

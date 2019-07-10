@@ -14,11 +14,8 @@ public class MarketSubscriptionMessage
     private MarketFilter marketFilter;
     private Boolean segmentationEnabled = true; // Segmentation Enabled - allow the server to send large sets of data in segments, instead of a single block
 
-    public MarketSubscriptionMessage() {
-    }
-
     public synchronized String getClk() {
-        return clk;
+        return this.clk;
     }
 
     public synchronized void setClk(final String clk) {
@@ -26,7 +23,7 @@ public class MarketSubscriptionMessage
     }
 
     public synchronized Long getConflateMs() {
-        return conflateMs;
+        return this.conflateMs;
     }
 
     public synchronized void setConflateMs(final Long conflateMs) {
@@ -34,7 +31,7 @@ public class MarketSubscriptionMessage
     }
 
     public synchronized Long getHeartbeatMs() {
-        return heartbeatMs;
+        return this.heartbeatMs;
     }
 
     public synchronized void setHeartbeatMs(final Long heartbeatMs) {
@@ -42,7 +39,7 @@ public class MarketSubscriptionMessage
     }
 
     public synchronized String getInitialClk() {
-        return initialClk;
+        return this.initialClk;
     }
 
     public synchronized void setInitialClk(final String initialClk) {
@@ -50,7 +47,7 @@ public class MarketSubscriptionMessage
     }
 
     public synchronized MarketDataFilter getMarketDataFilter() {
-        return marketDataFilter;
+        return this.marketDataFilter;
     }
 
     public synchronized void setMarketDataFilter(final MarketDataFilter marketDataFilter) {
@@ -58,7 +55,7 @@ public class MarketSubscriptionMessage
     }
 
     public synchronized MarketFilter getMarketFilter() {
-        return marketFilter;
+        return this.marketFilter;
     }
 
     public synchronized void setMarketFilter(final MarketFilter marketFilter) {
@@ -66,7 +63,7 @@ public class MarketSubscriptionMessage
     }
 
     public synchronized Boolean getSegmentationEnabled() {
-        return segmentationEnabled;
+        return this.segmentationEnabled;
     }
 
     public synchronized void setSegmentationEnabled(final Boolean segmentationEnabled) {

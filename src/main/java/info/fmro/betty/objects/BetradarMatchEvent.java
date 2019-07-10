@@ -1,5 +1,7 @@
 package info.fmro.betty.objects;
 
+import org.jetbrains.annotations.Contract;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -16,28 +18,28 @@ public class BetradarMatchEvent
     }
 
     public synchronized int getMinute() {
-        return minute;
+        return this.minute;
     }
 
     //    public synchronized void setMinute(int minute) {
 //        this.minute = minute;
 //    }
     public synchronized String getPlayer() {
-        return player;
+        return this.player;
     }
 
     //    public synchronized void setPlayer(String player) {
 //        this.player = player;
 //    }
     public synchronized String getPlayerIn() {
-        return playerIn;
+        return this.playerIn;
     }
 
     //    public synchronized void setPlayerIn(String playerIn) {
 //        this.playerIn = playerIn;
 //    }
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;

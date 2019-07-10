@@ -5,11 +5,8 @@ public class AuthenticationMessage
     private String appKey; // This is your application key to identify your application
     private String session; // The session token generated from API login.
 
-    public AuthenticationMessage() {
-    }
-
     public synchronized String getAppKey() {
-        return appKey;
+        return this.appKey;
     }
 
     public synchronized void setAppKey(final String appKey) {
@@ -17,7 +14,7 @@ public class AuthenticationMessage
     }
 
     public synchronized String getSession() {
-        return session;
+        return this.session;
     }
 
     public synchronized void setSession(final String session) {

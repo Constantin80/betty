@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Set;
 
 @Component
 @Configuration
@@ -63,7 +64,7 @@ public class ClientCommands
         return createMarketSubscriptionMessage(client, marketFilter);
     }
 
-    public static MarketSubscriptionMessage createMarketSubscriptionMessage(final Client client, final HashSet<String> markets) {
+    public static MarketSubscriptionMessage createMarketSubscriptionMessage(final Client client, final Set<String> markets) {
         final MarketFilter marketFilter = new MarketFilter();
         marketFilter.setMarketIds(markets);
         return createMarketSubscriptionMessage(client, marketFilter);

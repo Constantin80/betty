@@ -1,5 +1,7 @@
 package info.fmro.betty.enums;
 
+import org.jetbrains.annotations.Contract;
+
 public enum AccountAPINGExceptionErrorCode {
     INVALID_INPUT_DATA("Invalid input data"),
     INVALID_SESSION_INFORMATION("The session token hasn't been provided, is invalid or has expired."),
@@ -25,11 +27,13 @@ public enum AccountAPINGExceptionErrorCode {
 
     private final String message;
 
-    private AccountAPINGExceptionErrorCode(final String message) {
+    @Contract(pure = true)
+    AccountAPINGExceptionErrorCode(final String message) {
         this.message = message;
     }
 
+    @Contract(pure = true)
     public synchronized String getMessage() {
-        return message;
+        return this.message;
     }
 }

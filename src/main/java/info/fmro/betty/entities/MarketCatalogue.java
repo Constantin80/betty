@@ -8,6 +8,9 @@ import info.fmro.betty.objects.Statics;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +23,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
 
+@SuppressWarnings({"ClassWithTooManyFields", "OverlyComplexClass"})
 public class MarketCatalogue
         extends Ignorable
         implements Serializable, Comparable<MarketCatalogue> {
@@ -28,20 +32,22 @@ public class MarketCatalogue
     private static final long serialVersionUID = 1172556202262757207L;
     private final String marketId;
     private String marketName;
+    @Nullable
     private Date marketStartTime;
     private MarketDescription description;
     private Double totalMatched;
+    @Nullable
     private List<RunnerCatalog> runners;
     private EventType eventType;
     private Competition competition;
     private Event event;
-
     private ParsedMarket parsedMarket; // only place where stored
     private long timeStamp;
 
     //    public MarketCatalogue() {
 //    }
     public MarketCatalogue(final String marketId) {
+        super();
         this.marketId = marketId;
     }
 
@@ -52,15 +58,15 @@ public class MarketCatalogue
     }
 
     @Override
-    public synchronized int setIgnored(final long period, final long currentTime) {
-        final int modified = super.setIgnored(period, currentTime);
+    public synchronized int setIgnored(final long period, final long startTime) {
+        final int modified = super.setIgnored(period, startTime);
 
         if (modified > 0 && this.isIgnored()) {
-            MaintenanceThread.removeFromSecondaryMaps(marketId);
+            MaintenanceThread.removeFromSecondaryMaps(this.marketId);
 
             // delayed starting of threads might no longer be necessary
             final long realCurrentTime = System.currentTimeMillis();
-            final long realPeriod = period + currentTime - realCurrentTime + 500L; // 500ms added to account for clock errors
+            final long realPeriod = period + startTime - realCurrentTime + 500L; // 500ms added to account for clock errors
             final LinkedHashSet<Entry<String, MarketCatalogue>> marketCatalogueEntriesSet = new LinkedHashSet<>(2);
             marketCatalogueEntriesSet.add(new SimpleEntry<>(this.marketId, this));
 
@@ -75,162 +81,166 @@ public class MarketCatalogue
     }
 
     public synchronized String getMarketId() {
-        return marketId;
+        return this.marketId;
     }
 
     public synchronized int getNRunners() {
-        return this.runners == null ? 0 : runners.size();
+        return this.runners == null ? 0 : this.runners.size();
     }
 
     public synchronized String getMarketName() {
-        return marketName;
+        return this.marketName;
     }
 
-    public synchronized int setMarketName(final String marketName) {
+    private synchronized int setMarketName(final String newMarketName) {
         final int modified;
         if (this.marketName == null) {
-            if (marketName == null) {
+            if (newMarketName == null) {
                 modified = 0;
             } else {
-                this.marketName = marketName;
+                this.marketName = newMarketName;
                 modified = 1;
             }
-        } else if (this.marketName.equals(marketName)) {
+        } else if (this.marketName.equals(newMarketName)) {
             modified = 0;
         } else {
-            this.marketName = marketName;
+            this.marketName = newMarketName;
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized Date getMarketStartTime() {
-        return marketStartTime == null ? null : (Date) marketStartTime.clone();
+    @Contract(pure = true)
+    @Nullable
+    private synchronized Date getMarketStartTime() {
+        return this.marketStartTime == null ? null : (Date) this.marketStartTime.clone();
     }
 
-    public synchronized int setMarketStartTime(final Date marketStartTime) {
+    private synchronized int setMarketStartTime(final Date newMarketStartTime) {
         final int modified;
         if (this.marketStartTime == null) {
-            if (marketStartTime == null) {
+            if (newMarketStartTime == null) {
                 modified = 0;
             } else {
-                this.marketStartTime = (Date) marketStartTime.clone();
+                this.marketStartTime = (Date) newMarketStartTime.clone();
                 modified = 1;
             }
-        } else if (this.marketStartTime.equals(marketStartTime)) {
+        } else if (this.marketStartTime.equals(newMarketStartTime)) {
             modified = 0;
         } else {
-            this.marketStartTime = marketStartTime == null ? null : (Date) marketStartTime.clone();
+            this.marketStartTime = newMarketStartTime == null ? null : (Date) newMarketStartTime.clone();
             modified = 1;
         }
         return modified;
     }
 
     public synchronized MarketDescription getDescription() {
-        return description;
+        return this.description;
     }
 
-    public synchronized int setDescription(final MarketDescription description) {
+    private synchronized int setDescription(final MarketDescription newDescription) {
         final int modified;
         if (this.description == null) {
-            if (description == null) {
+            if (newDescription == null) {
                 modified = 0;
             } else {
-                this.description = description;
+                this.description = newDescription;
                 modified = 1;
             }
-        } else if (this.description.equals(description)) {
+        } else if (this.description.equals(newDescription)) {
             modified = 0;
         } else {
-            this.description = description;
+            this.description = newDescription;
             modified = 1;
         }
         return modified;
     }
 
     public synchronized Double getTotalMatched() {
-        return totalMatched;
+        return this.totalMatched;
     }
 
-    public synchronized int setTotalMatched(final Double totalMatched) {
+    public synchronized int setTotalMatched(final Double newTotalMatched) {
         final int modified;
         if (this.totalMatched == null) {
-            if (totalMatched == null) {
+            if (newTotalMatched == null) {
                 modified = 0;
             } else {
-                this.totalMatched = totalMatched;
+                this.totalMatched = newTotalMatched;
                 modified = 1;
             }
-        } else if (this.totalMatched.equals(totalMatched)) {
+        } else if (this.totalMatched.equals(newTotalMatched)) {
             modified = 0;
         } else {
-            this.totalMatched = totalMatched;
+            this.totalMatched = newTotalMatched;
             modified = 1;
         }
         return modified;
     }
 
+    @Nullable
     public synchronized List<RunnerCatalog> getRunners() {
-        return runners == null ? null : new ArrayList<>(runners);
+        return this.runners == null ? null : new ArrayList<>(this.runners);
     }
 
-    public synchronized int setRunners(final List<RunnerCatalog> runners) {
+    private synchronized int setRunners(final List<? extends RunnerCatalog> newRunners) {
         final int modified;
         if (this.runners == null) {
-            if (runners == null) {
+            if (newRunners == null) {
                 modified = 0;
             } else {
-                this.runners = new ArrayList<>(runners);
+                this.runners = new ArrayList<>(newRunners);
                 modified = 1;
             }
-        } else if (this.runners.equals(runners)) {
+        } else if (this.runners.equals(newRunners)) {
             modified = 0;
         } else {
-            this.runners = runners == null ? null : new ArrayList<>(runners);
+            this.runners = newRunners == null ? null : new ArrayList<>(newRunners);
             modified = 1;
         }
         return modified;
     }
 
     public synchronized EventType getEventType() {
-        return eventType;
+        return this.eventType;
     }
 
-    public synchronized int setEventType(final EventType eventType) {
+    private synchronized int setEventType(final EventType newEventType) {
         final int modified;
         if (this.eventType == null) {
-            if (eventType == null) {
+            if (newEventType == null) {
                 modified = 0;
             } else {
-                this.eventType = eventType;
+                this.eventType = newEventType;
                 modified = 1;
             }
-        } else if (this.eventType.equals(eventType)) {
+        } else if (this.eventType.equals(newEventType)) {
             modified = 0;
         } else {
-            this.eventType = eventType;
+            this.eventType = newEventType;
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized Competition getCompetition() {
-        return competition;
+    @Contract(pure = true)
+    private synchronized Competition getCompetition() {
+        return this.competition;
     }
 
-    public synchronized int setCompetition(final Competition competition) {
+    private synchronized int setCompetition(final Competition newCompetition) {
         final int modified;
         if (this.competition == null) {
-            if (competition == null) {
+            if (newCompetition == null) {
                 modified = 0;
             } else {
-                this.competition = competition;
+                this.competition = newCompetition;
                 modified = 1;
             }
-        } else if (this.competition.equals(competition)) {
+        } else if (this.competition.equals(newCompetition)) {
             modified = 0;
         } else {
-            this.competition = competition;
+            this.competition = newCompetition;
             modified = 1;
         }
         return modified;
@@ -238,75 +248,73 @@ public class MarketCatalogue
 
     public synchronized Event getEventStump() {
         // even with stump, because it's used during update, I still need some initialization
-        if (event != null) {
+        if (this.event != null) {
             if (this.timeStamp > 0L) {
-                event.setTimeStamp(this.timeStamp);
+                this.event.setTimeStamp(this.timeStamp);
             } else {
-                event.timeStamp();
+                this.event.timeStamp();
             }
-            event.setMarketCountStump();
+            this.event.setMarketCountStump();
         } else { // event null, not much to be done
         }
-        return event;
+        return this.event;
     }
 
     private synchronized Event getEvent() { // I will only keep stump Event in MarketCatalogue
-        if (event != null) {
+        if (this.event != null) {
             if (this.timeStamp > 0L) {
-                event.setTimeStamp(this.timeStamp);
+                this.event.setTimeStamp(this.timeStamp);
             } else {
-                event.timeStamp();
+                this.event.timeStamp();
             }
-            event.setMarketCountStump();
-            event.initializeCollections();
+            this.event.setMarketCountStump();
+            this.event.initializeCollections();
         } else { // event null, not much to be done
         }
-        return event;
+        return this.event;
     }
 
-    public synchronized int setEvent(final Event event) { // doesn't set equal Events and only does an equality check on id
+    private synchronized int setEvent(final Event newEvent) { // doesn't set equal Events and only does an equality check on id
         final int modified;
         if (this.event == null) {
-            if (event == null) {
+            if (newEvent == null) {
                 modified = 0;
             } else {
-                this.event = event;
+                this.event = newEvent;
                 modified = 1;
             }
-        } else if (this.event.equals(event)) {
+        } else if (this.event.equals(newEvent)) {
             modified = 0;
         } else {
-            this.event = event;
+            this.event = newEvent;
             modified = 1;
         }
         return modified;
     }
 
     public synchronized ParsedMarket getParsedMarket() {
-        return parsedMarket;
+        return this.parsedMarket;
     }
 
-    public synchronized int setParsedMarket(final ParsedMarket parsedMarket) {
+    public synchronized int setParsedMarket(final ParsedMarket newParsedMarket) {
         final int modified;
-        if (parsedMarket == null) {
+        if (newParsedMarket == null) {
             if (this.parsedMarket == null) {
                 if (Formulas.isMarketType(this, Statics.supportedEventTypes)) { // happens often enough that it can clutter my logs, won't print
 //                    Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "trying to set null over null value for parsedMarket in MarketCatalogue: {}", this.marketId);
                 } else { // normal that market is not parsed and setting null is attempted
                 }
-                modified = 0;
             } else {
                 // won't allow null to be set
                 // this.parsedMarket = parsedMarket;
                 // modified = 1;
-
                 logger.error("not allowed to set null value for parsedMarket in MarketCatalogue: {}", Generic.objectToString(this));
-                modified = 0;
             }
-        } else if (parsedMarket.equals(this.parsedMarket)) {
+            modified = 0;
+        } else if (newParsedMarket.equals(this.parsedMarket)) {
             modified = 0;
         } else {
-            this.parsedMarket = parsedMarket;
+            this.parsedMarket = newParsedMarket;
             modified = 1;
         }
 
@@ -314,7 +322,7 @@ public class MarketCatalogue
     }
 
     public synchronized long getTimeStamp() {
-        return timeStamp;
+        return this.timeStamp;
     }
 
     public synchronized void setTimeStamp(final long timeStamp) {
@@ -395,31 +403,28 @@ public class MarketCatalogue
         return modified;
     }
 
+    @SuppressWarnings("MethodWithMultipleReturnPoints")
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(final MarketCatalogue other) {
-        if (other == null) {
+    public synchronized int compareTo(@NotNull final MarketCatalogue o) {
+        //noinspection ConstantConditions
+        if (o == null) {
             return AFTER;
         }
-        if (this == other) {
+        if (this == o) {
             return EQUAL;
         }
 
-        if (this.getClass() != other.getClass()) {
-            if (this.getClass().hashCode() < other.getClass().hashCode()) {
-                return BEFORE;
-            } else {
-                return AFTER;
-            }
+        if (this.getClass() != o.getClass()) {
+            return this.getClass().hashCode() < o.getClass().hashCode() ? BEFORE : AFTER;
         }
-        if (!Objects.equals(this.marketId, other.marketId)) {
+        if (!Objects.equals(this.marketId, o.marketId)) {
             if (this.marketId == null) {
                 return BEFORE;
             }
-            if (other.marketId == null) {
+            if (o.marketId == null) {
                 return AFTER;
             }
-            return this.marketId.compareTo(other.marketId);
+            return this.marketId.compareTo(o.marketId);
         }
 
         return EQUAL;
@@ -432,8 +437,8 @@ public class MarketCatalogue
         return hash;
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;

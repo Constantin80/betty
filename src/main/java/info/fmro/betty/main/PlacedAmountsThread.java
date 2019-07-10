@@ -42,7 +42,7 @@ public class PlacedAmountsThread
 
                 Statics.safetyLimits.addOrderSummaries(currentOrderSummarySet, clearedOrderSummarySet);
 
-                long timeToSleep = this.timeStamp + 30_000L - System.currentTimeMillis();
+                final long timeToSleep = this.timeStamp + 30_000L - System.currentTimeMillis();
 
 //                long timeToSleep = checkCancelAllOrdersList();
 //
@@ -62,7 +62,7 @@ public class PlacedAmountsThread
 //
 //        return modified;
 //    }
-    private synchronized void timeStamp() {
+    private void timeStamp() { // synchronization most likely not needed
         this.timeStamp = System.currentTimeMillis();
     }
 }

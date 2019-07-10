@@ -1,5 +1,8 @@
 package info.fmro.betty.entities;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,40 +11,28 @@ import java.util.Objects;
 public class ExchangePrices
         implements Serializable {
     private static final long serialVersionUID = -5031011635000589001L;
-    private ArrayList<PriceSize> availableToBack;
-    private ArrayList<PriceSize> availableToLay;
-    private ArrayList<PriceSize> tradedVolume;
+    private final ArrayList<PriceSize> availableToBack;
+    private final ArrayList<PriceSize> availableToLay;
+    private final ArrayList<PriceSize> tradedVolume;
 
-    public ExchangePrices() {
-    }
-
-    public ExchangePrices(final List<PriceSize> availableToBack, final List<PriceSize> availableToLay, final List<PriceSize> tradedVolume) {
+    public ExchangePrices(@NotNull final List<? extends PriceSize> availableToBack, @NotNull final List<? extends PriceSize> availableToLay, @NotNull final List<? extends PriceSize> tradedVolume) {
         this.availableToBack = new ArrayList<>(availableToBack);
         this.availableToLay = new ArrayList<>(availableToLay);
         this.tradedVolume = new ArrayList<>(tradedVolume);
     }
 
     public synchronized List<PriceSize> getAvailableToBack() {
-        return availableToBack == null ? null : new ArrayList<>(availableToBack);
+        return new ArrayList<>(this.availableToBack);
     }
 
-    //    public synchronized void setAvailableToBack(List<PriceSize> availableToBack) {
-//        this.availableToBack = availableToBack == null ? null : new ArrayList<>(availableToBack);
-//    }
     public synchronized List<PriceSize> getAvailableToLay() {
-        return availableToLay == null ? null : new ArrayList<>(availableToLay);
+        return new ArrayList<>(this.availableToLay);
     }
 
-    //    public synchronized void setAvailableToLay(List<PriceSize> availableToLay) {
-//        this.availableToLay = availableToLay == null ? null : new ArrayList<>(availableToLay);
-//    }
     public synchronized List<PriceSize> getTradedVolume() {
-        return tradedVolume == null ? null : new ArrayList<>(tradedVolume);
+        return new ArrayList<>(this.tradedVolume);
     }
 
-    //    public synchronized void setTradedVolume(List<PriceSize> tradedVolume) {
-//        this.tradedVolume = tradedVolume == null ? null : new ArrayList<>(tradedVolume);
-//    }
     @Override
     public synchronized int hashCode() {
         int hash = 7;
@@ -51,8 +42,8 @@ public class ExchangePrices
         return hash;
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (this == obj) {
             return true;

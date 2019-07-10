@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 public class PriceSizeLadder
@@ -19,9 +20,9 @@ public class PriceSizeLadder
 
     private PriceSizeLadder(final Comparator<? super Double> comparator) {
         if (!comparator.equals(Comparator.reverseOrder()) && !comparator.equals(Comparator.naturalOrder())) {
-            logger.error("not supported comparator type in PriceSizeLadder; this check is included to make sure the used comparator is serializable: {}", comparator.toString());
+            logger.error("not supported comparator type in PriceSizeLadder; this check is included to make sure the used comparator is serializable: {}", comparator);
         }
-        priceToSize = new TreeMap<>(comparator);
+        this.priceToSize = new TreeMap<>(comparator);
     }
 
     public static PriceSizeLadder newBack() {
@@ -89,21 +90,21 @@ public class PriceSizeLadder
         return matchedSize;
     }
 
-    private synchronized void updateTreeMap(final TreeMap<Double, PriceSize> map) {
+    private synchronized void updateTreeMap(final Map<Double, ? extends PriceSize> map) {
         this.priceToSize.putAll(map);
     }
 
-    public synchronized void onPriceChange(final boolean isImage, final List<List<Double>> prices) {
+    public synchronized void onPriceChange(final boolean isImage, final Iterable<? extends List<Double>> prices) {
         if (isImage) {
-            priceToSize.clear();
+            this.priceToSize.clear();
         }
         if (prices != null) {
-            for (List<Double> price : prices) {
+            for (final List<Double> price : prices) {
                 final PriceSize priceSize = new PriceSize(price);
                 if (priceSize.getSizeEUR() == 0.0d) {
-                    priceToSize.remove(priceSize.getPrice());
+                    this.priceToSize.remove(priceSize.getPrice());
                 } else {
-                    priceToSize.put(priceSize.getPrice(), priceSize);
+                    this.priceToSize.put(priceSize.getPrice(), priceSize);
                 }
             }
         }
@@ -111,14 +112,14 @@ public class PriceSizeLadder
 
     public synchronized double getBestPrice(final double calculatedLimit) {
         double result = 0d;
-        if (priceToSize == null) {
+        if (this.priceToSize == null) {
             logger.error("null priceToSize in getBestPrice for: {}", Generic.objectToString(this));
             result = 0d;
-        } else if (priceToSize.isEmpty()) {
+        } else if (this.priceToSize.isEmpty()) {
             result = 0d;
         } else {
             final double minimumAmountConsideredSignificant = Math.min(calculatedLimit * .05d, 10d); // these defaults are rather basic
-            for (PriceSize priceSize : this.priceToSize.values()) {
+            for (final PriceSize priceSize : this.priceToSize.values()) {
                 if (priceSize == null) {
                     logger.error("null priceSize in getBestPrice {} for: {}", calculatedLimit, Generic.objectToString(this));
                 } else {
@@ -138,7 +139,7 @@ public class PriceSizeLadder
 
     public synchronized TwoDoubles getBackProfitExposurePair() { // this works for back; for lay profit and exposure are reversed
         double profit = 0d, exposure = 0d;
-        for (PriceSize priceSize : priceToSize.values()) {
+        for (final PriceSize priceSize : this.priceToSize.values()) {
             final TwoDoubles twoDoubles = priceSize.getBackProfitExposurePair();
             profit += twoDoubles.getFirstDouble();
             exposure += twoDoubles.getSecondDouble();
@@ -167,6 +168,6 @@ public class PriceSizeLadder
 
     @Override
     public synchronized String toString() {
-        return "{" + priceToSize.values() + '}';
+        return "{" + this.priceToSize.values() + '}';
     }
 }

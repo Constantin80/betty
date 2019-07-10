@@ -24,14 +24,14 @@ public class RequestResponse {
     private final long creationTime;
 
     public RequestResponse(final RequestMessage request, final Consumer<RequestResponse> onSuccess) {
-        creationTime = System.currentTimeMillis();
+        this.creationTime = System.currentTimeMillis();
 //        this.id = id;
         this.request = request;
         this.onSuccess = onSuccess;
     }
 
     public RequestResponse(final RequestResponse other) {
-        creationTime = System.currentTimeMillis();
+        this.creationTime = System.currentTimeMillis();
 //        this.id = other.getId();
         this.request = other.getRequest();
         this.onSuccess = other.getOnSuccess();
@@ -42,8 +42,8 @@ public class RequestResponse {
             logger.error("null statusMessage for task: {}", Generic.objectToString(this));
         } else {
             if (statusMessage.getStatusCode() == StatusCode.SUCCESS) {
-                if (onSuccess != null) {
-                    onSuccess.accept(this);
+                if (this.onSuccess != null) {
+                    this.onSuccess.accept(this);
                 } else { // onSuccess can be null, which means nothing should be done
                 }
             }
@@ -53,11 +53,11 @@ public class RequestResponse {
     }
 
     public synchronized Consumer<RequestResponse> getOnSuccess() {
-        return onSuccess;
+        return this.onSuccess;
     }
 
     public synchronized StatusMessage getStatusMessage() {
-        return statusMessage;
+        return this.statusMessage;
     }
 
     public synchronized boolean isTaskSuccessful() {
@@ -69,15 +69,15 @@ public class RequestResponse {
 //            result = statusMessage.getStatusCode() == StatusCode.SUCCESS;
 //        }
 
-        return isTaskFinished() && statusMessage.getStatusCode() == StatusCode.SUCCESS;
+        return isTaskFinished() && this.statusMessage.getStatusCode() == StatusCode.SUCCESS;
     }
 
     public synchronized boolean isTaskFinished() {
-        return statusMessage != null;
+        return this.statusMessage != null;
     }
 
     public synchronized long getCreationTime() {
-        return creationTime;
+        return this.creationTime;
     }
 
     public synchronized boolean isExpired() {
@@ -98,7 +98,7 @@ public class RequestResponse {
 //    }
 
     public synchronized RequestMessage getRequest() {
-        return request;
+        return this.request;
     }
 
     public synchronized int getId() {

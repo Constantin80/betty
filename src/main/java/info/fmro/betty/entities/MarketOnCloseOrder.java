@@ -7,11 +7,8 @@ public class MarketOnCloseOrder
     private static final long serialVersionUID = -8981250957935689408L;
     private Double liability;
 
-    public MarketOnCloseOrder() {
-    }
-
-    public synchronized Double getLiability() {
-        return liability;
+    synchronized Double getLiability() {
+        return this.liability;
     }
 
     public synchronized void setLiability(final Double liability) {

@@ -33,9 +33,13 @@ import info.fmro.betty.enums.Side;
 import info.fmro.betty.enums.SortDir;
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
+import org.apache.http.client.ResponseHandler;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -43,10 +47,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class ApiNgRescriptOperations {
-
+@SuppressWarnings({"UtilityClass", "OverlyCoupledClass"})
+public final class ApiNgRescriptOperations {
     private static final Logger logger = LoggerFactory.getLogger(ApiNgRescriptOperations.class);
     public static final String FILTER = "filter";
+    @SuppressWarnings("unused")
     public static final String LOCALE = "locale";
     public static final String SORT = "sort";
     public static final String MAX_RESULTS = "maxResults";
@@ -72,25 +77,31 @@ public class ApiNgRescriptOperations {
     public static final String SETTLED_DATE_RANGE = "settledDateRange";
     public static final String GROUP_BY = "groupBy";
     public static final String INCLUDE_ITEM_DESCRIPTION = "includeItemDescription";
-
+    public static final String CURRENCY_CODE = "currencyCode";
+    @SuppressWarnings("unused")
     public static final String localeString = Locale.getDefault().toString();
 
+    @Contract(pure = true)
     private ApiNgRescriptOperations() {
     }
 
-    public static HashSet<CurrentOrderSummary> listCurrentOrders(final Set<String> betIds, final Set<String> marketIds, final OrderProjection orderProjection, final TimeRange placedDateRange, final OrderBy orderBy, final SortDir sortDir, final int fromRecord, final int recordCount, final String appKeyString,
-                                                                 final RescriptResponseHandler rescriptResponseHandler) {
-
+    public static HashSet<CurrentOrderSummary> listCurrentOrders(final Set<String> betIds, final Set<String> marketIds, final OrderProjection orderProjection, final TimeRange placedDateRange, final OrderBy orderBy, final SortDir sortDir,
+                                                                 final int fromRecord, final int recordCount, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
         final HashSet<CurrentOrderSummary> currentOrderSummarySet = new HashSet<>(16, 0.75f); // empty in the beginning; its size will be used in the loop
         boolean moreAvailable;
         int counterWhile = 0;
         do {
-            int localFromRecord = fromRecord + currentOrderSummarySet.size();
+            final int localFromRecord = fromRecord + currentOrderSummarySet.size();
             final CurrentOrderSummaryReport currentOrderSummaryReport = listCurrentOrdersReport(betIds, marketIds, orderProjection, placedDateRange, orderBy, sortDir, localFromRecord, recordCount, appKeyString, rescriptResponseHandler);
 
             if (currentOrderSummaryReport != null) {
-                currentOrderSummarySet.addAll(currentOrderSummaryReport.getCurrentOrders());
-                moreAvailable = currentOrderSummaryReport.isMoreAvailable();
+                final List<CurrentOrderSummary> currentOrderSummaryList = currentOrderSummaryReport.getCurrentOrders();
+                if (currentOrderSummaryList != null) {
+                    currentOrderSummarySet.addAll(currentOrderSummaryList);
+                } else {
+                    logger.error("null currentOrderSummaryList in listCurrentOrders for: {}", Generic.objectToString(currentOrderSummaryReport));
+                }
+                moreAvailable = currentOrderSummaryReport.getMoreAvailable();
             } else {
                 if (Statics.mustStop.get() && Statics.needSessionToken.get()) { // normal to happen during program stop, if not logged in
                 } else {
@@ -107,9 +118,9 @@ public class ApiNgRescriptOperations {
         return currentOrderSummarySet;
     }
 
-    public static CurrentOrderSummaryReport listCurrentOrdersReport(final Set<String> betIds, final Set<String> marketIds, final OrderProjection orderProjection, final TimeRange placedDateRange, final OrderBy orderBy, final SortDir sortDir, final int fromRecord, final int recordCount,
-                                                                    final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
-        final HashMap<String, Object> paramsHashMap = new HashMap<>(16, 0.75f);
+    private static CurrentOrderSummaryReport listCurrentOrdersReport(final Set<String> betIds, final Set<String> marketIds, final OrderProjection orderProjection, final TimeRange placedDateRange, final OrderBy orderBy, final SortDir sortDir,
+                                                                     final int fromRecord, final int recordCount, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
+        final Map<String, Object> paramsHashMap = new HashMap<>(16, 0.75f);
         paramsHashMap.put(BET_IDS, betIds);
         paramsHashMap.put(MARKET_IDS, marketIds);
         paramsHashMap.put(ORDER_PROJECTION, orderProjection);
@@ -118,30 +129,33 @@ public class ApiNgRescriptOperations {
         paramsHashMap.put(SORT_DIR, sortDir);
         paramsHashMap.put(FROM_RECORD, fromRecord);
         paramsHashMap.put(RECORD_COUNT, recordCount);
-        final String responseString = ApiNgRescriptOperations.makeRequest(ApiNgOperation.LISTCURRENTORDERS.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
+        final String responseString = makeRequest(ApiNgOperation.LISTCURRENTORDERS.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
         if (Statics.debugLevel.check(3, 200)) {
             logger.info("params: {} Response: {} timeStamp={}", Generic.objectToString(paramsHashMap, false, false), responseString, System.currentTimeMillis());
         }
 
-        final CurrentOrderSummaryReport containerCurrentOrderSummaryReport = JsonConverter.convertFromJson(responseString, CurrentOrderSummaryReport.class);
-
-        return containerCurrentOrderSummaryReport;
+        return JsonConverter.convertFromJson(responseString, CurrentOrderSummaryReport.class);
     }
 
-    public static HashSet<ClearedOrderSummary> listClearedOrders(final BetStatus betStatus, final Set<String> eventTypeIds, final Set<String> eventIds, final Set<String> marketIds, final Set<RunnerId> runnerIds, final Set<String> betIds, final Side side, final TimeRange settledDateRange,
-                                                                 final GroupBy groupBy, final boolean includeItemDescription, final int fromRecord, final int recordCount, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
-
+    public static HashSet<ClearedOrderSummary> listClearedOrders(final BetStatus betStatus, final Set<String> eventTypeIds, final Set<String> eventIds, final Set<String> marketIds, final Set<RunnerId> runnerIds, final Set<String> betIds, final Side side,
+                                                                 final TimeRange settledDateRange, final GroupBy groupBy, final boolean includeItemDescription, final int fromRecord, final int recordCount, final String appKeyString,
+                                                                 final RescriptResponseHandler rescriptResponseHandler) {
         final HashSet<ClearedOrderSummary> clearedOrderSummarySet = new HashSet<>(16, 0.75f); // empty in the beginning; its size will be used in the loop
         boolean moreAvailable;
         int counterWhile = 0;
         do {
-            int localFromRecord = fromRecord + clearedOrderSummarySet.size();
+            final int localFromRecord = fromRecord + clearedOrderSummarySet.size();
             final ClearedOrderSummaryReport clearedOrderSummaryReport =
                     listClearedOrdersReport(betStatus, eventTypeIds, eventIds, marketIds, runnerIds, betIds, side, settledDateRange, groupBy, includeItemDescription, localFromRecord, recordCount, appKeyString, rescriptResponseHandler);
 
             if (clearedOrderSummaryReport != null) {
-                clearedOrderSummarySet.addAll(clearedOrderSummaryReport.getClearedOrders());
-                moreAvailable = clearedOrderSummaryReport.isMoreAvailable();
+                final List<ClearedOrderSummary> clearedOrderSummaryList = clearedOrderSummaryReport.getClearedOrders();
+                if (clearedOrderSummaryList != null) {
+                    clearedOrderSummarySet.addAll(clearedOrderSummaryList);
+                } else {
+                    logger.error("null clearedOrderSummaryList in listCurrentOrders for: {}", Generic.objectToString(clearedOrderSummaryReport));
+                }
+                moreAvailable = clearedOrderSummaryReport.getMoreAvailable();
             } else {
                 if (Statics.mustStop.get() && Statics.needSessionToken.get()) { // normal to happen during program stop, if not logged in
                 } else {
@@ -158,9 +172,10 @@ public class ApiNgRescriptOperations {
         return clearedOrderSummarySet;
     }
 
-    public static ClearedOrderSummaryReport listClearedOrdersReport(final BetStatus betStatus, final Set<String> eventTypeIds, final Set<String> eventIds, final Set<String> marketIds, final Set<RunnerId> runnerIds, final Set<String> betIds, final Side side, final TimeRange settledDateRange,
-                                                                    final GroupBy groupBy, final boolean includeItemDescription, final int fromRecord, final int recordCount, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
-        final HashMap<String, Object> paramsHashMap = new HashMap<>(16, 0.75f);
+    private static ClearedOrderSummaryReport listClearedOrdersReport(final BetStatus betStatus, final Set<String> eventTypeIds, final Set<String> eventIds, final Set<String> marketIds, final Set<RunnerId> runnerIds, final Set<String> betIds,
+                                                                     final Side side, final TimeRange settledDateRange, final GroupBy groupBy, final boolean includeItemDescription, final int fromRecord, final int recordCount, final String appKeyString,
+                                                                     final RescriptResponseHandler rescriptResponseHandler) {
+        final Map<String, Object> paramsHashMap = new HashMap<>(16, 0.75f);
         paramsHashMap.put(BET_STATUS, betStatus);
         paramsHashMap.put(EVENT_TYPE_IDS, eventTypeIds);
         paramsHashMap.put(EVENT_IDS, eventIds);
@@ -174,81 +189,74 @@ public class ApiNgRescriptOperations {
         // paramsHashMap.put(LOCALE, localeString);
         paramsHashMap.put(FROM_RECORD, fromRecord);
         paramsHashMap.put(RECORD_COUNT, recordCount);
-        final String responseString = ApiNgRescriptOperations.makeRequest(ApiNgOperation.LISTCLEAREDORDERS.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
+        final String responseString = makeRequest(ApiNgOperation.LISTCLEAREDORDERS.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
         if (Statics.debugLevel.check(3, 201)) {
             logger.info("params: {} Response: {} timeStamp={}", Generic.objectToString(paramsHashMap, false, false), responseString, System.currentTimeMillis());
         }
 
-        final ClearedOrderSummaryReport containerClearedOrderSummaryReport = JsonConverter.convertFromJson(responseString, ClearedOrderSummaryReport.class);
-
-        return containerClearedOrderSummaryReport;
+        return JsonConverter.convertFromJson(responseString, ClearedOrderSummaryReport.class);
     }
 
     public static List<MarketTypeResult> listMarketTypes(final MarketFilter marketFilter, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
-        final HashMap<String, Object> paramsHashMap = new HashMap<>(4, 0.75f);
+        final Map<String, Object> paramsHashMap = new HashMap<>(4, 0.75f);
         paramsHashMap.put(FILTER, marketFilter);
-        final String responseString = ApiNgRescriptOperations.makeRequest(ApiNgOperation.LISTMARKETTYPES.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
+        final String responseString = makeRequest(ApiNgOperation.LISTMARKETTYPES.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
         if (Statics.debugLevel.check(3, 114)) {
             logger.info("params: {} Response: {} timeStamp={}", Generic.objectToString(paramsHashMap, false, false), responseString, System.currentTimeMillis());
         }
 
-        final List<MarketTypeResult> marketTypeResultList = JsonConverter.convertFromJson(responseString, new TypeToken<List<MarketTypeResult>>() {
+        return JsonConverter.convertFromJson(responseString, new TypeToken<List<MarketTypeResult>>() {
         }.getType());
-
-        return marketTypeResultList;
     }
 
+    @SuppressWarnings("unused")
     public static List<EventTypeResult> listEventTypes(final MarketFilter marketFilter, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
-        final HashMap<String, Object> paramsHashMap = new HashMap<>(4, 0.75f);
+        final Map<String, Object> paramsHashMap = new HashMap<>(4, 0.75f);
         paramsHashMap.put(FILTER, marketFilter);
-        final String responseString = ApiNgRescriptOperations.makeRequest(ApiNgOperation.LISTEVENTTYPES.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
+        final String responseString = makeRequest(ApiNgOperation.LISTEVENTTYPES.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
         if (Statics.debugLevel.check(3, 115)) {
             logger.info("params: {} Response: {} timeStamp={}", Generic.objectToString(paramsHashMap, false, false), responseString, System.currentTimeMillis());
         }
 
-        final List<EventTypeResult> containerEventTypeResult = JsonConverter.convertFromJson(responseString, new TypeToken<List<EventTypeResult>>() {
+        return JsonConverter.convertFromJson(responseString, new TypeToken<List<EventTypeResult>>() {
         }.getType());
-
-        return containerEventTypeResult;
     }
 
-    public static List<MarketBook> listMarketBook(final List<String> marketIdsList, final PriceProjection priceProjection, final OrderProjection orderProjection, final MatchProjection matchProjection, final String currencyCodeString, final String appKeyString,
-                                                  final RescriptResponseHandler rescriptResponseHandler) {
-        final HashMap<String, Object> paramsHashMap = new HashMap<>(8, 0.75f);
+    public static List<MarketBook> listMarketBook(final List<String> marketIdsList, final PriceProjection priceProjection, final OrderProjection orderProjection, final MatchProjection matchProjection, final String currencyCodeString,
+                                                  final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
+        final Map<String, Object> paramsHashMap = new HashMap<>(8, 0.75f);
         // paramsHashMap.put(LOCALE, localeString);
         paramsHashMap.put(MARKET_IDS, marketIdsList);
         paramsHashMap.put(PRICE_PROJECTION, priceProjection);
         paramsHashMap.put(ORDER_PROJECTION, orderProjection);
         paramsHashMap.put(MATCH_PROJECTION, matchProjection);
-        final String responseString = ApiNgRescriptOperations.makeRequest(ApiNgOperation.LISTMARKETBOOK.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
+        paramsHashMap.put(CURRENCY_CODE, currencyCodeString);
+        final String responseString = makeRequest(ApiNgOperation.LISTMARKETBOOK.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
         if (Statics.debugLevel.check(3, 116)) {
             logger.info("params: {} Response: {} timeStamp={}", Generic.objectToString(paramsHashMap, false, false), responseString, System.currentTimeMillis());
         }
 
-        final List<MarketBook> containerMarketBook = JsonConverter.convertFromJson(responseString, new TypeToken<List<MarketBook>>() {
+        return JsonConverter.convertFromJson(responseString, new TypeToken<List<MarketBook>>() {
         }.getType());
-
-        return containerMarketBook;
     }
 
     public static List<EventResult> listEvents(final MarketFilter marketFilter, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
-        final HashMap<String, Object> paramsHashMap = new HashMap<>(4, 0.75f);
+        final Map<String, Object> paramsHashMap = new HashMap<>(4, 0.75f);
         // paramsHashMap.put(LOCALE, localeString);
         paramsHashMap.put(FILTER, marketFilter); // mandatory
 
-        final String responseString = ApiNgRescriptOperations.makeRequest(ApiNgOperation.LISTEVENTS.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
+        final String responseString = makeRequest(ApiNgOperation.LISTEVENTS.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
         if (Statics.debugLevel.check(3, 117)) {
             logger.info("params: {} Response: {} timeStamp={}", Generic.objectToString(paramsHashMap, false, false), responseString, System.currentTimeMillis());
         }
 
-        final List<EventResult> eventResultsList = JsonConverter.convertFromJson(responseString, new TypeToken<List<EventResult>>() {
+        return JsonConverter.convertFromJson(responseString, new TypeToken<List<EventResult>>() {
         }.getType());
-
-        return eventResultsList;
     }
 
-    public static List<MarketCatalogue> listMarketCatalogue(final MarketFilter marketFilter, final Set<MarketProjection> marketProjectionsSet, final MarketSort marketSort, final int maxResults, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
-        final HashMap<String, Object> paramsHashMap = new HashMap<>(8, 0.75f);
+    public static List<MarketCatalogue> listMarketCatalogue(final MarketFilter marketFilter, final Set<MarketProjection> marketProjectionsSet, final MarketSort marketSort, final int maxResults, final String appKeyString,
+                                                            final RescriptResponseHandler rescriptResponseHandler) {
+        final Map<String, Object> paramsHashMap = new HashMap<>(8, 0.75f);
         // paramsHashMap.put(LOCALE, localeString);
         paramsHashMap.put(FILTER, marketFilter);
         if (marketSort != null) {
@@ -258,19 +266,18 @@ public class ApiNgRescriptOperations {
         if (marketProjectionsSet != null) {
             paramsHashMap.put(MARKET_PROJECTION, marketProjectionsSet);
         }
-        final String responseString = ApiNgRescriptOperations.makeRequest(ApiNgOperation.LISTMARKETCATALOGUE.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
+        final String responseString = makeRequest(ApiNgOperation.LISTMARKETCATALOGUE.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
         if (Statics.debugLevel.check(3, 118)) {
             logger.info("params: {} Response: {} timeStamp={}", Generic.objectToString(paramsHashMap, false, false), responseString, System.currentTimeMillis());
         }
 
-        final List<MarketCatalogue> containerMarketCatalogue = JsonConverter.convertFromJson(responseString, new TypeToken<List<MarketCatalogue>>() {
+        return JsonConverter.convertFromJson(responseString, new TypeToken<List<MarketCatalogue>>() {
         }.getType());
-
-        return containerMarketCatalogue;
     }
 
-    public static PlaceExecutionReport placeOrders(final String marketIdString, final List<PlaceInstruction> placeInstructionsList, final String customerRefString, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
-        final HashMap<String, Object> paramsHashMap = new HashMap<>(8, 0.75f);
+    @SuppressWarnings("WeakerAccess")
+    public static PlaceExecutionReport placeOrders(final String marketIdString, final Collection<PlaceInstruction> placeInstructionsList, final String customerRefString, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
+        final Map<String, Object> paramsHashMap = new HashMap<>(8, 0.75f);
         // paramsHashMap.put(LOCALE, localeString);
         paramsHashMap.put(MARKET_ID, marketIdString);
         paramsHashMap.put(INSTRUCTIONS, placeInstructionsList);
@@ -281,7 +288,7 @@ public class ApiNgRescriptOperations {
         } else {
             logger.error("null placeInstructionsList in placeOrders for: {}", marketIdString);
         }
-        final String responseString = ApiNgRescriptOperations.makeRequest(ApiNgOperation.PLACEORDERS.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
+        final String responseString = makeRequest(ApiNgOperation.PLACEORDERS.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
         if (Statics.debugLevel.check(3, 119)) {
             logger.info("params: {} Response: {} timeStamp={}", Generic.objectToString(paramsHashMap, false, false), responseString, System.currentTimeMillis());
         }
@@ -289,6 +296,7 @@ public class ApiNgRescriptOperations {
         return JsonConverter.convertFromJson(responseString, PlaceExecutionReport.class);
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static CancelExecutionReport cancelOrders(final String marketIdString, final List<CancelInstruction> cancelInstructionsList, final String customerRefString, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
         if (marketIdString == null || cancelInstructionsList == null) {
             logger.error("null marketIdString or cancelInstructionsList in cancelOrders for: {} {}", marketIdString, Generic.objectToString(cancelInstructionsList));
@@ -296,12 +304,12 @@ public class ApiNgRescriptOperations {
             logger.error("too many {} instructions in cancelInstructionsList for: {} {}", cancelInstructionsList.size(), marketIdString, Generic.objectToString(cancelInstructionsList));
         }
 
-        final HashMap<String, Object> paramsHashMap = new HashMap<>(8, 0.75f);
+        final Map<String, Object> paramsHashMap = new HashMap<>(8, 0.75f);
         // paramsHashMap.put(LOCALE, localeString);
         paramsHashMap.put(MARKET_ID, marketIdString);
         paramsHashMap.put(INSTRUCTIONS, cancelInstructionsList);
         paramsHashMap.put(CUSTOMER_REF, customerRefString);
-        final String responseString = ApiNgRescriptOperations.makeRequest(ApiNgOperation.CANCELORDERS.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
+        final String responseString = makeRequest(ApiNgOperation.CANCELORDERS.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
         if (Statics.debugLevel.check(3, 120)) {
             logger.info("params: {} Response: {} timeStamp={}", Generic.objectToString(paramsHashMap, false, false), responseString, System.currentTimeMillis());
         }
@@ -309,10 +317,11 @@ public class ApiNgRescriptOperations {
         return JsonConverter.convertFromJson(responseString, CancelExecutionReport.class);
     }
 
-    public static AccountFundsResponse getAccountFunds(final String appKeyString, final String ssoIdString, final RescriptAccountResponseHandler rescriptAccountResponseHandler) {
-        final HashMap<String, Object> paramsHashMap = new HashMap<>(2, 0.75f);
+    @SuppressWarnings("WeakerAccess")
+    public static AccountFundsResponse getAccountFunds(final String appKeyString, final ResponseHandler<String> rescriptAccountResponseHandler) {
+        final Map<String, Object> paramsHashMap = new HashMap<>(2, 0.75f);
 
-        final String responseString = ApiNgRescriptOperations.makeAccountRequest(ApiNgAccountOperation.GETACCOUNTFUNDS.getOperationName(), paramsHashMap, appKeyString, rescriptAccountResponseHandler);
+        final String responseString = makeAccountRequest(ApiNgAccountOperation.GETACCOUNTFUNDS.getOperationName(), paramsHashMap, appKeyString, rescriptAccountResponseHandler);
         if (Statics.debugLevel.check(3, 121)) {
             logger.info("params: {} Response: {} timeStamp={}", Generic.objectToString(paramsHashMap, false, false), responseString, System.currentTimeMillis());
         }
@@ -320,21 +329,20 @@ public class ApiNgRescriptOperations {
         return JsonConverter.convertFromJson(responseString, AccountFundsResponse.class);
     }
 
-    public static List<CurrencyRate> listCurrencyRates(final String appKeyString, final String ssoIdString, final RescriptAccountResponseHandler rescriptAccountResponseHandler) {
-        final HashMap<String, Object> paramsHashMap = new HashMap<>(2, 0.75f);
+    @SuppressWarnings("WeakerAccess")
+    public static List<CurrencyRate> listCurrencyRates(final String appKeyString, final ResponseHandler<String> rescriptAccountResponseHandler) {
+        final Map<String, Object> paramsHashMap = new HashMap<>(2, 0.75f);
 
-        final String responseString = ApiNgRescriptOperations.makeAccountRequest(ApiNgAccountOperation.LISTCURRENCYRATES.getOperationName(), paramsHashMap, appKeyString, rescriptAccountResponseHandler);
+        final String responseString = makeAccountRequest(ApiNgAccountOperation.LISTCURRENCYRATES.getOperationName(), paramsHashMap, appKeyString, rescriptAccountResponseHandler);
         if (Statics.debugLevel.check(3, 121)) {
             logger.info("params: {} Response: {} timeStamp={}", Generic.objectToString(paramsHashMap, false, false), responseString, System.currentTimeMillis());
         }
 
-        final List<CurrencyRate> containerCurrencyRate = JsonConverter.convertFromJson(responseString, new TypeToken<List<CurrencyRate>>() {
+        return JsonConverter.convertFromJson(responseString, new TypeToken<List<CurrencyRate>>() {
         }.getType());
-
-        return containerCurrencyRate;
     }
 
-    public static String makeRequest(final String operationString, final Map<String, Object> paramsMap, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
+    private static String makeRequest(final String operationString, @NotNull final Map<? super String, Object> paramsMap, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
         final String requestString;
         //Handling the Rescript request
         paramsMap.put("id", 1);
@@ -345,12 +353,10 @@ public class ApiNgRescriptOperations {
         }
 
         //We need to pass the "sendPostRequest" method a string in util format:  requestString
-        final String responseString = HttpUtil.sendPostRequestRescript(requestString, operationString, appKeyString, rescriptResponseHandler);
-
-        return responseString;
+        return HttpUtil.sendPostRequestRescript(requestString, operationString, appKeyString, rescriptResponseHandler);
     }
 
-    public static String makeAccountRequest(final String operationString, final Map<String, Object> paramsMap, final String appKeyString, final RescriptAccountResponseHandler rescriptAccountResponseHandler) {
+    private static String makeAccountRequest(final String operationString, @NotNull final Map<? super String, Object> paramsMap, final String appKeyString, final ResponseHandler<String> rescriptAccountResponseHandler) {
         final String requestString;
         //Handling the Rescript request
         paramsMap.put("id", 1);
@@ -361,8 +367,6 @@ public class ApiNgRescriptOperations {
         }
 
         //We need to pass the "sendPostRequest" method a string in util format:  requestString
-        final String responseString = HttpUtil.sendPostRequestAccountRescript(requestString, operationString, appKeyString, rescriptAccountResponseHandler);
-
-        return responseString;
+        return HttpUtil.sendPostRequestAccountRescript(requestString, operationString, appKeyString, rescriptAccountResponseHandler);
     }
 }

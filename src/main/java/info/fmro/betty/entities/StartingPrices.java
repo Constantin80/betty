@@ -1,5 +1,9 @@
 package info.fmro.betty.entities;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,56 +14,46 @@ public class StartingPrices
     private static final long serialVersionUID = -2616193533595542784L;
     private Double nearPrice;
     private Double farPrice;
-    private List<PriceSize> backStakeTaken;
-    private List<PriceSize> layLiabilityTaken;
+    private List<? extends PriceSize> backStakeTaken;
+    private List<? extends PriceSize> layLiabilityTaken;
     private Double actualSP;
 
+    @Contract(pure = true)
     public StartingPrices() {
     }
 
-    public StartingPrices(final Double nearPrice, final Double farPrice, final List<PriceSize> backStakeTaken, final List<PriceSize> layLiabilityTaken, final Double actualSP) {
+    @Contract(pure = true)
+    public StartingPrices(final Double nearPrice, final Double farPrice, @NotNull final List<? extends PriceSize> backStakeTaken, @NotNull final List<? extends PriceSize> layLiabilityTaken, final Double actualSP) {
         this.nearPrice = nearPrice;
         this.farPrice = farPrice;
-        this.backStakeTaken = backStakeTaken;
-        this.layLiabilityTaken = layLiabilityTaken;
+        this.backStakeTaken = new ArrayList<>(backStakeTaken);
+        this.layLiabilityTaken = new ArrayList<>(layLiabilityTaken);
         this.actualSP = actualSP;
     }
 
     public synchronized Double getNearPrice() {
-        return nearPrice;
+        return this.nearPrice;
     }
 
-    //    public synchronized void setNearPrice(Double nearPrice) {
-//        this.nearPrice = nearPrice;
-//    }
     public synchronized Double getFarPrice() {
-        return farPrice;
+        return this.farPrice;
     }
 
-    //    public synchronized void setFarPrice(Double farPrice) {
-//        this.farPrice = farPrice;
-//    }
+    @Nullable
     public synchronized List<PriceSize> getBackStakeTaken() {
-        return backStakeTaken == null ? null : new ArrayList<>(backStakeTaken);
+        return this.backStakeTaken == null ? null : new ArrayList<>(this.backStakeTaken);
     }
 
-    //    public synchronized void setBackStakeTaken(List<PriceSize> backStakeTaken) {
-//        this.backStakeTaken = backStakeTaken == null ? null : new ArrayList<>(backStakeTaken);
-//    }
+    @Nullable
     public synchronized List<PriceSize> getLayLiabilityTaken() {
-        return layLiabilityTaken == null ? null : new ArrayList<>(layLiabilityTaken);
+        return this.layLiabilityTaken == null ? null : new ArrayList<>(this.layLiabilityTaken);
     }
 
-    //    public synchronized void setLayLiabilityTaken(List<PriceSize> layLiabilityTaken) {
-//        this.layLiabilityTaken = layLiabilityTaken == null ? null : new ArrayList<>(layLiabilityTaken);
-//    }
     public synchronized Double getActualSP() {
-        return actualSP;
+        return this.actualSP;
     }
 
-    //    public synchronized void setActualSP(Double actualSP) {
-//        this.actualSP = actualSP;
-//    }
+    @SuppressWarnings("NonFinalFieldReferencedInHashCode")
     @Override
     public synchronized int hashCode() {
         int hash = 3;
@@ -71,8 +65,9 @@ public class StartingPrices
         return hash;
     }
 
+    @SuppressWarnings("NonFinalFieldReferenceInEquals")
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (this == obj) {
             return true;

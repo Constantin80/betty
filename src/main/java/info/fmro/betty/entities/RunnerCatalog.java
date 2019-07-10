@@ -1,5 +1,9 @@
 package info.fmro.betty.entities;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,54 +18,43 @@ public class RunnerCatalog
     private Integer sortPriority;
     private Map<String, String> metadata;
 
+    @Contract(pure = true)
     public RunnerCatalog() {
     }
 
-    public RunnerCatalog(final Long selectionId, final String runnerName, final Double handicap, final Integer sortPriority, final Map<String, String> metadata) {
+    @Contract(pure = true)
+    public RunnerCatalog(final Long selectionId, final String runnerName, final Double handicap, final Integer sortPriority, @NotNull final Map<String, String> metadata) {
         this.selectionId = selectionId;
         this.runnerName = runnerName;
         this.handicap = handicap;
         this.sortPriority = sortPriority;
-        this.metadata = metadata;
+        this.metadata = new HashMap<>(metadata);
     }
 
     public synchronized Long getSelectionId() {
         return this.selectionId;
     }
 
-    //    public synchronized void setSelectionId(Long selectionId) {
-//        this.selectionId = selectionId;
-//    }
     public synchronized String getRunnerName() {
         return this.runnerName;
     }
 
-    //    public synchronized void setRunnerName(String runnerName) {
-//        this.runnerName = runnerName;
-//    }
     public synchronized Double getHandicap() {
         return this.handicap;
     }
 
-    //    public synchronized void setHandicap(Double handicap) {
-//        this.handicap = handicap;
-//    }
     public synchronized Integer getSortPriority() {
         return this.sortPriority;
     }
 
-    //    public synchronized void setSortPriority(Integer sortPriority) {
-//        this.sortPriority = sortPriority;
-//    }
+    @Nullable
     public synchronized Map<String, String> getMetadata() {
-        return metadata == null ? null : new HashMap<>(metadata);
+        return this.metadata == null ? null : new HashMap<>(this.metadata);
     }
 
-    //    public synchronized void setMetadata(Map<String, String> metadata) {
-//        this.metadata = metadata == null ? null : new HashMap<>(metadata);
-//    }
+    @SuppressWarnings("NonFinalFieldReferenceInEquals")
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
@@ -76,30 +69,15 @@ public class RunnerCatalog
         if (!Objects.equals(this.selectionId, other.selectionId)) {
             return false;
         }
-//        if (!Objects.equals(this.runnerName, other.runnerName)) {
-//            return false;
-//        }
-        if (!Objects.equals(this.handicap, other.handicap)) {
-            return false;
-        }
-//        if (!Objects.equals(this.sortPriority, other.sortPriority)) {
-//            return false;
-//        }
-//        if (!Objects.equals(this.metadata, other.metadata)) {
-//            return false;
-//        }
-
-        return true;
+        return Objects.equals(this.handicap, other.handicap);
     }
 
+    @SuppressWarnings("NonFinalFieldReferencedInHashCode")
     @Override
     public synchronized int hashCode() {
         int hash = 7;
         hash = 97 * hash + Objects.hashCode(this.selectionId);
-//        hash = 97 * hash + Objects.hashCode(this.runnerName);
         hash = 97 * hash + Objects.hashCode(this.handicap);
-//        hash = 97 * hash + Objects.hashCode(this.sortPriority);
-//        hash = 97 * hash + Objects.hashCode(this.metadata);
         return hash;
     }
 }

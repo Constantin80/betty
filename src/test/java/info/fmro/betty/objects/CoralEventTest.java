@@ -10,7 +10,8 @@ public class CoralEventTest
         extends ApiDefault {
     @Test
     void updateSeconds() {
-        CoralEvent instance = new CoralEvent(0L, 1L), secondInstance = new CoralEvent(0L, 1L);
+        final CoralEvent instance = new CoralEvent(0L, 1L);
+        final CoralEvent secondInstance = new CoralEvent(0L, 1L);
         int result = instance.update(secondInstance);
         int expResult = 0;
         assertEquals(expResult, result, "first");
@@ -23,14 +24,14 @@ public class CoralEventTest
 
     @Test
     void setMatchStatus() {
-        CoralEvent instance = new CoralEvent(0L, 1L);
+        final CoralEvent instance = new CoralEvent(0L, 1L);
         instance.setHomeScore(1);
         instance.setHomeTeam("a");
         instance.setAwayScore(2);
         instance.setAwayTeam("b");
         instance.setMatchStatus(MatchStatus.HALF_TIME);
-        long result = instance.errors();
-        long expResult = 0L;
+        final long result = instance.errors();
+        final long expResult = 0L;
         assertEquals(expResult, result, "first");
 //
 //        secondInstance.setSeconds(3);

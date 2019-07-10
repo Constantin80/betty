@@ -13,11 +13,8 @@ public class StatusMessage
     private String errorMessage; // Additional message in case of a failure
     private StatusCode statusCode; // The status of the last request
 
-    public StatusMessage() {
-    }
-
     public synchronized Boolean getConnectionClosed() {
-        return connectionClosed;
+        return this.connectionClosed;
     }
 
     public synchronized void setConnectionClosed(final Boolean connectionClosed) {
@@ -25,7 +22,7 @@ public class StatusMessage
     }
 
     public synchronized String getConnectionId() {
-        return connectionId;
+        return this.connectionId;
     }
 
     public synchronized void setConnectionId(final String connectionId) {
@@ -33,7 +30,7 @@ public class StatusMessage
     }
 
     public synchronized ErrorCode getErrorCode() {
-        return errorCode;
+        return this.errorCode;
     }
 
     public synchronized void setErrorCode(final ErrorCode errorCode) {
@@ -41,7 +38,7 @@ public class StatusMessage
     }
 
     public synchronized String getErrorMessage() {
-        return errorMessage;
+        return this.errorMessage;
     }
 
     public synchronized void setErrorMessage(final String errorMessage) {
@@ -49,7 +46,7 @@ public class StatusMessage
     }
 
     public synchronized StatusCode getStatusCode() {
-        return statusCode;
+        return this.statusCode;
     }
 
     public synchronized void setStatusCode(final StatusCode statusCode) {

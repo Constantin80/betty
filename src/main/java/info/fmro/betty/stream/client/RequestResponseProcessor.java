@@ -26,6 +26,7 @@ import info.fmro.betty.stream.protocol.MixInResponseMessage;
 import info.fmro.betty.stream.protocol.RequestResponse;
 import info.fmro.betty.stream.protocol.SubscriptionHandler;
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -55,9 +57,11 @@ public class RequestResponseProcessor
     private final HashSet<String> marketsSet;
 
     //subscription handlers
+    @Nullable
     private SubscriptionHandler<MarketSubscriptionMessage, ChangeMessage<MarketChange>, MarketChange> marketSubscriptionHandler;
+    @Nullable
     private SubscriptionHandler<OrderSubscriptionMessage, ChangeMessage<OrderMarketChange>, OrderMarketChange> orderSubscriptionHandler;
-    private Map<Integer, Long> previousIds = new HashMap<>(1);
+    private final Map<Integer, Long> previousIds = new HashMap<>(1);
 
     private ConnectionStatus status = ConnectionStatus.STOPPED;
 //    private CopyOnWriteArrayList<ConnectionStatusListener> connectionStatusListeners = new CopyOnWriteArrayList<>();
@@ -70,81 +74,81 @@ public class RequestResponseProcessor
 
     public RequestResponseProcessor(final Client client) {
         this.client = client;
-        marketsSet = new HashSet<>();
-        objectMapper = new ObjectMapper();
-        objectMapper.addMixIn(ResponseMessage.class, MixInResponseMessage.class);
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        this.marketsSet = new HashSet<>();
+        this.objectMapper = new ObjectMapper();
+        this.objectMapper.addMixIn(ResponseMessage.class, MixInResponseMessage.class);
+        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 //        tasksMaintenance = Executors.newSingleThreadScheduledExecutor();
     }
 
     public synchronized boolean hasValidHandler() {
-        return marketSubscriptionHandler != null || orderSubscriptionHandler != null;
+        return this.marketSubscriptionHandler != null || this.orderSubscriptionHandler != null;
     }
 
     public synchronized int nMarkets() {
-        return marketsSet.size();
+        return this.marketsSet.size();
     }
 
     public synchronized HashSet<String> getMarketsSet() {
-        final HashSet<String> returnValue;
-        if (marketsSet == null) {
-            logger.error("[{}]null marketsSet in processor", client.id);
+        @Nullable final HashSet<String> returnValue;
+        if (this.marketsSet == null) {
+            logger.error("[{}]null marketsSet in processor", this.client.id);
             returnValue = null;
         } else {
-            returnValue = new HashSet<>(marketsSet);
+            returnValue = new HashSet<>(this.marketsSet);
         }
 
-        return marketsSet;
+        return this.marketsSet;
     }
 
     public synchronized boolean setMarketsSet(final Collection<String> markets) {
         final int newSize = markets.size();
         final boolean modified;
         if (newSize <= 1000) {
-            marketsSet.clear();
-            marketsSet.addAll(markets);
+            this.marketsSet.clear();
+            this.marketsSet.addAll(markets);
             modified = true;
         } else {
-            logger.error("[{}]trying to set too many markets: {}", client.id, newSize);
+            logger.error("[{}]trying to set too many markets: {}", this.client.id, newSize);
             modified = false;
         }
         if (modified) {
-            marketSubscription(ClientCommands.createMarketSubscriptionMessage(client, getMarketsSet()));
+            marketSubscription(ClientCommands.createMarketSubscriptionMessage(this.client, getMarketsSet()));
         }
         return modified;
     }
 
     private synchronized void removeMarketsFromSet(final int nMarkets) {
         if (nMarkets > 0) {
-            final ArrayList<String> list = new ArrayList<>(marketsSet);
+            final ArrayList<String> list = new ArrayList<>(this.marketsSet);
             final int listSize = list.size();
             final List<String> subList;
             if (nMarkets < listSize) {
                 subList = list.subList(0, nMarkets - 1);
             } else {
-                logger.error("[{}]bad nMarkets: {} {}", client.id, nMarkets, listSize);
+                logger.error("[{}]bad nMarkets: {} {}", this.client.id, nMarkets, listSize);
                 subList = list;
             }
             subList.clear();
 
-            logger.info("[{}]removing {} markets from stream: before: {} after: {}", client.id, nMarkets, nMarkets(), list.size());
+            logger.info("[{}]removing {} markets from stream: before: {} after: {}", this.client.id, nMarkets, nMarkets(), list.size());
             setMarketsSet(list);
-            ClientHandler.modifiedLists.add(client.id);
+            ClientHandler.modifiedLists.add(this.client.id);
         } else {
-            logger.error("[{}]bad nMarkets: {}", client.id, nMarkets);
+            logger.error("[{}]bad nMarkets: {}", this.client.id, nMarkets);
         }
     }
 
     private synchronized void successfulAuth() {
         setStatus(ConnectionStatus.AUTHENTICATED);
-        client.isAuth.set(true);
+        this.client.isAuth.set(true);
     }
 
     private synchronized void setStatus(final ConnectionStatus value) {
-        if (value == status) { //no-op
+        if (value == this.status) { //no-op
         } else {
-            logger.info("[{}]ESAClient: Status changed {} -> {}", client.id, status, value);
-            status = value;
+            logger.info("[{}]ESAClient: Status changed {} -> {}", this.client.id, this.status, value);
+            this.status = value;
 
 //            final ConnectionStatusChangeEvent args = new ConnectionStatusChangeEvent(this, status, value);
 //            dispatchConnectionStatusChange(args);
@@ -152,7 +156,7 @@ public class RequestResponseProcessor
     }
 
     public synchronized ConnectionStatus getStatus() {
-        return status;
+        return this.status;
     }
 
 //    private synchronized void dispatchConnectionStatusChange(ConnectionStatusChangeEvent args) {
@@ -164,20 +168,20 @@ public class RequestResponseProcessor
 //    }
 
     public synchronized int getTraceChangeTruncation() {
-        return traceChangeTruncation;
+        return this.traceChangeTruncation;
     }
 
     public synchronized void setTraceChangeTruncation(final int traceChangeTruncation) {
         this.traceChangeTruncation = traceChangeTruncation;
-        logger.info("[{}]stream processor messages will be truncated to size: {}", client.id, this.traceChangeTruncation);
+        logger.info("[{}]stream processor messages will be truncated to size: {}", this.client.id, this.traceChangeTruncation);
     }
 
     public synchronized long getLastRequestTime() {
-        return lastRequestTime;
+        return this.lastRequestTime;
     }
 
     public synchronized long getLastResponseTime() {
-        return lastResponseTime;
+        return this.lastResponseTime;
     }
 
     private synchronized void resetProcessor() {
@@ -186,11 +190,11 @@ public class RequestResponseProcessor
         tasksMaintenance();
 //        resetConnectionMessage();
 
-        final Collection<RequestResponse> tasksValuesCopy = new ArrayList<>(tasks.values());
-        tasks.clear(); // can be refilled by this method
+        final Iterable<RequestResponse> tasksValuesCopy = new ArrayList<>(this.tasks.values());
+        this.tasks.clear(); // can be refilled by this method
 
         final long currentTime = System.currentTimeMillis();
-        for (RequestResponse task : tasksValuesCopy) {
+        for (final RequestResponse task : tasksValuesCopy) {
 //            final RequestOperationType operationType = task.getRequestOperationType();
 //            final RequestMessage requestMessage = task.getRequest();
             final int taskId = task.getId();
@@ -214,28 +218,29 @@ public class RequestResponseProcessor
     }
 
     public synchronized void stopped() {
-        marketSubscriptionHandler = null;
-        orderSubscriptionHandler = null;
+        this.marketSubscriptionHandler = null;
+        this.orderSubscriptionHandler = null;
         setStatus(ConnectionStatus.STOPPED);
         resetProcessor();
     }
 
+    @Nullable
     public synchronized MarketSubscriptionMessage getMarketResubscribeMessage() {
-        if (marketSubscriptionHandler != null) {
-            final MarketSubscriptionMessage resub = marketSubscriptionHandler.getSubscriptionMessage();
-            resub.setInitialClk(marketSubscriptionHandler.getInitialClk());
-            resub.setClk(marketSubscriptionHandler.getClk());
+        if (this.marketSubscriptionHandler != null) {
+            final MarketSubscriptionMessage resub = this.marketSubscriptionHandler.getSubscriptionMessage();
+            resub.setInitialClk(this.marketSubscriptionHandler.getInitialClk());
+            resub.setClk(this.marketSubscriptionHandler.getClk());
             return resub;
         }
         return null;
     }
 
     public synchronized OrderSubscriptionMessage getOrderResubscribeMessage() {
-        final OrderSubscriptionMessage resub;
-        if (orderSubscriptionHandler != null) {
-            resub = orderSubscriptionHandler.getSubscriptionMessage();
-            resub.setInitialClk(orderSubscriptionHandler.getInitialClk());
-            resub.setClk(orderSubscriptionHandler.getClk());
+        @Nullable final OrderSubscriptionMessage resub;
+        if (this.orderSubscriptionHandler != null) {
+            resub = this.orderSubscriptionHandler.getSubscriptionMessage();
+            resub.setInitialClk(this.orderSubscriptionHandler.getInitialClk());
+            resub.setClk(this.orderSubscriptionHandler.getClk());
         } else {
             resub = null;
         }
@@ -248,7 +253,7 @@ public class RequestResponseProcessor
             //Resub markets
             final MarketSubscriptionMessage marketSubscriptionMessage = getMarketResubscribeMessage();
             if (marketSubscriptionMessage != null) {
-                logger.info("[{}]Resubscribe to market subscription.", client.id);
+                logger.info("[{}]Resubscribe to market subscription.", this.client.id);
 //                ClientCommands.createMarketSubscriptionMessage(client, marketSubscriptionMessage);
                 marketSubscription(marketSubscriptionMessage);
             }
@@ -259,7 +264,7 @@ public class RequestResponseProcessor
             //Resub orders
             final OrderSubscriptionMessage orderSubscriptionMessage = getOrderResubscribeMessage();
             if (orderSubscriptionMessage != null) {
-                logger.info("[{}]Resubscribe to order subscription.", client.id);
+                logger.info("[{}]Resubscribe to order subscription.", this.client.id);
 //                ClientCommands.createOrderSubscriptionMessage(client, orderSubscriptionMessage);
                 orderSubscription(orderSubscriptionMessage);
             }
@@ -287,29 +292,29 @@ public class RequestResponseProcessor
 //    }
 
     public synchronized SubscriptionHandler<MarketSubscriptionMessage, ChangeMessage<MarketChange>, MarketChange> getMarketSubscriptionHandler() {
-        return marketSubscriptionHandler;
+        return this.marketSubscriptionHandler;
     }
 
     public synchronized void setMarketSubscriptionHandler(final SubscriptionHandler<MarketSubscriptionMessage, ChangeMessage<MarketChange>, MarketChange> newHandler) {
-        if (marketSubscriptionHandler != null) {
-            marketSubscriptionHandler.cancel();
+        if (this.marketSubscriptionHandler != null) {
+            this.marketSubscriptionHandler.cancel();
         }
-        marketSubscriptionHandler = newHandler;
-        if (marketSubscriptionHandler != null) {
+        this.marketSubscriptionHandler = newHandler;
+        if (this.marketSubscriptionHandler != null) {
             setStatus(ConnectionStatus.SUBSCRIBED);
         }
     }
 
     public synchronized SubscriptionHandler<OrderSubscriptionMessage, ChangeMessage<OrderMarketChange>, OrderMarketChange> getOrderSubscriptionHandler() {
-        return orderSubscriptionHandler;
+        return this.orderSubscriptionHandler;
     }
 
     public synchronized void setOrderSubscriptionHandler(final SubscriptionHandler<OrderSubscriptionMessage, ChangeMessage<OrderMarketChange>, OrderMarketChange> newHandler) {
-        if (orderSubscriptionHandler != null) {
-            orderSubscriptionHandler.cancel();
+        if (this.orderSubscriptionHandler != null) {
+            this.orderSubscriptionHandler.cancel();
         }
-        orderSubscriptionHandler = newHandler;
-        if (orderSubscriptionHandler != null) {
+        this.orderSubscriptionHandler = newHandler;
+        if (this.orderSubscriptionHandler != null) {
             setStatus(ConnectionStatus.SUBSCRIBED);
         }
     }
@@ -325,11 +330,11 @@ public class RequestResponseProcessor
 
     public synchronized void keepAliveCheck() {
         if (getStatus() == ConnectionStatus.SUBSCRIBED) { //connection looks up
-            if (getLastRequestTime() + client.keepAliveHeartbeat < System.currentTimeMillis()) { //send a heartbeat to server to keep networks open
-                logger.info("[{}]Last Request Time is longer than {}: Sending Keep Alive Heartbeat", client.id, client.keepAliveHeartbeat);
+            if (getLastRequestTime() + this.client.keepAliveHeartbeat < System.currentTimeMillis()) { //send a heartbeat to server to keep networks open
+                logger.info("[{}]Last Request Time is longer than {}: Sending Keep Alive Heartbeat", this.client.id, this.client.keepAliveHeartbeat);
                 heartbeat();
-            } else if (getLastResponseTime() + client.timeout < System.currentTimeMillis()) {
-                logger.info("[{}]Last Response Time is longer than timeout {}: Sending Keep Alive Heartbeat", client.id, client.timeout);
+            } else if (getLastResponseTime() + this.client.timeout < System.currentTimeMillis()) {
+                logger.info("[{}]Last Response Time is longer than timeout {}: Sending Keep Alive Heartbeat", this.client.id, this.client.timeout);
                 heartbeat();
             }
         }
@@ -384,26 +389,26 @@ public class RequestResponseProcessor
         final RequestResponse requestResponse = new RequestResponse(message, onSuccess);
 
         //store a future task
-        tasks.put(messageId, requestResponse);
+        this.tasks.put(messageId, requestResponse);
 
         //serialize message & send
         String line = null;
         try {
-            line = objectMapper.writeValueAsString(message);
+            line = this.objectMapper.writeValueAsString(message);
         } catch (JsonProcessingException e) {
             //should never happen
-            logger.error("[{}]Failed to marshall json: {}", client.id, Generic.objectToString(message), e);
+            logger.error("[{}]Failed to marshall json: {}", this.client.id, Generic.objectToString(message), e);
         }
-        logger.info("[{}]Client->ESA: {}", client.id, line);
+        logger.info("[{}]Client->ESA: {}", this.client.id, line);
 
         if (isAuthLine) {
-            client.writerThread.setAuthLine(line);
+            this.client.writerThread.setAuthLine(line);
         } else {
-            client.writerThread.addLine(line);
+            this.client.writerThread.addLine(line);
         }
 
         //time
-        lastRequestTime = System.currentTimeMillis();
+        this.lastRequestTime = System.currentTimeMillis();
 //        return requestResponse.getFuture();
 
         tasksMaintenance();
@@ -422,7 +427,7 @@ public class RequestResponseProcessor
     }
 
     private synchronized void setMessageId(final RequestMessage msg) {
-        final int id = nextId.incrementAndGet();
+        final int id = this.nextId.incrementAndGet();
         msg.setId(id);
     }
 
@@ -436,20 +441,20 @@ public class RequestResponseProcessor
         //clear last response
         ResponseMessage message = null;
         try {
-            message = objectMapper.readValue(line, ResponseMessage.class);
+            message = this.objectMapper.readValue(line, ResponseMessage.class);
         } catch (IOException e) {
-            logger.error("[{}]IOException in receiveLine: {}", client.id, line, e);
+            logger.error("[{}]IOException in receiveLine: {}", this.client.id, line, e);
 //            e.printStackTrace();
         }
-        lastResponseTime = System.currentTimeMillis();
+        this.lastResponseTime = System.currentTimeMillis();
         if (message != null) {
             switch (message.getOp()) {
                 case connection:
-                    logger.info("[{}]ESA->Client: {}", client.id, line);
+                    logger.info("[{}]ESA->Client: {}", this.client.id, line);
                     processConnectionMessage((ConnectionMessage) message);
                     break;
                 case status:
-                    logger.info("[{}]ESA->Client: {}", client.id, line);
+                    logger.info("[{}]ESA->Client: {}", this.client.id, line);
                     processStatusMessage((StatusMessage) message);
                     break;
                 case mcm:
@@ -461,7 +466,7 @@ public class RequestResponseProcessor
                     processOrderChangeMessage((OrderChangeMessage) message);
                     break;
                 default:
-                    logger.error("[{}]ESA->Client: Unknown message type: {}, message:{}", client.id, message.getOp(), line);
+                    logger.error("[{}]ESA->Client: Unknown message type: {}, message:{}", this.client.id, message.getOp(), line);
                     break;
             }
         } else { // message null, error was already printed, nothing to be done
@@ -470,8 +475,8 @@ public class RequestResponseProcessor
     }
 
     private synchronized void traceChange(final String line) {
-        if (traceChangeTruncation != 0) {
-            logger.info("[{}]ESA->Client: {}", client.id, line.substring(0, Math.min(traceChangeTruncation, line.length())));
+        if (this.traceChangeTruncation != 0) {
+            logger.info("[{}]ESA->Client: {}", this.client.id, line.substring(0, Math.min(this.traceChangeTruncation, line.length())));
         }
     }
 
@@ -481,11 +486,11 @@ public class RequestResponseProcessor
             ClientHandler.threadsWithOcmCommandReceived.getAndIncrement();
         }
 
-        ChangeMessage<OrderMarketChange> change = ChangeMessageFactory.ToChangeMessage(client.id, message);
-        if (orderSubscriptionHandler == null) {
-            logger.error("[{}]null orderSubscriptionHandler for: {}", client.id, Generic.objectToString(message, "mc"));
+        ChangeMessage<OrderMarketChange> change = ChangeMessageFactory.ToChangeMessage(this.client.id, message);
+        if (this.orderSubscriptionHandler == null) {
+            logger.error("[{}]null orderSubscriptionHandler for: {}", this.client.id, Generic.objectToString(message, "mc"));
         } else {
-            change = orderSubscriptionHandler.processChangeMessage(change);
+            change = this.orderSubscriptionHandler.processChangeMessage(change);
             if (change != null) {
                 Statics.orderCache.onOrderChange(change);
             }
@@ -498,27 +503,27 @@ public class RequestResponseProcessor
             ClientHandler.threadsWithMcmCommandReceived.getAndIncrement();
         }
 
-        ChangeMessage<MarketChange> change = ChangeMessageFactory.ToChangeMessage(client.id, message);
+        ChangeMessage<MarketChange> change = ChangeMessageFactory.ToChangeMessage(this.client.id, message);
         final int id = message.getId();
-        if (marketSubscriptionHandler == null) {
+        if (this.marketSubscriptionHandler == null) {
             if (isIdRecentlyRemoved(id)) {
-                logger.info("[{}]null marketSubscriptionHandler for: {}", client.id, id);
+                logger.info("[{}]null marketSubscriptionHandler for: {}", this.client.id, id);
             } else {
-                logger.error("[{}]null marketSubscriptionHandler for: {}", client.id, Generic.objectToString(message, "mc"));
+                logger.error("[{}]null marketSubscriptionHandler for: {}", this.client.id, Generic.objectToString(message, "mc"));
             }
         } else {
-            final int handlerId = marketSubscriptionHandler.getSubscriptionId();
+            final int handlerId = this.marketSubscriptionHandler.getSubscriptionId();
             if (handlerId == id) {
-                change = marketSubscriptionHandler.processChangeMessage(change);
+                change = this.marketSubscriptionHandler.processChangeMessage(change);
 
                 if (change != null) {
                     Statics.marketCache.onMarketChange(change);
                 }
             } else {
                 if (isIdRecentlyRemoved(id)) {
-                    logger.info("[{}]obsolete marketSubscriptionHandler attempt for: {}", client.id, id);
+                    logger.info("[{}]obsolete marketSubscriptionHandler attempt for: {}", this.client.id, id);
                 } else {
-                    logger.error("[{}]obsolete marketSubscriptionHandler attempt for: {}", client.id, Generic.objectToString(message, "mc"));
+                    logger.error("[{}]obsolete marketSubscriptionHandler attempt for: {}", this.client.id, Generic.objectToString(message, "mc"));
                 }
             }
         }
@@ -530,15 +535,15 @@ public class RequestResponseProcessor
             //async status / status for a message that couldn't be decoded
             final StatusCode statusCode = statusMessage.getStatusCode();
             if (statusCode == StatusCode.SUCCESS) {
-                logger.error("[{}]{} in Error Status Notification: {}", client.id, statusCode, Generic.objectToString(statusMessage));
+                logger.error("[{}]{} in Error Status Notification: {}", this.client.id, statusCode, Generic.objectToString(statusMessage));
             } else if (statusCode == StatusCode.FAILURE) {
                 final ErrorCode errorCode = statusMessage.getErrorCode();
                 switch (errorCode) {
                     case TIMEOUT:
                         if (Statics.needSessionToken.get() || Statics.sessionTokenObject.isRecent()) {
-                            logger.info("{} Error Status Notification in streamClient[{}]: {}", errorCode, client.id, Generic.objectToString(statusMessage));
+                            logger.info("{} Error Status Notification in streamClient[{}]: {}", errorCode, this.client.id, Generic.objectToString(statusMessage));
                         } else {
-                            logger.error("{} Error Status Notification in streamClient[{}]: {}", errorCode, client.id, Generic.objectToString(statusMessage));
+                            logger.error("{} Error Status Notification in streamClient[{}]: {}", errorCode, this.client.id, Generic.objectToString(statusMessage));
                         }
                         break;
                     case NOT_AUTHORIZED:
@@ -546,7 +551,7 @@ public class RequestResponseProcessor
                     case INVALID_APP_KEY:
                     case NO_SESSION:
                     case INVALID_SESSION_INFORMATION:
-                        logger.info("{}, Error Status Notification needSessionToken[{}]: {}", errorCode, client.id, Generic.objectToString(statusMessage));
+                        logger.info("{}, Error Status Notification needSessionToken[{}]: {}", errorCode, this.client.id, Generic.objectToString(statusMessage));
                         Statics.needSessionToken.set(true);
                         break;
                     case INVALID_CLOCK:
@@ -556,24 +561,24 @@ public class RequestResponseProcessor
                     case SUBSCRIPTION_LIMIT_EXCEEDED:
                     case CONNECTION_FAILED:
                     case MAX_CONNECTION_LIMIT_EXCEEDED:
-                        logger.error("{} Error Status Notification in streamClient[{}]: {}", errorCode, client.id, Generic.objectToString(statusMessage));
+                        logger.error("{} Error Status Notification in streamClient[{}]: {}", errorCode, this.client.id, Generic.objectToString(statusMessage));
                         break;
                     default:
-                        logger.error("[{}]unknown errorCode {} Error Status Notification for: {}", client.id, errorCode, Generic.objectToString(statusMessage));
+                        logger.error("[{}]unknown errorCode {} Error Status Notification for: {}", this.client.id, errorCode, Generic.objectToString(statusMessage));
                         break;
                 }
             } else { // includes null
-                logger.error("[{}]unknown StatusCode {} in Error Status Notification: {}", client.id, statusCode, Generic.objectToString(statusMessage));
+                logger.error("[{}]unknown StatusCode {} in Error Status Notification: {}", this.client.id, statusCode, Generic.objectToString(statusMessage));
             }
-            logger.error("[{}]Error Status Notification: {}", client.id, Generic.objectToString(statusMessage));
+            logger.error("[{}]Error Status Notification: {}", this.client.id, Generic.objectToString(statusMessage));
         } else {
-            final RequestResponse task = tasks.get(id);
+            final RequestResponse task = this.tasks.get(id);
             if (task == null) {
                 //shouldn't happen
                 if (isIdRecentlyRemoved(id)) {
-                    logger.info("[{}]Status Notification with no task: {}", client.id, id);
+                    logger.info("[{}]Status Notification with no task: {}", this.client.id, id);
                 } else {
-                    logger.error("[{}]Status Notification with no task: {}", client.id, Generic.objectToString(statusMessage));
+                    logger.error("[{}]Status Notification with no task: {}", this.client.id, Generic.objectToString(statusMessage));
                 }
             } else {
                 //unwind task
@@ -589,7 +594,7 @@ public class RequestResponseProcessor
 
     private synchronized boolean isIdRecentlyRemoved(final int id, final long recentPeriod) {
         final boolean isRecent;
-        final Long storedValue = previousIds.get(id);
+        final Long storedValue = this.previousIds.get(id);
         if (storedValue == null) {
             isRecent = false;
         } else {
@@ -609,22 +614,22 @@ public class RequestResponseProcessor
     private synchronized void processConnectionMessage(final ConnectionMessage message) {
 //        connectionMessage.setResponse(message);
         setStatus(ConnectionStatus.CONNECTED);
-        client.streamIsConnected.set(true);
+        this.client.streamIsConnected.set(true);
     }
 
     private synchronized void tasksMaintenance() {
-        if (!tasks.isEmpty()) {
-            final HashSet<Integer> idsToRemove = new HashSet<>();
+        if (!this.tasks.isEmpty()) {
+            final Collection<Integer> idsToRemove = new HashSet<>();
             int lastHeartbeat = 0, lastAuth = 0, lastOrderSub = 0, lastMarketSub = 0;
-            for (Integer id : tasks.keySet()) {
+            for (final Integer id : this.tasks.keySet()) {
                 if (id == null) {
-                    logger.error("[{}]null key in tasks", client.id);
+                    logger.error("[{}]null key in tasks", this.client.id);
                     idsToRemove.add(id);
                 } else if (id <= 0) {
-                    logger.error("[{}]wrong value key in tasks: {} {}", client.id, id, Generic.objectToString(tasks.get(id)));
+                    logger.error("[{}]wrong value key in tasks: {} {}", this.client.id, id, Generic.objectToString(this.tasks.get(id)));
                     idsToRemove.add(id);
                 } else {
-                    final RequestResponse task = tasks.get(id);
+                    final RequestResponse task = this.tasks.get(id);
                     final RequestOperationType operationType = task.getRequestOperationType();
                     switch (operationType) {
                         case heartbeat:
@@ -636,7 +641,7 @@ public class RequestResponseProcessor
                                 idsToRemove.add(lastHeartbeat);
                                 lastHeartbeat = id;
                             } else {
-                                logger.error("[{}]this branch should never be reached: {} {}", client.id, lastHeartbeat, id);
+                                logger.error("[{}]this branch should never be reached: {} {}", this.client.id, lastHeartbeat, id);
                             }
                             break;
                         case authentication:
@@ -648,7 +653,7 @@ public class RequestResponseProcessor
                                 idsToRemove.add(lastAuth);
                                 lastAuth = id;
                             } else {
-                                logger.error("[{}]this branch should never be reached: {} {}", client.id, lastAuth, id);
+                                logger.error("[{}]this branch should never be reached: {} {}", this.client.id, lastAuth, id);
                             }
                             break;
                         case orderSubscription:
@@ -660,7 +665,7 @@ public class RequestResponseProcessor
                                 idsToRemove.add(lastOrderSub);
                                 lastOrderSub = id;
                             } else {
-                                logger.error("[{}]this branch should never be reached: {} {}", client.id, lastOrderSub, id);
+                                logger.error("[{}]this branch should never be reached: {} {}", this.client.id, lastOrderSub, id);
                             }
                             break;
                         case marketSubscription:
@@ -672,31 +677,31 @@ public class RequestResponseProcessor
                                 idsToRemove.add(lastMarketSub);
                                 lastMarketSub = id;
                             } else {
-                                logger.error("[{}]this branch should never be reached: {} {}", client.id, lastMarketSub, id);
+                                logger.error("[{}]this branch should never be reached: {} {}", this.client.id, lastMarketSub, id);
                             }
                             break;
                         default:
-                            logger.error("[{}]unknown operation type in tasksMaintenance for: {} {}", client.id, operationType, Generic.objectToString(task));
+                            logger.error("[{}]unknown operation type in tasksMaintenance for: {} {}", this.client.id, operationType, Generic.objectToString(task));
                             break;
                     } // end switch
                 }
             } // end for
 
             if (!idsToRemove.isEmpty()) {
-                for (Integer id : idsToRemove) {
-                    logger.info("[{}]removing task in tasksMaintenance: {} {}", client.id, id, Generic.objectToString(tasks.get(id)));
+                for (final Integer id : idsToRemove) {
+                    logger.info("[{}]removing task in tasksMaintenance: {} {}", this.client.id, id, Generic.objectToString(this.tasks.get(id)));
                     final long currentTime = System.currentTimeMillis();
                     this.previousIds.put(id, currentTime);
-                    tasks.remove(id);
+                    this.tasks.remove(id);
                 }
                 idsToRemove.clear();
             } else { // no id to remove, nothing to be done
             }
 
 //            final HashSet<Integer> tasksKeySetCopy = new HashSet<>(tasks.keySet()); // I need to use copy here, as I add new values to the map inside the for, by using repeatTask(); not true anymore, with recent modifications
-            final HashSet<RequestResponse> tasksToRepeat = new HashSet<>(2);
-            for (Integer id : tasks.keySet()) {
-                final RequestResponse task = tasks.get(id);
+            final Collection<RequestResponse> tasksToRepeat = new HashSet<>(2);
+            for (final Integer id : this.tasks.keySet()) {
+                final RequestResponse task = this.tasks.get(id);
 
                 if (task.isTaskSuccessful()) {
                     idsToRemove.add(id);
@@ -709,7 +714,7 @@ public class RequestResponseProcessor
                         case INVALID_APP_KEY:
                         case NO_SESSION:
                         case INVALID_SESSION_INFORMATION:
-                            logger.info("{}, needSessionToken[{}]: {}", errorCode, client.id, Generic.objectToString(statusMessage));
+                            logger.info("{}, needSessionToken[{}]: {}", errorCode, this.client.id, Generic.objectToString(statusMessage));
                             Statics.needSessionToken.set(true);
                             tasksToRepeat.add(task);
 //                            repeatTask(operationType, task.getRequest());
@@ -717,16 +722,16 @@ public class RequestResponseProcessor
                         case INVALID_CLOCK:
                         case UNEXPECTED_ERROR:
                         case TIMEOUT:
-                            logger.error("{} in streamClient[{}]: {}", errorCode, client.id, Generic.objectToString(statusMessage));
+                            logger.error("{} in streamClient[{}]: {}", errorCode, this.client.id, Generic.objectToString(statusMessage));
                             tasksToRepeat.add(task);
 //                            repeatTask(operationType, task.getRequest());
                             break;
                         case INVALID_INPUT:
                         case INVALID_REQUEST:
-                            logger.error("{} in streamClient[{}]: {}", errorCode, client.id, Generic.objectToString(statusMessage));
+                            logger.error("{} in streamClient[{}]: {}", errorCode, this.client.id, Generic.objectToString(statusMessage));
                             break;
                         case SUBSCRIPTION_LIMIT_EXCEEDED:
-                            logger.error("{} in streamClient[{}]: {}", errorCode, client.id, Generic.objectToString(statusMessage));
+                            logger.error("{} in streamClient[{}]: {}", errorCode, this.client.id, Generic.objectToString(statusMessage));
                             final String errorMessage = statusMessage.getErrorMessage();
                             // trying to subscribe to 1001 markets
                             final String beginMarker = "trying to subscribe to ", endMarker = " markets";
@@ -741,38 +746,38 @@ public class RequestResponseProcessor
 
                                         removeMarketsFromSet(difference);
                                     } else {
-                                        logger.error("bad number in streamClient[{}] for: {} {}", client.id, number, errorMessage);
+                                        logger.error("bad number in streamClient[{}] for: {} {}", this.client.id, number, errorMessage);
                                     }
                                 } catch (NumberFormatException e) {
-                                    logger.error("NumberFormatException in streamClient[{}] for: {} {}", client.id, numberString, errorMessage, e);
+                                    logger.error("NumberFormatException in streamClient[{}] for: {} {}", this.client.id, numberString, errorMessage, e);
                                 }
                             } else {
-                                logger.error("bad errorMessage in streamClient[{}]: {} {} {}", client.id, beginMarkerIndex, endMarkerIndex, errorMessage);
+                                logger.error("bad errorMessage in streamClient[{}]: {} {} {}", this.client.id, beginMarkerIndex, endMarkerIndex, errorMessage);
                             }
                             break;
                         case CONNECTION_FAILED:
-                            logger.error("{} in streamClient[{}]: {}", errorCode, client.id, Generic.objectToString(statusMessage));
+                            logger.error("{} in streamClient[{}]: {}", errorCode, this.client.id, Generic.objectToString(statusMessage));
                             tasksToRepeat.add(task);
 //                            repeatTask(operationType, task.getRequest());
                             break;
                         case MAX_CONNECTION_LIMIT_EXCEEDED:
-                            logger.error("{} in streamClient[{}]: {}", errorCode, client.id, Generic.objectToString(statusMessage));
+                            logger.error("{} in streamClient[{}]: {}", errorCode, this.client.id, Generic.objectToString(statusMessage));
                             tasksToRepeat.add(task);
 //                            repeatTask(operationType, task.getRequest());
                             break;
                         default:
-                            logger.error("[{}]unknown errorCode {} for: {}", client.id, errorCode, Generic.objectToString(task));
+                            logger.error("[{}]unknown errorCode {} for: {}", this.client.id, errorCode, Generic.objectToString(task));
                             break;
                     }
                     if (errorCode != ErrorCode.SUBSCRIPTION_LIMIT_EXCEEDED) {
-                        client.setStreamError(true);
+                        this.client.setStreamError(true);
                     }
                     idsToRemove.add(id);
                 } else if (task.isExpired()) {
                     if (Statics.needSessionToken.get() || Statics.sessionTokenObject.isRecent()) {
-                        logger.info("[{}]maintenance, task expired: {}", client.id, id);
+                        logger.info("[{}]maintenance, task expired: {}", this.client.id, id);
                     } else {
-                        logger.error("[{}]maintenance, task expired: {}", client.id, Generic.objectToString(task));
+                        logger.error("[{}]maintenance, task expired: {}", this.client.id, Generic.objectToString(task));
                     }
                     idsToRemove.add(id);
 //                    final RequestMessage requestMessage = task.getRequest();
@@ -783,17 +788,17 @@ public class RequestResponseProcessor
             } // end for
 
             if (!idsToRemove.isEmpty()) {
-                for (Integer id : idsToRemove) {
-                    logger.info("[{}]removing task in tasksMaintenance end: {} {}", client.id, id, Generic.objectToString(tasks.get(id)));
+                for (final Integer id : idsToRemove) {
+                    logger.info("[{}]removing task in tasksMaintenance end: {} {}", this.client.id, id, Generic.objectToString(this.tasks.get(id)));
                     final long currentTime = System.currentTimeMillis();
                     this.previousIds.put(id, currentTime);
-                    tasks.remove(id);
+                    this.tasks.remove(id);
                 }
                 idsToRemove.clear();
             } else { // no id to remove, nothing to be done
             }
             if (!tasksToRepeat.isEmpty()) {
-                for (RequestResponse task : tasksToRepeat) {
+                for (final RequestResponse task : tasksToRepeat) {
                     repeatTask(task);
                 }
                 tasksToRepeat.clear();
@@ -801,8 +806,8 @@ public class RequestResponseProcessor
             }
         } else { // no tasks, nothing to be done
         }
-        if (!previousIds.isEmpty()) {
-            previousIds.keySet().removeIf((Integer id) -> !isIdRecentlyRemoved(id, Generic.MINUTE_LENGTH_MILLISECONDS * 10L));
+        if (!this.previousIds.isEmpty()) {
+            this.previousIds.keySet().removeIf((Integer id) -> !isIdRecentlyRemoved(id, Generic.MINUTE_LENGTH_MILLISECONDS * 10L));
 //            final Iterator<Integer> iterator = previousIds.keySet().iterator();
 //            while (iterator.hasNext()) {
 //                final Integer id = iterator.next();
@@ -838,16 +843,16 @@ public class RequestResponseProcessor
                 }
                 break;
             default:
-                logger.error("[{}]unknown operation type in maintenance for: {} {}", client.id, operationType, Generic.objectToString(requestMessage));
+                logger.error("[{}]unknown operation type in maintenance for: {} {}", this.client.id, operationType, Generic.objectToString(requestMessage));
                 break;
         }
     }
 
     private synchronized boolean similarTaskExists(final RequestOperationType operationType) {
         boolean foundSimilar = false;
-        for (RequestResponse task : tasks.values()) {
+        for (final RequestResponse task : this.tasks.values()) {
             final RequestOperationType existingOperation = task.getRequestOperationType();
-            if (Objects.equals(operationType, existingOperation)) {
+            if (operationType == existingOperation) {
                 foundSimilar = true;
                 break;
             }
@@ -859,26 +864,26 @@ public class RequestResponseProcessor
     @Override
     public void run() {
 //        tasksMaintenance.scheduleAtFixedRate(this::tasksMaintenance, 2_000L, 2_000L, TimeUnit.MILLISECONDS);
-        if (client.id == 0) {
-            orderSubscription(ClientCommands.createOrderSubscriptionMessage(client));
+        if (this.client.id == 0) {
+            orderSubscription(ClientCommands.createOrderSubscriptionMessage(this.client));
         }
 
         int counter = 0;
         while (!Statics.mustStop.get()) {
             try {
-                if (client.readerThread.bufferNotEmpty.get()) {
-                    final String line = client.readerThread.pollLine();
+                if (this.client.readerThread.bufferNotEmpty.get()) {
+                    final String line = this.client.readerThread.pollLine();
                     receiveLine(line);
                 }
 
-                Generic.threadSleepSegmented(5_000L, 10L, client.readerThread.bufferNotEmpty, Statics.mustStop);
+                Generic.threadSleepSegmented(5_000L, 10L, this.client.readerThread.bufferNotEmpty, Statics.mustStop);
                 tasksMaintenance();
                 if (counter % 6 == 0) {
                     keepAliveCheck();
                 }
                 counter++;
             } catch (Throwable throwable) {
-                logger.error("[{}]STRANGE ERROR inside stream processor loop", client.id, throwable);
+                logger.error("[{}]STRANGE ERROR inside stream processor loop", this.client.id, throwable);
             }
         } // end while
 

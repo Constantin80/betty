@@ -9,6 +9,6 @@ public class PriceLadderDefinition
     private PriceLadderType type;
 
     public synchronized PriceLadderType getType() {
-        return type;
+        return this.type;
     }
 }

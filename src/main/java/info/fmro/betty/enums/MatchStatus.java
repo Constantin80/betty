@@ -24,7 +24,7 @@ public enum MatchStatus {
     UNKNOWN;
 
     public synchronized boolean hasStarted() {
-        int ordinal = ordinal();
+        final int ordinal = ordinal();
         return ordinal >= FIRST_HALF.ordinal() && ordinal <= ABANDONED.ordinal();
     }
 }

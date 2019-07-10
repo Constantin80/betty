@@ -9,11 +9,8 @@ public class KeyLineSelection
     private Double hc;
     private Long id;
 
-    public KeyLineSelection() {
-    }
-
     public synchronized Double getHc() {
-        return hc;
+        return this.hc;
     }
 
     public synchronized void setHc(final Double hc) {
@@ -21,7 +18,7 @@ public class KeyLineSelection
     }
 
     public synchronized Long getId() {
-        return id;
+        return this.id;
     }
 
     public synchronized void setId(final Long id) {

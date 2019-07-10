@@ -2,18 +2,20 @@ package info.fmro.betty.main;
 
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
-import java.util.concurrent.TimeUnit;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.TimeUnit;
+
 public class IdleConnectionMonitorThread
         implements Runnable {
-
-    private static final Logger logger = LoggerFactory.getLogger(RescriptResponseHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(IdleConnectionMonitorThread.class);
     private final PoolingHttpClientConnectionManager connMgr;
 
-    public IdleConnectionMonitorThread(final PoolingHttpClientConnectionManager connMgr) {
+    @Contract(pure = true)
+    IdleConnectionMonitorThread(final PoolingHttpClientConnectionManager connMgr) {
         this.connMgr = connMgr;
     }
 
@@ -25,8 +27,8 @@ public class IdleConnectionMonitorThread
                     Betty.programSleeps(Statics.mustSleep, Statics.mustStop, "idleConnectionMonitor");
                 }
 
-                connMgr.closeExpiredConnections();
-                connMgr.closeIdleConnections(20, TimeUnit.MINUTES);
+                this.connMgr.closeExpiredConnections();
+                this.connMgr.closeIdleConnections(20, TimeUnit.MINUTES);
 
                 Generic.threadSleepSegmented(60_000L, 100L, Statics.mustStop);
             } catch (Throwable throwable) {

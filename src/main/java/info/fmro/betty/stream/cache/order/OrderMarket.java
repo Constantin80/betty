@@ -27,49 +27,49 @@ public class OrderMarket
     public synchronized void onOrderMarketChange(final OrderMarketChange orderMarketChange) {
         // update runners
         if (orderMarketChange.getOrc() != null) {
-            for (OrderRunnerChange orderRunnerChange : orderMarketChange.getOrc()) {
+            for (final OrderRunnerChange orderRunnerChange : orderMarketChange.getOrc()) {
                 onOrderRunnerChange(orderRunnerChange);
             }
         }
 
-        isClosed = Boolean.TRUE.equals(orderMarketChange.getClosed());
+        this.isClosed = Boolean.TRUE.equals(orderMarketChange.getClosed());
     }
 
     private synchronized void onOrderRunnerChange(final OrderRunnerChange orderRunnerChange) {
         final RunnerId runnerId = new RunnerId(orderRunnerChange.getId(), orderRunnerChange.getHc());
-        final OrderMarketRunner orderMarketRunner = marketRunners.computeIfAbsent(runnerId, r -> new OrderMarketRunner(getMarketId(), r));
+        final OrderMarketRunner orderMarketRunner = this.marketRunners.computeIfAbsent(runnerId, r -> new OrderMarketRunner(getMarketId(), r));
 
         // update the runner
         orderMarketRunner.onOrderRunnerChange(orderRunnerChange);
     }
 
     public synchronized boolean isClosed() {
-        return isClosed;
+        return this.isClosed;
     }
 
     public synchronized String getMarketId() {
-        return marketId;
+        return this.marketId;
     }
 
     public synchronized HashSet<RunnerId> getRunnerIds() {
-        return new HashSet<>(marketRunners.keySet());
+        return new HashSet<>(this.marketRunners.keySet());
     }
 
     public synchronized ArrayList<OrderMarketRunner> getOrderMarketRunners() {
-        return new ArrayList<>(marketRunners.values());
+        return new ArrayList<>(this.marketRunners.values());
     }
 
     public synchronized OrderMarketRunner getOrderMarketRunner(final RunnerId runnerId) {
-        return marketRunners.get(runnerId);
+        return this.marketRunners.get(runnerId);
     }
 
     @Override
     public synchronized String toString() {
         final StringBuilder runnersSb = new StringBuilder(" ");
-        for (OrderMarketRunner runner : marketRunners.values()) {
+        for (final OrderMarketRunner runner : this.marketRunners.values()) {
             runnersSb.append(runner).append(" ");
         }
 
-        return "OrderMarket{" + "marketRunners=" + runnersSb.toString() + ", marketId='" + marketId + '\'' + '}';
+        return "OrderMarket{" + "marketRunners=" + runnersSb + ", marketId='" + this.marketId + '\'' + '}';
     }
 }

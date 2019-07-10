@@ -1,5 +1,7 @@
 package info.fmro.betty.enums;
 
+import org.jetbrains.annotations.Contract;
+
 public enum APINGExceptionErrorCode {
     TOO_MUCH_DATA("The operation requested too much data, exceeding the Market Data Request Limits."),
     INVALID_INPUT_DATA("Invalid input data"),
@@ -13,16 +15,17 @@ public enum APINGExceptionErrorCode {
     SERVICE_BUSY("The service is currently too busy to service this request"),
     TIMEOUT_ERROR("Internal call to downstream service timed out"),
     REQUEST_SIZE_EXCEEDS_LIMIT("The request exceeds the request size limit. Requests are limited to a total of 250 betId’s/marketId’s (or a combination of both)"),
-    ACCESS_DENIED("The calling client is not permitted to perform the specific action e.g. the using a Delayed App Key when placing bets or attempting to place a bet from a " +
-                  "restricted jurisdiction.");
+    ACCESS_DENIED("The calling client is not permitted to perform the specific action e.g. the using a Delayed App Key when placing bets or attempting to place a bet from a restricted jurisdiction.");
 
     private final String message;
 
-    private APINGExceptionErrorCode(final String message) {
+    @Contract(pure = true)
+    APINGExceptionErrorCode(final String message) {
         this.message = message;
     }
 
+    @Contract(pure = true)
     public synchronized String getMessage() {
-        return message;
+        return this.message;
     }
 }

@@ -1,11 +1,13 @@
 package info.fmro.betty.stream.definitions;
 
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,20 +20,21 @@ public class OrderRunnerChange
     private Boolean fullImage;
     private Double hc; // Handicap - the handicap of the runner (selection) (null if not applicable)
     private Long id; // Selection Id - the id of the runner (selection)
+    @Nullable
     private List<List<Double>> mb; // Matched Backs - matched amounts by distinct matched price on the Back side for this runner (selection)
+    @Nullable
     private List<List<Double>> ml; // Matched Lays - matched amounts by distinct matched price on the Lay side for this runner (selection)
+    @Nullable
     private Map<String, StrategyMatchChange> smc; // Strategy Matches - Matched Backs and Matched Lays grouped by strategy reference (customerStrategyRef)
+    @Nullable
     private List<Order> uo; // Unmatched Orders - orders on this runner (selection) that are not fully matched
-
-    public OrderRunnerChange() {
-    }
 
     public synchronized double getMatchedSize(final Side side, final double price) {
         double matchedSize = 0d;
-        final List<List<Double>> chosenList;
-        if (side.equals(Side.B)) {
+        @Nullable final List<List<Double>> chosenList;
+        if (side == Side.B) {
             chosenList = this.mb;
-        } else if (side.equals(Side.L)) {
+        } else if (side == Side.L) {
             chosenList = this.ml;
         } else {
             logger.error("unknown Side in getMatchedSize for: {} {}", side, price); // matchedSize remains 0d
@@ -39,7 +42,7 @@ public class OrderRunnerChange
         }
 
         if (chosenList != null) {
-            for (List<Double> priceSizeList : chosenList) {
+            for (final List<Double> priceSizeList : chosenList) {
                 if (priceSizeList != null) {
                     final int listSize = priceSizeList.size();
                     if (listSize == 2) {
@@ -75,8 +78,8 @@ public class OrderRunnerChange
         Order returnValue = null;
 
         if (betId != null) {
-            if (uo != null) {
-                for (Order order : uo) {
+            if (this.uo != null) {
+                for (final Order order : this.uo) {
                     final String orderBetId = order.getId();
                     if (betId.equals(orderBetId)) {
                         returnValue = order;
@@ -94,7 +97,7 @@ public class OrderRunnerChange
     }
 
     public synchronized Boolean getFullImage() {
-        return fullImage;
+        return this.fullImage;
     }
 
     public synchronized void setFullImage(final Boolean fullImage) {
@@ -102,7 +105,7 @@ public class OrderRunnerChange
     }
 
     public synchronized Double getHc() {
-        return hc;
+        return this.hc;
     }
 
     public synchronized void setHc(final Double hc) {
@@ -110,7 +113,7 @@ public class OrderRunnerChange
     }
 
     public synchronized Long getId() {
-        return id;
+        return this.id;
     }
 
     public synchronized void setId(final Long id) {
@@ -118,7 +121,7 @@ public class OrderRunnerChange
     }
 
     public synchronized List<List<Double>> getMb() {
-        final List<List<Double>> result;
+        @Nullable final List<List<Double>> result;
 
         if (this.mb == null) {
             result = null;
@@ -137,7 +140,7 @@ public class OrderRunnerChange
         return result;
     }
 
-    public synchronized void setMb(final List<List<Double>> mb) {
+    public synchronized void setMb(final Collection<? extends List<Double>> mb) {
         if (mb == null) {
             this.mb = null;
         } else {
@@ -154,7 +157,7 @@ public class OrderRunnerChange
     }
 
     public synchronized List<List<Double>> getMl() {
-        final List<List<Double>> result;
+        @Nullable final List<List<Double>> result;
 
         if (this.ml == null) {
             result = null;
@@ -173,7 +176,7 @@ public class OrderRunnerChange
         return result;
     }
 
-    public synchronized void setMl(final List<List<Double>> ml) {
+    public synchronized void setMl(final Collection<? extends List<Double>> ml) {
         if (ml == null) {
             this.ml = null;
         } else {
@@ -189,19 +192,21 @@ public class OrderRunnerChange
         }
     }
 
+    @Nullable
     public synchronized Map<String, StrategyMatchChange> getSmc() {
-        return smc == null ? null : new HashMap<>(smc);
+        return this.smc == null ? null : new HashMap<>(this.smc);
     }
 
-    public synchronized void setSmc(final Map<String, StrategyMatchChange> smc) {
+    public synchronized void setSmc(final Map<String, ? extends StrategyMatchChange> smc) {
         this.smc = smc == null ? null : new HashMap<>(smc);
     }
 
+    @Nullable
     public synchronized List<Order> getUo() {
-        return uo == null ? null : new ArrayList<>(uo);
+        return this.uo == null ? null : new ArrayList<>(this.uo);
     }
 
-    public synchronized void setUo(final List<Order> uo) {
+    public synchronized void setUo(final List<? extends Order> uo) {
         this.uo = uo == null ? null : new ArrayList<>(uo);
     }
 }

@@ -4,11 +4,8 @@ public class CancelInstruction {
     private String betId;
     private Double sizeReduction;
 
-    public CancelInstruction() {
-    }
-
     public synchronized String getBetId() {
-        return betId;
+        return this.betId;
     }
 
     public synchronized void setBetId(final String betId) {
@@ -16,7 +13,7 @@ public class CancelInstruction {
     }
 
     public synchronized Double getSizeReduction() {
-        return sizeReduction;
+        return this.sizeReduction;
     }
 
     public synchronized void setSizeReduction(final Double sizeReduction) {

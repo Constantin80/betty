@@ -10,8 +10,10 @@ public class ScraperThreadTest
         extends ApiDefault {
     @Test
     void testCache() {
-        WebClient webClient = new WebClient();
-        Cache cache = webClient.getCache();
+        final Cache cache;
+        try (final WebClient webClient = new WebClient()) {
+            cache = webClient.getCache();
+        }
 
         assertNotNull(cache);
     }

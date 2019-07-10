@@ -1,15 +1,13 @@
 package info.fmro.betty.entities;
 
+@SuppressWarnings("unused")
 public class CompetitionResult {
     private Competition competition;
     private Integer marketCount;
     private String competitionRegion;
 
-    public CompetitionResult() {
-    }
-
     public synchronized Competition getCompetition() {
-        return competition;
+        return this.competition;
     }
 
     public synchronized void setCompetition(final Competition competition) {
@@ -17,7 +15,7 @@ public class CompetitionResult {
     }
 
     public synchronized Integer getMarketCount() {
-        return marketCount;
+        return this.marketCount;
     }
 
     public synchronized void setMarketCount(final Integer marketCount) {
@@ -25,7 +23,7 @@ public class CompetitionResult {
     }
 
     public synchronized String getCompetitionRegion() {
-        return competitionRegion;
+        return this.competitionRegion;
     }
 
     public synchronized void setCompetitionRegion(final String competitionRegion) {

@@ -1,6 +1,9 @@
 package info.fmro.betty.entities;
 
 import info.fmro.betty.enums.RunnerStatus;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -9,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+@SuppressWarnings("ClassWithTooManyFields")
 public class Runner
         implements Serializable {
     private static final long serialVersionUID = -8538359656490442656L;
@@ -21,125 +25,91 @@ public class Runner
     private Date removalDate;
     private StartingPrices sp;
     private ExchangePrices ex;
-    private List<Order> orders;
-    private List<Match> matches;
+    private List<? extends Order> orders;
+    private List<? extends Match> matches;
+    @SuppressWarnings("unused")
     private Map<String, List<Match>> matchesByStrategy;
 
+    @Contract(pure = true)
     public Runner() {
     }
 
-    public Runner(final Long selectionId, final Double handicap, final RunnerStatus status, final Double adjustmentFactor, final Double lastPriceTraded, final Double totalMatched, final Date removalDate, final StartingPrices sp, final ExchangePrices ex, final List<Order> orders, final List<Match> matches) {
+    @SuppressWarnings("ConstructorWithTooManyParameters")
+    @Contract(pure = true)
+    public Runner(final Long selectionId, final Double handicap, final RunnerStatus status, final Double adjustmentFactor, final Double lastPriceTraded, final Double totalMatched, @NotNull final Date removalDate, final StartingPrices sp,
+                  final ExchangePrices ex, @NotNull final List<? extends Order> orders, @NotNull final List<? extends Match> matches) {
         this.selectionId = selectionId;
         this.handicap = handicap;
         this.status = status;
         this.adjustmentFactor = adjustmentFactor;
         this.lastPriceTraded = lastPriceTraded;
         this.totalMatched = totalMatched;
-        this.removalDate = removalDate;
+        this.removalDate = (Date) removalDate.clone();
         this.sp = sp;
         this.ex = ex;
-        this.orders = orders;
-        this.matches = matches;
+        this.orders = new ArrayList<>(orders);
+        this.matches = new ArrayList<>(matches);
     }
 
     public synchronized Long getSelectionId() {
-        return selectionId;
+        return this.selectionId;
     }
 
-    //    public synchronized void setSelectionId(Long selectionId) {
-//        this.selectionId = selectionId;
-//    }
     public synchronized Double getHandicap() {
-        return handicap;
+        return this.handicap;
     }
 
-    //    public synchronized void setHandicap(Double handicap) {
-//        this.handicap = handicap;
-//    }
     public synchronized RunnerStatus getStatus() {
-        return status;
+        return this.status;
     }
 
-    //    public synchronized void setStatus(RunnerStatus status) {
-//        this.status = status;
-//    }
     public synchronized Double getAdjustmentFactor() {
-        return adjustmentFactor;
+        return this.adjustmentFactor;
     }
 
-    //    public synchronized void setAdjustmentFactor(Double adjustmentFactor) {
-//        this.adjustmentFactor = adjustmentFactor;
-//    }
     public synchronized Double getLastPriceTraded() {
-        return lastPriceTraded;
+        return this.lastPriceTraded;
     }
 
-    //    public synchronized void setLastPriceTraded(Double lastPriceTraded) {
-//        this.lastPriceTraded = lastPriceTraded;
-//    }
     public synchronized Double getTotalMatched() {
-        return totalMatched;
+        return this.totalMatched;
     }
 
-    //    public synchronized void setTotalMatched(Double totalMatched) {
-//        this.totalMatched = totalMatched;
-//    }
+    @Nullable
     public synchronized Date getRemovalDate() {
-        return removalDate == null ? null : (Date) removalDate.clone();
+        return this.removalDate == null ? null : (Date) this.removalDate.clone();
     }
 
-    //    public synchronized void setRemovalDate(Date removalDate) {
-//        this.removalDate = removalDate == null ? null : (Date) removalDate.clone();
-//    }
     public synchronized StartingPrices getSp() {
-        return sp;
+        return this.sp;
     }
 
-    //    public synchronized void setSp(StartingPrices sp) {
-//        this.sp = sp;
-//    }
     public synchronized ExchangePrices getEx() {
-        return ex;
+        return this.ex;
     }
 
-    //    public synchronized void setEx(ExchangePrices ex) {
-//        this.ex = ex;
-//    }
+    @Nullable
     public synchronized List<Order> getOrders() {
-        return orders == null ? null : new ArrayList<>(orders);
+        return this.orders == null ? null : new ArrayList<>(this.orders);
     }
 
-    //    public synchronized void setOrders(List<Order> orders) {
-//        this.orders = orders == null ? null : new ArrayList<>(orders);
-//    }
+    @Nullable
     public synchronized List<Match> getMatches() {
-        return matches == null ? null : new ArrayList<>(matches);
+        return this.matches == null ? null : new ArrayList<>(this.matches);
     }
 
-    //    public synchronized void setMatches(List<Match> matches) {
-//        this.matches = matches == null ? null : new ArrayList<>(matches);
-//    }
-
+    @SuppressWarnings("NonFinalFieldReferencedInHashCode")
     @Override
     public synchronized int hashCode() {
         int hash = 7;
         hash = 73 * hash + Objects.hashCode(this.selectionId);
         hash = 73 * hash + Objects.hashCode(this.handicap);
-//        hash = 73 * hash + Objects.hashCode(this.status);
-//        hash = 73 * hash + Objects.hashCode(this.adjustmentFactor);
-//        hash = 73 * hash + Objects.hashCode(this.lastPriceTraded);
-//        hash = 73 * hash + Objects.hashCode(this.totalMatched);
-//        hash = 73 * hash + Objects.hashCode(this.removalDate);
-//        hash = 73 * hash + Objects.hashCode(this.sp);
-//        hash = 73 * hash + Objects.hashCode(this.ex);
-//        hash = 73 * hash + Objects.hashCode(this.orders);
-//        hash = 73 * hash + Objects.hashCode(this.matches);
-
         return hash;
     }
 
+    @SuppressWarnings("NonFinalFieldReferenceInEquals")
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (this == obj) {
             return true;
@@ -154,37 +124,6 @@ public class Runner
         if (!Objects.equals(this.selectionId, other.selectionId)) {
             return false;
         }
-        if (!Objects.equals(this.handicap, other.handicap)) {
-            return false;
-        }
-//        if (this.status != other.status) {
-//            return false;
-//        }
-//        if (!Objects.equals(this.adjustmentFactor, other.adjustmentFactor)) {
-//            return false;
-//        }
-//        if (!Objects.equals(this.lastPriceTraded, other.lastPriceTraded)) {
-//            return false;
-//        }
-//        if (!Objects.equals(this.totalMatched, other.totalMatched)) {
-//            return false;
-//        }
-//        if (!Objects.equals(this.removalDate, other.removalDate)) {
-//            return false;
-//        }
-//        if (!Objects.equals(this.sp, other.sp)) {
-//            return false;
-//        }
-//        if (!Objects.equals(this.ex, other.ex)) {
-//            return false;
-//        }
-//        if (!Objects.equals(this.orders, other.orders)) {
-//            return false;
-//        }
-//        if (!Objects.equals(this.matches, other.matches)) {
-//            return false;
-//        }
-
-        return true;
+        return Objects.equals(this.handicap, other.handicap);
     }
 }

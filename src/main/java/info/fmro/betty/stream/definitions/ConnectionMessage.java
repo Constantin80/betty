@@ -9,11 +9,8 @@ public class ConnectionMessage
     private static final long serialVersionUID = 189022449161940813L;
     private String connectionId; // The connection id
 
-    public ConnectionMessage() {
-    }
-
     public synchronized String getConnectionId() {
-        return connectionId;
+        return this.connectionId;
     }
 
     public synchronized void setConnectionId(final String connectionId) {

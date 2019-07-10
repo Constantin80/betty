@@ -5,13 +5,14 @@ import info.fmro.betty.objects.Statics;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FormulasTest
         extends ApiDefault {
-
     @Test
     void printAliases() {
         assertTrue(Formulas.fullAliasesMap.containsKey("paris st g"), "1");
@@ -32,9 +33,9 @@ class FormulasTest
 //        logger.info("char: {} code: {}", c, (int) c);
 //    }
     @Test
-    @SuppressWarnings("unchecked")
     void getMaxMultiple() {
-        ArrayList<Integer> list = new ArrayList<>(5), expected = new ArrayList<>(5);
+        final List<Integer> list = new ArrayList<>(5);
+//        final ArrayList<Integer> expected = new ArrayList<>(5);
         list.add(1);
         list.add(null);
         list.add(2);
@@ -42,7 +43,7 @@ class FormulasTest
         list.add(null);
 
         Integer result = Formulas.getMaxMultiple(list, -1, Statics.nullComparator, 2);
-        assertEquals(result, null, "1");
+        assertNull(result, "1");
 
         list.clear();
         list.add(1);
@@ -50,7 +51,7 @@ class FormulasTest
         list.add(2);
         list.add(-2);
         result = Formulas.getMaxMultiple(list, -1, Statics.nullComparator, 2);
-        assertEquals((int) result, -1, "2");
+        assertEquals(-1, (int) result, "2");
 
         list.clear();
         list.add(1);
@@ -59,7 +60,7 @@ class FormulasTest
         list.add(2);
         list.add(-2);
         result = Formulas.getMaxMultiple(list, -1, Statics.nullComparator, 2);
-        assertEquals((int) result, 1, "3");
+        assertEquals(1, (int) result, "3");
     }
 
     @Test
@@ -160,11 +161,11 @@ class FormulasTest
         firstString = "Swindon S";
         secondString = "Swindon Supermarine";
         result = Formulas.matchTeams(firstString, secondString);
-        assertTrue(result == .99, "10 " + result);
+        assertEquals(.99, result, "10 " + result);
 
         firstString = "swindon supermarine";
         secondString = "Swindon Supermarine";
         result = Formulas.matchTeams(firstString, secondString);
-        assertTrue(result == 1, "11 " + result);
+        assertEquals(1, result, "11 " + result);
     }
 }

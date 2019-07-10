@@ -1,8 +1,8 @@
 package info.fmro.betty.objects;
 
 import info.fmro.betty.enums.ParsedMarketType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -10,7 +10,6 @@ import java.util.Objects;
 
 public class ParsedMarket
         implements Serializable, Comparable<ParsedMarket> {
-    private static final Logger logger = LoggerFactory.getLogger(ParsedMarket.class);
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
     private static final long serialVersionUID = -2616558897137266131L;
     private final String marketId;
@@ -24,75 +23,56 @@ public class ParsedMarket
     }
 
     public synchronized String getMarketId() {
-        return marketId;
+        return this.marketId;
     }
 
     public synchronized ParsedMarketType getParsedMarketType() {
-        return parsedMarketType;
+        return this.parsedMarketType;
     }
 
     public synchronized HashSet<ParsedRunner> getParsedRunnersSet() {
-        return new HashSet<>(parsedRunnersSet);
+        return new HashSet<>(this.parsedRunnersSet);
     }
 
-//    public synchronized boolean checkSameTypeRunners() {
-//        boolean allDifferent;
-//        int capacity = Generic.getCollectionCapacity(this.parsedRunnersSet.size());
-//        final HashSet<ParsedRunnerType> parsedRunnerTypesSet = new HashSet<>(capacity);
-//
-//        for (ParsedRunner parsedRunner : this.parsedRunnersSet) {
-//            parsedRunnerTypesSet.add(parsedRunner.getParsedRunnerType());
-//        }
-//        if (parsedRunnerTypesSet.size() != this.parsedRunnersSet.size()) {
-//            logger.error("same type ParsedRunner(s) detected {} {} {}: {}", parsedRunnerTypesSet.size(), this.parsedRunnersSet.size(), Generic.objectToString(parsedRunnerTypesSet), Generic.objectToString(this));
-//            allDifferent = false;
-//        } else {
-//            allDifferent = true;
-//        }
-//
-//        return allDifferent;
-//    }
-
+    @SuppressWarnings("MethodWithMultipleReturnPoints")
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(final ParsedMarket other) {
-        if (other == null) {
+    public synchronized int compareTo(@NotNull final ParsedMarket o) {
+        //noinspection ConstantConditions
+        if (o == null) {
             return AFTER;
         }
-        if (this == other) {
+        if (this == o) {
             return EQUAL;
         }
 
-        if (this.getClass() != other.getClass()) {
-            if (this.getClass().hashCode() < other.getClass().hashCode()) {
-                return BEFORE;
-            } else {
-                return AFTER;
-            }
+        if (this.getClass() != o.getClass()) {
+            return this.getClass().hashCode() < o.getClass().hashCode() ? BEFORE : AFTER;
         }
-        if (!Objects.equals(this.marketId, other.marketId)) {
+        if (!Objects.equals(this.marketId, o.marketId)) {
             if (this.marketId == null) {
                 return BEFORE;
             }
-            if (other.marketId == null) {
+            if (o.marketId == null) {
                 return AFTER;
             }
-            return this.marketId.compareTo(other.marketId);
+            return this.marketId.compareTo(o.marketId);
         }
-        if (!Objects.equals(this.parsedMarketType, other.parsedMarketType)) {
+        if (this.parsedMarketType != o.parsedMarketType) {
             if (this.parsedMarketType == null) {
                 return BEFORE;
             }
-            if (other.parsedMarketType == null) {
+            if (o.parsedMarketType == null) {
                 return AFTER;
             }
-            return this.parsedMarketType.compareTo(other.parsedMarketType);
+            return this.parsedMarketType.compareTo(o.parsedMarketType);
         }
-        if (!Objects.equals(this.parsedRunnersSet, other.parsedRunnersSet)) {
+        if (!Objects.equals(this.parsedRunnersSet, o.parsedRunnersSet)) {
+            //noinspection ConstantConditions
             if (this.parsedRunnersSet == null) {
                 return BEFORE;
             }
-            if (other.parsedRunnersSet == null) {
+            //noinspection ConstantConditions
+            if (o.parsedRunnersSet == null) {
                 return AFTER;
             }
 
@@ -102,8 +82,8 @@ public class ParsedMarket
         return EQUAL;
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings(value = "AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;

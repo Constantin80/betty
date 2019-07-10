@@ -14,15 +14,15 @@ public class StatusException
 
     public StatusException(final StatusMessage message) {
         super(message.getErrorCode() + ": " + message.getErrorMessage());
-        errorCode = message.getErrorCode();
-        errorMessage = message.getErrorMessage();
+        this.errorCode = message.getErrorCode();
+        this.errorMessage = message.getErrorMessage();
     }
 
     public synchronized ErrorCode getErrorCode() {
-        return errorCode;
+        return this.errorCode;
     }
 
     public synchronized String getErrorMessage() {
-        return errorMessage;
+        return this.errorMessage;
     }
 }

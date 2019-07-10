@@ -2,12 +2,8 @@ package info.fmro.betty.objects;
 
 import java.util.Iterator;
 import java.util.TreeMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class RecordedMaxValue {
-
-    private static final Logger logger = LoggerFactory.getLogger(RecordedMaxValue.class);
     private final TreeMap<Integer, Long> map = new TreeMap<>();
     private final long expiryTime; // checked for only when new values are added, unless checked manually
     private final int maxMapSize;
@@ -20,19 +16,12 @@ public class RecordedMaxValue {
 
     public RecordedMaxValue(final long expiryTime, final int maxMapSize) {
         this.expiryTime = expiryTime;
-        if (maxMapSize >= 2) {
-            this.maxMapSize = maxMapSize;
-        } else {
-            this.maxMapSize = 2; // minimum value, else my algorithm won't work
-        }
+        // minimum value, else my algorithm won't work
+        this.maxMapSize = maxMapSize >= 2 ? maxMapSize : 2;
     }
 
     public synchronized int getValue() {
-        if (map.isEmpty()) {
-            return 0;
-        } else {
-            return map.lastKey();
-        }
+        return this.map.isEmpty() ? 0 : this.map.lastKey();
     }
 
     public synchronized void setValue(final int value) {
@@ -40,12 +29,10 @@ public class RecordedMaxValue {
     }
 
     public synchronized void setValue(final int key, final long timeStamp) {
-        if (map.size() < maxMapSize || map.containsKey(key) || checkMap(timeStamp)) {
-            map.put(key, timeStamp);
-        } else { // replace smallest key, even with a new lower key
-            map.pollFirstEntry();
-            map.put(key, timeStamp);
+        if (this.map.size() >= this.maxMapSize && !this.map.containsKey(key) && !checkMap(timeStamp)) { // replace smallest key, even with a new lower key
+            this.map.pollFirstEntry();
         }
+        this.map.put(key, timeStamp);
 
         if (timeStamp - this.lastCheckMap > this.expiryTime) {
             checkMap(timeStamp); // check it once in a while, else very old values will get stuck there; added at end for the rare case where it is checked earlier in the method
@@ -56,13 +43,13 @@ public class RecordedMaxValue {
         return checkMap(System.currentTimeMillis());
     }
 
-    public synchronized boolean checkMap(final long currentTime) {
+    private synchronized boolean checkMap(final long currentTime) {
         this.lastCheckMap = currentTime;
         boolean modified = false;
-        Iterator<Long> iterator = map.values().iterator();
+        final Iterator<Long> iterator = this.map.values().iterator();
         while (iterator.hasNext()) {
-            long value = iterator.next();
-            if (currentTime - value > expiryTime) {
+            final long value = iterator.next();
+            if (currentTime - value > this.expiryTime) {
                 iterator.remove();
                 modified = true;
             }

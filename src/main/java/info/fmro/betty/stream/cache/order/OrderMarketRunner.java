@@ -11,6 +11,7 @@ import info.fmro.betty.stream.definitions.Side;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -48,27 +48,27 @@ public class OrderMarketRunner
     public synchronized void onOrderRunnerChange(final OrderRunnerChange orderRunnerChange) {
         Statics.ordersThread.reportStreamChange(this, orderRunnerChange); // needs to happen at the start of the method, before I modify this object
 
-        boolean isImage = Boolean.TRUE.equals(orderRunnerChange.getFullImage());
+        final boolean isImage = Boolean.TRUE.equals(orderRunnerChange.getFullImage());
 
         if (isImage) {
-            unmatchedOrders.clear();
+            this.unmatchedOrders.clear();
         }
 
         if (orderRunnerChange.getUo() != null) {
-            for (Order order : orderRunnerChange.getUo()) {
-                unmatchedOrders.put(order.getId(), order);
+            for (final Order order : orderRunnerChange.getUo()) {
+                this.unmatchedOrders.put(order.getId(), order);
             }
         }
-        layMatches.onPriceChange(isImage, orderRunnerChange.getMl());
-        backMatches.onPriceChange(isImage, orderRunnerChange.getMb());
+        this.layMatches.onPriceChange(isImage, orderRunnerChange.getMl());
+        this.backMatches.onPriceChange(isImage, orderRunnerChange.getMb());
     }
 
     public synchronized Order getUnmatchedOrder(final String betId) {
-        final Order returnValue;
+        @Nullable final Order returnValue;
 
         if (betId != null) {
-            if (unmatchedOrders != null) {
-                returnValue = unmatchedOrders.get(betId);
+            if (this.unmatchedOrders != null) {
+                returnValue = this.unmatchedOrders.get(betId);
             } else {
                 returnValue = null;
             }
@@ -81,9 +81,9 @@ public class OrderMarketRunner
 
     public synchronized double getMatchedSize(final Side side, final double price) {
         final double matchedSize;
-        if (side.equals(Side.B)) {
+        if (side == Side.B) {
             matchedSize = this.backMatches.getMatchedSize(price);
-        } else if (side.equals(Side.L)) {
+        } else if (side == Side.L) {
             matchedSize = this.layMatches.getMatchedSize(price);
         } else {
             logger.error("unknown Side in getMatchedSize for: {} {}", side, price);
@@ -93,71 +93,71 @@ public class OrderMarketRunner
     }
 
     public synchronized RunnerId getRunnerId() {
-        return runnerId;
+        return this.runnerId;
     }
 
     public synchronized String getMarketId() {
-        return marketId;
+        return this.marketId;
     }
 
     public synchronized PriceSizeLadder getBackMatches() {
-        return backMatches.copy();
+        return this.backMatches.copy();
     }
 
     public synchronized PriceSizeLadder getLayMatches() {
-        return layMatches.copy();
+        return this.layMatches.copy();
     }
 
     public synchronized HashMap<String, Order> getUnmatchedOrders() {
-        return new HashMap<>(unmatchedOrders);
+        return new HashMap<>(this.unmatchedOrders);
     }
 
     public synchronized double getMatchedBackExposure() {
-        return matchedBackExposure;
+        return this.matchedBackExposure;
     }
 
     public synchronized double getMatchedLayExposure() {
-        return matchedLayExposure;
+        return this.matchedLayExposure;
     }
 
     public synchronized double getUnmatchedBackExposure() {
-        return unmatchedBackExposure;
+        return this.unmatchedBackExposure;
     }
 
     public synchronized double getUnmatchedBackProfit() {
-        return unmatchedBackProfit;
+        return this.unmatchedBackProfit;
     }
 
     public synchronized double getUnmatchedLayExposure() {
-        return unmatchedLayExposure;
+        return this.unmatchedLayExposure;
     }
 
     public synchronized double getUnmatchedLayProfit() {
-        return unmatchedLayProfit;
+        return this.unmatchedLayProfit;
     }
 
     public synchronized double getTempBackExposure() {
-        return tempBackExposure;
+        return this.tempBackExposure;
     }
 
     public synchronized double getTempBackProfit() {
-        return tempBackProfit;
+        return this.tempBackProfit;
     }
 
     public synchronized double getTempLayExposure() {
-        return tempLayExposure;
+        return this.tempLayExposure;
     }
 
     public synchronized double getTempLayProfit() {
-        return tempLayProfit;
+        return this.tempLayProfit;
     }
 
     public synchronized double getTempBackCancel() {
-        return tempBackCancel;
+        return this.tempBackCancel;
     }
 
     public synchronized double getTempLayCancel() {
-        return tempLayCancel;
+        return this.tempLayCancel;
     }
 
 //    public synchronized Exposure getExposure() {
@@ -180,14 +180,14 @@ public class OrderMarketRunner
             this.getUnmatchedExposureAndProfit(); // updates unmatchedBackExposure/Profit and unmatchedLayExposure/Profit
             Statics.ordersThread.checkTemporaryOrdersExposure(this.marketId, this.runnerId, this);
 
-            exposure.setBackMatchedExposure(matchedBackExposure);
-            exposure.setLayMatchedExposure(matchedLayExposure);
-            exposure.setBackTotalExposure(matchedBackExposure + unmatchedBackExposure + tempBackExposure);
-            exposure.setLayTotalExposure(matchedLayExposure + unmatchedLayExposure + tempLayExposure);
-            exposure.setBackUnmatchedProfit(unmatchedBackProfit + tempBackProfit);
-            exposure.setLayUnmatchedProfit(unmatchedLayProfit + tempLayProfit);
-            exposure.setTempBackCancel(tempBackCancel);
-            exposure.setTempLayCancel(tempLayCancel);
+            exposure.setBackMatchedExposure(this.matchedBackExposure);
+            exposure.setLayMatchedExposure(this.matchedLayExposure);
+            exposure.setBackTotalExposure(this.matchedBackExposure + this.unmatchedBackExposure + this.tempBackExposure);
+            exposure.setLayTotalExposure(this.matchedLayExposure + this.unmatchedLayExposure + this.tempLayExposure);
+            exposure.setBackUnmatchedProfit(this.unmatchedBackProfit + this.tempBackProfit);
+            exposure.setLayUnmatchedProfit(this.unmatchedLayProfit + this.tempLayProfit);
+            exposure.setTempBackCancel(this.tempBackCancel);
+            exposure.setTempLayCancel(this.tempLayCancel);
             exposure.timeStamp();
         } else {
             logger.error("null exposure in getExposure for: {}", Generic.objectToString(this));
@@ -224,7 +224,7 @@ public class OrderMarketRunner
 
     private synchronized void getUnmatchedExposureAndProfit() {
         resetUnmatchedExposureAndProfit();
-        for (Order order : unmatchedOrders.values()) {
+        for (final Order order : this.unmatchedOrders.values()) {
             order.calculateExposureAndProfit();
             this.unmatchedBackExposure += order.getBackExposure();
             this.unmatchedLayExposure += order.getLayExposure();
@@ -234,10 +234,10 @@ public class OrderMarketRunner
     }
 
     private synchronized void getMatchedExposure() {
-        final TwoDoubles backProfitExposurePair = backMatches.getBackProfitExposurePair();
+        final TwoDoubles backProfitExposurePair = this.backMatches.getBackProfitExposurePair();
         final double backProfit = backProfitExposurePair.getFirstDouble();
         final double backExposure = backProfitExposurePair.getSecondDouble();
-        final TwoDoubles layProfitExposurePair = layMatches.getBackProfitExposurePair(); // same method, just reverse the result pair
+        final TwoDoubles layProfitExposurePair = this.layMatches.getBackProfitExposurePair(); // same method, just reverse the result pair
         final double layExposure = layProfitExposurePair.getFirstDouble();
         final double layProfit = layProfitExposurePair.getSecondDouble();
 
@@ -254,12 +254,12 @@ public class OrderMarketRunner
                     this.unmatchedOrders.
                                                 values().
                                                 stream().
-                                                filter(p -> Objects.equals(p.getSide(), Side.B)).
+                                                filter(p -> p.getSide() == Side.B).
                                                 sorted(Comparator.comparing(Order::getP, Comparator.reverseOrder()).
                                                         thenComparing(Order::getPd, Comparator.reverseOrder())).
                                                 collect(Collectors.toCollection(ArrayList::new)); // order by reversed price, then reversed placed date
             double excessExposureLeft = backExcessExposure;
-            for (Order order : backOrdersSorted) {
+            for (final Order order : backOrdersSorted) {
                 excessExposureLeft = order.removeBackExposure(this.marketId, this.runnerId, excessExposureLeft);
                 exposureHasBeenModified++;
                 if (excessExposureLeft <= 0d) {
@@ -275,12 +275,12 @@ public class OrderMarketRunner
                     this.unmatchedOrders.
                                                 values().
                                                 stream().
-                                                filter(p -> Objects.equals(p.getSide(), Side.L)).
+                                                filter(p -> p.getSide() == Side.L).
                                                 sorted(Comparator.comparing(Order::getP).
                                                         thenComparing(Order::getPd, Comparator.reverseOrder())).
                                                 collect(Collectors.toCollection(ArrayList::new)); // order by price, then reversed placed date
             double excessExposureLeft = layExcessExposure;
-            for (Order order : layOrdersSorted) {
+            for (final Order order : layOrdersSorted) {
                 excessExposureLeft = order.removeLayExposure(this.marketId, this.runnerId, excessExposureLeft);
                 exposureHasBeenModified++;
                 if (excessExposureLeft <= 0d) {
@@ -334,12 +334,12 @@ public class OrderMarketRunner
         // exposure.setLayTotalExposure(matchedLayExposure + unmatchedLayExposure + tempLayExposure);
         final double sizePlaced;
 
-        if (Objects.equals(side, Side.B)) {
-            final double backTotalExposure = matchedBackExposure + unmatchedBackExposure + tempBackExposure;
+        if (side == Side.B) {
+            final double backTotalExposure = this.matchedBackExposure + this.unmatchedBackExposure + this.tempBackExposure;
             final double availableBackExposure = Math.max(0d, backLimit - backTotalExposure);
             sizePlaced = Math.min(availableBackExposure, size);
-        } else if (Objects.equals(side, Side.L)) {
-            final double layTotalExposure = matchedLayExposure + unmatchedLayExposure + tempLayExposure;
+        } else if (side == Side.L) {
+            final double layTotalExposure = this.matchedLayExposure + this.unmatchedLayExposure + this.tempLayExposure;
             final double availableLayExposure = Math.max(0d, layLimit - layTotalExposure);
             sizePlaced = Math.min(availableLayExposure / (price - 1d), size);
         } else {
@@ -356,16 +356,16 @@ public class OrderMarketRunner
         double excessOnTheOtherSideRemaining = excessOnTheOtherSide;
         if (side == null) {
             logger.error("null side in cancelUnmatchedExceptExcessOnTheOtherSide for: {} {}", excessOnTheOtherSide, Generic.objectToString(this));
-        } else if (side.equals(Side.B)) {
+        } else if (side == Side.B) {
             final ArrayList<Order> backOrdersSorted =
                     this.unmatchedOrders.
                                                 values().
                                                 stream().
-                                                filter(p -> Objects.equals(p.getSide(), Side.B)).
+                                                filter(p -> p.getSide() == Side.B).
                                                 sorted(Comparator.comparing(Order::getP).
                                                         thenComparing(Order::getPd)).
                                                 collect(Collectors.toCollection(ArrayList::new)); // order by price, then placed date
-            for (Order order : backOrdersSorted) {
+            for (final Order order : backOrdersSorted) {
                 final double price = order.getP();
                 final double sizeRemaining = order.getSr();
                 final double excessPresentInOrder = price * sizeRemaining;
@@ -382,16 +382,16 @@ public class OrderMarketRunner
                     }
                 }
             } // end for
-        } else if (side.equals(Side.L)) {
+        } else if (side == Side.L) {
             final ArrayList<Order> layOrdersSorted =
                     this.unmatchedOrders.
                                                 values().
                                                 stream().
-                                                filter(p -> Objects.equals(p.getSide(), Side.L)).
+                                                filter(p -> p.getSide() == Side.L).
                                                 sorted(Comparator.comparing(Order::getP, Comparator.reverseOrder()).
                                                         thenComparing(Order::getPd)).
                                                 collect(Collectors.toCollection(ArrayList::new)); // order by reversed price, then placed date
-            for (Order order : layOrdersSorted) {
+            for (final Order order : layOrdersSorted) {
                 final double price = order.getP();
                 final double sizeRemaining = order.getSr();
                 final double excessPresentInOrder = price * sizeRemaining;
@@ -427,7 +427,7 @@ public class OrderMarketRunner
         if (this.runnerId == null) {
             logger.error("null runnerId in orderMarketRunner.cancelAllUnmatched: {}", Generic.objectToString(this));
         } else {
-            for (Order order : this.unmatchedOrders.values()) {
+            for (final Order order : this.unmatchedOrders.values()) {
                 if (order == null) {
                     logger.error("null order in cancelAllUnmatched for: {}", Generic.objectToString(this));
                 } else {
@@ -441,7 +441,7 @@ public class OrderMarketRunner
                         final boolean shouldCancelOrder;
                         if (sideToCancel == null) { // cancel all orders
                             shouldCancelOrder = true;
-                        } else if (!sideToCancel.equals(side)) { // not the right side
+                        } else if (sideToCancel != side) { // not the right side
                             shouldCancelOrder = false;
                         } else if (worstNotCanceledOdds == 0d) { // right side, and odds don't matter
                             shouldCancelOrder = true;
@@ -467,7 +467,7 @@ public class OrderMarketRunner
         if (this.runnerId == null || worstOddsThatAreGettingCanceled <= 0d) {
             logger.error("null runnerId or bogus worstOddsThatAreGettingCanceled in orderMarketRunner.cancelUnmatchedTooGoodOdds: {} {} {}", sideToCancel, worstOddsThatAreGettingCanceled, Generic.objectToString(this));
         } else {
-            for (Order order : this.unmatchedOrders.values()) {
+            for (final Order order : this.unmatchedOrders.values()) {
                 if (order == null) {
                     logger.error("null order in cancelUnmatchedTooGoodOdds for: {}", Generic.objectToString(this));
                 } else {
@@ -479,7 +479,7 @@ public class OrderMarketRunner
                         logger.error("null order attributes in cancelUnmatchedTooGoodOdds for: {} {} {} {} {}", side, price, size, betId, Generic.objectToString(order));
                     } else {
                         final boolean shouldCancelOrder;
-                        if (!sideToCancel.equals(side)) { // not the right side
+                        if (sideToCancel != side) { // not the right side
                             shouldCancelOrder = false;
                         } else if (!Formulas.oddsAreWorse(side, worstOddsThatAreGettingCanceled, price)) { // odds matter and are same or better
                             shouldCancelOrder = true;
@@ -507,7 +507,7 @@ public class OrderMarketRunner
                 final Side side = order.getSide();
                 if (side == null) {
                     logger.error("null side in getUnmatchedBackAmounts for: {} {}", Generic.objectToString(order), Generic.objectToString(this));
-                } else if (side.equals(Side.B)) {
+                } else if (side == Side.B) {
                     final Double price = order.getP(), remainingSize = order.getSr();
                     if (price == null || remainingSize == null) {
                         logger.error("null price or remainingSize in getUnmatchedBackAmounts for: {} {}", Generic.objectToString(order), Generic.objectToString(this));
@@ -532,7 +532,7 @@ public class OrderMarketRunner
                 final Side side = order.getSide();
                 if (side == null) {
                     logger.error("null side in getUnmatchedLayAmounts for: {} {}", Generic.objectToString(order), Generic.objectToString(this));
-                } else if (side.equals(Side.L)) {
+                } else if (side == Side.L) {
                     final Double price = order.getP(), remainingSize = order.getSr();
                     if (price == null || remainingSize == null) {
                         logger.error("null price or remainingSize in getUnmatchedLayAmounts for: {} {}", Generic.objectToString(order), Generic.objectToString(this));

@@ -3,6 +3,9 @@ package info.fmro.betty.entities;
 import info.fmro.betty.enums.MarketStatus;
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +15,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+@SuppressWarnings({"ClassWithTooManyFields", "ClassWithTooManyMethods", "OverlyComplexClass"})
 public class MarketBook
         implements Serializable, Comparable<MarketBook> {
     private static final Logger logger = LoggerFactory.getLogger(MarketBook.class);
@@ -28,396 +32,413 @@ public class MarketBook
     private Integer numberOfWinners;
     private Integer numberOfRunners;
     private Integer numberOfActiveRunners;
+    @Nullable
     private Date lastMatchTime;
     private Double totalMatched;
     private Double totalAvailable;
     private Boolean crossMatching;
     private Boolean runnersVoidable;
     private Long version;
+    @Nullable
     private ArrayList<Runner> runners;
     private KeyLineDescription keyLineDescription;
     private long timeStamp;
 
-    //    public MarketBook() {
-//    }
+    @Contract(pure = true)
     public MarketBook(final String marketId) {
         this.marketId = marketId;
     }
 
     public synchronized String getMarketId() {
-        return marketId;
+        return this.marketId;
     }
 
-    public synchronized Boolean getIsMarketDataDelayed() {
-        return isMarketDataDelayed;
+    @Contract(pure = true)
+    private synchronized Boolean getIsMarketDataDelayed() {
+        return this.isMarketDataDelayed;
     }
 
-    public synchronized int setIsMarketDataDelayed(final Boolean isMarketDataDelayed) {
+    private synchronized int setIsMarketDataDelayed(final Boolean newIsMarketDataDelayed) {
         final int modified;
         if (this.isMarketDataDelayed == null) {
-            if (isMarketDataDelayed == null) {
+            if (newIsMarketDataDelayed == null) {
                 modified = 0;
             } else {
-                this.isMarketDataDelayed = isMarketDataDelayed;
+                this.isMarketDataDelayed = newIsMarketDataDelayed;
                 modified = 1;
             }
-        } else if (this.isMarketDataDelayed.equals(isMarketDataDelayed)) {
+        } else if (this.isMarketDataDelayed.equals(newIsMarketDataDelayed)) {
             modified = 0;
         } else {
-            this.isMarketDataDelayed = isMarketDataDelayed;
+            this.isMarketDataDelayed = newIsMarketDataDelayed;
             modified = 1;
         }
         return modified;
     }
 
     public synchronized MarketStatus getStatus() {
-        return status;
+        return this.status;
     }
 
-    public synchronized int setStatus(final MarketStatus status) {
+    public synchronized int setStatus(final MarketStatus newStatus) {
         final int modified;
         if (this.status == null) {
-            if (status == null) {
+            if (newStatus == null) {
                 modified = 0;
             } else {
-                this.status = status;
+                this.status = newStatus;
                 modified = 1;
             }
-        } else if (this.status.equals(status)) {
+        } else if (this.status == newStatus) {
             modified = 0;
         } else {
-            this.status = status;
+            this.status = newStatus;
             modified = 1;
         }
         return modified;
     }
 
     public synchronized Integer getBetDelay() {
-        return betDelay;
+        return this.betDelay;
     }
 
-    public synchronized int setBetDelay(final Integer betDelay) {
+    private synchronized int setBetDelay(final Integer newBetDelay) {
         final int modified;
         if (this.betDelay == null) {
-            if (betDelay == null) {
+            if (newBetDelay == null) {
                 modified = 0;
             } else {
-                this.betDelay = betDelay;
+                this.betDelay = newBetDelay;
                 modified = 1;
             }
-        } else if (this.betDelay.equals(betDelay)) {
+        } else if (this.betDelay.equals(newBetDelay)) {
             modified = 0;
         } else {
-            this.betDelay = betDelay;
+            this.betDelay = newBetDelay;
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized Boolean getBspReconciled() {
-        return bspReconciled;
+    @Contract(pure = true)
+    private synchronized Boolean getBspReconciled() {
+        return this.bspReconciled;
     }
 
-    public synchronized int setBspReconciled(final Boolean bspReconciled) {
+    private synchronized int setBspReconciled(final Boolean newBspReconciled) {
         final int modified;
         if (this.bspReconciled == null) {
-            if (bspReconciled == null) {
+            if (newBspReconciled == null) {
                 modified = 0;
             } else {
-                this.bspReconciled = bspReconciled;
+                this.bspReconciled = newBspReconciled;
                 modified = 1;
             }
-        } else if (this.bspReconciled.equals(bspReconciled)) {
+        } else if (this.bspReconciled.equals(newBspReconciled)) {
             modified = 0;
         } else {
-            this.bspReconciled = bspReconciled;
+            this.bspReconciled = newBspReconciled;
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized Boolean getComplete() {
-        return complete;
+    @Contract(pure = true)
+    private synchronized Boolean getComplete() {
+        return this.complete;
     }
 
-    public synchronized int setComplete(final Boolean complete) {
+    private synchronized int setComplete(final Boolean newComplete) {
         final int modified;
         if (this.complete == null) {
-            if (complete == null) {
+            if (newComplete == null) {
                 modified = 0;
             } else {
-                this.complete = complete;
+                this.complete = newComplete;
                 modified = 1;
             }
-        } else if (this.complete.equals(complete)) {
+        } else if (this.complete.equals(newComplete)) {
             modified = 0;
         } else {
-            this.complete = complete;
+            this.complete = newComplete;
             modified = 1;
         }
         return modified;
     }
 
+    @SuppressWarnings("SpellCheckingInspection")
     public synchronized Boolean getInplay() {
-        return inplay;
+        return this.inplay;
     }
 
-    public synchronized int setInplay(final Boolean inplay) {
+    @SuppressWarnings("SpellCheckingInspection")
+    private synchronized int setInplay(final Boolean newInplay) {
         final int modified;
         if (this.inplay == null) {
-            if (inplay == null) {
+            if (newInplay == null) {
                 modified = 0;
             } else {
-                this.inplay = inplay;
+                this.inplay = newInplay;
                 modified = 1;
             }
-        } else if (this.inplay.equals(inplay)) {
+        } else if (this.inplay.equals(newInplay)) {
             modified = 0;
         } else {
-            this.inplay = inplay;
+            this.inplay = newInplay;
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized Integer getNumberOfWinners() {
-        return numberOfWinners;
+    @Contract(pure = true)
+    private synchronized Integer getNumberOfWinners() {
+        return this.numberOfWinners;
     }
 
-    public synchronized int setNumberOfWinners(final Integer numberOfWinners) {
+    private synchronized int setNumberOfWinners(final Integer newNumberOfWinners) {
         final int modified;
         if (this.numberOfWinners == null) {
-            if (numberOfWinners == null) {
+            if (newNumberOfWinners == null) {
                 modified = 0;
             } else {
-                this.numberOfWinners = numberOfWinners;
+                this.numberOfWinners = newNumberOfWinners;
                 modified = 1;
             }
-        } else if (this.numberOfWinners.equals(numberOfWinners)) {
+        } else if (this.numberOfWinners.equals(newNumberOfWinners)) {
             modified = 0;
         } else {
-            this.numberOfWinners = numberOfWinners;
+            this.numberOfWinners = newNumberOfWinners;
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized Integer getNumberOfRunners() {
-        return numberOfRunners;
+    @Contract(pure = true)
+    private synchronized Integer getNumberOfRunners() {
+        return this.numberOfRunners;
     }
 
-    public synchronized int setNumberOfRunners(final Integer numberOfRunners) {
+    private synchronized int setNumberOfRunners(final Integer newNumberOfRunners) {
         final int modified;
         if (this.numberOfRunners == null) {
-            if (numberOfRunners == null) {
+            if (newNumberOfRunners == null) {
                 modified = 0;
             } else {
-                this.numberOfRunners = numberOfRunners;
+                this.numberOfRunners = newNumberOfRunners;
                 modified = 1;
             }
-        } else if (this.numberOfRunners.equals(numberOfRunners)) {
+        } else if (this.numberOfRunners.equals(newNumberOfRunners)) {
             modified = 0;
         } else {
-            this.numberOfRunners = numberOfRunners;
+            this.numberOfRunners = newNumberOfRunners;
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized Integer getNumberOfActiveRunners() {
-        return numberOfActiveRunners;
+    @Contract(pure = true)
+    private synchronized Integer getNumberOfActiveRunners() {
+        return this.numberOfActiveRunners;
     }
 
-    public synchronized int setNumberOfActiveRunners(final Integer numberOfActiveRunners) {
+    private synchronized int setNumberOfActiveRunners(final Integer newNumberOfActiveRunners) {
         final int modified;
         if (this.numberOfActiveRunners == null) {
-            if (numberOfActiveRunners == null) {
+            if (newNumberOfActiveRunners == null) {
                 modified = 0;
             } else {
-                this.numberOfActiveRunners = numberOfActiveRunners;
+                this.numberOfActiveRunners = newNumberOfActiveRunners;
                 modified = 1;
             }
-        } else if (this.numberOfActiveRunners.equals(numberOfActiveRunners)) {
+        } else if (this.numberOfActiveRunners.equals(newNumberOfActiveRunners)) {
             modified = 0;
         } else {
-            this.numberOfActiveRunners = numberOfActiveRunners;
+            this.numberOfActiveRunners = newNumberOfActiveRunners;
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized Date getLastMatchTime() {
-        return lastMatchTime == null ? null : (Date) lastMatchTime.clone();
+    @Contract(pure = true)
+    @Nullable
+    private synchronized Date getLastMatchTime() {
+        return this.lastMatchTime == null ? null : (Date) this.lastMatchTime.clone();
     }
 
-    public synchronized int setLastMatchTime(final Date lastMatchTime) {
+    private synchronized int setLastMatchTime(final Date newLastMatchTime) {
         final int modified;
         if (this.lastMatchTime == null) {
-            if (lastMatchTime == null) {
+            if (newLastMatchTime == null) {
                 modified = 0;
             } else {
-                this.lastMatchTime = (Date) lastMatchTime.clone();
+                this.lastMatchTime = (Date) newLastMatchTime.clone();
                 modified = 1;
             }
-        } else if (this.lastMatchTime.equals(lastMatchTime)) {
+        } else if (this.lastMatchTime.equals(newLastMatchTime)) {
             modified = 0;
         } else {
-            this.lastMatchTime = lastMatchTime == null ? null : (Date) lastMatchTime.clone();
+            this.lastMatchTime = newLastMatchTime == null ? null : (Date) newLastMatchTime.clone();
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized Double getTotalMatched() {
-        return totalMatched;
+    @Contract(pure = true)
+    private synchronized Double getTotalMatched() {
+        return this.totalMatched;
     }
 
-    public synchronized int setTotalMatched(final Double totalMatched) {
+    private synchronized int setTotalMatched(final Double newTotalMatched) {
         final int modified;
         if (this.totalMatched == null) {
-            if (totalMatched == null) {
+            if (newTotalMatched == null) {
                 modified = 0;
             } else {
-                this.totalMatched = totalMatched;
+                this.totalMatched = newTotalMatched;
                 modified = 1;
             }
-        } else if (this.totalMatched.equals(totalMatched)) {
+        } else if (this.totalMatched.equals(newTotalMatched)) {
             modified = 0;
         } else {
-            this.totalMatched = totalMatched;
+            this.totalMatched = newTotalMatched;
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized Double getTotalAvailable() {
-        return totalAvailable;
+    @Contract(pure = true)
+    private synchronized Double getTotalAvailable() {
+        return this.totalAvailable;
     }
 
-    public synchronized int setTotalAvailable(final Double totalAvailable) {
+    private synchronized int setTotalAvailable(final Double newTotalAvailable) {
         final int modified;
         if (this.totalAvailable == null) {
-            if (totalAvailable == null) {
+            if (newTotalAvailable == null) {
                 modified = 0;
             } else {
-                this.totalAvailable = totalAvailable;
+                this.totalAvailable = newTotalAvailable;
                 modified = 1;
             }
-        } else if (this.totalAvailable.equals(totalAvailable)) {
+        } else if (this.totalAvailable.equals(newTotalAvailable)) {
             modified = 0;
         } else {
-            this.totalAvailable = totalAvailable;
+            this.totalAvailable = newTotalAvailable;
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized Boolean getCrossMatching() {
-        return crossMatching;
+    @Contract(pure = true)
+    private synchronized Boolean getCrossMatching() {
+        return this.crossMatching;
     }
 
-    public synchronized int setCrossMatching(final Boolean crossMatching) {
+    private synchronized int setCrossMatching(final Boolean newCrossMatching) {
         final int modified;
         if (this.crossMatching == null) {
-            if (crossMatching == null) {
+            if (newCrossMatching == null) {
                 modified = 0;
             } else {
-                this.crossMatching = crossMatching;
+                this.crossMatching = newCrossMatching;
                 modified = 1;
             }
-        } else if (this.crossMatching.equals(crossMatching)) {
+        } else if (this.crossMatching.equals(newCrossMatching)) {
             modified = 0;
         } else {
-            this.crossMatching = crossMatching;
+            this.crossMatching = newCrossMatching;
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized Boolean getRunnersVoidable() {
-        return runnersVoidable;
+    @Contract(pure = true)
+    private synchronized Boolean getRunnersVoidable() {
+        return this.runnersVoidable;
     }
 
-    public synchronized int setRunnersVoidable(final Boolean runnersVoidable) {
+    private synchronized int setRunnersVoidable(final Boolean newRunnersVoidable) {
         final int modified;
         if (this.runnersVoidable == null) {
-            if (runnersVoidable == null) {
+            if (newRunnersVoidable == null) {
                 modified = 0;
             } else {
-                this.runnersVoidable = runnersVoidable;
+                this.runnersVoidable = newRunnersVoidable;
                 modified = 1;
             }
-        } else if (this.runnersVoidable.equals(runnersVoidable)) {
+        } else if (this.runnersVoidable.equals(newRunnersVoidable)) {
             modified = 0;
         } else {
-            this.runnersVoidable = runnersVoidable;
+            this.runnersVoidable = newRunnersVoidable;
             modified = 1;
         }
         return modified;
     }
 
     public synchronized Long getVersion() {
-        return version;
+        return this.version;
     }
 
-    public synchronized int setVersion(final Long version) {
+    private synchronized int setVersion(final Long newVersion) {
         final int modified;
         if (this.version == null) {
-            if (version == null) {
+            if (newVersion == null) {
                 modified = 0;
             } else {
-                this.version = version;
+                this.version = newVersion;
                 modified = 1;
             }
-        } else if (this.version.equals(version)) {
+        } else if (this.version.equals(newVersion)) {
             modified = 0;
         } else {
-            this.version = version;
+            this.version = newVersion;
             modified = 1;
         }
         return modified;
     }
 
+    @Nullable
     public synchronized List<Runner> getRunners() {
-        return runners == null ? null : new ArrayList<>(runners);
+        return this.runners == null ? null : new ArrayList<>(this.runners);
     }
 
-    public synchronized int setRunners(final List<Runner> runners) {
+    private synchronized int setRunners(final List<? extends Runner> newRunners) {
         final int modified;
         if (this.runners == null) {
-            if (runners == null) {
+            if (newRunners == null) {
                 modified = 0;
             } else {
-                this.runners = new ArrayList<>(runners);
+                this.runners = new ArrayList<>(newRunners);
                 modified = 1;
             }
-        } else if (this.runners.equals(runners)) {
+        } else if (this.runners.equals(newRunners)) {
             modified = 0;
         } else {
-            this.runners = runners == null ? null : new ArrayList<>(runners);
+            this.runners = newRunners == null ? null : new ArrayList<>(newRunners);
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized KeyLineDescription getKeyLineDescription() {
-        return keyLineDescription;
+    @Contract(pure = true)
+    private synchronized KeyLineDescription getKeyLineDescription() {
+        return this.keyLineDescription;
     }
 
-    public synchronized int setKeyLineDescription(final KeyLineDescription keyLineDescription) {
+    private synchronized int setKeyLineDescription(final KeyLineDescription newKeyLineDescription) {
         final int modified;
 
         if (this.keyLineDescription == null) {
-            if (keyLineDescription == null) {
+            if (newKeyLineDescription == null) {
                 modified = 0;
             } else {
-                this.keyLineDescription = keyLineDescription;
+                this.keyLineDescription = newKeyLineDescription;
                 modified = 1;
             }
-        } else if (this.keyLineDescription.equals(keyLineDescription)) {
+        } else if (this.keyLineDescription.equals(newKeyLineDescription)) {
             modified = 0;
         } else {
-            this.keyLineDescription = keyLineDescription;
+            this.keyLineDescription = newKeyLineDescription;
             modified = 1;
         }
 
@@ -425,7 +446,7 @@ public class MarketBook
     }
 
     public synchronized long getTimeStamp() {
-        return timeStamp;
+        return this.timeStamp;
     }
 
     public synchronized void setTimeStamp(final long timeStamp) {
@@ -445,7 +466,7 @@ public class MarketBook
             logger.error("mismatch marketId in MarketBook.update: {} {}", Generic.objectToString(this), Generic.objectToString(marketBook));
             modified = 0;
         } else {
-            long thatTimeStamp = marketBook.getTimeStamp();
+            final long thatTimeStamp = marketBook.getTimeStamp();
             if (this.timeStamp > thatTimeStamp) {
                 final long currentTime = System.currentTimeMillis();
                 if (this.timeStamp > currentTime) { // clock jump
@@ -489,38 +510,35 @@ public class MarketBook
         return modified;
     }
 
+    @SuppressWarnings("MethodWithMultipleReturnPoints")
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(final MarketBook other) {
-        if (other == null) {
+    public synchronized int compareTo(@NotNull final MarketBook o) {
+        //noinspection ConstantConditions
+        if (o == null) {
             return AFTER;
         }
-        if (this == other) {
+        if (this == o) {
             return EQUAL;
         }
 
-        if (this.getClass() != other.getClass()) {
-            if (this.getClass().hashCode() < other.getClass().hashCode()) {
-                return BEFORE;
-            } else {
-                return AFTER;
-            }
+        if (this.getClass() != o.getClass()) {
+            return this.getClass().hashCode() < o.getClass().hashCode() ? BEFORE : AFTER;
         }
-        if (!Objects.equals(this.marketId, other.marketId)) {
+        if (!Objects.equals(this.marketId, o.marketId)) {
             if (this.marketId == null) {
                 return BEFORE;
             }
-            if (other.marketId == null) {
+            if (o.marketId == null) {
                 return AFTER;
             }
-            return this.marketId.compareTo(other.marketId);
+            return this.marketId.compareTo(o.marketId);
         }
 
         return EQUAL;
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;

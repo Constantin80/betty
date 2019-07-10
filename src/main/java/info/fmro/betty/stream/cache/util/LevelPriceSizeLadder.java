@@ -10,17 +10,17 @@ public class LevelPriceSizeLadder
     private static final long serialVersionUID = 990070832400710390L;
     private final Map<Integer, LevelPriceSize> levelToPriceSize = new TreeMap<>();
 
-    public synchronized void onPriceChange(final boolean isImage, final List<List<Double>> prices) {
+    public synchronized void onPriceChange(final boolean isImage, final Iterable<? extends List<Double>> prices) {
         if (isImage) {
             //image is replace
-            levelToPriceSize.clear();
+            this.levelToPriceSize.clear();
         }
 
         if (prices != null) {
             //changes to apply
-            for (List<Double> price : prices) {
+            for (final List<Double> price : prices) {
                 final LevelPriceSize levelPriceSize = new LevelPriceSize(price);
-                levelToPriceSize.put(levelPriceSize.getLevel(), levelPriceSize);
+                this.levelToPriceSize.put(levelPriceSize.getLevel(), levelPriceSize);
             }
         }
     }

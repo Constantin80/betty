@@ -18,44 +18,45 @@ import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import info.fmro.shared.utility.SynchronizedMap;
 import info.fmro.shared.utility.SynchronizedSafeSet;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class FindSafeRunners {
-
+@SuppressWarnings({"OverlyComplexClass", "UtilityClass"})
+public final class FindSafeRunners {
     private static final Logger logger = LoggerFactory.getLogger(FindSafeRunners.class);
     public static final Side LAY = Side.LAY, BACK = Side.BACK;
-    public static final ScrapedField[] statusScoresHts = new ScrapedField[]{ScrapedField.MATCH_STATUS, ScrapedField.HOME_SCORE, ScrapedField.AWAY_SCORE, ScrapedField.HOME_HT_SCORE,
-                                                                            ScrapedField.AWAY_HT_SCORE}, statusScores = new ScrapedField[]{ScrapedField.MATCH_STATUS, ScrapedField.HOME_SCORE, ScrapedField.AWAY_SCORE},
-            statusHts = new ScrapedField[]{ScrapedField.MATCH_STATUS, ScrapedField.HOME_HT_SCORE, ScrapedField.AWAY_HT_SCORE},
-            statusHomeScore = new ScrapedField[]{ScrapedField.MATCH_STATUS, ScrapedField.HOME_SCORE},
-            statusAwayScore = new ScrapedField[]{ScrapedField.MATCH_STATUS, ScrapedField.AWAY_SCORE};
+    private static final ScrapedField[] statusScoresHts = {ScrapedField.MATCH_STATUS, ScrapedField.HOME_SCORE, ScrapedField.AWAY_SCORE, ScrapedField.HOME_HT_SCORE, ScrapedField.AWAY_HT_SCORE},
+            statusScores = {ScrapedField.MATCH_STATUS, ScrapedField.HOME_SCORE, ScrapedField.AWAY_SCORE}, statusHts = {ScrapedField.MATCH_STATUS, ScrapedField.HOME_HT_SCORE, ScrapedField.AWAY_HT_SCORE},
+            statusHomeScore = {ScrapedField.MATCH_STATUS, ScrapedField.HOME_SCORE}, statusAwayScore = {ScrapedField.MATCH_STATUS, ScrapedField.AWAY_SCORE};
     public static final AtomicLong lastRegularFindSafeRunnersRunStamp = new AtomicLong();
 
+    @Contract(pure = true)
     private FindSafeRunners() {
     }
 
-    public static void safeRunnersSetSizeCheck(final SynchronizedSafeSet<SafeRunner> safeRunnersSet, final int nSafeRunners, final MarketCatalogue marketCatalogue, final String marketId,
-                                               final ParsedMarketType parsedMarketType, final String eventName, final List<String> modifiedMarketsList, final long startTime, final HashSet<ParsedRunner> usedParsedRunnersSet, final String scraperData) {
+    private static void safeRunnersSetSizeCheck(@NotNull final SynchronizedSafeSet<SafeRunner> safeRunnersSet, final int nSafeRunners, final MarketCatalogue marketCatalogue, final String marketId, final ParsedMarketType parsedMarketType,
+                                                final String eventName, final Collection<? super String> modifiedMarketsList, final long startTime, final HashSet<ParsedRunner> usedParsedRunnersSet, final String scraperData) {
         if (safeRunnersSet.size() == nSafeRunners) {
             if (BlackList.notExistOrIgnored(Statics.marketCataloguesMap, marketId, startTime)) {
                 BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "marketCatalogue in safeRunnersSetSizeCheck");
                 MaintenanceThread.removeFromSecondaryMaps(marketId);
             } else if (Statics.marketsUnderTesting.contains(parsedMarketType)) {
-                Generic.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "marketsUnderTesting safeRunnersSet not added, size: {} in findSafeRunners for: {} {} {} {}",
-                                                  safeRunnersSet.size(), scraperData, Generic.objectToString(usedParsedRunnersSet), Generic.objectToString(safeRunnersSet),
-                                                  Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
+                Generic.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "marketsUnderTesting safeRunnersSet not added, size: {} in findSafeRunners for: {} {} {} {}", safeRunnersSet.size(), scraperData, Generic.objectToString(usedParsedRunnersSet),
+                                                  Generic.objectToString(safeRunnersSet), Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
             } else {
                 final SynchronizedSafeSet<SafeRunner> inMapSafeRunnersSet = Statics.safeMarketsMap.putIfAbsent(marketId, safeRunnersSet);
                 if (inMapSafeRunnersSet == null) { // safeRunnersSet was added, no previous safeRunnersSet existed
@@ -66,8 +67,8 @@ public class FindSafeRunners {
                         if (!modifiedMarketsList.contains(marketId)) {
                             modifiedMarketsList.add(marketId);
                         }
-                        Generic.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "Safe market {} {} of event ({}) added with {} runners: {} {}", marketId, parsedMarketType.name(),
-                                                          eventName, nSafeRunners, scraperData, Generic.objectToString(usedParsedRunnersSet));
+                        Generic.alreadyPrintedMap
+                                .logOnce(logger, LogLevel.INFO, "Safe market {} {} of event ({}) added with {} runners: {} {}", marketId, parsedMarketType.name(), eventName, nSafeRunners, scraperData, Generic.objectToString(usedParsedRunnersSet));
 //                                Generic.objectToString(safeRunnersSet));
                     }
                 } else {
@@ -86,7 +87,7 @@ public class FindSafeRunners {
         }
     }
 
-    public static int updateSafeRunnersSet(final SynchronizedSafeSet<SafeRunner> existingSafeRunnersSet, final SynchronizedSafeSet<SafeRunner> newSafeRunnersSet) {
+    private static int updateSafeRunnersSet(final SynchronizedSafeSet<SafeRunner> existingSafeRunnersSet, final SynchronizedSafeSet<SafeRunner> newSafeRunnersSet) {
         int modified;
         if (existingSafeRunnersSet == null || newSafeRunnersSet == null) {
             logger.error("existingSafeRunnersSet or newSafeRunnersSet null in updateSafeRunnersSet: {} {}", Generic.objectToString(existingSafeRunnersSet), Generic.objectToString(newSafeRunnersSet));
@@ -94,7 +95,7 @@ public class FindSafeRunners {
         } else {
             modified = 0; // initialized
             final HashSet<SafeRunner> newSafeRunnersSetCopy = newSafeRunnersSet.copy();
-            for (SafeRunner newSafeRunner : newSafeRunnersSetCopy) {
+            for (final SafeRunner newSafeRunner : newSafeRunnersSetCopy) {
                 if (existingSafeRunnersSet.add(newSafeRunner)) {
                     newSafeRunner.checkScrapers();
                     modified++;
@@ -124,12 +125,13 @@ public class FindSafeRunners {
         return modified;
     }
 
-    public static SynchronizedSafeSet<SafeRunner> createSafeRunnersSet(final int nSafeRunners) {
+    @NotNull
+    private static SynchronizedSafeSet<SafeRunner> createSafeRunnersSet(final int nSafeRunners) {
         final int capacity = Generic.getCollectionCapacity(nSafeRunners);
         return new SynchronizedSafeSet<>(capacity);
     }
 
-    public static void addSafeRunner(final SynchronizedSafeSet<SafeRunner> safeRunnersSet, final SafeRunner safeRunner, final HashSet<ParsedRunner> usedParsedRunnersSet, final ParsedRunner parsedRunner) {
+    private static void addSafeRunner(final SynchronizedSafeSet<? super SafeRunner> safeRunnersSet, final SafeRunner safeRunner, final Collection<? super ParsedRunner> usedParsedRunnersSet, final ParsedRunner parsedRunner) {
         if (safeRunner != null) {
             safeRunnersSet.add(safeRunner);
             usedParsedRunnersSet.add(parsedRunner);
@@ -137,35 +139,38 @@ public class FindSafeRunners {
         }
     }
 
-    public static void defaultParsedRunnerTypeError(final ParsedRunnerType parsedRunnerType, final MarketCatalogue marketCatalogue) {
+    private static void defaultParsedRunnerTypeError(final ParsedRunnerType parsedRunnerType, final MarketCatalogue marketCatalogue) {
         Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "STRANGE unknown parsedRunnerType: {} in findSafeRunners for: {}",
                                           parsedRunnerType, Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
     }
 
-    public static boolean during90Minutes(final MatchStatus matchStatus) {
+    @Contract(pure = true)
+    private static boolean during90Minutes(final MatchStatus matchStatus) {
         return matchStatus == MatchStatus.FIRST_HALF || matchStatus == MatchStatus.HALF_TIME || matchStatus == MatchStatus.SECOND_HALF || matchStatus == MatchStatus.AWAITING_ET;
     }
 
-    public static boolean during90MinutesWithoutFirstHalf(final MatchStatus matchStatus) {
+    @Contract(pure = true)
+    private static boolean during90MinutesWithoutFirstHalf(final MatchStatus matchStatus) {
         return matchStatus == MatchStatus.HALF_TIME || matchStatus == MatchStatus.SECOND_HALF || matchStatus == MatchStatus.AWAITING_ET;
     }
 
-    public static boolean duringFirstHalf(final MatchStatus matchStatus) {
+    @Contract(pure = true)
+    private static boolean duringFirstHalf(final MatchStatus matchStatus) {
         return matchStatus == MatchStatus.FIRST_HALF || matchStatus == MatchStatus.HALF_TIME;
     }
 
-    public static boolean duringSecondHalf(final MatchStatus matchStatus) {
+    @Contract(pure = true)
+    private static boolean duringSecondHalf(final MatchStatus matchStatus) {
         return matchStatus == MatchStatus.SECOND_HALF || matchStatus == MatchStatus.AWAITING_ET;
     }
 
-    public static SynchronizedMap<Class<? extends ScraperEvent>, Long> putUsedScrapersSet(
-            final HashMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapersMap, final ScrapedField scrapedField) {
+    private static SynchronizedMap<Class<? extends ScraperEvent>, Long> putUsedScrapersSet(final Map<? super ScrapedField, ? super SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapersMap, final ScrapedField scrapedField) {
         return putUsedScrapersMap(usedScrapersMap, scrapedField, 4);
     }
 
-    public static SynchronizedMap<Class<? extends ScraperEvent>, Long> putUsedScrapersMap(
-            final HashMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapersMap, final ScrapedField scrapedField, final int initialSetSize) {
-        SynchronizedMap<Class<? extends ScraperEvent>, Long> map = new SynchronizedMap<>(initialSetSize);
+    private static SynchronizedMap<Class<? extends ScraperEvent>, Long> putUsedScrapersMap(final @NotNull Map<? super ScrapedField, ? super SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapersMap, final ScrapedField scrapedField,
+                                                                                           @SuppressWarnings("SameParameterValue") final int initialSetSize) {
+        final SynchronizedMap<Class<? extends ScraperEvent>, Long> map = new SynchronizedMap<>(initialSetSize);
         usedScrapersMap.put(scrapedField, map);
         return map;
     }
@@ -174,51 +179,33 @@ public class FindSafeRunners {
         findSafeRunners(null, null);
     }
 
-    public static void findSafeRunners(final HashSet<Event> eventsSet) {
+    public static void findSafeRunners(final Collection<Event> eventsSet) {
         findSafeRunners(eventsSet, null);
     }
 
-    public static void findSafeRunners(final LinkedHashSet<Entry<String, MarketCatalogue>> entrySet) {
+    public static void findSafeRunners(final Set<Entry<String, MarketCatalogue>> entrySet) {
         findSafeRunners(null, entrySet);
     }
 
-    @SuppressWarnings("unchecked")
-    public static void findSafeRunners(final HashSet<Event> eventsSet, final LinkedHashSet<Entry<String, MarketCatalogue>> entrySet) {
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "OverlyNestedMethod", "NestedSwitchStatement", "SwitchStatementDensity", "ConstantConditions"})
+    public static void findSafeRunners(final Collection<Event> eventsSet, final Set<Entry<String, MarketCatalogue>> entrySet) {
         if (System.currentTimeMillis() - Statics.scraperEventMaps.getNTimeStamp() <= Generic.HOUR_LENGTH_MILLISECONDS * 3L) {
             final long startTime = System.currentTimeMillis();
             final boolean fullRun = eventsSet == null && entrySet == null;
-            if (!fullRun) {
-                lastRegularFindSafeRunnersRunStamp.getAndSet(startTime);
-            } else { // fullRun, not updating the stamp
-            }
-
-            // final Set<String> marketCataloguesMapKeysCopy = Statics.marketCataloguesMap.keySetCopy();
-            Set<Entry<String, MarketCatalogue>> entrySetCopy;
-            if (entrySet == null) {
-                entrySetCopy = Statics.marketCataloguesMap.entrySetCopy();
+            if (fullRun) { // fullRun, not updating the stamp
             } else {
-                entrySetCopy = entrySet;
+                lastRegularFindSafeRunnersRunStamp.getAndSet(startTime);
             }
-            // final HashSet<String> toRemoveEntrySet = new HashSet<>(0);
-            final List<String> modifiedMarketsList = new ArrayList<>(0);
 
-            for (Entry<String, MarketCatalogue> entry : entrySetCopy) {
+            final Set<Entry<String, MarketCatalogue>> entrySetCopy = entrySet == null ? Statics.marketCataloguesMap.entrySetCopy() : entrySet;
+            final List<String> modifiedMarketsList = new ArrayList<>(0);
+            for (final Entry<String, MarketCatalogue> entry : entrySetCopy) {
                 final String marketId = entry.getKey();
                 final MarketCatalogue marketCatalogue = entry.getValue();
                 if (marketId != null && marketCatalogue != null && !marketCatalogue.isIgnored()) {
                     final ParsedMarket parsedMarket = marketCatalogue.getParsedMarket();
-//                    final Event eventStump = marketCatalogue.getEventStump();
                     final Event event = Formulas.getStoredEventOfMarketCatalogue(marketCatalogue);
                     if (parsedMarket != null && event != null && !event.isIgnored(startTime)) {
-//                        final Event event;
-//                        if (eventsSet != null && eventsSet.contains(eventStump)) {
-//                            event = Generic.getEqualElementFromSet(eventsSet, eventStump);
-//                        } else {
-//                            event = Formulas.getStoredEventOfMarketCatalogue(marketCatalogue);
-//                        }
-//
-//                        if (event != null && !event.isIgnored(startTime)) {
-
                         if (eventsSet == null || eventsSet.contains(event)) {
                             final LinkedHashMap<Class<? extends ScraperEvent>, Long> scraperEventIds = event.getScraperEventIds();
                             final HashSet<ParsedRunner> parsedRunnersSet = parsedMarket.getParsedRunnersSet();
@@ -227,9 +214,8 @@ public class FindSafeRunners {
                             final String eventName = event.getName();
                             if (parsedRunnersSet != null && parsedMarketType != null && eventName != null && scraperEventIds != null) {
                                 final int nMatches = event.getNValidScraperEventIds();
-                                final ArrayList<Integer> homeScores = new ArrayList<>(nMatches), awayScores = new ArrayList<>(nMatches), homeHtScores = new ArrayList<>(nMatches),
-                                        awayHtScores = new ArrayList<>(nMatches);
-                                final ArrayList<MatchStatus> matchStatuses = new ArrayList<>(nMatches);
+                                final List<Integer> homeScores = new ArrayList<>(nMatches), awayScores = new ArrayList<>(nMatches), homeHtScores = new ArrayList<>(nMatches), awayHtScores = new ArrayList<>(nMatches);
+                                final List<MatchStatus> matchStatuses = new ArrayList<>(nMatches);
                                 final Set<Entry<Class<? extends ScraperEvent>, Long>> scraperEventIdsEntrySet = scraperEventIds.entrySet();
                                 for (final Entry<Class<? extends ScraperEvent>, Long> entryMatched : scraperEventIdsEntrySet) {
                                     final Class<? extends ScraperEvent> clazz = entryMatched.getKey();
@@ -237,7 +223,8 @@ public class FindSafeRunners {
                                     final SynchronizedMap<Long, ? extends ScraperEvent> map = Formulas.getScraperEventsMap(clazz);
                                     final ScraperEvent scraperEvent = map.get(scraperEventId);
                                     if (scraperEvent != null) {
-                                        if (!scraperEvent.isIgnored()) {
+                                        if (scraperEvent.isIgnored()) { // ignored, I guess nothing to be done
+                                        } else {
                                             final long scraperErrors = scraperEvent.errors();
                                             final boolean startedScraperEvent = scraperEvent.hasStarted();
                                             if (scraperErrors <= 0L && startedScraperEvent) {
@@ -253,31 +240,14 @@ public class FindSafeRunners {
                                                 awayHtScores.add(awayHtScore);
                                             } else {
                                                 logger.error("errors or not started for: {} {} {}", clazz.getSimpleName(), scraperEventId, Generic.objectToString(scraperEvent));
-                                                // will not remove; error message is good enough
-//                                        map.remove(scraperEventId);
-//                                        event.removeScraperEventId(clazz);
-//                                        if (event.getNValidScraperEventIds() < Statics.MIN_MATCHED) {
-//                                            Statics.marketCataloguesMap.remove(marketId);
-//                                        }
                                             }
-                                        } else { // ignored, I guess nothing to be done
                                         }
                                     } else {
                                         final long timeSinceLastRemoved = startTime - map.getTimeStampRemoved();
-//                                    logger.error("null scraperEvent for: {} {}", clazz.getSimpleName(), scraperEventId);
-                                        // will not remove; error message is good enough
-//                                    event.removeScraperEventId(clazz);
-//                                    if (event.getNValidScraperEventIds() < Statics.MIN_MATCHED) {
-//                                        Statics.marketCataloguesMap.remove(marketId);
-//                                    }
-
-                                        final String printedString = MessageFormatter.
-                                                                                             arrayFormat("null {} in map in findSafeRunners timeSinceLastRemoved: {} for scraperEvent: {}",
-                                                                                                         new Object[]{clazz.getName(), timeSinceLastRemoved, scraperEventId}).getMessage();
+                                        final String printedString =
+                                                MessageFormatter.arrayFormat("null {} in map in findSafeRunners timeSinceLastRemoved: {} for scraperEvent: {}", new Object[]{clazz.getName(), timeSinceLastRemoved, scraperEventId}).getMessage();
                                         if (timeSinceLastRemoved < 1_000L) {
-                                            logger.info("null {} in map in findSafeRunners timeSinceLastRemoved {} for scraperEventId {}", clazz.getSimpleName(),
-                                                        timeSinceLastRemoved,
-                                                        scraperEventId);
+                                            logger.info("null {} in map in findSafeRunners timeSinceLastRemoved {} for scraperEventId {}", clazz.getSimpleName(), timeSinceLastRemoved, scraperEventId);
                                         } else {
                                             logger.error(printedString);
                                         }
@@ -288,23 +258,21 @@ public class FindSafeRunners {
                                 final int homeHtScore = Formulas.getMaxMultiple(homeHtScores, -1);
                                 final int awayHtScore = Formulas.getMaxMultiple(awayHtScores, -1);
                                 final MatchStatus matchStatus = Formulas.getMaxMultiple(matchStatuses, null, Statics.nullComparator);
-                                final String scraperData = (new StringBuilder(32)).append(matchStatus).append(" ").append(homeScore).append("-").append(awayScore).append("(").
-                                        append(homeHtScore).append("-").append(awayHtScore).append(")").toString();
+                                final String scraperData = matchStatus + " " + homeScore + "-" + awayScore + "(" + homeHtScore + "-" + awayHtScore + ")";
 
-                                if (homeScore >= 0 && awayScore >= 0 && ((homeHtScore >= 0 && awayHtScore >= 0) || (homeHtScore < 0 && awayHtScore < 0))) {
-                                    final HashMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapersMap = new HashMap<>(8);
+                                if (homeScore >= 0 && awayScore >= 0 && (homeHtScore >= 0) == (awayHtScore >= 0)) {
+                                    final EnumMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapersMap = new EnumMap<>(ScrapedField.class);
                                     final SynchronizedMap<Class<? extends ScraperEvent>, Long> homeScoreScrapers = putUsedScrapersSet(usedScrapersMap, ScrapedField.HOME_SCORE),
-                                            awayScoreScrapers = putUsedScrapersSet(usedScrapersMap, ScrapedField.AWAY_SCORE),
-                                            homeHtScoreScrapers = putUsedScrapersSet(usedScrapersMap, ScrapedField.HOME_HT_SCORE),
-                                            awayHtScoreScrapers = putUsedScrapersSet(usedScrapersMap, ScrapedField.AWAY_HT_SCORE),
-                                            matchStatusScrapers = putUsedScrapersSet(usedScrapersMap, ScrapedField.MATCH_STATUS);
+                                            awayScoreScrapers = putUsedScrapersSet(usedScrapersMap, ScrapedField.AWAY_SCORE), homeHtScoreScrapers = putUsedScrapersSet(usedScrapersMap, ScrapedField.HOME_HT_SCORE),
+                                            awayHtScoreScrapers = putUsedScrapersSet(usedScrapersMap, ScrapedField.AWAY_HT_SCORE), matchStatusScrapers = putUsedScrapersSet(usedScrapersMap, ScrapedField.MATCH_STATUS);
                                     for (final Entry<Class<? extends ScraperEvent>, Long> entryMatched : scraperEventIdsEntrySet) {
                                         final Class<? extends ScraperEvent> clazz = entryMatched.getKey();
                                         final long scraperEventId = entryMatched.getValue();
                                         final SynchronizedMap<Long, ? extends ScraperEvent> map = Formulas.getScraperEventsMap(clazz);
                                         final ScraperEvent scraperEvent = map.get(scraperEventId);
                                         if (scraperEvent != null) {
-                                            if (!scraperEvent.isIgnored()) {
+                                            if (scraperEvent.isIgnored()) { // ignored, I guess nothing to be done
+                                            } else {
                                                 final long scraperErrors = scraperEvent.errors();
                                                 final boolean startedScraperEvent = scraperEvent.hasStarted();
                                                 if (scraperErrors <= 0L && startedScraperEvent) {
@@ -329,65 +297,26 @@ public class FindSafeRunners {
                                                         awayHtScoreScrapers.put(clazz, scraperEventId);
                                                     }
                                                 } else {
-                                                    logger.error("b errors or not started for: {} {} {}", clazz.getSimpleName(), scraperEventId, Generic.
-                                                                                                                                                                objectToString(scraperEvent));
-                                                    // will not remove; error message is good enough
-//                                            map.remove(scraperEventId);
-//                                            event.removeScraperEventId(clazz);
-//                                            if (event.getNValidScraperEventIds() < Statics.MIN_MATCHED) {
-//                                                Statics.marketCataloguesMap.remove(marketId);
-//                                            }
+                                                    logger.error("b errors or not started for: {} {} {}", clazz.getSimpleName(), scraperEventId, Generic.objectToString(scraperEvent));
                                                 }
-                                            } else { // ignored, I guess nothing to be done
                                             }
                                         } else {
                                             final long timeSinceLastRemoved = startTime - map.getTimeStampRemoved();
-//                                        logger.error("b null scraperEvent for: {} {}", clazz.getSimpleName(), scraperEventId);
-                                            // will not remove; error message is good enough
-//                                        event.removeScraperEventId(clazz);
-//                                        if (event.getNValidScraperEventIds() < Statics.MIN_MATCHED) {
-//                                            Statics.marketCataloguesMap.remove(marketId);
-//                                        }
-
                                             final String printedString =
                                                     MessageFormatter.arrayFormat("b null {} in map in findSafeRunners timeSinceLastRemoved: {} for scraperEvent: {}", new Object[]{clazz.getName(), timeSinceLastRemoved, scraperEventId}).getMessage();
                                             if (timeSinceLastRemoved < 1_000L) {
-                                                logger.info("b null {} in map in findSafeRunners timeSinceLastRemoved {} for scraperEventId {}", clazz.getSimpleName(),
-                                                            timeSinceLastRemoved, scraperEventId);
+                                                logger.info("b null {} in map in findSafeRunners timeSinceLastRemoved {} for scraperEventId {}", clazz.getSimpleName(), timeSinceLastRemoved, scraperEventId);
                                             } else {
                                                 logger.error(printedString);
                                             }
                                         } // end else
                                     } // end for
-//                                boolean errorInUsedScrapersMap = false;
-//                                final Collection<SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapersMapValues = usedScrapersMap.values();
-//                                for (SynchronizedMap<Class<? extends ScraperEvent>, Long> map : usedScrapersMapValues) {
-//                                    final int size = map.size();
-//                                    if (size < Statics.MIN_MATCHED) {
-//                                        logger.error("STRANGE error too few usedScrapers set elements: {} {}", size, Generic.objectToString(map));
-//                                        errorInUsedScrapersMap = true;
-//                                    }
-//                                } // end for
-//                            final BetradarEvent scraperEvent = Statics.betradarEventsMap.get(scraperEventId);
-//                            if (scraperEvent != null) {
-//                                final long scraperErrors = scraperEvent.errors();
-//                                final MatchStatus matchStatus = scraperEvent.getMatchStatus();
-//                                final int homeScore = scraperEvent.getHomeScore();
-//                                final int awayScore = scraperEvent.getAwayScore();
-//                                final int homeHtScore = scraperEvent.getHomeHtScore();
-//                                final int awayHtScore = scraperEvent.getAwayHtScore();
-//
-//                                if (matchStatus != null && scraperErrors <= 0L) {
-//                                    final boolean startedScraperEvent = scraperEvent.hasStarted();
-//
-//                                    if (startedScraperEvent) {
-//                                if (!errorInUsedScrapersMap) {
+                                    //noinspection SwitchStatementDensity
                                     switch (parsedMarketType) {
                                         case SH_CORRECT_SCORE:
-                                            if (duringSecondHalf(matchStatus) && homeHtScore >= 0 && awayHtScore >= 0 &&
-                                                (homeScore - homeHtScore > 0 || awayScore - awayHtScore > 0)) {
-                                                final int nSafeRunners = homeScore - homeHtScore > 2 || awayScore - awayHtScore > 2 ? 10 :
-                                                                         3 * (homeScore - homeHtScore + awayScore - awayHtScore) - (homeScore - homeHtScore) * (awayScore - awayHtScore);
+                                            if (duringSecondHalf(matchStatus) && homeHtScore >= 0 && awayHtScore >= 0 && (homeScore - homeHtScore > 0 || awayScore - awayHtScore > 0)) {
+                                                @SuppressWarnings("OverlyComplexArithmeticExpression") final int nSafeRunners =
+                                                        homeScore - homeHtScore > 2 || awayScore - awayHtScore > 2 ? 10 : 3 * (homeScore - homeHtScore + awayScore - awayHtScore) - (homeScore - homeHtScore) * (awayScore - awayHtScore);
                                                 final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
                                                 for (final ParsedRunner parsedRunner : parsedRunnersSet) {
                                                     final ParsedRunnerType parsedRunnerType = parsedRunner.getParsedRunnerType();
@@ -450,8 +379,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -466,8 +394,6 @@ public class FindSafeRunners {
                                                     SafeRunner safeRunner = null;
                                                     switch (parsedRunnerType) {
                                                         case HOME_SCORES:
-                                                            // never safe
-                                                            break;
                                                         case AWAY_SCORES:
                                                             // never safe
                                                             break;
@@ -482,8 +408,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -498,24 +423,12 @@ public class FindSafeRunners {
                                                     SafeRunner safeRunner = null;
                                                     switch (parsedRunnerType) {
                                                         case HOME_AND_YES:
-                                                            // never safe
-                                                            break;
                                                         case AWAY_AND_YES:
-                                                            // never safe
-                                                            break;
                                                         case DRAW_AND_YES:
                                                             // never safe
                                                             break;
                                                         case HOME_AND_NO:
-                                                            if (homeScore > 0 && awayScore > 0) {
-                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
-                                                            }
-                                                            break;
                                                         case AWAY_AND_NO:
-                                                            if (homeScore > 0 && awayScore > 0) {
-                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
-                                                            }
-                                                            break;
                                                         case DRAW_AND_NO:
                                                             if (homeScore > 0 && awayScore > 0) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
@@ -527,8 +440,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -543,24 +455,12 @@ public class FindSafeRunners {
                                                     SafeRunner safeRunner = null;
                                                     switch (parsedRunnerType) {
                                                         case HOME_AND_OVER:
-                                                            // never safe
-                                                            break;
                                                         case AWAY_AND_OVER:
-                                                            // never safe
-                                                            break;
                                                         case DRAW_AND_OVER:
                                                             // never safe
                                                             break;
                                                         case HOME_AND_UNDER:
-                                                            if (homeScore + awayScore >= 3) {
-                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
-                                                            }
-                                                            break;
                                                         case AWAY_AND_UNDER:
-                                                            if (homeScore + awayScore >= 3) {
-                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
-                                                            }
-                                                            break;
                                                         case DRAW_AND_UNDER:
                                                             if (homeScore + awayScore >= 3) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
@@ -572,8 +472,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -588,24 +487,12 @@ public class FindSafeRunners {
                                                     SafeRunner safeRunner = null;
                                                     switch (parsedRunnerType) {
                                                         case HOME_AND_OVER:
-                                                            // never safe
-                                                            break;
                                                         case AWAY_AND_OVER:
-                                                            // never safe
-                                                            break;
                                                         case DRAW_AND_OVER:
                                                             // never safe
                                                             break;
                                                         case HOME_AND_UNDER:
-                                                            if (homeScore + awayScore >= 4) {
-                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
-                                                            }
-                                                            break;
                                                         case AWAY_AND_UNDER:
-                                                            if (homeScore + awayScore >= 4) {
-                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
-                                                            }
-                                                            break;
                                                         case DRAW_AND_UNDER:
                                                             if (homeScore + awayScore >= 4) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
@@ -631,45 +518,21 @@ public class FindSafeRunners {
                                                     SafeRunner safeRunner = null;
                                                     switch (parsedRunnerType) {
                                                         case HOME_AND_HOME:
-                                                            if (homeHtScore <= awayHtScore) {
-                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusHts);
-                                                            }
-                                                            break;
+                                                        case HOME_AND_AWAY:
                                                         case HOME_AND_DRAW:
                                                             if (homeHtScore <= awayHtScore) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusHts);
                                                             }
                                                             break;
-                                                        case HOME_AND_AWAY:
-                                                            if (homeHtScore <= awayHtScore) {
-                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusHts);
-                                                            }
-                                                            break;
                                                         case DRAW_AND_HOME:
-                                                            if (homeHtScore != awayHtScore) {
-                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusHts);
-                                                            }
-                                                            break;
+                                                        case DRAW_AND_AWAY:
                                                         case DRAW_AND_DRAW:
                                                             if (homeHtScore != awayHtScore) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusHts);
                                                             }
                                                             break;
-                                                        case DRAW_AND_AWAY:
-                                                            if (homeHtScore != awayHtScore) {
-                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusHts);
-                                                            }
-                                                            break;
                                                         case AWAY_AND_HOME:
-                                                            if (homeHtScore >= awayHtScore) {
-                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusHts);
-                                                            }
-                                                            break;
                                                         case AWAY_AND_DRAW:
-                                                            if (homeHtScore >= awayHtScore) {
-                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusHts);
-                                                            }
-                                                            break;
                                                         case AWAY_AND_AWAY:
                                                             if (homeHtScore >= awayHtScore) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusHts);
@@ -681,8 +544,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -786,8 +648,6 @@ public class FindSafeRunners {
                                                             // never safe
                                                             break;
                                                         case ANY_OTHER_AWAY_WIN:
-                                                            // never safe
-                                                            break;
                                                         case ANY_OTHER_DRAW:
                                                             // never safe
                                                             break;
@@ -797,20 +657,14 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
                                             break;
                                         case ANYTIME_SCORE:
                                             if (during90Minutes(matchStatus) && (homeScore > 0 || awayScore > 0)) {
-                                                final int additionalBack;
-                                                if (homeScore == 0 || awayScore == 0) {
-                                                    additionalBack = Math.abs(Math.min(homeScore, 3) - Math.min(awayScore, 3)) - 1;
-                                                } else {
-                                                    additionalBack = 0;
-                                                }
+                                                final int additionalBack = homeScore == 0 || awayScore == 0 ? Math.abs(Math.min(homeScore, 3) - Math.min(awayScore, 3)) - 1 : 0;
                                                 final int additionalLay;
                                                 if (additionalBack != 0) {
                                                     additionalLay = 0;
@@ -819,8 +673,7 @@ public class FindSafeRunners {
                                                 } else {
                                                     additionalLay = 0;
                                                 }
-                                                final int nSafeRunners = 1 + additionalBack + additionalLay +
-                                                                         Math.min(homeScore, 4) * (3 - Math.min(awayScore, 3)) + Math.min(awayScore, 4) * (3 - Math.min(homeScore, 3));
+                                                final int nSafeRunners = 1 + additionalBack + additionalLay + Math.min(homeScore, 4) * (3 - Math.min(awayScore, 3)) + Math.min(awayScore, 4) * (3 - Math.min(homeScore, 3));
                                                 final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
                                                 for (final ParsedRunner parsedRunner : parsedRunnersSet) {
                                                     final ParsedRunnerType parsedRunnerType = parsedRunner.getParsedRunnerType();
@@ -953,8 +806,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -1024,8 +876,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -1080,8 +931,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -1141,8 +991,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -1197,8 +1046,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -1253,16 +1101,14 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
                                             break;
                                         case CORRECT_SCORE2_A:
                                             if (during90Minutes(matchStatus) && (homeScore > 4 || awayScore > 0)) {
-                                                final int nSafeRunners = homeScore > 7 || awayScore > 2 ?
-                                                                         13 : 3 * Math.max(homeScore - 4, 0) + 4 * awayScore - Math.max(homeScore - 4, 0) * awayScore;
+                                                final int nSafeRunners = homeScore > 7 || awayScore > 2 ? 13 : 3 * Math.max(homeScore - 4, 0) + 4 * awayScore - Math.max(homeScore - 4, 0) * awayScore;
                                                 final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
                                                 for (final ParsedRunner parsedRunner : parsedRunnersSet) {
                                                     final ParsedRunnerType parsedRunnerType = parsedRunner.getParsedRunnerType();
@@ -1340,16 +1186,14 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
                                             break;
                                         case CORRECT_SCORE2_B:
                                             if (during90Minutes(matchStatus) && (awayScore > 4 || homeScore > 0)) {
-                                                final int nSafeRunners = awayScore > 7 || homeScore > 2 ?
-                                                                         13 : 3 * Math.max(awayScore - 4, 0) + 4 * homeScore - Math.max(awayScore - 4, 0) * homeScore;
+                                                final int nSafeRunners = awayScore > 7 || homeScore > 2 ? 13 : 3 * Math.max(awayScore - 4, 0) + 4 * homeScore - Math.max(awayScore - 4, 0) * homeScore;
                                                 final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
                                                 for (final ParsedRunner parsedRunner : parsedRunnersSet) {
                                                     final ParsedRunnerType parsedRunnerType = parsedRunner.getParsedRunnerType();
@@ -1427,8 +1271,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -1443,30 +1286,14 @@ public class FindSafeRunners {
                                                     SafeRunner safeRunner = null;
                                                     switch (parsedRunnerType) {
                                                         case HOME_WIN_BY_1:
-                                                            // never safe
-                                                            break;
-                                                        case HOME_WIN_BY_2:
-                                                            // never safe
-                                                            break;
-                                                        case HOME_WIN_BY_3:
-                                                            // never safe
-                                                            break;
-                                                        case HOME_WIN_BY_4_PLUS:
-                                                            // never safe
-                                                            break;
-                                                        case AWAY_WIN_BY_1:
-                                                            // never safe
-                                                            break;
-                                                        case AWAY_WIN_BY_2:
-                                                            // never safe
-                                                            break;
-                                                        case AWAY_WIN_BY_3:
-                                                            // never safe
-                                                            break;
-                                                        case AWAY_WIN_BY_4_PLUS:
-                                                            // never safe
-                                                            break;
                                                         case SCORE_DRAW:
+                                                        case AWAY_WIN_BY_4_PLUS:
+                                                        case AWAY_WIN_BY_3:
+                                                        case AWAY_WIN_BY_2:
+                                                        case AWAY_WIN_BY_1:
+                                                        case HOME_WIN_BY_4_PLUS:
+                                                        case HOME_WIN_BY_3:
+                                                        case HOME_WIN_BY_2:
                                                             // never safe
                                                             break;
                                                         case NO_GOALS:
@@ -1480,15 +1307,13 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
                                             break;
                                         case HALF_WITH_MOST_GOALS:
-                                            if (during90MinutesWithoutFirstHalf(matchStatus) && homeHtScore >= 0 && awayHtScore >= 0 &&
-                                                homeScore + awayScore >= 2 * (homeHtScore + awayHtScore)) {
+                                            if (during90MinutesWithoutFirstHalf(matchStatus) && homeHtScore >= 0 && awayHtScore >= 0 && homeScore + awayScore >= 2 * (homeHtScore + awayHtScore)) {
                                                 final int nSafeRunners = homeScore + awayScore > 2 * (homeHtScore + awayHtScore) ? 3 : 1;
                                                 final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
                                                 for (final ParsedRunner parsedRunner : parsedRunnersSet) {
@@ -1517,16 +1342,14 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
                                             break;
                                         case METHOD_OF_VICTORY:
-                                            if (matchStatus == MatchStatus.AWAITING_ET || matchStatus == MatchStatus.OVERTIME || matchStatus == MatchStatus.FIRST_ET ||
-                                                matchStatus == MatchStatus.ET_HALF_TIME || matchStatus == MatchStatus.SECOND_ET || matchStatus == MatchStatus.AWAITING_PEN ||
-                                                matchStatus == MatchStatus.PENALTIES) {
+                                            if (matchStatus == MatchStatus.AWAITING_ET || matchStatus == MatchStatus.OVERTIME || matchStatus == MatchStatus.FIRST_ET || matchStatus == MatchStatus.ET_HALF_TIME || matchStatus == MatchStatus.SECOND_ET ||
+                                                matchStatus == MatchStatus.AWAITING_PEN || matchStatus == MatchStatus.PENALTIES) {
                                                 final int nRunners = marketCatalogue.getNRunners();
                                                 final int nSafeRunners;
                                                 if (nRunners == 6) {
@@ -1544,34 +1367,19 @@ public class FindSafeRunners {
                                                     SafeRunner safeRunner = null;
                                                     switch (parsedRunnerType) {
                                                         case HOME_90_MINUTES:
-                                                            if (matchStatus == MatchStatus.AWAITING_ET || matchStatus == MatchStatus.OVERTIME ||
-                                                                matchStatus == MatchStatus.FIRST_ET || matchStatus == MatchStatus.ET_HALF_TIME ||
-                                                                matchStatus == MatchStatus.SECOND_ET || matchStatus == MatchStatus.AWAITING_PEN ||
-                                                                matchStatus == MatchStatus.PENALTIES) {
+                                                        case AWAY_90_MINUTES:
+                                                            if (matchStatus == MatchStatus.AWAITING_ET || matchStatus == MatchStatus.OVERTIME || matchStatus == MatchStatus.FIRST_ET || matchStatus == MatchStatus.ET_HALF_TIME ||
+                                                                matchStatus == MatchStatus.SECOND_ET || matchStatus == MatchStatus.AWAITING_PEN || matchStatus == MatchStatus.PENALTIES) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, ScrapedField.MATCH_STATUS);
                                                             }
                                                             break;
                                                         case HOME_ET:
-                                                            if (matchStatus == MatchStatus.AWAITING_PEN || matchStatus == MatchStatus.PENALTIES) {
-                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, ScrapedField.MATCH_STATUS);
-                                                            }
-                                                            break;
-                                                        case HOME_PENALTIES:
-                                                            // never safe
-                                                            break;
-                                                        case AWAY_90_MINUTES:
-                                                            if (matchStatus == MatchStatus.AWAITING_ET || matchStatus == MatchStatus.OVERTIME ||
-                                                                matchStatus == MatchStatus.FIRST_ET || matchStatus == MatchStatus.ET_HALF_TIME ||
-                                                                matchStatus == MatchStatus.SECOND_ET || matchStatus == MatchStatus.AWAITING_PEN ||
-                                                                matchStatus == MatchStatus.PENALTIES) {
-                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, ScrapedField.MATCH_STATUS);
-                                                            }
-                                                            break;
                                                         case AWAY_ET:
                                                             if (matchStatus == MatchStatus.AWAITING_PEN || matchStatus == MatchStatus.PENALTIES) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, ScrapedField.MATCH_STATUS);
                                                             }
                                                             break;
+                                                        case HOME_PENALTIES:
                                                         case AWAY_PENALTIES:
                                                             // never safe
                                                             break;
@@ -1581,8 +1389,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -1658,8 +1465,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -1735,8 +1541,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -1822,8 +1627,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -1909,8 +1713,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -1946,8 +1749,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -1983,8 +1785,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2014,8 +1815,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2045,15 +1845,14 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
                                             break;
                                         case GOAL_BOTH_HALVES:
-                                            if (during90MinutesWithoutFirstHalf(matchStatus) && homeHtScore >= 0 && awayHtScore >= 0 &&
-                                                (awayHtScore + homeHtScore == 0 || (awayHtScore + homeHtScore > 0 && awayScore + homeScore > awayHtScore + homeHtScore))) {
+                                            final boolean goalScoredInBothHalves = awayHtScore + homeHtScore > 0 && awayScore + homeScore > awayHtScore + homeHtScore;
+                                            if (during90MinutesWithoutFirstHalf(matchStatus) && homeHtScore >= 0 && awayHtScore >= 0 && (awayHtScore + homeHtScore == 0 || goalScoredInBothHalves)) {
                                                 final int nSafeRunners = 2;
                                                 final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
                                                 for (final ParsedRunner parsedRunner : parsedRunnersSet) {
@@ -2065,7 +1864,7 @@ public class FindSafeRunners {
                                                             if (awayHtScore + homeHtScore == 0) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusHts);
                                                             }
-                                                            if (awayHtScore + homeHtScore > 0 && awayScore + homeScore > awayHtScore + homeHtScore) {
+                                                            if (goalScoredInBothHalves) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScoresHts);
                                                             }
                                                             break;
@@ -2073,7 +1872,7 @@ public class FindSafeRunners {
                                                             if (awayHtScore + homeHtScore == 0) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusHts);
                                                             }
-                                                            if (awayHtScore + homeHtScore > 0 && awayScore + homeScore > awayHtScore + homeHtScore) {
+                                                            if (goalScoredInBothHalves) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScoresHts);
                                                             }
                                                             break;
@@ -2083,13 +1882,13 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
                                             break;
                                         case TEAM_A_WIN_TO_NIL:
+                                        case CLEAN_SHEET_A:
                                             if (during90Minutes(matchStatus) && awayScore > 0) {
                                                 final int nSafeRunners = 2;
                                                 final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
@@ -2114,13 +1913,13 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
                                             break;
                                         case TEAM_B_WIN_TO_NIL:
+                                        case CLEAN_SHEET_B:
                                             if (during90Minutes(matchStatus) && homeScore > 0) {
                                                 final int nSafeRunners = 2;
                                                 final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
@@ -2145,8 +1944,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2176,14 +1974,13 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
                                             break;
                                         case WIN_BOTH_HALVES_B:
-                                            if (during90MinutesWithoutFirstHalf(matchStatus) && homeHtScore >= 0 && awayHtScore >= 0 && awayHtScore <= homeHtScore) {
+                                            if (during90MinutesWithoutFirstHalf(matchStatus) && awayHtScore >= 0 && awayHtScore <= homeHtScore) { // includes homeHtScore >= 0
                                                 final int nSafeRunners = 2;
                                                 final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
                                                 for (final ParsedRunner parsedRunner : parsedRunnersSet) {
@@ -2207,70 +2004,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
-                                            } else {
-                                                // market not safe
-                                            }
-                                            break;
-                                        case CLEAN_SHEET_A:
-                                            if (during90Minutes(matchStatus) && awayScore > 0) {
-                                                final int nSafeRunners = 2;
-                                                final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
-                                                for (final ParsedRunner parsedRunner : parsedRunnersSet) {
-                                                    final ParsedRunnerType parsedRunnerType = parsedRunner.getParsedRunnerType();
-                                                    final Long selectionId = parsedRunner.getSelectionId();
-                                                    SafeRunner safeRunner = null;
-                                                    switch (parsedRunnerType) {
-                                                        case YES:
-                                                            if (awayScore > 0) {
-                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusAwayScore);
-                                                            }
-                                                            break;
-                                                        case NO:
-                                                            if (awayScore > 0) {
-                                                                safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusAwayScore);
-                                                            }
-                                                            break;
-                                                        default:
-                                                            defaultParsedRunnerTypeError(parsedRunnerType, marketCatalogue);
-                                                            break;
-                                                    }
-                                                    addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
-                                                }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
-                                            } else {
-                                                // market not safe
-                                            }
-                                            break;
-                                        case CLEAN_SHEET_B:
-                                            if (during90Minutes(matchStatus) && homeScore > 0) {
-                                                final int nSafeRunners = 2;
-                                                final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
-                                                for (final ParsedRunner parsedRunner : parsedRunnersSet) {
-                                                    final ParsedRunnerType parsedRunnerType = parsedRunner.getParsedRunnerType();
-                                                    final Long selectionId = parsedRunner.getSelectionId();
-                                                    SafeRunner safeRunner = null;
-                                                    switch (parsedRunnerType) {
-                                                        case YES:
-                                                            if (homeScore > 0) {
-                                                                safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusHomeScore);
-                                                            }
-                                                            break;
-                                                        case NO:
-                                                            if (homeScore > 0) {
-                                                                safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusHomeScore);
-                                                            }
-                                                            break;
-                                                        default:
-                                                            defaultParsedRunnerTypeError(parsedRunnerType, marketCatalogue);
-                                                            break;
-                                                    }
-                                                    addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
-                                                }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2300,8 +2034,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2332,8 +2065,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2364,8 +2096,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2396,14 +2127,14 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
                                             break;
                                         case SECOND_HALF_GOALS_05:
-                                            if (duringSecondHalf(matchStatus) && homeHtScore >= 0 && awayHtScore >= 0 && homeScore + awayScore - (homeHtScore + awayHtScore) > 0) {
+                                            final boolean scoredInSecondHalf = homeScore + awayScore - (homeHtScore + awayHtScore) > 0;
+                                            if (duringSecondHalf(matchStatus) && homeHtScore >= 0 && awayHtScore >= 0 && scoredInSecondHalf) {
                                                 final int nSafeRunners = 2;
                                                 final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
                                                 for (final ParsedRunner parsedRunner : parsedRunnersSet) {
@@ -2412,12 +2143,12 @@ public class FindSafeRunners {
                                                     SafeRunner safeRunner = null;
                                                     switch (parsedRunnerType) {
                                                         case GOALS_UNDER_05:
-                                                            if (homeScore + awayScore - (homeHtScore + awayHtScore) > 0) {
+                                                            if (scoredInSecondHalf) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScoresHts);
                                                             }
                                                             break;
                                                         case GOALS_OVER_05:
-                                                            if (homeScore + awayScore - (homeHtScore + awayHtScore) > 0) {
+                                                            if (scoredInSecondHalf) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScoresHts);
                                                             }
                                                             break;
@@ -2427,14 +2158,14 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
                                             break;
                                         case SECOND_HALF_GOALS_15:
-                                            if (duringSecondHalf(matchStatus) && homeHtScore >= 0 && awayHtScore >= 0 && homeScore + awayScore - (homeHtScore + awayHtScore) > 1) {
+                                            final boolean scoredMoreThanOneGoalInSecondHalf = homeScore + awayScore - (homeHtScore + awayHtScore) > 1;
+                                            if (duringSecondHalf(matchStatus) && homeHtScore >= 0 && awayHtScore >= 0 && scoredMoreThanOneGoalInSecondHalf) {
                                                 final int nSafeRunners = 2;
                                                 final SynchronizedSafeSet<SafeRunner> safeRunnersSet = createSafeRunnersSet(nSafeRunners);
                                                 for (final ParsedRunner parsedRunner : parsedRunnersSet) {
@@ -2443,12 +2174,12 @@ public class FindSafeRunners {
                                                     SafeRunner safeRunner = null;
                                                     switch (parsedRunnerType) {
                                                         case GOALS_UNDER_15:
-                                                            if (homeScore + awayScore - (homeHtScore + awayHtScore) > 1) {
+                                                            if (scoredMoreThanOneGoalInSecondHalf) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScoresHts);
                                                             }
                                                             break;
                                                         case GOALS_OVER_15:
-                                                            if (homeScore + awayScore - (homeHtScore + awayHtScore) > 1) {
+                                                            if (scoredMoreThanOneGoalInSecondHalf) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScoresHts);
                                                             }
                                                             break;
@@ -2458,8 +2189,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2489,8 +2219,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2520,8 +2249,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2551,8 +2279,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2582,8 +2309,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2613,8 +2339,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2644,8 +2369,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2675,8 +2399,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2706,8 +2429,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2737,8 +2459,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2768,8 +2489,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2799,8 +2519,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2830,8 +2549,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2861,8 +2579,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2892,8 +2609,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -2923,8 +2639,7 @@ public class FindSafeRunners {
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
-                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName,
-                                                                        modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
+                                                safeRunnersSetSizeCheck(safeRunnersSet, nSafeRunners, marketCatalogue, marketId, parsedMarketType, eventName, modifiedMarketsList, startTime, usedParsedRunnersSet, scraperData);
                                             } else {
                                                 // market not safe
                                             }
@@ -3107,16 +2822,14 @@ public class FindSafeRunners {
                                             // harder to code; postponed
                                             break;
                                         default:
-                                            logger.error("STRANGE unsupported parsedMarketType {} in findSafeRunners: {}", parsedMarketType,
-                                                         Generic.objectToString(marketCatalogue));
+                                            logger.error("STRANGE unsupported parsedMarketType {} in findSafeRunners: {}", parsedMarketType, Generic.objectToString(marketCatalogue));
                                             break;
                                     } // end switch
 //                                } else { // strange error, but error message is printed when the error is first found
 //                                }
                                 } else {
-                                    Generic.alreadyPrintedMap.logOnce(logger, LogLevel.WARN, "no proper scores for eventName:{} marketId:{} score:{}/{} ht:{}/{} status:{}",
-                                                                      eventName, marketId,
-                                                                      homeScore, awayScore, homeHtScore, awayHtScore, matchStatus == null ? null : matchStatus.name());
+                                    Generic.alreadyPrintedMap.logOnce(logger, LogLevel.WARN, "no proper scores for eventName:{} marketId:{} score:{}/{} ht:{}/{} status:{}", eventName, marketId, homeScore, awayScore, homeHtScore, awayHtScore,
+                                                                      matchStatus == null ? null : matchStatus.name());
                                 }
 //                                    } else {
 //                                        String scraperString = Generic.objectToString(scraperEvent);
@@ -3184,16 +2897,14 @@ public class FindSafeRunners {
             final int sizeMarkets = modifiedMarketsList.size();
             if (sizeMarkets > 0) {
                 // modified markets are supposed to be found during regular runs, not fullRun; when a modification happens, this should result in an immediate regular run
-                final String printedString = MessageFormatter.arrayFormat("findSafeRunners {}modifiedMarketsList: {} launch: getMarketBooks",
-                                                                          new Object[]{fullRunString, sizeMarkets}).getMessage();
+                final String printedString = MessageFormatter.arrayFormat("findSafeRunners {}modifiedMarketsList: {} launch: getMarketBooks", new Object[]{fullRunString, sizeMarkets}).getMessage();
                 if (fullRun) {
                     if (startTime - Statics.PROGRAM_START_TIME <= Generic.MINUTE_LENGTH_MILLISECONDS) {
                         logger.info("beginning of the program {}", printedString); // this sometimes happens at the beginning of program run
                     } else {
                         final long currentTime = System.currentTimeMillis();
                         final long timeSinceLastRegularRun = currentTime - lastRegularFindSafeRunnersRunStamp.get();
-                        final String stampedPrintedString = MessageFormatter.arrayFormat("{} timeSinceLastRegularRun: {}ms",
-                                                                                         new Object[]{printedString, timeSinceLastRegularRun}).getMessage();
+                        final String stampedPrintedString = MessageFormatter.arrayFormat("{} timeSinceLastRegularRun: {}ms", new Object[]{printedString, timeSinceLastRegularRun}).getMessage();
                         if (timeSinceLastRegularRun < 100L) {
                             logger.warn(stampedPrintedString);
                         } else {

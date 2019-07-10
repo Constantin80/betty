@@ -2,8 +2,7 @@ package info.fmro.betty.objects;
 
 import info.fmro.shared.utility.SafeObjectInterface;
 import info.fmro.shared.utility.SynchronizedSafeSet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jetbrains.annotations.Contract;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -12,19 +11,19 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class RulesManagerStringObject
         implements SafeObjectInterface, Serializable { // String object with SafeObjectInterface implemented
-    private static final Logger logger = LoggerFactory.getLogger(RulesManagerStringObject.class);
     private static final long serialVersionUID = -1239574862363223204L;
-    private static final SynchronizedSafeSet objectContainer = Statics.rulesManager.marketsToCheck;
+    private static final SynchronizedSafeSet<RulesManagerStringObject> objectContainer = Statics.rulesManager.marketsToCheck;
     private static final AtomicBoolean atomicOnAddMarker = Statics.rulesManager.marketsToCheckExist;
     private static final AtomicLong atomicOnAddMarkerStamp = Statics.rulesManager.marketsToCheckStamp;
     private final String marketId;
 
+    @Contract(pure = true)
     public RulesManagerStringObject(final String marketId) {
         this.marketId = marketId;
     }
 
     public synchronized String getMarketId() {
-        return marketId;
+        return this.marketId;
     }
 
     @Override
@@ -56,20 +55,21 @@ public class RulesManagerStringObject
         return modified;
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
-    public synchronized boolean equals(final Object o) {
-        if (this == o) {
+    public synchronized boolean equals(final Object obj) {
+        if (this == obj) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final RulesManagerStringObject that = (RulesManagerStringObject) o;
-        return Objects.equals(marketId, that.marketId);
+        final RulesManagerStringObject that = (RulesManagerStringObject) obj;
+        return Objects.equals(this.marketId, that.marketId);
     }
 
     @Override
     public synchronized int hashCode() {
-        return Objects.hash(marketId);
+        return Objects.hash(this.marketId);
     }
 }

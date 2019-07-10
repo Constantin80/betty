@@ -1,11 +1,15 @@
 package info.fmro.betty.entities;
 
 import info.fmro.betty.enums.MarketBettingType;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
+@SuppressWarnings("ClassWithTooManyFields")
 public class MarketDescription
         implements Serializable {
     private static final long serialVersionUID = -2877536783333417777L;
@@ -23,22 +27,29 @@ public class MarketDescription
     private String wallet;
     private String rules;
     private Boolean rulesHasDate;
+    @SuppressWarnings("unused")
     private Double eachWayDivisor; // The divisor is returned for the marketType EACH_WAY only
     private String clarifications;
+    @SuppressWarnings("unused")
     private MarketLineRangeInfo lineRangeInfo; // Line range info for line markets
+    @SuppressWarnings("unused")
     private String raceType; // An external identifier of a race type
+    @SuppressWarnings("unused")
     private PriceLadderDescription priceLadderDescription; // Details about the price ladder in use for this market.
 
+    @Contract(pure = true)
     public MarketDescription() {
     }
 
-    public MarketDescription(final Boolean persistenceEnabled, final Boolean bspMarket, final Date marketTime, final Date suspendTime, final Date settleTime, final MarketBettingType bettingType, final Boolean turnInPlayEnabled, final String marketType, final String regulator, final Double marketBaseRate,
-                             final Boolean discountAllowed, final String wallet, final String rules, final Boolean rulesHasDate, final String clarifications) {
+    @SuppressWarnings("ConstructorWithTooManyParameters")
+    @Contract(pure = true)
+    public MarketDescription(final Boolean persistenceEnabled, final Boolean bspMarket, @NotNull final Date marketTime, @NotNull final Date suspendTime, @NotNull final Date settleTime, final MarketBettingType bettingType, final Boolean turnInPlayEnabled,
+                             final String marketType, final String regulator, final Double marketBaseRate, final Boolean discountAllowed, final String wallet, final String rules, final Boolean rulesHasDate, final String clarifications) {
         this.persistenceEnabled = persistenceEnabled;
         this.bspMarket = bspMarket;
-        this.marketTime = marketTime;
-        this.suspendTime = suspendTime;
-        this.settleTime = settleTime;
+        this.marketTime = (Date) marketTime.clone();
+        this.suspendTime = (Date) suspendTime.clone();
+        this.settleTime = (Date) settleTime.clone();
         this.bettingType = bettingType;
         this.turnInPlayEnabled = turnInPlayEnabled;
         this.marketType = marketType;
@@ -52,119 +63,75 @@ public class MarketDescription
     }
 
     public synchronized Boolean getPersistenceEnabled() {
-        return persistenceEnabled;
+        return this.persistenceEnabled;
     }
 
-    //    public synchronized void setPersistenceEnabled(Boolean persistenceEnabled) {
-//        this.persistenceEnabled = persistenceEnabled;
-//    }
     public synchronized Boolean getBspMarket() {
-        return bspMarket;
+        return this.bspMarket;
     }
 
-    //    public synchronized void setBspMarket(Boolean bspMarket) {
-//        this.bspMarket = bspMarket;
-//    }
+    @Nullable
     public synchronized Date getMarketTime() {
-        return marketTime == null ? null : (Date) marketTime.clone();
+        return this.marketTime == null ? null : (Date) this.marketTime.clone();
     }
 
-    //    public synchronized void setMarketTime(Date marketTime) {
-//        this.marketTime = marketTime == null ? null : (Date) marketTime.clone();
-//    }
+    @Nullable
     public synchronized Date getSuspendTime() {
-        return suspendTime == null ? null : (Date) suspendTime.clone();
+        return this.suspendTime == null ? null : (Date) this.suspendTime.clone();
     }
 
-    //    public synchronized void setSuspendTime(Date suspendTime) {
-//        this.suspendTime = suspendTime == null ? null : (Date) suspendTime.clone();
-//    }
+    @Nullable
     public synchronized Date getSettleTime() {
-        return settleTime == null ? null : (Date) settleTime.clone();
+        return this.settleTime == null ? null : (Date) this.settleTime.clone();
     }
 
-    //    public synchronized void setSettleTime(Date settleTime) {
-//        this.settleTime = settleTime == null ? null : (Date) settleTime.clone();
-//    }
     public synchronized MarketBettingType getBettingType() {
-        return bettingType;
+        return this.bettingType;
     }
 
-    //    public synchronized void setBettingType(MarketBettingType bettingType) {
-//        this.bettingType = bettingType;
-//    }
     public synchronized Boolean getTurnInPlayEnabled() {
-        return turnInPlayEnabled;
+        return this.turnInPlayEnabled;
     }
 
-    //    public synchronized void setTurnInPlayEnabled(Boolean turnInPlayEnabled) {
-//        this.turnInPlayEnabled = turnInPlayEnabled;
-//    }
     public synchronized String getMarketType() {
-        return marketType;
+        return this.marketType;
     }
 
-    //    public synchronized void setMarketType(String marketType) {
-//        this.marketType = marketType;
-//    }
     public synchronized String getRegulator() {
-        return regulator;
+        return this.regulator;
     }
 
-    //    public synchronized void setRegulator(String regulator) {
-//        this.regulator = regulator;
-//    }
     public synchronized Double getMarketBaseRate() {
-        return marketBaseRate;
+        return this.marketBaseRate;
     }
 
-    //    public synchronized void setMarketBaseRate(Double marketBaseRate) {
-//        this.marketBaseRate = marketBaseRate;
-//    }
     public synchronized Boolean getDiscountAllowed() {
-        return discountAllowed;
+        return this.discountAllowed;
     }
 
-    //    public synchronized void setDiscountAllowed(Boolean discountAllowed) {
-//        this.discountAllowed = discountAllowed;
-//    }
     public synchronized String getWallet() {
-        return wallet;
+        return this.wallet;
     }
 
-    //    public synchronized void setWallet(String wallet) {
-//        this.wallet = wallet;
-//    }
     public synchronized String getRules() {
-        return rules;
+        return this.rules;
     }
 
-    //    public synchronized void setRules(String rules) {
-//        this.rules = rules;
-//    }
     public synchronized Boolean getRulesHasDate() {
-        return rulesHasDate;
+        return this.rulesHasDate;
     }
 
-    //    public synchronized void setRulesHasDate(Boolean rulesHasDate) {
-//        this.rulesHasDate = rulesHasDate;
-//    }
     public synchronized Double getEachWayDivisor() {
-        return eachWayDivisor;
+        return this.eachWayDivisor;
     }
 
-    //    public synchronized void setEachWayDivisor(Double eachWayDivisor) {
-//        this.eachWayDivisor = eachWayDivisor;
-//    }
     public synchronized String getClarifications() {
-        return clarifications;
+        return this.clarifications;
     }
 
-    //    public synchronized void setClarifications(String clarifications) {
-//        this.clarifications = clarifications;
-//    }
+    @SuppressWarnings("NonFinalFieldReferenceInEquals")
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
@@ -224,6 +191,7 @@ public class MarketDescription
         return Objects.equals(this.clarifications, other.clarifications);
     }
 
+    @SuppressWarnings("NonFinalFieldReferencedInHashCode")
     @Override
     public synchronized int hashCode() {
         int hash = 7;

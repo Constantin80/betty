@@ -8,11 +8,8 @@ public class AccountFundsResponse {
     private Double discountRate; // User Discount Rate.
     private Integer pointsBalance; // The Betfair points balance
 
-    public AccountFundsResponse() {
-    }
-
     public synchronized Double getAvailableToBetBalance() {
-        return availableToBetBalance;
+        return this.availableToBetBalance;
     }
 
     public synchronized void setAvailableToBetBalance(final Double availableToBetBalance) {
@@ -20,7 +17,7 @@ public class AccountFundsResponse {
     }
 
     public synchronized Double getExposure() {
-        return exposure;
+        return this.exposure;
     }
 
     public synchronized void setExposure(final Double exposure) {
@@ -28,7 +25,7 @@ public class AccountFundsResponse {
     }
 
     public synchronized Double getRetainedCommission() {
-        return retainedCommission;
+        return this.retainedCommission;
     }
 
     public synchronized void setRetainedCommission(final Double retainedCommission) {
@@ -36,7 +33,7 @@ public class AccountFundsResponse {
     }
 
     public synchronized Double getExposureLimit() {
-        return exposureLimit;
+        return this.exposureLimit;
     }
 
     public synchronized void setExposureLimit(final Double exposureLimit) {
@@ -44,7 +41,7 @@ public class AccountFundsResponse {
     }
 
     public synchronized Double getDiscountRate() {
-        return discountRate;
+        return this.discountRate;
     }
 
     public synchronized void setDiscountRate(final Double discountRate) {
@@ -52,7 +49,7 @@ public class AccountFundsResponse {
     }
 
     public synchronized Integer getPointsBalance() {
-        return pointsBalance;
+        return this.pointsBalance;
     }
 
     public synchronized void setPointsBalance(final Integer pointsBalance) {

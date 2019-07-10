@@ -4,22 +4,19 @@ import com.gargoylesoftware.htmlunit.Cache;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import info.fmro.betty.utility.WebScraperMethods;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jetbrains.annotations.Contract;
 
 public class SavePageThread
         implements Runnable {
-
-    private static final Logger logger = LoggerFactory.getLogger(SavePageThread.class);
-    public final ScraperThread scraperThread;
-    public final String savePrefix;
-    public final WebClient webClient;
-    public final HtmlPage htmlPage;
+    private final ScraperThread scraperThread;
+    private final String savePrefix;
+    private final WebClient webClient;
+    private final HtmlPage htmlPage;
     public final Cache cache;
-    @SuppressWarnings("PublicField")
-    public boolean hasRun;
+    private boolean hasRun;
 
-    public SavePageThread(final ScraperThread scraperThread, final String savePrefix, final WebClient webClient, final HtmlPage htmlPage, final Cache cache) {
+    @Contract(pure = true)
+    SavePageThread(final ScraperThread scraperThread, final String savePrefix, final WebClient webClient, final HtmlPage htmlPage, final Cache cache) {
         this.scraperThread = scraperThread;
         this.savePrefix = savePrefix;
         this.webClient = webClient;
@@ -27,13 +24,17 @@ public class SavePageThread
         this.cache = cache;
     }
 
+    public boolean isHasRun() { // probably no need for synchronization
+        return this.hasRun;
+    }
+
     @Override
     public void run() {
         try {
-            if (savePrefix != null) {
-                WebScraperMethods.savePage(this.htmlPage, this.scraperThread.mustSavePage, savePrefix, scraperThread.threadId);
+            if (this.savePrefix != null) {
+                WebScraperMethods.savePage(this.htmlPage, this.scraperThread.mustSavePage, this.savePrefix, this.scraperThread.threadId);
             }
-            WebScraperMethods.clearCache(this.cache, this.scraperThread.cacheFileName, scraperThread.threadId);
+            WebScraperMethods.clearCache(this.cache, this.scraperThread.cacheFileName, this.scraperThread.threadId);
         } finally {
             if (this.webClient != null) {
                 this.webClient.close();

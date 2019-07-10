@@ -4,8 +4,8 @@ import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.cache.util.RunnerId;
 import info.fmro.betty.stream.definitions.OrderMarketChange;
 import info.fmro.betty.stream.protocol.ChangeMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -15,15 +15,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class OrderCache
         implements Serializable {
-    private static final Logger logger = LoggerFactory.getLogger(OrderCache.class);
     private static final long serialVersionUID = -6023803756520072425L;
-    private final Map<String, OrderMarket> markets = new ConcurrentHashMap<>(); // only place where orderMarkets are permanently stored
-    private boolean isOrderMarketRemovedOnClose = true; // default
+    private final Map<String, OrderMarket> markets = new ConcurrentHashMap<>(4); // only place where orderMarkets are permanently stored
+    private boolean orderMarketRemovedOnClose = true; // default
 
-    public OrderCache() {
-    }
-
-//    public synchronized void copyFrom(OrderCache orderCache) {
+    //    public synchronized void copyFrom(OrderCache orderCache) {
 //        if (!this.markets.isEmpty()) {
 //            logger.error("not empty map in OrderCache copyFrom: {}", Generic.objectToString(this));
 //        }
@@ -43,19 +39,19 @@ public class OrderCache
 //        copyFromStamp();
 //    }
 
-    public synchronized void onOrderChange(final ChangeMessage<OrderMarketChange> changeMessage) {
+    public synchronized void onOrderChange(@NotNull final ChangeMessage<? extends OrderMarketChange> changeMessage) {
         if (changeMessage.isStartOfNewSubscription()) {
-            markets.clear();
+            this.markets.clear();
             Statics.rulesManager.orderCacheHasReset.set(true);
         }
 
         if (changeMessage.getItems() != null) {
-            for (OrderMarketChange change : changeMessage.getItems()) {
+            for (final OrderMarketChange change : changeMessage.getItems()) {
                 final OrderMarket orderMarket = onOrderMarketChange(change);
 
-                if (isOrderMarketRemovedOnClose && orderMarket.isClosed()) {
+                if (this.orderMarketRemovedOnClose && orderMarket.isClosed()) {
                     // remove on close
-                    markets.remove(orderMarket.getMarketId());
+                    this.markets.remove(orderMarket.getMarketId());
                 }
 //                dispatchOrderMarketChanged(orderMarket, change);
             } // end for
@@ -68,37 +64,38 @@ public class OrderCache
 //        orderMarketChangeEvent.setOrderMarket(orderMarket);
 //    }
 
-    private synchronized OrderMarket onOrderMarketChange(final OrderMarketChange orderMarketChange) {
-        final OrderMarket orderMarket = markets.computeIfAbsent(orderMarketChange.getId(), OrderMarket::new);
+    private synchronized OrderMarket onOrderMarketChange(@NotNull final OrderMarketChange orderMarketChange) {
+        final OrderMarket orderMarket = this.markets.computeIfAbsent(orderMarketChange.getId(), OrderMarket::new);
 
         orderMarket.onOrderMarketChange(orderMarketChange);
         return orderMarket;
     }
 
     public synchronized boolean isOrderMarketRemovedOnClose() {
-        return isOrderMarketRemovedOnClose;
+        return this.orderMarketRemovedOnClose;
     }
 
     public synchronized void setOrderMarketRemovedOnClose(final boolean orderMarketRemovedOnClose) {
-        isOrderMarketRemovedOnClose = orderMarketRemovedOnClose;
+        this.orderMarketRemovedOnClose = orderMarketRemovedOnClose;
     }
 
     public synchronized Iterable<OrderMarket> getOrderMarkets() {
-        return markets == null ? null : new ArrayList<>(markets.values());
+        return new ArrayList<>(this.markets.values());
     }
 
     public synchronized HashSet<String> getOrderMarketKeys() {
-        return markets == null ? null : new HashSet<>(markets.keySet());
+        return new HashSet<>(this.markets.keySet());
     }
 
     public synchronized int getNOrderMarkets() {
-        return markets.size();
+        return this.markets.size();
     }
 
     public synchronized OrderMarket getOrderMarket(final String marketId) {
-        return markets == null ? null : markets.get(marketId);
+        return this.markets.get(marketId);
     }
 
+    @Nullable
     public synchronized OrderMarketRunner getOrderMarketRunner(final String marketId, final RunnerId runnerId) {
         final OrderMarket orderMarket = this.getOrderMarket(marketId);
         return orderMarket == null ? null : orderMarket.getOrderMarketRunner(runnerId);

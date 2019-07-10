@@ -6,11 +6,8 @@ public class UpdateInstruction {
     private String betId;
     private PersistenceType newPersistenceType;
 
-    public UpdateInstruction() {
-    }
-
     public synchronized String getBetId() {
-        return betId;
+        return this.betId;
     }
 
     public synchronized void setBetId(final String betId) {
@@ -18,7 +15,7 @@ public class UpdateInstruction {
     }
 
     public synchronized PersistenceType getNewPersistenceType() {
-        return newPersistenceType;
+        return this.newPersistenceType;
     }
 
     public synchronized void setNewPersistenceType(final PersistenceType newPersistenceType) {

@@ -1,14 +1,12 @@
 package info.fmro.betty.entities;
 
+@SuppressWarnings("unused")
 public class TimeRangeResult {
     private TimeRange timeRange;
     private Integer marketCount;
 
-    public TimeRangeResult() {
-    }
-
     public synchronized TimeRange getTimeRange() {
-        return timeRange;
+        return this.timeRange;
     }
 
     public synchronized void setTimeRange(final TimeRange timeRange) {
@@ -16,7 +14,7 @@ public class TimeRangeResult {
     }
 
     public synchronized Integer getMarketCount() {
-        return marketCount;
+        return this.marketCount;
     }
 
     public synchronized void setMarketCount(final Integer marketCount) {

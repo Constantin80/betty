@@ -1,136 +1,151 @@
 package info.fmro.betty.objects;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
 
+@SuppressWarnings({"ClassWithTooManyFields", "unused"})
 public class BetradarMatchFacts
         implements Serializable {
     private static final long serialVersionUID = 755062000734275494L;
     private final String homeTeam, matchStatus, awayTeam;
     private final int homeScore, awayScore;
-    private final ArrayList<BetradarPeriodScore> periodScoresList;
-    private final ArrayList<BetradarMatchEvent> homeGoalsList, awayGoalsList, homeYellowCardsList, homeRedCardsList, awayYellowCardsList, awayRedCardsList, homeSubstitutionsList, awaySubstitutionsList;
+    private final ArrayList<? extends BetradarPeriodScore> periodScoresList;
+    private final ArrayList<? extends BetradarMatchEvent> homeGoalsList, awayGoalsList, homeYellowCardsList, homeRedCardsList, awayYellowCardsList, awayRedCardsList, homeSubstitutionsList, awaySubstitutionsList;
 
-    public BetradarMatchFacts(final String homeTeam, final String matchStatus, final String awayTeam, final int homeScore, final int awayScore, final ArrayList<BetradarPeriodScore> periodScoresList, final ArrayList<BetradarMatchEvent> homeGoalsList, final ArrayList<BetradarMatchEvent> awayGoalsList,
-                              final ArrayList<BetradarMatchEvent> homeYellowCardsList, final ArrayList<BetradarMatchEvent> homeRedCardsList, final ArrayList<BetradarMatchEvent> awayYellowCardsList, final ArrayList<BetradarMatchEvent> awayRedCardsList,
-                              final ArrayList<BetradarMatchEvent> homeSubstitutionsList, final ArrayList<BetradarMatchEvent> awaySubstitutionsList) {
+    @SuppressWarnings("ConstructorWithTooManyParameters")
+    public BetradarMatchFacts(final String homeTeam, final String matchStatus, final String awayTeam, final int homeScore, final int awayScore, final ArrayList<? extends BetradarPeriodScore> periodScoresList,
+                              final ArrayList<? extends BetradarMatchEvent> homeGoalsList, final ArrayList<? extends BetradarMatchEvent> awayGoalsList, final ArrayList<? extends BetradarMatchEvent> homeYellowCardsList,
+                              final ArrayList<? extends BetradarMatchEvent> homeRedCardsList, final ArrayList<? extends BetradarMatchEvent> awayYellowCardsList, final ArrayList<? extends BetradarMatchEvent> awayRedCardsList,
+                              final ArrayList<? extends BetradarMatchEvent> homeSubstitutionsList, final ArrayList<? extends BetradarMatchEvent> awaySubstitutionsList) {
         this.homeTeam = homeTeam;
         this.matchStatus = matchStatus;
         this.awayTeam = awayTeam;
         this.homeScore = homeScore;
         this.awayScore = awayScore;
-        this.periodScoresList = periodScoresList;
-        this.homeGoalsList = homeGoalsList;
-        this.awayGoalsList = awayGoalsList;
-        this.homeYellowCardsList = homeYellowCardsList;
-        this.homeRedCardsList = homeRedCardsList;
-        this.awayYellowCardsList = awayYellowCardsList;
-        this.awayRedCardsList = awayRedCardsList;
-        this.homeSubstitutionsList = homeSubstitutionsList;
-        this.awaySubstitutionsList = awaySubstitutionsList;
+        this.periodScoresList = new ArrayList<>(periodScoresList);
+        this.homeGoalsList = new ArrayList<>(homeGoalsList);
+        this.awayGoalsList = new ArrayList<>(awayGoalsList);
+        this.homeYellowCardsList = new ArrayList<>(homeYellowCardsList);
+        this.homeRedCardsList = new ArrayList<>(homeRedCardsList);
+        this.awayYellowCardsList = new ArrayList<>(awayYellowCardsList);
+        this.awayRedCardsList = new ArrayList<>(awayRedCardsList);
+        this.homeSubstitutionsList = new ArrayList<>(homeSubstitutionsList);
+        this.awaySubstitutionsList = new ArrayList<>(awaySubstitutionsList);
     }
 
     public synchronized String getHomeTeam() {
-        return homeTeam;
+        return this.homeTeam;
     }
 
     //    public synchronized void setHomeTeam(String homeTeam) {
 //        this.homeTeam = homeTeam;
 //    }
     public synchronized String getMatchStatus() {
-        return matchStatus;
+        return this.matchStatus;
     }
 
     //    public synchronized void setMatchStatus(String matchStatus) {
 //        this.matchStatus = matchStatus;
 //    }
     public synchronized String getAwayTeam() {
-        return awayTeam;
+        return this.awayTeam;
     }
 
     //    public synchronized void setAwayTeam(String awayTeam) {
 //        this.awayTeam = awayTeam;
 //    }
     public synchronized int getHomeScore() {
-        return homeScore;
+        return this.homeScore;
     }
 
     //    public synchronized void setHomeScore(int homeScore) {
 //        this.homeScore = homeScore;
 //    }
     public synchronized int getAwayScore() {
-        return awayScore;
+        return this.awayScore;
     }
 
     //    public synchronized void setAwayScore(int awayScore) {
 //        this.awayScore = awayScore;
 //    }
+    @Nullable
     public synchronized ArrayList<BetradarPeriodScore> getPeriodScoresList() {
-        return periodScoresList == null ? null : new ArrayList<>(periodScoresList);
+        return new ArrayList<>(this.periodScoresList);
     }
 
     //    public synchronized void setPeriodScoresList(ArrayList<BetradarPeriodScore> periodScoresList) {
 //        this.periodScoresList = periodScoresList == null ? null : new ArrayList<>(periodScoresList);
 //    }
+    @Nullable
     public synchronized ArrayList<BetradarMatchEvent> getHomeGoalsList() {
-        return homeGoalsList == null ? null : new ArrayList<>(homeGoalsList);
+        return new ArrayList<>(this.homeGoalsList);
     }
 
     //    public synchronized void setHomeGoalsList(ArrayList<BetradarMatchEvent> homeGoalsList) {
 //        this.homeGoalsList = homeGoalsList == null ? null : new ArrayList<>(homeGoalsList);
 //    }
+    @Nullable
     public synchronized ArrayList<BetradarMatchEvent> getAwayGoalsList() {
-        return awayGoalsList == null ? null : new ArrayList<>(awayGoalsList);
+        return new ArrayList<>(this.awayGoalsList);
     }
 
     //    public synchronized void setAwayGoalsList(ArrayList<BetradarMatchEvent> awayGoalsList) {
 //        this.awayGoalsList = awayGoalsList == null ? null : new ArrayList<>(awayGoalsList);
 //    }
+    @Nullable
     public synchronized ArrayList<BetradarMatchEvent> getHomeYellowCardsList() {
-        return homeYellowCardsList == null ? null : new ArrayList<>(homeYellowCardsList);
+        return new ArrayList<>(this.homeYellowCardsList);
     }
 
     //    public synchronized void setHomeYellowCardsList(ArrayList<BetradarMatchEvent> homeYellowCardsList) {
 //        this.homeYellowCardsList = homeYellowCardsList == null ? null : new ArrayList<>(homeYellowCardsList);
 //    }
+    @Nullable
     public synchronized ArrayList<BetradarMatchEvent> getHomeRedCardsList() {
-        return homeRedCardsList == null ? null : new ArrayList<>(homeRedCardsList);
+        return new ArrayList<>(this.homeRedCardsList);
     }
 
     //    public synchronized void setHomeRedCardsList(ArrayList<BetradarMatchEvent> homeRedCardsList) {
 //        this.homeRedCardsList = homeRedCardsList == null ? null : new ArrayList<>(homeRedCardsList);
 //    }
+    @Nullable
     public synchronized ArrayList<BetradarMatchEvent> getAwayYellowCardsList() {
-        return awayYellowCardsList == null ? null : new ArrayList<>(awayYellowCardsList);
+        return new ArrayList<>(this.awayYellowCardsList);
     }
 
     //    public synchronized void setAwayYellowCardsList(ArrayList<BetradarMatchEvent> awayYellowCardsList) {
 //        this.awayYellowCardsList = awayYellowCardsList == null ? null : new ArrayList<>(awayYellowCardsList);
 //    }
+    @Nullable
     public synchronized ArrayList<BetradarMatchEvent> getAwayRedCardsList() {
-        return awayRedCardsList == null ? null : new ArrayList<>(awayRedCardsList);
+        return new ArrayList<>(this.awayRedCardsList);
     }
 
     //    public synchronized void setAwayRedCardsList(ArrayList<BetradarMatchEvent> awayRedCardsList) {
 //        this.awayRedCardsList = awayRedCardsList == null ? null : new ArrayList<>(awayRedCardsList);
 //    }
+    @Nullable
     public synchronized ArrayList<BetradarMatchEvent> getHomeSubstitutionsList() {
-        return homeSubstitutionsList == null ? null : new ArrayList<>(homeSubstitutionsList);
+        return new ArrayList<>(this.homeSubstitutionsList);
     }
 
     //    public synchronized void setHomeSubstitutionsList(ArrayList<BetradarMatchEvent> homeSubstitutionsList) {
 //        this.homeSubstitutionsList = homeSubstitutionsList == null ? null : new ArrayList<>(homeSubstitutionsList);
 //    }
+    @Nullable
     public synchronized ArrayList<BetradarMatchEvent> getAwaySubstitutionsList() {
-        return awaySubstitutionsList == null ? null : new ArrayList<>(awaySubstitutionsList);
+        return new ArrayList<>(this.awaySubstitutionsList);
     }
 
     //    public synchronized void setAwaySubstitutionsList(ArrayList<BetradarMatchEvent> awaySubstitutionsList) {
 //        this.awaySubstitutionsList = awaySubstitutionsList == null ? null : new ArrayList<>(awaySubstitutionsList);
 //    }
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;

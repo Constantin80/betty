@@ -1,6 +1,7 @@
 package info.fmro.betty.objects;
 
 import info.fmro.shared.utility.SynchronizedMap;
+import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +19,7 @@ public class ManagedMarketsMap
     private final String eventId;
     private transient boolean isInitialized;
 
-    public ManagedMarketsMap(final String eventId) {
+    ManagedMarketsMap(final String eventId) {
         super();
         this.eventId = eventId; // the exact object reference
     }
@@ -33,11 +34,12 @@ public class ManagedMarketsMap
         this.eventId = eventId; // the exact object reference
     }
 
-    public synchronized void initializeMap() {
-        if (!this.isInitialized) {
-            final ManagedEvent managedEvent = Statics.rulesManager.events.get(eventId);
+    private synchronized void initializeMap() {
+        if (this.isInitialized) { // already initialized, won't initialize again
+        } else {
+            final ManagedEvent managedEvent = Statics.rulesManager.events.get(this.eventId);
 
-            for (String marketId : managedEvent.marketIds.copy()) {
+            for (final String marketId : managedEvent.marketIds.copy()) {
                 final ManagedMarket market = Statics.rulesManager.markets.get(marketId);
                 if (market == null) { // I'll print error message, but I'll still add the null value to the returnMap
                     logger.error("null managedMarket found during initializeMap in rulesManager markets map for: {}", marketId);
@@ -47,7 +49,6 @@ public class ManagedMarketsMap
             }
 
             this.isInitialized = true;
-        } else { // already initialized, won't initialize again
         }
     }
 
@@ -231,8 +232,8 @@ public class ManagedMarketsMap
         return super.hashCode();
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         initializeMap();
         return super.equals(obj);

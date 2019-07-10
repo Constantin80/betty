@@ -27,17 +27,17 @@ public class MarketRunner
 
     // Level / Depth Based Ladders
 //    private MarketRunnerPrices marketRunnerPrices = new MarketRunnerPrices();
-    private PriceSizeLadder atlPrices = PriceSizeLadder.newLay(); // available to lay
-    private PriceSizeLadder atbPrices = PriceSizeLadder.newBack(); // available to back
-    private PriceSizeLadder trdPrices = PriceSizeLadder.newLay(); // traded
-    private PriceSizeLadder spbPrices = PriceSizeLadder.newBack();
-    private PriceSizeLadder splPrices = PriceSizeLadder.newLay();
+    private final PriceSizeLadder atlPrices = PriceSizeLadder.newLay(); // available to lay
+    private final PriceSizeLadder atbPrices = PriceSizeLadder.newBack(); // available to back
+    private final PriceSizeLadder trdPrices = PriceSizeLadder.newLay(); // traded
+    private final PriceSizeLadder spbPrices = PriceSizeLadder.newBack();
+    private final PriceSizeLadder splPrices = PriceSizeLadder.newLay();
 
     // Full depth Ladders
-    private LevelPriceSizeLadder batbPrices = new LevelPriceSizeLadder();
-    private LevelPriceSizeLadder batlPrices = new LevelPriceSizeLadder();
-    private LevelPriceSizeLadder bdatbPrices = new LevelPriceSizeLadder();
-    private LevelPriceSizeLadder bdatlPrices = new LevelPriceSizeLadder();
+    private final LevelPriceSizeLadder batbPrices = new LevelPriceSizeLadder();
+    private final LevelPriceSizeLadder batlPrices = new LevelPriceSizeLadder();
+    private final LevelPriceSizeLadder bdatbPrices = new LevelPriceSizeLadder();
+    private final LevelPriceSizeLadder bdatlPrices = new LevelPriceSizeLadder();
 
     // special prices
     private double spn; // starting price near projected
@@ -52,16 +52,16 @@ public class MarketRunner
     }
 
     synchronized void onPriceChange(final boolean isImage, final RunnerChange runnerChange) {
-        atlPrices.onPriceChange(isImage, runnerChange.getAtl());
-        atbPrices.onPriceChange(isImage, runnerChange.getAtb());
-        trdPrices.onPriceChange(isImage, runnerChange.getTrd());
-        spbPrices.onPriceChange(isImage, runnerChange.getSpb());
-        splPrices.onPriceChange(isImage, runnerChange.getSpl());
+        this.atlPrices.onPriceChange(isImage, runnerChange.getAtl());
+        this.atbPrices.onPriceChange(isImage, runnerChange.getAtb());
+        this.trdPrices.onPriceChange(isImage, runnerChange.getTrd());
+        this.spbPrices.onPriceChange(isImage, runnerChange.getSpb());
+        this.splPrices.onPriceChange(isImage, runnerChange.getSpl());
 
-        batbPrices.onPriceChange(isImage, runnerChange.getBatb());
-        batlPrices.onPriceChange(isImage, runnerChange.getBatl());
-        bdatbPrices.onPriceChange(isImage, runnerChange.getBdatb());
-        bdatlPrices.onPriceChange(isImage, runnerChange.getBdatl());
+        this.batbPrices.onPriceChange(isImage, runnerChange.getBatb());
+        this.batlPrices.onPriceChange(isImage, runnerChange.getBatl());
+        this.bdatbPrices.onPriceChange(isImage, runnerChange.getBdatb());
+        this.bdatlPrices.onPriceChange(isImage, runnerChange.getBdatl());
 
         this.setSpn(Utils.selectPrice(isImage, this.getSpn(), runnerChange.getSpn()));
         this.setSpf(Utils.selectPrice(isImage, this.getSpf(), runnerChange.getSpf()));
@@ -73,15 +73,15 @@ public class MarketRunner
         this.runnerDefinition = runnerDefinition;
     }
 
-    public synchronized double getBestAvailableLayPrice(final Map<String, Order> unmatchedOrders, final double calculatedLimit) {
+    public synchronized double getBestAvailableLayPrice(final Map<String, ? extends Order> unmatchedOrders, final double calculatedLimit) {
         final PriceSizeLadder modifiedPrices = this.atlPrices.copy();
         if (unmatchedOrders == null) { // normal case, and nothing to be done
         } else {
-            for (Order order : unmatchedOrders.values()) {
+            for (final Order order : unmatchedOrders.values()) {
                 final Side side = order.getSide();
                 if (side == null) {
                     logger.error("null side in getBestAvailableLayPrice for order: {}", Generic.objectToString(order));
-                } else if (side.equals(Side.B)) {
+                } else if (side == Side.B) {
                     final Double price = order.getP(), sizeRemaining = order.getSr();
                     final double sizeRemainingPrimitive = sizeRemaining == null ? 0d : sizeRemaining;
                     modifiedPrices.removeAmountEUR(price, sizeRemainingPrimitive);
@@ -92,15 +92,15 @@ public class MarketRunner
         return modifiedPrices.getBestPrice(calculatedLimit);
     }
 
-    public synchronized double getBestAvailableBackPrice(final Map<String, Order> unmatchedOrders, final double calculatedLimit) {
+    public synchronized double getBestAvailableBackPrice(final Map<String, ? extends Order> unmatchedOrders, final double calculatedLimit) {
         final PriceSizeLadder modifiedPrices = this.atbPrices.copy();
         if (unmatchedOrders == null) { // normal case, and nothing to be done
         } else {
-            for (Order order : unmatchedOrders.values()) {
+            for (final Order order : unmatchedOrders.values()) {
                 final Side side = order.getSide();
                 if (side == null) {
                     logger.error("null side in getBestAvailableBackPrice for order: {}", Generic.objectToString(order));
-                } else if (side.equals(Side.L)) {
+                } else if (side == Side.L) {
                     final Double price = order.getP(), sizeRemaining = order.getSr();
                     final double sizeRemainingPrimitive = sizeRemaining == null ? 0d : sizeRemaining;
                     modifiedPrices.removeAmountEUR(price, sizeRemainingPrimitive);
@@ -112,11 +112,11 @@ public class MarketRunner
     }
 
     public synchronized RunnerId getRunnerId() {
-        return runnerId;
+        return this.runnerId;
     }
 
     public synchronized double getSpn() {
-        return spn;
+        return this.spn;
     }
 
     public synchronized void setSpn(final double spn) {
@@ -124,7 +124,7 @@ public class MarketRunner
     }
 
     public synchronized double getSpf() {
-        return spf;
+        return this.spf;
     }
 
     public synchronized void setSpf(final double spf) {
@@ -132,7 +132,7 @@ public class MarketRunner
     }
 
     public synchronized double getLtp() {
-        return ltp;
+        return this.ltp;
     }
 
     public synchronized void setLtp(final double ltp) {
@@ -140,7 +140,7 @@ public class MarketRunner
     }
 
     private synchronized double getTv() {
-        return tv;
+        return this.tv;
     }
 
     public synchronized double getTvEUR() {

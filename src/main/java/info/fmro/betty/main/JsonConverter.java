@@ -6,14 +6,16 @@ import com.google.gson.JsonSyntaxException;
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Type;
 import java.util.Date;
 
-public class JsonConverter {
-
+@SuppressWarnings("UtilityClass")
+public final class JsonConverter {
     private static final Logger logger = LoggerFactory.getLogger(JsonConverter.class);
 
     /**
@@ -23,13 +25,16 @@ public class JsonConverter {
     private static final Gson gson = new GsonBuilder().registerTypeAdapter(Date.class, new ISO8601DateTypeAdapter()).create();
     public static final long defaultPrintExpiry = Generic.MINUTE_LENGTH_MILLISECONDS;
 
+    @Contract(pure = true)
     private JsonConverter() {
     }
 
     /**
      * This method deserializes the specified Json into an object of the specified class.
      */
-    public static <T> T convertFromJson(final String toConvertString, final Class<T> clazz) {
+    @SuppressWarnings({"MethodWithMultipleReturnPoints", "OverloadedMethodsWithSameNumberOfParameters"})
+    @Nullable
+    static <T> T convertFromJson(final String toConvertString, final Class<T> clazz) {
         try {
             return gson.fromJson(toConvertString, clazz);
         } catch (JsonSyntaxException jsonSyntaxException) {
@@ -45,15 +50,16 @@ public class JsonConverter {
     /**
      * This method deserializes the specified Json into an object of the specified Type.
      */
-    public static <T> T convertFromJson(final String toConvertString, final Type typeOfT) {
+    @SuppressWarnings({"MethodWithMultipleReturnPoints", "OverloadedMethodsWithSameNumberOfParameters"})
+    @Nullable
+    static <T> T convertFromJson(final String toConvertString, final Type typeOfT) {
         try {
             return gson.fromJson(toConvertString, typeOfT);
         } catch (JsonSyntaxException jsonSyntaxException) {
             if (Statics.debugLevel.check(3, 170)) {
                 logger.error("jsonSyntaxException in convertFromJson Type {} for: {}", typeOfT, toConvertString, jsonSyntaxException);
             } else {
-                Generic.alreadyPrintedMap.logOnce(defaultPrintExpiry, logger, LogLevel.ERROR, "jsonSyntaxException in convertFromJson Type {} for: {}", typeOfT, toConvertString,
-                                                  jsonSyntaxException);
+                Generic.alreadyPrintedMap.logOnce(defaultPrintExpiry, logger, LogLevel.ERROR, "jsonSyntaxException in convertFromJson Type {} for: {}", typeOfT, toConvertString, jsonSyntaxException);
             }
             return null;
         }
@@ -62,7 +68,7 @@ public class JsonConverter {
     /**
      * This method serializes the specified object into its equivalent Json representation.
      */
-    public static String convertToJson(final Object toConvertObject) {
+    static String convertToJson(final Object toConvertObject) {
         return gson.toJson(toConvertObject);
     }
 }

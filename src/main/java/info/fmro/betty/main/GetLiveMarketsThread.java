@@ -9,22 +9,24 @@ import info.fmro.shared.utility.LogLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@SuppressWarnings("ReuseOfLocalVariable")
 public class GetLiveMarketsThread
         extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(GetLiveMarketsThread.class);
     public static final AtomicInteger timedMapEventsCounter = new AtomicInteger(), timedFindInterestingMarketsCounter = new AtomicInteger();
 
-    public static void parseEventList() {
+    static void parseEventList() {
         final long startTime = System.currentTimeMillis();
         final List<EventResult> eventResultList = ApiNGJRescriptDemo.getEventList(Statics.appKey.get());
         final long receivedListFromServerTime = System.currentTimeMillis();
         if (eventResultList != null) {
-            final HashSet<Event> addedEvents = new HashSet<>(0);
-            final HashSet<Event> modifiedEvents = new HashSet<>(0);
+            final Collection<Event> addedEvents = new HashSet<>(0);
+            final Collection<Event> modifiedEvents = new HashSet<>(0);
             for (final EventResult eventResult : eventResultList) {
                 final Event event = eventResult.getEvent();
                 final String eventId = event.getId();
@@ -62,10 +64,10 @@ public class GetLiveMarketsThread
             } // end for
             Statics.eventsMap.timeStamp();
 
-            final HashSet<Event> notIgnoredModifiedEvents = new HashSet<>(Generic.getCollectionCapacity(modifiedEvents));
+            final Collection<Event> notIgnoredModifiedEvents = new HashSet<>(Generic.getCollectionCapacity(modifiedEvents));
             final int sizeModified = modifiedEvents.size();
             if (sizeModified > 0) {
-                for (Event event : modifiedEvents) {
+                for (final Event event : modifiedEvents) {
                     if (!event.isIgnored()) {
                         notIgnoredModifiedEvents.add(event);
                     }
@@ -97,7 +99,7 @@ public class GetLiveMarketsThread
         logger.info("parseEventList eventResultList size: {} finished in {} ms of which {} ms spent parsing", eventResultList == null ? null : eventResultList.size(), endTime - startTime, endTime - receivedListFromServerTime);
     }
 
-    public static long timedCheckEventResultList() {
+    private static long timedCheckEventResultList() {
         long timeForNext = Statics.timeStamps.getLastParseEventResultList();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0) {
@@ -111,7 +113,7 @@ public class GetLiveMarketsThread
         return timeTillNext;
     }
 
-    public static long timedFindMarkets() {
+    private static long timedFindMarkets() {
         long timeForNext = Statics.timeStamps.getLastFindInterestingMarkets();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0) {
@@ -129,7 +131,7 @@ public class GetLiveMarketsThread
         return timeTillNext;
     }
 
-    public static long timedMapEventsToScraperEvents() {
+    private static long timedMapEventsToScraperEvents() {
         long timeForNext = Statics.timeStamps.getLastMapEventsToScraperEvents();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0) {
@@ -147,7 +149,7 @@ public class GetLiveMarketsThread
         return timeTillNext;
     }
 
-    public static long timedFindSafeRunners() {
+    private static long timedFindSafeRunners() {
         long timeForNext = Statics.timeStamps.getLastFindSafeRunners();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0) {
@@ -161,11 +163,11 @@ public class GetLiveMarketsThread
         return timeTillNext;
     }
 
-    public static long timedStreamMarkets() {
+    private static long timedStreamMarkets() {
         long timeForNext = Statics.timeStamps.getLastStreamMarkets();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0) {
-            Statics.timeStamps.lastStreamMarketsStamp(Generic.MINUTE_LENGTH_MILLISECONDS * 2L);
+            Statics.timeStamps.lastStreamMarketsStamp(Generic.MINUTE_LENGTH_MILLISECONDS << 1);
             Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.streamMarkets));
 
             timeForNext = Statics.timeStamps.getLastStreamMarkets();

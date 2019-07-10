@@ -20,10 +20,7 @@ public class MarketCache
     //conflation indicates slow consumption
     private int conflatedCount;
 
-    public MarketCache() {
-    }
-
-//    public synchronized void copyFrom(MarketCache marketCache) {
+    //    public synchronized void copyFrom(MarketCache marketCache) {
 //        if (!this.markets.isEmpty()) {
 //            logger.error("not empty map in MarketCache copyFrom: {}", Generic.objectToString(this));
 //        }
@@ -44,19 +41,19 @@ public class MarketCache
 //        copyFromStamp();
 //    }
 
-    public synchronized void onMarketChange(final ChangeMessage<MarketChange> changeMessage) {
+    public synchronized void onMarketChange(final ChangeMessage<? extends MarketChange> changeMessage) {
         if (changeMessage.isStartOfNewSubscription()) {
             // was it right to disable markets.clear() in isStartOfNewSubscription ?; maybe, it seems markets are properly updated, although some old no longer used markets are probably not removed, I'll see more with testing
             //clear cache ... no clear anymore, because of multiple clients
 //            markets.clear();
         }
         if (changeMessage.getItems() != null) {
-            for (MarketChange marketChange : changeMessage.getItems()) {
+            for (final MarketChange marketChange : changeMessage.getItems()) {
                 final Market market = onMarketChange(marketChange);
 
-                if (isMarketRemovedOnClose && market.isClosed()) {
+                if (this.isMarketRemovedOnClose && market.isClosed()) {
                     //remove on close
-                    markets.remove(market.getMarketId());
+                    this.markets.remove(market.getMarketId());
                 }
 //                dispatchMarketChanged(market, marketChange);
             } // end for
@@ -65,15 +62,15 @@ public class MarketCache
 
     private synchronized Market onMarketChange(final MarketChange marketChange) {
         if (Boolean.TRUE.equals(marketChange.getCon())) {
-            conflatedCount++;
+            this.conflatedCount++;
         }
-        final Market market = markets.computeIfAbsent(marketChange.getId(), Market::new);
+        final Market market = this.markets.computeIfAbsent(marketChange.getId(), Market::new);
         market.onMarketChange(marketChange);
         return market;
     }
 
     public synchronized int getConflatedCount() {
-        return conflatedCount;
+        return this.conflatedCount;
     }
 
     public synchronized void setConflatedCount(final int conflatedCount) {
@@ -81,26 +78,26 @@ public class MarketCache
     }
 
     public synchronized boolean isMarketRemovedOnClose() {
-        return isMarketRemovedOnClose;
+        return this.isMarketRemovedOnClose;
     }
 
     public synchronized void setMarketRemovedOnClose(final boolean marketRemovedOnClose) {
-        isMarketRemovedOnClose = marketRemovedOnClose;
+        this.isMarketRemovedOnClose = marketRemovedOnClose;
     }
 
     public synchronized Market getMarket(final String marketId) {
         //queries by market id - the result is invariant for the lifetime of the market.
-        return markets.get(marketId);
+        return this.markets.get(marketId);
     }
 
     public synchronized Iterable<Market> getMarkets() {
         //all the cached markets
-        return markets.values();
+        return this.markets.values();
     }
 
     public synchronized int getMarketCount() {
         //market count
-        return markets.size();
+        return this.markets.size();
     }
 
 //    public synchronized long getTimeClean() {

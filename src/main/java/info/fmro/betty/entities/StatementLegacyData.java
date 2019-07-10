@@ -1,9 +1,11 @@
 package info.fmro.betty.entities;
 
 import info.fmro.betty.enums.WinLose;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
 
+@SuppressWarnings("ClassWithTooManyFields")
 public class StatementLegacyData {
     private Double avgPrice;
     private Double betSize;
@@ -16,19 +18,18 @@ public class StatementLegacyData {
     private Double grossBetAmount;
     private String marketName;
     private String marketType;
+    @Nullable
     private Date placedDate;
     private Long selectionId;
     private String selectionName;
+    @Nullable
     private Date startDate;
     private String transactionType;
     private Long transactionId;
     private WinLose winLose;
 
-    public StatementLegacyData() {
-    }
-
     public synchronized Double getAvgPrice() {
-        return avgPrice;
+        return this.avgPrice;
     }
 
     public synchronized void setAvgPrice(final Double avgPrice) {
@@ -36,7 +37,7 @@ public class StatementLegacyData {
     }
 
     public synchronized Double getBetSize() {
-        return betSize;
+        return this.betSize;
     }
 
     public synchronized void setBetSize(final Double betSize) {
@@ -44,7 +45,7 @@ public class StatementLegacyData {
     }
 
     public synchronized String getBetType() {
-        return betType;
+        return this.betType;
     }
 
     public synchronized void setBetType(final String betType) {
@@ -52,7 +53,7 @@ public class StatementLegacyData {
     }
 
     public synchronized String getBetCategoryType() {
-        return betCategoryType;
+        return this.betCategoryType;
     }
 
     public synchronized void setBetCategoryType(final String betCategoryType) {
@@ -60,7 +61,7 @@ public class StatementLegacyData {
     }
 
     public synchronized String getCommissionRate() {
-        return commissionRate;
+        return this.commissionRate;
     }
 
     public synchronized void setCommissionRate(final String commissionRate) {
@@ -68,7 +69,7 @@ public class StatementLegacyData {
     }
 
     public synchronized Long getEventId() {
-        return eventId;
+        return this.eventId;
     }
 
     public synchronized void setEventId(final Long eventId) {
@@ -76,7 +77,7 @@ public class StatementLegacyData {
     }
 
     public synchronized Long getEventTypeId() {
-        return eventTypeId;
+        return this.eventTypeId;
     }
 
     public synchronized void setEventTypeId(final Long eventTypeId) {
@@ -84,7 +85,7 @@ public class StatementLegacyData {
     }
 
     public synchronized String getFullMarketName() {
-        return fullMarketName;
+        return this.fullMarketName;
     }
 
     public synchronized void setFullMarketName(final String fullMarketName) {
@@ -92,7 +93,7 @@ public class StatementLegacyData {
     }
 
     public synchronized Double getGrossBetAmount() {
-        return grossBetAmount;
+        return this.grossBetAmount;
     }
 
     public synchronized void setGrossBetAmount(final Double grossBetAmount) {
@@ -100,7 +101,7 @@ public class StatementLegacyData {
     }
 
     public synchronized String getMarketName() {
-        return marketName;
+        return this.marketName;
     }
 
     public synchronized void setMarketName(final String marketName) {
@@ -108,15 +109,16 @@ public class StatementLegacyData {
     }
 
     public synchronized String getMarketType() {
-        return marketType;
+        return this.marketType;
     }
 
     public synchronized void setMarketType(final String marketType) {
         this.marketType = marketType;
     }
 
+    @Nullable
     public synchronized Date getPlacedDate() {
-        return placedDate == null ? null : (Date) placedDate.clone();
+        return this.placedDate == null ? null : (Date) this.placedDate.clone();
     }
 
     public synchronized void setPlacedDate(final Date placedDate) {
@@ -124,7 +126,7 @@ public class StatementLegacyData {
     }
 
     public synchronized Long getSelectionId() {
-        return selectionId;
+        return this.selectionId;
     }
 
     public synchronized void setSelectionId(final Long selectionId) {
@@ -132,15 +134,16 @@ public class StatementLegacyData {
     }
 
     public synchronized String getSelectionName() {
-        return selectionName;
+        return this.selectionName;
     }
 
     public synchronized void setSelectionName(final String selectionName) {
         this.selectionName = selectionName;
     }
 
+    @Nullable
     public synchronized Date getStartDate() {
-        return startDate == null ? null : (Date) startDate.clone();
+        return this.startDate == null ? null : (Date) this.startDate.clone();
     }
 
     public synchronized void setStartDate(final Date startDate) {
@@ -148,7 +151,7 @@ public class StatementLegacyData {
     }
 
     public synchronized String getTransactionType() {
-        return transactionType;
+        return this.transactionType;
     }
 
     public synchronized void setTransactionType(final String transactionType) {
@@ -156,7 +159,7 @@ public class StatementLegacyData {
     }
 
     public synchronized Long getTransactionId() {
-        return transactionId;
+        return this.transactionId;
     }
 
     public synchronized void setTransactionId(final Long transactionId) {
@@ -164,7 +167,7 @@ public class StatementLegacyData {
     }
 
     public synchronized WinLose getWinLose() {
-        return winLose;
+        return this.winLose;
     }
 
     public synchronized void setWinLose(final WinLose winLose) {

@@ -5,9 +5,12 @@ import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.StringEntity;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,23 +21,24 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class HttpUtil {
-
+@SuppressWarnings({"OverlyComplexClass", "UtilityClass"})
+public final class HttpUtil {
     private static final Logger logger = LoggerFactory.getLogger(HttpUtil.class);
     public static final AtomicLong lastErrorLogged = new AtomicLong();
-    public static final long intervalBetweenLoggedErrors = Generic.MINUTE_LENGTH_MILLISECONDS * 2L;
+    public static final long intervalBetweenLoggedErrors = Generic.MINUTE_LENGTH_MILLISECONDS << 1;
     public static final String HTTP_HEADER_X_APPLICATION = "X-Application";
     public static final String HTTP_HEADER_X_AUTHENTICATION = "X-Authentication";
     public static final String HTTP_HEADER_CONTENT_TYPE = "Content-Type";
     public static final String HTTP_HEADER_ACCEPT = "Accept";
     public static final String HTTP_HEADER_ACCEPT_CHARSET = "Accept-Charset";
 
+    @Contract(pure = true)
     private HttpUtil() {
     }
 
-    public static boolean canLogError() { // must always be placed last condition in the if, else it will update the variable and might not print the message
-        boolean canLog;
-        long currentTime = System.currentTimeMillis();
+    private static boolean canLogError() { // must always be placed last condition in the if, else it will update the variable and might not print the message
+        final boolean canLog;
+        final long currentTime = System.currentTimeMillis();
         synchronized (lastErrorLogged) {
             if (currentTime - lastErrorLogged.get() >= intervalBetweenLoggedErrors) {
                 canLog = true;
@@ -46,30 +50,28 @@ public class HttpUtil {
         return canLog;
     }
 
-    public static void errorStamp() {
+    private static void errorStamp() {
 //        synchronized (lastErrorLogged) {
         lastErrorLogged.set(System.currentTimeMillis());
 //        } // end synchronized
     }
 
-    public static String sendPostRequest(final String paramString, final String operationString, final String appKeyString, final String URLString, final RescriptResponseHandler rescriptResponseHandler) {
-        String jsonRequest = paramString;
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod"})
+    private static String sendPostRequest(final String paramString, @NotNull final String operationString, final String appKeyString, final String URLString, final RescriptResponseHandler rescriptResponseHandler) {
         String responseString = null;
-        boolean success;
+        boolean notSuccessful;
         long errorCounter = 0L;
-        boolean isPlacingOrder = operationString.equals(ApiNgOperation.PLACEORDERS.getOperationName());
+        final boolean isPlacingOrder = operationString.equals(ApiNgOperation.PLACEORDERS.getOperationName());
 
         do {
             try {
                 final HttpPost httpPost = new HttpPost(URLString);
-
                 httpPost.setHeader(HTTP_HEADER_CONTENT_TYPE, Statics.APPLICATION_JSON);
                 httpPost.setHeader(HTTP_HEADER_ACCEPT, Statics.APPLICATION_JSON);
                 httpPost.setHeader(HTTP_HEADER_ACCEPT_CHARSET, Generic.UTF8_CHARSET);
                 httpPost.setHeader(HTTP_HEADER_X_APPLICATION, appKeyString);
                 httpPost.setHeader(HTTP_HEADER_X_AUTHENTICATION, Statics.sessionTokenObject.getSessionToken()); // makes the ssoTokenString argument obsolete
-
-                httpPost.setEntity(new StringEntity(jsonRequest, Generic.UTF8_CHARSET));
+                httpPost.setEntity(new StringEntity(paramString, Generic.UTF8_CHARSET));
                 if (isPlacingOrder) {
                     httpPost.setConfig(Statics.placingOrdersConfig);
                 } else {
@@ -77,18 +79,18 @@ public class HttpUtil {
                 }
 
                 responseString = Statics.client.execute(httpPost, rescriptResponseHandler);
-                success = responseString != null;
-                if ((!success && errorCounter >= 10L && errorCounter % 10L == 0 && canLogError()) || Statics.debugLevel.check(3, 179)) {
+                notSuccessful = responseString == null;
+                if ((notSuccessful && errorCounter >= 10L && errorCounter % 10L == 0 && canLogError()) || Statics.debugLevel.check(3, 179)) {
                     logger.warn("responseString null in sendPostRequest, errorCounter: {}, isPlacingOrder: {}, operationString: {}", errorCounter, isPlacingOrder, operationString);
                 }
             } catch (UnsupportedEncodingException unsupportedEncodingException) {
                 logger.error("STRANGE unsupportedEncodingException in sendPostRequest", unsupportedEncodingException);
                 Statics.mustStop.set(true);
-                success = false;
+                notSuccessful = true;
             } catch (ClientProtocolException clientProtocolException) {
                 logger.error("STRANGE clientProtocolException in sendPostRequest", clientProtocolException);
                 Statics.mustStop.set(true);
-                success = false;
+                notSuccessful = true;
             } catch (SocketTimeoutException socketTimeoutException) {
                 if (isPlacingOrder || (errorCounter >= 10L && errorCounter % 10L == 0 && canLogError())) {
                     logger.error("socketTimeoutException in sendPostRequest, errorCounter: {}, isPlacingOrder: {}, operationString: {}", errorCounter, isPlacingOrder, operationString, socketTimeoutException);
@@ -97,7 +99,7 @@ public class HttpUtil {
                 } else {
                     logger.warn("socketTimeoutException in sendPostRequest: {}", socketTimeoutException.toString());
                 }
-                success = false;
+                notSuccessful = true;
             } catch (ConnectTimeoutException connectTimeoutException) {
                 if (isPlacingOrder || (errorCounter >= 10L && errorCounter % 10L == 0 && canLogError())) {
                     logger.error("connectTimeoutException in sendPostRequest, errorCounter: {}, isPlacingOrder: {}, operationString: {}", errorCounter, isPlacingOrder, operationString, connectTimeoutException);
@@ -106,7 +108,7 @@ public class HttpUtil {
                 } else {
                     logger.warn("connectTimeoutException in sendPostRequest: {}", connectTimeoutException.toString());
                 }
-                success = false;
+                notSuccessful = true;
             } catch (UnknownHostException unknownHostException) {
                 if (isPlacingOrder || (errorCounter >= 10L && errorCounter % 10L == 0 && canLogError())) {
                     logger.error("unknownHostException in sendPostRequest, errorCounter: {}, isPlacingOrder: {}, operationString: {}", errorCounter, isPlacingOrder, operationString, unknownHostException);
@@ -116,7 +118,7 @@ public class HttpUtil {
                     logger.warn("unknownHostException in sendPostRequest: {}", unknownHostException.toString());
                 }
                 // Generic.threadSleep(500L); // avoid throttle, likely network connection failure
-                success = false;
+                notSuccessful = true;
             } catch (SocketException socketException) {
                 if (isPlacingOrder || (errorCounter >= 10L && errorCounter % 10L == 0 && canLogError())) {
                     logger.error("socketException in sendPostRequest, errorCounter: {}, isPlacingOrder: {}, operationString: {}", errorCounter, isPlacingOrder, operationString, socketException);
@@ -125,7 +127,7 @@ public class HttpUtil {
                 } else {
                     logger.warn("socketException in sendPostRequest: {}", socketException.toString());
                 }
-                success = false;
+                notSuccessful = true;
             } catch (NoHttpResponseException noHttpResponseException) {
                 if (isPlacingOrder || (errorCounter >= 10L && errorCounter % 10L == 0 && canLogError())) {
                     logger.error("noHttpResponseException in sendPostRequest, errorCounter: {}, isPlacingOrder: {}, operationString: {}", errorCounter, isPlacingOrder, operationString, noHttpResponseException);
@@ -134,7 +136,7 @@ public class HttpUtil {
                 } else {
                     logger.warn("noHttpResponseException in sendPostRequest: {}", noHttpResponseException.toString());
                 }
-                success = false;
+                notSuccessful = true;
                 errorCounter--; // avoid anti-throttle for this exception
             } catch (IOException iOException) {
                 if (isPlacingOrder || (errorCounter >= 10L && errorCounter % 10L == 0 && canLogError())) {
@@ -144,15 +146,15 @@ public class HttpUtil {
                 } else {
                     logger.warn("iOException in sendPostRequest: {}", iOException.toString());
                 }
-                success = false;
+                notSuccessful = true;
             }
-            if (!success && !rescriptResponseHandler.isTooMuchData() && !Statics.mustStop.get()) {
+            if (notSuccessful && !rescriptResponseHandler.isTooMuchData() && !Statics.mustStop.get()) {
                 if (!GetLiveMarketsThread.waitForSessionToken("sendPostRequest " + operationString)) {
                     errorCounter++;
                     Generic.threadSleep((errorCounter - 1L) * 100L); // avoid throttle, sessionToken might not have been needed; no sleep for first error
                 }
             }
-        } while (!success && !rescriptResponseHandler.isTooMuchData() && !Statics.mustStop.get());
+        } while (notSuccessful && !rescriptResponseHandler.isTooMuchData() && !Statics.mustStop.get());
         if (errorCounter > 10L) {
             errorStamp();
             logger.error("finishing sendPostRequest with errorCounter: {}, isPlacingOrder: {}, operationString: {}", errorCounter, isPlacingOrder, operationString);
@@ -161,10 +163,10 @@ public class HttpUtil {
         return responseString;
     }
 
-    public static String sendAccountPostRequest(final String paramString, final String operationString, final String appKeyString, final String URLString, final RescriptAccountResponseHandler rescriptAccountResponseHandler) {
-        String jsonRequest = paramString;
+    @SuppressWarnings({"OverlyLongMethod", "OverlyComplexMethod"})
+    private static String sendAccountPostRequest(final String paramString, final String operationString, final String appKeyString, final String URLString, final ResponseHandler<String> rescriptAccountResponseHandler) {
         String responseString = null;
-        boolean success;
+        boolean notSuccessful;
         long errorCounter = 0L;
 
         do {
@@ -176,22 +178,22 @@ public class HttpUtil {
                 httpPost.setHeader(HTTP_HEADER_X_APPLICATION, appKeyString);
                 httpPost.setHeader(HTTP_HEADER_X_AUTHENTICATION, Statics.sessionTokenObject.getSessionToken()); // makes the ssoTokenString argument obsolete
 
-                httpPost.setEntity(new StringEntity(jsonRequest, Generic.UTF8_CHARSET));
+                httpPost.setEntity(new StringEntity(paramString, Generic.UTF8_CHARSET));
                 httpPost.setConfig(Statics.accountsApiConfig);
 
                 responseString = Statics.client.execute(httpPost, rescriptAccountResponseHandler);
-                success = responseString != null;
-                if ((!success && errorCounter >= 10L && errorCounter % 10L == 0 && canLogError()) || Statics.debugLevel.check(3, 180)) {
-                    logger.warn("responseString null in sendccountPostRequest, errorCounter: {}, operationString: {}", errorCounter, operationString);
+                notSuccessful = responseString == null;
+                if ((notSuccessful && errorCounter >= 10L && errorCounter % 10L == 0 && canLogError()) || Statics.debugLevel.check(3, 180)) {
+                    logger.warn("responseString null in sendAccountPostRequest, errorCounter: {}, operationString: {}", errorCounter, operationString);
                 }
             } catch (UnsupportedEncodingException unsupportedEncodingException) {
                 logger.error("STRANGE unsupportedEncodingException in sendAccountPostRequest", unsupportedEncodingException);
                 Statics.mustStop.set(true);
-                success = false;
+                notSuccessful = true;
             } catch (ClientProtocolException clientProtocolException) {
                 logger.error("STRANGE clientProtocolException in sendAccountPostRequest", clientProtocolException);
                 Statics.mustStop.set(true);
-                success = false;
+                notSuccessful = true;
             } catch (SocketTimeoutException socketTimeoutException) {
                 if (errorCounter >= 10L && errorCounter % 10L == 0 && canLogError()) {
                     logger.error("socketTimeoutException in sendAccountPostRequest, errorCounter: {}, operationString: {}", errorCounter, operationString, socketTimeoutException);
@@ -200,7 +202,7 @@ public class HttpUtil {
                 } else {
                     logger.warn("socketTimeoutException in sendAccountPostRequest: {}", socketTimeoutException.toString());
                 }
-                success = false;
+                notSuccessful = true;
             } catch (ConnectTimeoutException connectTimeoutException) {
                 if (errorCounter >= 10L && errorCounter % 10L == 0 && canLogError()) {
                     logger.error("connectTimeoutException in sendAccountPostRequest, errorCounter: {}, operationString: {}", errorCounter, operationString, connectTimeoutException);
@@ -209,7 +211,7 @@ public class HttpUtil {
                 } else {
                     logger.warn("connectTimeoutException in sendAccountPostRequest: {}", connectTimeoutException.toString());
                 }
-                success = false;
+                notSuccessful = true;
             } catch (UnknownHostException unknownHostException) {
                 if (errorCounter >= 10L && errorCounter % 10L == 0 && canLogError()) {
                     logger.error("unknownHostException in sendAccountPostRequest, errorCounter: {}, operationString: {}", errorCounter, operationString, unknownHostException);
@@ -219,7 +221,7 @@ public class HttpUtil {
                     logger.warn("unknownHostException in sendAccountPostRequest: {}", unknownHostException.toString());
                 }
                 // Generic.threadSleep(500L); // avoid throttle, likely network connection failure
-                success = false;
+                notSuccessful = true;
             } catch (SocketException socketException) {
                 if (errorCounter >= 10L && errorCounter % 10L == 0 && canLogError()) {
                     logger.error("socketException in sendAccountPostRequest, errorCounter: {}, operationString: {}", errorCounter, operationString, socketException);
@@ -228,7 +230,7 @@ public class HttpUtil {
                 } else {
                     logger.warn("socketException in sendAccountPostRequest: {}", socketException.toString());
                 }
-                success = false;
+                notSuccessful = true;
             } catch (NoHttpResponseException noHttpResponseException) {
                 if (errorCounter >= 10L && errorCounter % 10L == 0 && canLogError()) {
                     logger.error("noHttpResponseException in sendAccountPostRequest, errorCounter: {}, operationString: {}", errorCounter, operationString, noHttpResponseException);
@@ -237,7 +239,7 @@ public class HttpUtil {
                 } else {
                     logger.warn("noHttpResponseException in sendAccountPostRequest: {}", noHttpResponseException.toString());
                 }
-                success = false;
+                notSuccessful = true;
                 errorCounter--; // avoid anti-throttle for this exception
             } catch (IOException iOException) {
                 if (errorCounter >= 10L && errorCounter % 10L == 0 && canLogError()) {
@@ -247,15 +249,15 @@ public class HttpUtil {
                 } else {
                     logger.warn("iOException in sendAccountPostRequest: {}", iOException.toString());
                 }
-                success = false;
+                notSuccessful = true;
             }
-            if (!success && !Statics.mustStop.get()) {
+            if (notSuccessful && !Statics.mustStop.get()) {
                 if (!GetLiveMarketsThread.waitForSessionToken("sendAccountPostRequest " + operationString)) {
                     errorCounter++;
                     Generic.threadSleep((errorCounter - 1L) * 100L); // avoid throttle, sessionToken might not have been needed
                 }
             }
-        } while (!success && !Statics.mustStop.get());
+        } while (notSuccessful && !Statics.mustStop.get());
         if (errorCounter > 10L) {
             errorStamp();
             logger.error("finishing sendAccountPostRequest with errorCounter: {}, operationString: {}", errorCounter, operationString);
@@ -264,15 +266,13 @@ public class HttpUtil {
         return responseString;
     }
 
-    public static String sendPostRequestAccountRescript(final String paramString, final String operationString, final String appKeyString, final RescriptAccountResponseHandler rescriptAccountResponseHandler) {
-        String apiNgURLString = Statics.ACCOUNT_APING_URL + Statics.RESCRIPT_SUFFIX + operationString + "/";
-
+    static String sendPostRequestAccountRescript(final String paramString, final String operationString, final String appKeyString, final ResponseHandler<String> rescriptAccountResponseHandler) {
+        final String apiNgURLString = Statics.ACCOUNT_APING_URL + Statics.RESCRIPT_SUFFIX + operationString + "/";
         return sendAccountPostRequest(paramString, operationString, appKeyString, apiNgURLString, rescriptAccountResponseHandler);
     }
 
-    public static String sendPostRequestRescript(final String paramString, final String operationString, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
-        String apiNgURLString = Statics.APING_URL + Statics.RESCRIPT_SUFFIX + operationString + "/";
-
+    static String sendPostRequestRescript(final String paramString, final String operationString, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
+        final String apiNgURLString = Statics.APING_URL + Statics.RESCRIPT_SUFFIX + operationString + "/";
         return sendPostRequest(paramString, operationString, appKeyString, apiNgURLString, rescriptResponseHandler);
     }
 }

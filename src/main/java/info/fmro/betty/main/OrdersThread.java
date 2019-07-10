@@ -16,14 +16,15 @@ import info.fmro.betty.stream.definitions.Side;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
+import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -31,11 +32,12 @@ public class OrdersThread
         implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(OrdersThread.class);
     public static final long minimumCancelAllOrderSpacing = 1_000L;
-    private final Set<Long> cancelAllOrdersRunTimesSet = new HashSet<>(8);
+    private final Collection<Long> cancelAllOrdersRunTimesSet = new HashSet<>(8);
     private final AtomicLong timeLastCancelAllOrder = new AtomicLong();
     private final AtomicBoolean newCancelAllOrderAdded = new AtomicBoolean(), newOrderAdded = new AtomicBoolean();
-    private final ArrayList<TemporaryOrder> temporaryOrders = new ArrayList<>();
+    private final Collection<TemporaryOrder> temporaryOrders = new ArrayList<>(2);
 
+    @SuppressWarnings("OverlyNestedMethod")
     public synchronized void reportStreamChange(final OrderMarketRunner orderMarketRunner, final OrderRunnerChange orderRunnerChange) {
         if (this.hasTemporaryOrders()) {
             final String marketId = orderMarketRunner.getMarketId();
@@ -54,7 +56,7 @@ public class OrdersThread
                             final double price = temporaryOrder.getPrice();
                             final double size = temporaryOrder.getSize();
 
-                            if (orderType.equals(TemporaryOrderType.PLACE)) {
+                            if (orderType == TemporaryOrderType.PLACE) {
                                 if (betId != null) {
                                     final Order foundOrder = orderRunnerChange.getUnmatchedOrder(betId);
                                     if (foundOrder != null) {
@@ -79,7 +81,7 @@ public class OrdersThread
                                     } else { // matched amount not found or not sufficient, won't remove the temporaryOrder
                                     }
                                 }
-                            } else if (orderType.equals(TemporaryOrderType.CANCEL)) {
+                            } else if (orderType == TemporaryOrderType.CANCEL) {
                                 if (betId != null) {
                                     final Order foundOrder = orderRunnerChange.getUnmatchedOrder(betId);
                                     final Order previousOrderState = orderMarketRunner.getUnmatchedOrder(betId);
@@ -122,39 +124,40 @@ public class OrdersThread
         }
     }
 
-    public synchronized boolean hasTemporaryOrders() {
-        return !temporaryOrders.isEmpty();
+    @Contract(pure = true)
+    private synchronized boolean hasTemporaryOrders() {
+        return !this.temporaryOrders.isEmpty();
     }
 
     public synchronized void checkTemporaryOrdersExposure(final String marketId, final RunnerId runnerId, final OrderMarketRunner orderMarketRunner) {
 //        orderMarketRunner.resetTemporaryAmounts();
         double tempBackExposure = 0d, tempLayExposure = 0d, tempBackProfit = 0d, tempLayProfit = 0d, tempBackCancel = 0d, tempLayCancel = 0d;
-        for (TemporaryOrder temporaryOrder : this.temporaryOrders) {
+        for (final TemporaryOrder temporaryOrder : this.temporaryOrders) {
             if (temporaryOrder.runnerEquals(marketId, runnerId)) {
                 final TemporaryOrderType orderType = temporaryOrder.getType();
                 final Side side = temporaryOrder.getSide();
                 final double price = temporaryOrder.getPrice();
                 final double size = temporaryOrder.getSize();
 
-                if (orderType.equals(TemporaryOrderType.PLACE)) {
-                    if (side.equals(Side.B)) {
+                if (orderType == TemporaryOrderType.PLACE) {
+                    if (side == Side.B) {
                         tempBackExposure += size;
                         tempBackProfit += Formulas.layExposure(price, size);
-                    } else if (side.equals(Side.L)) {
+                    } else if (side == Side.L) {
                         tempLayExposure += Formulas.layExposure(price, size);
                         tempLayProfit += size;
                     } else {
                         logger.error("unknown Side in checkTemporaryOrdersExposure place for: {} {}", side, price);
                     }
-                } else if (orderType.equals(TemporaryOrderType.CANCEL)) {
+                } else if (orderType == TemporaryOrderType.CANCEL) {
                     Double sizeReduction = temporaryOrder.getSizeReduction();
                     if (sizeReduction == null) {
                         sizeReduction = size;
                     } else { // keeps non null value, nothing to do
                     }
-                    if (side.equals(Side.B)) {
+                    if (side == Side.B) {
                         tempBackCancel += sizeReduction;
-                    } else if (side.equals(Side.L)) {
+                    } else if (side == Side.L) {
                         tempLayCancel += Formulas.layExposure(price, sizeReduction);
                     } else {
                         logger.error("unknown Side in checkTemporaryOrdersExposure cancel for: {} {}", side, price);
@@ -178,7 +181,7 @@ public class OrdersThread
         final double sizePlaced;
         if (marketId != null && runnerId != null && side != null && price > 0d && size > 0d && Formulas.oddsAreUsable(price)) {
             final TemporaryOrder temporaryOrder = new TemporaryOrder(marketId, runnerId, side, price, size);
-            if (temporaryOrders.contains(temporaryOrder)) {
+            if (this.temporaryOrders.contains(temporaryOrder)) {
                 logger.error("will not post duplicate placeOrder: {}", Generic.objectToString(temporaryOrder));
                 sizePlaced = 0d;
             } else {
@@ -186,8 +189,8 @@ public class OrdersThread
 
                 if (sizeToPlace >= .01d) {
                     if (sizeToPlace >= 2d || Formulas.exposure(side, price, size) >= 2d) {
-                        temporaryOrders.add(temporaryOrder);
-                        newOrderAdded.set(true);
+                        this.temporaryOrders.add(temporaryOrder);
+                        this.newOrderAdded.set(true);
 
                         final LimitOrder limitOrder = new LimitOrder();
                         limitOrder.setPersistenceType(PersistenceType.LAPSE);
@@ -228,12 +231,12 @@ public class OrdersThread
         final boolean success;
         if (marketId != null && betId != null && (sizeReduction == null || sizeReduction > 0d)) {
             final TemporaryOrder temporaryOrder = new TemporaryOrder(marketId, runnerId, side, price, size, betId, sizeReduction);
-            if (temporaryOrders.contains(temporaryOrder)) {
+            if (this.temporaryOrders.contains(temporaryOrder)) {
                 logger.error("will not post duplicate cancelOrder: {}", Generic.objectToString(temporaryOrder));
                 success = false;
             } else {
-                temporaryOrders.add(temporaryOrder);
-                newOrderAdded.set(true);
+                this.temporaryOrders.add(temporaryOrder);
+                this.newOrderAdded.set(true);
 
                 final CancelInstruction cancelInstruction = new CancelInstruction();
                 cancelInstruction.setBetId(betId);
@@ -255,20 +258,21 @@ public class OrdersThread
     public synchronized void addCancelAllOrder(final long delay) {
         logger.error("add cancelAllOrders command should never be used");
         final long currentTime = System.currentTimeMillis();
-        final long primitiveLastCancelOrder = timeLastCancelAllOrder.get();
+        final long primitiveLastCancelOrder = this.timeLastCancelAllOrder.get();
         final long expectedExecutionTime = currentTime + delay;
         final long minimumExecutionTime = primitiveLastCancelOrder + minimumCancelAllOrderSpacing;
 
-        cancelAllOrdersRunTimesSet.add(Math.max(expectedExecutionTime, minimumExecutionTime));
-        newCancelAllOrderAdded.set(true);
+        this.cancelAllOrdersRunTimesSet.add(Math.max(expectedExecutionTime, minimumExecutionTime));
+        this.newCancelAllOrderAdded.set(true);
     }
 
     private synchronized long checkForExpiredOrders() {
         long timeToSleep = Generic.HOUR_LENGTH_MILLISECONDS; // initialized
 
-        if (!temporaryOrders.isEmpty()) {
+        if (this.temporaryOrders.isEmpty()) { // no orders, timeToSleep is already initialized, nothing to do
+        } else {
             final long currentTime = System.currentTimeMillis();
-            final Iterator<TemporaryOrder> iterator = temporaryOrders.iterator();
+            final Iterator<TemporaryOrder> iterator = this.temporaryOrders.iterator();
             while (iterator.hasNext()) {
                 final TemporaryOrder temporaryOrder = iterator.next();
                 final long expirationTime = temporaryOrder.getExpirationTime();
@@ -279,31 +283,34 @@ public class OrdersThread
                     iterator.remove();
                 } else {
                     timeToSleep = Math.min(timeToSleep, timeTillExpired);
-
                     if (temporaryOrder.isTooOld(currentTime)) {
-                        Generic.alreadyPrintedMap.logOnce(5L * Generic.MINUTE_LENGTH_MILLISECONDS, logger, LogLevel.ERROR, "temporaryOrder too old: {} ms for: {}",
-                                                          Generic.addCommas(currentTime - temporaryOrder.getCreationTime()), Generic.objectToString(temporaryOrder));
+                        Generic.alreadyPrintedMap.logOnce(5L * Generic.MINUTE_LENGTH_MILLISECONDS, logger, LogLevel.ERROR, "temporaryOrder too old: {} ms for: {}", Generic.addCommas(currentTime - temporaryOrder.getCreationTime()),
+                                                          Generic.objectToString(temporaryOrder));
                     } else { // not too old, nothing to do
                     }
                 }
             } // end while
-        } else { // no orders, timeToSleep is already initialized, nothing to do
         }
 
-        newOrderAdded.set(false);
+        this.newOrderAdded.set(false);
         return timeToSleep;
     }
 
     private synchronized long checkCancelAllOrdersList() {
-        long timeToSleep;
-        if (!cancelAllOrdersRunTimesSet.isEmpty()) {
+        final long timeToSleep;
+        if (this.cancelAllOrdersRunTimesSet.isEmpty()) { // no orders
+            if (this.newCancelAllOrderAdded.get()) {
+                logger.error("newCancelAllOrderAdded true and no orders present in checkCancelAllOrdersList");
+            }
+            timeToSleep = Generic.HOUR_LENGTH_MILLISECONDS;
+        } else {
             logger.error("cancelAllOrders being used");
             long firstRunTime = 0L;
-            for (long runTime : cancelAllOrdersRunTimesSet) {
+            for (final long runTime : this.cancelAllOrdersRunTimesSet) {
                 firstRunTime = firstRunTime == 0L ? runTime : Math.min(firstRunTime, runTime);
             }
 
-            final long primitiveLastCancelOrder = timeLastCancelAllOrder.get();
+            final long primitiveLastCancelOrder = this.timeLastCancelAllOrder.get();
             final long minimumExecutionTime = primitiveLastCancelOrder + minimumCancelAllOrderSpacing;
             final long currentTime = System.currentTimeMillis();
             final long nextRunTime = Math.max(Math.max(firstRunTime, minimumExecutionTime), currentTime);
@@ -311,28 +318,17 @@ public class OrdersThread
             if (timeTillNextRun <= 0L) {
                 timeToSleep = minimumCancelAllOrderSpacing;
 
-                timeLastCancelAllOrder.set(nextRunTime);
+                this.timeLastCancelAllOrder.set(nextRunTime);
 
-                final Iterator<Long> iterator = cancelAllOrdersRunTimesSet.iterator();
-                while (iterator.hasNext()) {
-                    final long value = iterator.next();
-                    if (value <= nextRunTime) {
-                        iterator.remove();
-                    }
-                } // end while
+                this.cancelAllOrdersRunTimesSet.removeIf(value -> value <= nextRunTime);
 
                 Statics.threadPoolExecutor.execute(new RescriptOpThread<>()); // cancel orders thread
             } else {
                 timeToSleep = timeTillNextRun;
             }
-        } else { // no orders
-            if (newCancelAllOrderAdded.get()) {
-                logger.error("newCancelAllOrderAdded true and no orders present in checkCancelAllOrdersList");
-            }
-            timeToSleep = Generic.HOUR_LENGTH_MILLISECONDS;
         }
 
-        newCancelAllOrderAdded.set(false);
+        this.newCancelAllOrderAdded.set(false);
         return timeToSleep;
     }
 
@@ -348,7 +344,7 @@ public class OrdersThread
                 long timeToSleep = checkCancelAllOrdersList();
                 timeToSleep = Math.min(timeToSleep, checkForExpiredOrders());
 
-                Generic.threadSleepSegmented(timeToSleep, 100L, newCancelAllOrderAdded, newOrderAdded, Statics.mustStop);
+                Generic.threadSleepSegmented(timeToSleep, 100L, this.newCancelAllOrderAdded, this.newOrderAdded, Statics.mustStop);
             } catch (Throwable throwable) {
                 logger.error("STRANGE ERROR inside OrdersThread loop", throwable);
             }

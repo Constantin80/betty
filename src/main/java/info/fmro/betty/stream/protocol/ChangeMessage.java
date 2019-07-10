@@ -2,6 +2,7 @@ package info.fmro.betty.stream.protocol;
 
 import info.fmro.betty.stream.definitions.ChangeType;
 import info.fmro.betty.stream.definitions.SegmentType;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -14,7 +15,9 @@ import java.util.List;
 public class ChangeMessage<T>
         implements Serializable {
     private static final long serialVersionUID = -5486319357290474083L;
+    @Nullable
     private Date arrivalTime;
+    @Nullable
     private Date publishTime;
     private final int clientId;
     private Integer id;
@@ -22,17 +25,18 @@ public class ChangeMessage<T>
     private String initialClk;
     private Long heartbeatMs;
     private Long conflateMs;
+    @Nullable
     private List<T> items;
     private SegmentType segmentType;
     private ChangeType changeType;
 
     public ChangeMessage(final int clientId) {
         this.clientId = clientId;
-        arrivalTime = new Date(System.currentTimeMillis());
+        this.arrivalTime = new Date(System.currentTimeMillis());
     }
 
     public synchronized int getClientId() {
-        return clientId;
+        return this.clientId;
     }
 
     /**
@@ -41,8 +45,8 @@ public class ChangeMessage<T>
      * @return
      */
     public synchronized boolean isStartOfNewSubscription() {
-        return changeType == ChangeType.SUB_IMAGE &&
-               (segmentType == SegmentType.NONE || segmentType == SegmentType.SEG_START);
+        return this.changeType == ChangeType.SUB_IMAGE &&
+               (this.segmentType == SegmentType.NONE || this.segmentType == SegmentType.SEG_START);
     }
 
     /**
@@ -51,8 +55,8 @@ public class ChangeMessage<T>
      * @return
      */
     public synchronized boolean isStartOfRecovery() {
-        return (changeType == ChangeType.SUB_IMAGE || changeType == ChangeType.RESUB_DELTA) &&
-               (segmentType == SegmentType.NONE || segmentType == SegmentType.SEG_START);
+        return (this.changeType == ChangeType.SUB_IMAGE || this.changeType == ChangeType.RESUB_DELTA) &&
+               (this.segmentType == SegmentType.NONE || this.segmentType == SegmentType.SEG_START);
     }
 
     /**
@@ -61,28 +65,30 @@ public class ChangeMessage<T>
      * @return
      */
     public synchronized boolean isEndOfRecovery() {
-        return (changeType == ChangeType.SUB_IMAGE || changeType == ChangeType.RESUB_DELTA) &&
-               (segmentType == SegmentType.NONE || segmentType == SegmentType.SEG_END);
+        return (this.changeType == ChangeType.SUB_IMAGE || this.changeType == ChangeType.RESUB_DELTA) &&
+               (this.segmentType == SegmentType.NONE || this.segmentType == SegmentType.SEG_END);
     }
 
     public synchronized ChangeType getChangeType() {
-        return changeType;
+        return this.changeType;
     }
 
     public synchronized void setChangeType(final ChangeType changeType) {
         this.changeType = changeType;
     }
 
+    @Nullable
     public synchronized Date getArrivalTime() {
-        return arrivalTime == null ? null : (Date) arrivalTime.clone();
+        return this.arrivalTime == null ? null : (Date) this.arrivalTime.clone();
     }
 
     public synchronized void setArrivalTime(final Date arrivalTime) {
         this.arrivalTime = arrivalTime == null ? null : (Date) arrivalTime.clone();
     }
 
+    @Nullable
     public synchronized Date getPublishTime() {
-        return publishTime == null ? null : (Date) publishTime.clone();
+        return this.publishTime == null ? null : (Date) this.publishTime.clone();
     }
 
     public synchronized void setPublishTime(final Date publishTime) {
@@ -90,7 +96,7 @@ public class ChangeMessage<T>
     }
 
     public synchronized Integer getId() {
-        return id;
+        return this.id;
     }
 
     public synchronized void setId(final Integer id) {
@@ -98,7 +104,7 @@ public class ChangeMessage<T>
     }
 
     public synchronized String getClk() {
-        return clk;
+        return this.clk;
     }
 
     public synchronized void setClk(final String clk) {
@@ -106,7 +112,7 @@ public class ChangeMessage<T>
     }
 
     public synchronized String getInitialClk() {
-        return initialClk;
+        return this.initialClk;
     }
 
     public synchronized void setInitialClk(final String initialClk) {
@@ -114,7 +120,7 @@ public class ChangeMessage<T>
     }
 
     public synchronized Long getHeartbeatMs() {
-        return heartbeatMs;
+        return this.heartbeatMs;
     }
 
     public synchronized void setHeartbeatMs(final Long heartbeatMs) {
@@ -122,23 +128,24 @@ public class ChangeMessage<T>
     }
 
     public synchronized Long getConflateMs() {
-        return conflateMs;
+        return this.conflateMs;
     }
 
     public synchronized void setConflateMs(final Long conflateMs) {
         this.conflateMs = conflateMs;
     }
 
+    @Nullable
     public synchronized List<T> getItems() {
-        return items == null ? null : new ArrayList<>(items);
+        return this.items == null ? null : new ArrayList<>(this.items);
     }
 
-    public synchronized void setItems(final List<T> items) {
+    public synchronized void setItems(final List<? extends T> items) {
         this.items = items == null ? null : new ArrayList<>(items);
     }
 
     public synchronized SegmentType getSegmentType() {
-        return segmentType;
+        return this.segmentType;
     }
 
     public synchronized void setSegmentType(final SegmentType segmentType) {

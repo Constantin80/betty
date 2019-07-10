@@ -15,7 +15,7 @@ public class PriceSize
         implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(PriceSize.class);
     private static final long serialVersionUID = 6795917492745798841L;
-    private double price;
+    private final double price;
     private double size; // info.fmro.betty.stream.cache.util.PriceSize has size in GBP
 
 //    public PriceSize() {
@@ -52,11 +52,11 @@ public class PriceSize
     }
 
     public synchronized double getPrice() {
-        return price;
+        return this.price;
     }
 
     private synchronized double getSize() {
-        return size;
+        return this.size;
     }
 
     public synchronized double getSizeEUR() {
@@ -66,17 +66,17 @@ public class PriceSize
     public synchronized TwoDoubles getBackProfitExposurePair() { // this works for back; for lay profit and exposure are reversed
         final double profit, exposure;
 
-        if (price == 0d || size == 0d) { // error message was probably printed during creation
+        if (this.price == 0d || this.size == 0d) { // error message was probably printed during creation
             profit = 0d;
             exposure = 0d;
-        } else if (price <= 1d) {
-            logger.error("bogus price {} in PriceSize for: {}", price, Generic.objectToString(this));
+        } else if (this.price <= 1d) {
+            logger.error("bogus price {} in PriceSize for: {}", this.price, Generic.objectToString(this));
             this.size = 0d;
             profit = 0d;
             exposure = 0d;
         } else {
-            profit = Formulas.layExposure(price, size);
-            exposure = size;
+            profit = Formulas.layExposure(this.price, this.size);
+            exposure = this.size;
         }
 
         return new TwoDoubles(profit, exposure);
@@ -108,12 +108,12 @@ public class PriceSize
             return false;
         }
         final PriceSize priceSize = (PriceSize) o;
-        return Double.compare(priceSize.price, price) == 0 &&
-               Double.compare(priceSize.size, size) == 0;
+        return Double.compare(priceSize.price, this.price) == 0 &&
+               Double.compare(priceSize.size, this.size) == 0;
     }
 
     @Override
     public synchronized int hashCode() {
-        return Objects.hash(price, size);
+        return Objects.hash(this.price, this.size);
     }
 }

@@ -19,10 +19,14 @@ import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
 import info.fmro.shared.utility.LogLevel;
 import info.fmro.shared.utility.SynchronizedMap;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -33,14 +37,18 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class Formulas {
-
+@SuppressWarnings({"ClassWithTooManyMethods", "OverlyComplexClass", "UtilityClass"})
+public final class Formulas {
     private static final Logger logger = LoggerFactory.getLogger(Formulas.class);
-    public static final Map<String, String> charactersMap = Collections.synchronizedMap(new LinkedHashMap<String, String>(128, 0.75f));
-    public static final Map<String, String> aliasesMap = Collections.synchronizedMap(new LinkedHashMap<String, String>(64, 0.75f));
-    public static final Map<String, String> fullAliasesMap = Collections.synchronizedMap(new LinkedHashMap<String, String>(4, 0.75f));
+    @SuppressWarnings("PublicStaticCollectionField")
+    public static final Map<String, String> charactersMap = Collections.synchronizedMap(new LinkedHashMap<>(128, 0.75f));
+    @SuppressWarnings("PublicStaticCollectionField")
+    public static final Map<String, String> aliasesMap = Collections.synchronizedMap(new LinkedHashMap<>(64, 0.75f));
+    @SuppressWarnings("PublicStaticCollectionField")
+    public static final Map<String, String> fullAliasesMap = Collections.synchronizedMap(new LinkedHashMap<>(4, 0.75f));
     public static final SynchronizedMap<TwoOrderedStrings, StampedDouble> matchesCache = new SynchronizedMap<>();
 
+    @Contract(pure = true)
     private Formulas() {
     }
 
@@ -133,11 +141,11 @@ public class Formulas {
         charactersMap.put("}", ")");
 
         final int mapCapacity = Generic.getCollectionCapacity(charactersMap.size(), 0.75f);
-        final LinkedHashMap<String, String> tempMap = new LinkedHashMap<>(mapCapacity, 0.75f);
+        final Map<String, String> tempMap = new LinkedHashMap<>(mapCapacity, 0.75f);
         synchronized (charactersMap) { // apply toLowerCase().trim() to all keys & values
-            final Set<String> keys = charactersMap.keySet();
-            for (String key : keys) {
-                final String value = charactersMap.get(key), modifiedKey = key.toLowerCase(Locale.ENGLISH), modifiedValue = value.toLowerCase(Locale.ENGLISH);
+            for (final Map.Entry<String, String> entry : charactersMap.entrySet()) {
+                final String key = entry.getKey();
+                final String value = entry.getValue(), modifiedKey = key.toLowerCase(Locale.ENGLISH), modifiedValue = value.toLowerCase(Locale.ENGLISH);
                 if (!Objects.equals(key, modifiedKey)) {
                     logger.error("key gets modified in charactersMap static parsing: {} - {}", key, modifiedKey);
                 }
@@ -161,12 +169,12 @@ public class Formulas {
     public static String removeStrangeChars(final String teamString) {
         String modifiedString = null;
         if (teamString != null) {
-            modifiedString = teamString.toLowerCase().trim();
+            modifiedString = teamString.toLowerCase(Locale.ENGLISH).trim();
             synchronized (charactersMap) {
-                final Set<String> keys = charactersMap.keySet();
-                for (String key : keys) {
+                for (final Map.Entry<String, String> entry : charactersMap.entrySet()) {
+                    final String key = entry.getKey();
                     while (modifiedString.contains(key)) {
-                        modifiedString = Generic.quotedReplaceAll(modifiedString, key, charactersMap.get(key));
+                        modifiedString = Generic.quotedReplaceAll(modifiedString, key, entry.getValue());
                     }
                 }
             } // end synchronized
@@ -182,7 +190,7 @@ public class Formulas {
         if (teamString != null) {
             synchronized (charactersMap) {
                 final Set<String> keys = charactersMap.keySet();
-                for (String key : keys) {
+                for (final String key : keys) {
                     if (teamString.contains(key)) {
                         result = true;
                         break;
@@ -196,6 +204,7 @@ public class Formulas {
         return result;
     }
 
+    @SuppressWarnings({"OverlyComplexMethod", "SpellCheckingInspection"})
     public static String parseTeamString(final String teamString) {
         String modifiedString = null;
         if (teamString != null) {
@@ -308,21 +317,21 @@ public class Formulas {
                 modifiedString = Generic.quotedReplaceAll(modifiedString, "  ", " ");
             }
 
-            modifiedString = modifiedString.toLowerCase().trim(); // before full aliases check; trim is important
+            modifiedString = modifiedString.toLowerCase(Locale.ENGLISH).trim(); // before full aliases check; trim is important
             synchronized (fullAliasesMap) {
                 if (fullAliasesMap.containsKey(modifiedString)) {
                     modifiedString = fullAliasesMap.get(modifiedString);
                 }
             } // end synchronized
             synchronized (aliasesMap) {
-                Set<String> keys = aliasesMap.keySet();
-                for (String key : keys) {
+                for (final Map.Entry<String, String> entry : aliasesMap.entrySet()) {
+                    final String key = entry.getKey();
                     if (modifiedString.contains(key)) {
-                        modifiedString = Generic.quotedReplaceAll(modifiedString, key, aliasesMap.get(key));
+                        modifiedString = Generic.quotedReplaceAll(modifiedString, key, entry.getValue());
                     }
                 }
             } // end synchronized
-            modifiedString = modifiedString.toLowerCase().trim(); // after all processing, before final checks
+            modifiedString = modifiedString.toLowerCase(Locale.ENGLISH).trim(); // after all processing, before final checks
 
 //            if (!Generic.isPureAscii(modifiedString)) {
 //                logger.error("non standard character found in: {} original: {}", modifiedString, teamString);
@@ -346,10 +355,11 @@ public class Formulas {
         return modifiedString;
     }
 
-    public static String getCoreString(final String teamString) {
+    @SuppressWarnings({"OverlyLongMethod", "SpellCheckingInspection"})
+    private static String getCoreString(final String teamString) {
         String modifiedString = null;
         if (teamString != null) {
-            modifiedString = teamString.toLowerCase().trim(); // before initial processing
+            modifiedString = teamString.toLowerCase(Locale.ENGLISH).trim(); // before initial processing
 
 //            synchronized (charactersMap) {
 //                Set<String> keys = charactersMap.keySet();
@@ -458,21 +468,21 @@ public class Formulas {
                 modifiedString = Generic.quotedReplaceAll(modifiedString, "  ", " ");
             }
 
-            modifiedString = modifiedString.toLowerCase().trim(); // before full aliases check; trim is important
+            modifiedString = modifiedString.toLowerCase(Locale.ENGLISH).trim(); // before full aliases check; trim is important
             synchronized (fullAliasesMap) {
                 if (fullAliasesMap.containsKey(modifiedString)) {
                     modifiedString = fullAliasesMap.get(modifiedString);
                 }
             } // end synchronized
             synchronized (aliasesMap) {
-                Set<String> keys = aliasesMap.keySet();
-                for (String key : keys) {
+                for (final Map.Entry<String, String> entry : aliasesMap.entrySet()) {
+                    final String key = entry.getKey();
                     if (modifiedString.contains(key)) {
-                        modifiedString = Generic.quotedReplaceAll(modifiedString, key, aliasesMap.get(key));
+                        modifiedString = Generic.quotedReplaceAll(modifiedString, key, entry.getValue());
                     }
                 }
             } // end synchronized
-            modifiedString = modifiedString.toLowerCase().trim(); // after all processing, before final checks
+            modifiedString = modifiedString.toLowerCase(Locale.ENGLISH).trim(); // after all processing, before final checks
 
 //            if (!Generic.isPureAscii(modifiedString)) {
 //                logger.error("non standard character found in: {} original: {}", modifiedString, teamString);
@@ -495,6 +505,7 @@ public class Formulas {
         return modifiedString;
     }
 
+    @SuppressWarnings("OverlyNestedMethod")
     public static double matchTeams(final String firstString, final String secondString) {
         double result;
         final TwoOrderedStrings twoOrderedStrings = new TwoOrderedStrings(firstString, secondString);
@@ -504,7 +515,7 @@ public class Formulas {
             if (firstString == null || secondString == null) {
                 result = 0;
             } else {
-                String localFirst = firstString.trim().toLowerCase(), localSecond = secondString.trim().toLowerCase();
+                String localFirst = firstString.trim().toLowerCase(Locale.ENGLISH), localSecond = secondString.trim().toLowerCase(Locale.ENGLISH);
 
                 if (localFirst.isEmpty() || localSecond.isEmpty()) {
                     result = 0;
@@ -578,8 +589,7 @@ public class Formulas {
             if (Statics.executingOrdersMap.containsKey(orderPrice)) {
                 existingSize = Statics.executingOrdersMap.get(orderPrice);
             } else {
-                logger.error("STRANGE order not found in Statics.executingOrdersMap for: {} in {}", Generic.objectToString(orderPrice),
-                             Generic.objectToString(Statics.executingOrdersMap));
+                logger.error("STRANGE order not found in Statics.executingOrdersMap for: {} in {}", Generic.objectToString(orderPrice), Generic.objectToString(Statics.executingOrdersMap));
                 existingSize = 0;
             }
 
@@ -592,9 +602,9 @@ public class Formulas {
                 logger.warn("orderPrice diminished but not removed from Statics.executingOrdersMap: {} {} {}", orderSize, remainingSize, Generic.objectToString(orderPrice));
             }
 
-            if (Statics.executingOrdersMap.size() > 0) {
+            if (Statics.executingOrdersMap.isEmpty()) { // map empty
+            } else {
                 logger.warn("orders still exist in Statics.executingOrdersMap: {} {}", Statics.executingOrdersMap.size(), Generic.objectToString(Statics.executingOrdersMap));
-            } else { // map empty
             }
         } // end synchronized block
     }
@@ -613,32 +623,33 @@ public class Formulas {
         } // end synchronized block    
     }
 
-    public static long getLastGetScraperEvents(final AtomicLong lastGetScraperEvents) {
+    public static long getLastGetScraperEvents(@NotNull final AtomicLong lastGetScraperEvents) {
 //        synchronized (lastGetScraperEvents) {
         return lastGetScraperEvents.get();
 //        }
     }
 
-    public static void setLastGetScraperEvents(final AtomicLong lastGetScraperEvents, final long newValue) {
+    public static void setLastGetScraperEvents(@NotNull final AtomicLong lastGetScraperEvents, final long newValue) {
 //        synchronized (lastGetScraperEvents) {
         lastGetScraperEvents.set(newValue);
 //        }
     }
 
-    public static long addAndGetLastGetScraperEvents(final AtomicLong lastGetScraperEvents, final long addedValue) {
+    public static long addAndGetLastGetScraperEvents(@NotNull final AtomicLong lastGetScraperEvents, final long addedValue) {
 //        synchronized (lastGetScraperEvents) {
         return lastGetScraperEvents.addAndGet(addedValue);
 //        }
     }
 
-    public static void lastGetScraperEventsStamp(final AtomicLong lastGetScraperEvents) {
+    public static void lastGetScraperEventsStamp(@NotNull final AtomicLong lastGetScraperEvents) {
 //        synchronized (lastGetScraperEvents) {
         lastGetScraperEvents.set(System.currentTimeMillis());
 //        }
     }
 
-    public static void lastGetScraperEventsStamp(final AtomicLong lastGetScraperEvents, final long timeStamp) {
-        long currentTime = System.currentTimeMillis();
+    public static void lastGetScraperEventsStamp(@NotNull final AtomicLong lastGetScraperEvents, final long timeStamp) {
+        final long currentTime = System.currentTimeMillis();
+        //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (lastGetScraperEvents) {
             if (currentTime - lastGetScraperEvents.get() >= timeStamp) {
                 lastGetScraperEvents.set(currentTime + timeStamp);
@@ -650,7 +661,7 @@ public class Formulas {
 
     @SuppressWarnings("unchecked")
     public static <T extends Ignorable> SynchronizedMap<?, T> getIgnorableMap(final Class<T> clazz) {
-        SynchronizedMap<?, T> returnValue;
+        @Nullable final SynchronizedMap<?, T> returnValue;
         if (clazz == null) {
             logger.error("null clazz value in getIgnorableMap");
             returnValue = null;
@@ -668,7 +679,7 @@ public class Formulas {
     }
 
     public static SynchronizedMap<Long, ? extends ScraperEvent> getScraperEventsMap(final Class<? extends ScraperEvent> clazz) {
-        SynchronizedMap<Long, ? extends ScraperEvent> returnValue;
+        @Nullable final SynchronizedMap<Long, ? extends ScraperEvent> returnValue;
         if (clazz == null) {
             logger.error("null clazz value in getScraperEventMap");
             returnValue = null;
@@ -684,7 +695,7 @@ public class Formulas {
     }
 
     public static ScraperThread getScraperThread(final Class<? extends ScraperEvent> clazz) {
-        ScraperThread returnValue;
+        @Nullable final ScraperThread returnValue;
         if (clazz == null) {
             logger.error("null clazz value in getScraperThread");
             returnValue = null;
@@ -707,16 +718,16 @@ public class Formulas {
         return getMaxMultiple(list, null, comparator, Statics.MIN_MATCHED);
     }
 
-    public static <T extends Comparable<? super T>> T getMaxMultiple(final List<T> list, final T defaultValue) {
+    public static <T extends Comparable<? super T>> T getMaxMultiple(final List<? extends T> list, final T defaultValue) {
         return getMaxMultiple(list, defaultValue, null, Statics.MIN_MATCHED);
     }
 
-    public static <T extends Comparable<? super T>> T getMaxMultiple(final List<T> list, final T defaultValue, final Comparator<? super T> comparator) {
+    public static <T extends Comparable<? super T>> T getMaxMultiple(final List<? extends T> list, final T defaultValue, final Comparator<? super T> comparator) {
         return getMaxMultiple(list, defaultValue, comparator, Statics.MIN_MATCHED);
     }
 
-    public static <T extends Comparable<? super T>> T getMaxMultiple(final List<T> list, final T defaultValue, final Comparator<? super T> comparator, final int minNMultiple) {
-        T returnValue;
+    public static <T extends Comparable<? super T>> T getMaxMultiple(final List<? extends T> list, final T defaultValue, final Comparator<? super T> comparator, final int minNMultiple) {
+        final T returnValue;
         if (list == null) {
             returnValue = defaultValue;
         } else {
@@ -724,20 +735,16 @@ public class Formulas {
             if (comparator == null) {
                 Collections.sort(list);
             } else {
-                Collections.sort(list, comparator);
+                list.sort(comparator);
             }
 
-            if (list.isEmpty()) {
-                returnValue = defaultValue;
-            } else {
-                returnValue = list.get(list.size() - 1);
-            }
+            returnValue = list.isEmpty() ? defaultValue : list.get(list.size() - 1);
         } // end else
         return returnValue;
     }
 
-    public static String getEventIdOfMarketCatalogue(final MarketCatalogue marketCatalogue) {
-        String result;
+    private static String getEventIdOfMarketCatalogue(final MarketCatalogue marketCatalogue) {
+        @Nullable final String result;
 
         if (marketCatalogue != null) {
             final Event eventStump = marketCatalogue.getEventStump();
@@ -756,7 +763,7 @@ public class Formulas {
     }
 
     public static String getEventIdOfMarketId(final String marketId) {
-        String result;
+        @Nullable final String result;
 
         final MarketCatalogue marketCatalogue = Statics.marketCataloguesMap.get(marketId);
         if (marketCatalogue != null) {
@@ -771,40 +778,41 @@ public class Formulas {
 
     public static Event getStoredEventOfMarketId(final String marketId) {
         final String eventId = getEventIdOfMarketId(marketId);
-        final Event event = Statics.eventsMap.get(eventId);
-        return event;
+        return Statics.eventsMap.get(eventId);
     }
 
     public static Event getStoredEventOfMarketCatalogue(final MarketCatalogue marketCatalogue) {
         final String eventId = getEventIdOfMarketCatalogue(marketCatalogue);
-        final Event event = Statics.eventsMap.get(eventId);
-        return event;
+        return Statics.eventsMap.get(eventId);
     }
 
-    public static boolean isMarketType(final MarketCatalogue marketCatalogue, final String... types) {
+    public static boolean isMarketType(final MarketCatalogue marketCatalogue, final Collection<String> typesList) {
         final boolean result;
 
-        if (marketCatalogue != null && types != null) {
+        if (marketCatalogue != null && typesList != null) {
             final EventType eventType = marketCatalogue.getEventType();
             if (eventType != null) {
                 final String eventTypeId = eventType.getId();
                 if (eventTypeId != null) {
-                    final List listTypes = Arrays.asList(types);
-                    result = listTypes.contains(eventTypeId);
+                    result = typesList.contains(eventTypeId);
                 } else {
-                    logger.error("null eventType in isMarketType for: {} {}", Generic.objectToString(types), Generic.objectToString(marketCatalogue));
+                    logger.error("null eventType in isMarketType listArg for: {} {}", Generic.objectToString(typesList), Generic.objectToString(marketCatalogue));
                     result = false;
                 }
             } else {
-                logger.error("null eventTypeId in isMarketType for: {} {}", Generic.objectToString(types), Generic.objectToString(marketCatalogue));
+                logger.error("null eventTypeId in isMarketType listArg for: {} {}", Generic.objectToString(typesList), Generic.objectToString(marketCatalogue));
                 result = false;
             }
         } else {
-            logger.error("null arguments in isMarketType for: {} {}", Generic.objectToString(types), Generic.objectToString(marketCatalogue));
+            logger.error("null arguments in isMarketType listArg for: {} {}", Generic.objectToString(typesList), Generic.objectToString(marketCatalogue));
             result = false;
         }
 
         return result;
+    }
+
+    public static boolean isMarketType(final MarketCatalogue marketCatalogue, final String... types) {
+        return isMarketType(marketCatalogue, types == null ? null : Arrays.asList(types));
     }
 
     public static boolean isEachWayMarketType(final String marketId) { // assumes the worst in case it doesn't find an answer
@@ -828,22 +836,21 @@ public class Formulas {
         return isEachWay;
     }
 
+    @SuppressWarnings("OverloadedMethodsWithSameNumberOfParameters")
     public static double getNStepDifferentOdds(final double baseOdds, final int nSteps) {
+        //noinspection NumericCastThatLosesPrecision
         final int intBaseOdds = (int) (baseOdds * 100d);
 
         return getNStepDifferentOdds(intBaseOdds, nSteps);
     }
 
-    public static double getNStepDifferentOdds(final int baseOdds, final int nSteps) {
+    @SuppressWarnings("OverloadedMethodsWithSameNumberOfParameters")
+    private static double getNStepDifferentOdds(final int baseOdds, final int nSteps) {
         final double result;
         final int baseOddsPosition = Statics.pricesList.indexOf(baseOdds);
         if (baseOddsPosition < 0) {
             logger.error("baseOdds {} not found in pricesList during getNStepDifferentOdds {}: {}", baseOdds, nSteps, baseOddsPosition);
-            if (nSteps <= 0) {
-                result = 1.01d;
-            } else {
-                result = 1_000d;
-            }
+            result = nSteps <= 0 ? 1.01d : 1_000d;
         } else {
             final int listSize = Statics.pricesList.size();
             final int resultPosition = Math.max(Math.min(baseOddsPosition + nSteps, listSize - 1), 0);
@@ -853,17 +860,12 @@ public class Formulas {
         return result;
     }
 
+    @Contract(pure = true)
     public static boolean oddsAreUsable(final double odds) {
-        final boolean areUsable;
-        if (odds <= 1_000d && odds >= 1.01d) {
-            areUsable = true;
-        } else {
-            areUsable = false;
-        }
-        return areUsable;
+        return odds <= 1_000d && odds >= 1.01d;
     }
 
-    public static double inverseOdds(final double odds) {
+    private static double inverseOdds(final double odds) {
         final double returnValue;
         if (oddsAreUsable(odds)) {
             returnValue = 1d / (odds - 1d) + 1d;
@@ -874,54 +876,38 @@ public class Formulas {
         return returnValue;
     }
 
-    public static int getOddsPosition(final double odds) {
-        final int intOdds = (int) (odds * 100d);
-        final int oddsPosition = Statics.pricesList.indexOf(intOdds);
-        return oddsPosition;
+    private static int getOddsPosition(final double odds) {
+        @SuppressWarnings("NumericCastThatLosesPrecision") final int intOdds = (int) (odds * 100d);
+        return Statics.pricesList.indexOf(intOdds);
     }
 
+    @SuppressWarnings("OverlyNestedMethod")
     public static boolean oddsAreInverse(final double firstOdds, final double secondOdds) {
         final boolean areInverse;
         if (oddsAreUsable(firstOdds) && oddsAreUsable(secondOdds)) {
             final int secondOddsPosition = getOddsPosition(secondOdds);
             if (secondOddsPosition >= 0) {
                 final double inverseFirstOdds = inverseOdds(firstOdds);
-                final int intInverseFirstOdds = (int) (inverseFirstOdds * 100d);
+                @SuppressWarnings("NumericCastThatLosesPrecision") final int intInverseFirstOdds = (int) (inverseFirstOdds * 100d);
                 if (intInverseFirstOdds > 10_100 || intInverseFirstOdds < 100) {
                     logger.error("bad value for intInverseFirstOdds in Formulas.oddsAreInverse for: {} {} {}", intInverseFirstOdds, firstOdds, secondOdds);
                     areInverse = false;
                 } else {
                     if (inverseFirstOdds <= 101) {
-                        if (secondOddsPosition == 0) {
-                            areInverse = true;
-                        } else {
-                            areInverse = false;
-                        }
+                        areInverse = secondOddsPosition == 0;
                     } else if (intInverseFirstOdds == 10_100) {
-                        if (secondOdds >= inverseFirstOdds) {
-                            areInverse = true;
-                        } else {
-                            areInverse = false;
-                        }
+                        areInverse = secondOdds >= inverseFirstOdds;
                     } else {
-                        final int intSecondOdds = (int) (secondOdds * 100d);
+                        @SuppressWarnings("NumericCastThatLosesPrecision") final int intSecondOdds = (int) (secondOdds * 100d);
                         if (intInverseFirstOdds == intSecondOdds) {
                             areInverse = true;
                         } else {
                             if (intInverseFirstOdds > intSecondOdds) {
                                 final int intNextOdds = Statics.pricesList.get(secondOddsPosition + 1);
-                                if (intInverseFirstOdds < intNextOdds) {
-                                    areInverse = true;
-                                } else {
-                                    areInverse = false;
-                                }
+                                areInverse = intInverseFirstOdds < intNextOdds;
                             } else {
                                 final int intPreviousOdds = Statics.pricesList.get(secondOddsPosition - 1);
-                                if (intInverseFirstOdds > intPreviousOdds) {
-                                    areInverse = true;
-                                } else {
-                                    areInverse = false;
-                                }
+                                areInverse = intInverseFirstOdds > intPreviousOdds;
                             }
                         }
                     }
@@ -943,9 +929,9 @@ public class Formulas {
         if (side == null || size < 0d || !oddsAreUsable(price)) {
             logger.error("bad arguments in Formulas.exposure for: {} {} {}", side, price, size);
             exposure = 0d;
-        } else if (side.equals(Side.B)) {
+        } else if (side == Side.B) {
             exposure = size;
-        } else if (side.equals(Side.L)) {
+        } else if (side == Side.L) {
             exposure = size * (price - 1d);
         } else {
             logger.error("bogus side {} in Formulas.exposure for: {} {}", side, price, size);
@@ -971,18 +957,10 @@ public class Formulas {
         } else if (!oddsAreUsable(price)) {
             logger.error("unusable price in oddsAreWorse for: {} {} {}", side, worstAcceptedOdds, price);
             areWorse = true;
-        } else if (side.equals(Side.B)) {
-            if (price >= worstAcceptedOdds) {
-                areWorse = false;
-            } else {
-                areWorse = true;
-            }
-        } else if (side.equals(Side.L)) {
-            if (price <= worstAcceptedOdds) {
-                areWorse = false;
-            } else {
-                areWorse = true;
-            }
+        } else if (side == Side.B) {
+            areWorse = !(price >= worstAcceptedOdds);
+        } else if (side == Side.L) {
+            areWorse = !(price <= worstAcceptedOdds);
         } else {
             logger.error("strange unsupported side in oddsAreWorse for: {} {} {}", side, worstAcceptedOdds, price);
             areWorse = false;

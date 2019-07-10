@@ -1,20 +1,24 @@
 package info.fmro.betty.main;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class GetMarketBooksThread
         implements Runnable {
-
     private final List<String> marketIdsListSplit;
     private final QuickCheckThread quickCheckThread;
 
-    public GetMarketBooksThread(final QuickCheckThread quickCheckThread, final List<String> marketIdsListSplit) {
-        this.marketIdsListSplit = marketIdsListSplit;
+    @Contract(pure = true)
+    GetMarketBooksThread(@NotNull final QuickCheckThread quickCheckThread, @NotNull final List<String> marketIdsListSplit) {
+        this.marketIdsListSplit = new ArrayList<>(marketIdsListSplit);
         this.quickCheckThread = quickCheckThread;
     }
 
     @Override
     public void run() {
-        quickCheckThread.singleGetMarketBooks(marketIdsListSplit);
+        this.quickCheckThread.singleGetMarketBooks(this.marketIdsListSplit);
     }
 }

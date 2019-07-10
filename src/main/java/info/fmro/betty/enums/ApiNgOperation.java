@@ -1,5 +1,8 @@
 package info.fmro.betty.enums;
 
+import org.jetbrains.annotations.Contract;
+
+@SuppressWarnings("SpellCheckingInspection")
 public enum ApiNgOperation {
     LISTEVENTTYPES("listEventTypes"),
     LISTCOMPETITIONS("listCompetitions"),
@@ -20,11 +23,13 @@ public enum ApiNgOperation {
 
     private final String operationName;
 
-    private ApiNgOperation(final String operationName) {
+    @Contract(pure = true)
+    ApiNgOperation(final String operationName) {
         this.operationName = operationName;
     }
 
+    @Contract(pure = true)
     public synchronized String getOperationName() {
-        return operationName;
+        return this.operationName;
     }
 }

@@ -1,6 +1,6 @@
 package info.fmro.betty.objects;
 
+@FunctionalInterface
 public interface AverageLoggerInterface {
-
-    public int getExpectedRuns();
+    int getExpectedRuns();
 }

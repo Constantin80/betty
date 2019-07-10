@@ -15,7 +15,7 @@ public class ReaderThread
     private static final Logger logger = LoggerFactory.getLogger(ReaderThread.class);
     private final Client client;
     private BufferedReader bufferedReader;
-    private LinkedList<String> linesList = new LinkedList<>();
+    private final LinkedList<String> linesList = new LinkedList<>();
     public final AtomicBoolean bufferNotEmpty = new AtomicBoolean();
 
     ReaderThread(final Client client) {
@@ -27,26 +27,26 @@ public class ReaderThread
             try {
                 this.bufferedReader.close();
             } catch (IOException e) {
-                logger.error("[{}]error while closing buffer in setBufferedReader", client.id, e);
+                logger.error("[{}]error while closing buffer in setBufferedReader", this.client.id, e);
             }
         }
         this.bufferedReader = bufferedReader;
     }
 
     private synchronized void addLine(final String line) {
-        linesList.add(line);
-        bufferNotEmpty.set(true);
+        this.linesList.add(line);
+        this.bufferNotEmpty.set(true);
 //        logger.info("[{}]added line: {}", client.id, line);
     }
 
     public synchronized String pollLine() {
-        final String result = linesList.poll();
+        final String result = this.linesList.poll();
 
-        if (linesList.isEmpty()) {
-            bufferNotEmpty.set(false);
+        if (this.linesList.isEmpty()) {
+            this.bufferNotEmpty.set(false);
         }
 
-        logger.info("client[{}] polled line: {}", client.id, result);
+        logger.info("client[{}] polled line: {}", this.client.id, result);
 
         return result;
     }
@@ -56,39 +56,39 @@ public class ReaderThread
         String line;
         while (!Statics.mustStop.get()) {
             try {
-                if (client.socketIsConnected.get() && !client.streamError.get()) {
+                if (this.client.socketIsConnected.get() && !this.client.streamError.get()) {
                     try {
-                        line = bufferedReader.readLine();
+                        line = this.bufferedReader.readLine();
                         if (line == null) {
 //                        throw new IOException("Socket closed - EOF");
                             if (!Statics.mustStop.get()) {
                                 if (Statics.needSessionToken.get() || Statics.sessionTokenObject.isRecent()) {
-                                    logger.info("[{}]line null in streamReaderThread", client.id);
+                                    logger.info("[{}]line null in streamReaderThread", this.client.id);
                                 } else {
-                                    logger.error("[{}]line null in streamReaderThread", client.id);
+                                    logger.error("[{}]line null in streamReaderThread", this.client.id);
                                 }
                             }
-                            client.setStreamError(true);
+                            this.client.setStreamError(true);
                         } else {
                             addLine(line);
 //                            processor.receiveLine(line);
                         }
                     } catch (IOException e) {
                         if (!Statics.mustStop.get()) {
-                            if (client.socketIsConnected.get()) {
-                                logger.error("[{}]IOException in streamReaderThread", client.id, e);
+                            if (this.client.socketIsConnected.get()) {
+                                logger.error("[{}]IOException in streamReaderThread", this.client.id, e);
                             } else {
-                                logger.info("[{}]IOException in disconnected streamReaderThread: {}", client.id, e);
+                                logger.info("[{}]IOException in disconnected streamReaderThread: {}", this.client.id, e);
                             }
                         }
-                        client.setStreamError(true);
+                        this.client.setStreamError(true);
 //                    disconnected();
                     }
                 } else {
-                    Generic.threadSleepSegmented(500L, 10L, client.socketIsConnected, Statics.mustStop);
+                    Generic.threadSleepSegmented(500L, 10L, this.client.socketIsConnected, Statics.mustStop);
                 }
             } catch (Throwable throwable) {
-                logger.error("[{}]STRANGE ERROR inside Client readerThread loop", client.id, throwable);
+                logger.error("[{}]STRANGE ERROR inside Client readerThread loop", this.client.id, throwable);
             }
         } // end while
     }

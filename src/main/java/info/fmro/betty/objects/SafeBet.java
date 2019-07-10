@@ -9,21 +9,21 @@ import info.fmro.betty.enums.RunnerStatus;
 import info.fmro.betty.enums.Side;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.SynchronizedMap;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Objects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SafeBet
         implements Comparable<SafeBet> {
-
-    private static final Logger logger = LoggerFactory.getLogger(SafeBet.class);
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
     private final String marketId;
     private final MarketStatus marketStatus;
-    private final boolean inplay;
+    private final boolean inPlay;
     private final int betDelay;
     private final long runnerId; // selectionId from SafeRunner
     private final RunnerStatus runnerStatus;
@@ -31,10 +31,12 @@ public class SafeBet
     private final double size;
     private final Side side;
 
-    public SafeBet(final String marketId, final MarketStatus marketStatus, final boolean inplay, final int betDelay, final long runnerId, final RunnerStatus runnerStatus, final double price, final double size, final Side side) {
+    @SuppressWarnings("ConstructorWithTooManyParameters")
+    @Contract(pure = true)
+    SafeBet(final String marketId, final MarketStatus marketStatus, final boolean inPlay, final int betDelay, final long runnerId, final RunnerStatus runnerStatus, final double price, final double size, final Side side) {
         this.marketId = marketId;
         this.marketStatus = marketStatus;
-        this.inplay = inplay;
+        this.inPlay = inPlay;
         this.betDelay = betDelay;
         this.runnerId = runnerId;
         this.runnerStatus = runnerStatus;
@@ -44,24 +46,17 @@ public class SafeBet
     }
 
     public synchronized String printStats() {
-        final MarketCatalogue marketCatalogue = Statics.marketCataloguesMap.get(marketId);
-        final ParsedMarket parsedMarket;
-        if (marketCatalogue != null) {
-            parsedMarket = marketCatalogue.getParsedMarket();
-//            event = marketCatalogue.getEventStump();
-        } else {
-            parsedMarket = null;
-//            event = null;
-        }
+        final MarketCatalogue marketCatalogue = Statics.marketCataloguesMap.get(this.marketId);
+        @Nullable final ParsedMarket parsedMarket = marketCatalogue != null ? marketCatalogue.getParsedMarket() : null;
         final Event event = Formulas.getStoredEventOfMarketCatalogue(marketCatalogue);
 
-        final ParsedMarketType parsedMarketType;
+        @Nullable final ParsedMarketType parsedMarketType;
         ParsedRunnerType parsedRunnerType = null;
         if (parsedMarket != null) {
             parsedMarketType = parsedMarket.getParsedMarketType();
-            HashSet<ParsedRunner> parsedRunnersSet = parsedMarket.getParsedRunnersSet();
+            final HashSet<ParsedRunner> parsedRunnersSet = parsedMarket.getParsedRunnersSet();
             if (parsedRunnersSet != null && !parsedRunnersSet.isEmpty()) {
-                for (ParsedRunner parsedRunner : parsedRunnersSet) {
+                for (final ParsedRunner parsedRunner : parsedRunnersSet) {
                     if (parsedRunner != null && parsedRunner.getSelectionId() == this.runnerId) {
                         parsedRunnerType = parsedRunner.getParsedRunnerType();
                         break;
@@ -72,7 +67,7 @@ public class SafeBet
             parsedMarketType = null;
         }
 
-        StringBuilder stringBuilder = new StringBuilder(32);
+        final StringBuilder stringBuilder = new StringBuilder(32);
         if (parsedMarketType != null) {
             stringBuilder.append(parsedMarketType.name()).append(" ");
         }
@@ -80,60 +75,39 @@ public class SafeBet
             stringBuilder.append(parsedRunnerType.name()).append(" ");
         }
 
-        final HashMap<Class<? extends ScraperEvent>, Long> scraperEventsMap;
-        if (event != null) {
-            scraperEventsMap = event.getScraperEventIds();
-//            if (scraperEventsMap.isEmpty()) {
-//                String eventId = event.getId();
-//                if (eventId != null) {
-//                    event = Statics.eventsMap.get(eventId);
-//                    if (event != null) {
-//                        scraperEventsMap = event.getScraperEventIds();
-//                    } else { // keep existing empty map, nothing to be done
-//                    }
-//                } else { // keep existing empty map, nothing to be done
-//                }
-//            }
-        } else {
-            scraperEventsMap = null;
-        }
+        @Nullable final HashMap<Class<? extends ScraperEvent>, Long> scraperEventsMap = event != null ? event.getScraperEventIds() : null;
         if (scraperEventsMap != null && !scraperEventsMap.isEmpty()) {
-            for (Entry<Class<? extends ScraperEvent>, Long> entry : scraperEventsMap.entrySet()) {
+            for (final Entry<Class<? extends ScraperEvent>, Long> entry : scraperEventsMap.entrySet()) {
                 final Class<? extends ScraperEvent> clazz = entry.getKey();
                 final long scraperEventId = entry.getValue();
                 final SynchronizedMap<Long, ? extends ScraperEvent> map = Formulas.getScraperEventsMap(clazz);
-                ScraperEvent scraperEvent;
-                if (scraperEventId >= 0) {
-                    scraperEvent = map.get(scraperEventId);
-                } else {
-                    scraperEvent = null;
-                }
+                @Nullable final ScraperEvent scraperEvent = scraperEventId >= 0 ? map.get(scraperEventId) : null;
                 if (scraperEvent != null) {
                     stringBuilder.append(scraperEvent.getHomeTeam()).append("/").append(scraperEvent.getAwayTeam()).append(" ").append(scraperEvent.getMatchStatus()).append(" ");
-                    int homeScore = scraperEvent.getHomeScore();
-                    int awayScore = scraperEvent.getAwayScore();
+                    final int homeScore = scraperEvent.getHomeScore();
+                    final int awayScore = scraperEvent.getAwayScore();
                     if (homeScore >= 0 || awayScore >= 0) {
                         stringBuilder.append(homeScore).append("-").append(awayScore).append(" ");
                     }
-                    int homeHtScore = scraperEvent.getHomeHtScore();
-                    int awayHtScore = scraperEvent.getAwayHtScore();
+                    final int homeHtScore = scraperEvent.getHomeHtScore();
+                    final int awayHtScore = scraperEvent.getAwayHtScore();
                     if (homeHtScore >= 0 || awayHtScore >= 0) {
                         stringBuilder.append("halfTime:").append(homeHtScore).append("-").append(awayHtScore).append(" ");
                     }
-                    int minutesPlayed = scraperEvent.getMinutesPlayed();
+                    final int minutesPlayed = scraperEvent.getMinutesPlayed();
                     if (minutesPlayed >= 0) {
                         stringBuilder.append(minutesPlayed);
-                        int stoppage = scraperEvent.getStoppageTime();
+                        final int stoppage = scraperEvent.getStoppageTime();
                         if (stoppage >= 0) {
                             stringBuilder.append("+").append(stoppage);
                         }
                         stringBuilder.append("' ");
                     }
-                    int homeRedCards = scraperEvent.getHomeRedCards();
+                    final int homeRedCards = scraperEvent.getHomeRedCards();
                     if (homeRedCards > 0) {
                         stringBuilder.append("homeRed:").append(homeRedCards).append(" ");
                     }
-                    int awayRedCards = scraperEvent.getAwayRedCards();
+                    final int awayRedCards = scraperEvent.getAwayRedCards();
                     if (awayRedCards > 0) {
                         stringBuilder.append("awayRed:").append(awayRedCards).append(" ");
                     }
@@ -145,128 +119,105 @@ public class SafeBet
     }
 
     public synchronized String getMarketId() {
-        return marketId;
+        return this.marketId;
     }
 
     public synchronized MarketStatus getMarketStatus() {
-        return marketStatus;
+        return this.marketStatus;
     }
 
-    public synchronized boolean isInplay() {
-        return inplay;
+    public synchronized boolean isInPlay() {
+        return this.inPlay;
     }
 
     public synchronized int getBetDelay() {
-        return betDelay;
+        return this.betDelay;
     }
 
     public synchronized long getRunnerId() {
-        return runnerId;
+        return this.runnerId;
     }
 
     public synchronized RunnerStatus getRunnerStatus() {
-        return runnerStatus;
+        return this.runnerStatus;
     }
 
     public synchronized double getPrice() {
-        return price;
+        return this.price;
     }
 
     public synchronized double getSize() {
-        return size;
+        return this.size;
     }
 
     public synchronized Side getSide() {
-        return side;
+        return this.side;
     }
 
+    @SuppressWarnings("MethodWithMultipleReturnPoints")
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(final SafeBet other) {
-        if (other == null) {
+    public synchronized int compareTo(@NotNull final SafeBet o) {
+        //noinspection ConstantConditions
+        if (o == null) {
             return AFTER;
         }
-        if (this == other) {
+        if (this == o) {
             return EQUAL;
         }
 
-        if (this.getClass() != other.getClass()) {
-            if (this.getClass().hashCode() < other.getClass().hashCode()) {
-                return BEFORE;
-            } else {
-                return AFTER;
-            }
+        if (this.getClass() != o.getClass()) {
+            return this.getClass().hashCode() < o.getClass().hashCode() ? BEFORE : AFTER;
         }
-        if (!Objects.equals(this.marketId, other.marketId)) {
+        if (!Objects.equals(this.marketId, o.marketId)) {
             if (this.marketId == null) {
                 return BEFORE;
             }
-            if (other.marketId == null) {
+            if (o.marketId == null) {
                 return AFTER;
             }
-            return this.marketId.compareTo(other.marketId);
+            return this.marketId.compareTo(o.marketId);
         }
-        if (!Objects.equals(this.marketStatus, other.marketStatus)) {
+        if (this.marketStatus != o.marketStatus) {
             if (this.marketStatus == null) {
                 return BEFORE;
             }
-            if (other.marketStatus == null) {
+            if (o.marketStatus == null) {
                 return AFTER;
             }
-            return this.marketStatus.compareTo(other.marketStatus);
+            return this.marketStatus.compareTo(o.marketStatus);
         }
-        if (this.inplay != other.inplay) {
-            if (!this.inplay && other.inplay) {
-                return BEFORE;
-            } else {
-                return AFTER;
-            }
+        if (this.inPlay != o.inPlay) {
+            return !this.inPlay && o.inPlay ? BEFORE : AFTER;
         }
-        if (this.betDelay != other.betDelay) {
-            if (this.betDelay < other.betDelay) {
-                return BEFORE;
-            } else {
-                return AFTER;
-            }
+        if (this.betDelay != o.betDelay) {
+            return this.betDelay < o.betDelay ? BEFORE : AFTER;
         }
-        if (this.runnerId != other.runnerId) {
-            if (this.runnerId < other.runnerId) {
-                return BEFORE;
-            } else {
-                return AFTER;
-            }
+        if (this.runnerId != o.runnerId) {
+            return this.runnerId < o.runnerId ? BEFORE : AFTER;
         }
-        if (!Objects.equals(this.runnerStatus, other.runnerStatus)) {
+        if (this.runnerStatus != o.runnerStatus) {
             if (this.runnerStatus == null) {
                 return BEFORE;
             }
-            if (other.runnerStatus == null) {
+            if (o.runnerStatus == null) {
                 return AFTER;
             }
-            return this.runnerStatus.compareTo(other.runnerStatus);
+            return this.runnerStatus.compareTo(o.runnerStatus);
         }
-        if (Double.doubleToLongBits(this.price) != Double.doubleToLongBits(other.price)) {
-            if (Double.doubleToLongBits(this.price) < Double.doubleToLongBits(other.price)) {
-                return BEFORE;
-            } else {
-                return AFTER;
-            }
+        if (Double.doubleToLongBits(this.price) != Double.doubleToLongBits(o.price)) {
+            return Double.doubleToLongBits(this.price) < Double.doubleToLongBits(o.price) ? BEFORE : AFTER;
         }
-        if (!Objects.equals(this.side, other.side)) {
+        if (this.side != o.side) {
             if (this.side == null) {
                 return BEFORE;
             }
-            if (other.side == null) {
+            if (o.side == null) {
                 return AFTER;
             }
-            return this.side.compareTo(other.side);
+            return this.side.compareTo(o.side);
         }
-        if (Math.round(this.size) != Math.round(other.size)) {
-            if (this.size < other.size) {
-                return BEFORE;
-            } else {
-                return AFTER;
-            }
+        if (Math.round(this.size) != Math.round(o.size)) {
+            return this.size < o.size ? BEFORE : AFTER;
         }
 
         return EQUAL;
@@ -277,7 +228,7 @@ public class SafeBet
         int hash = 7;
         hash = 71 * hash + Objects.hashCode(this.marketId);
         hash = 71 * hash + Objects.hashCode(this.marketStatus);
-        hash = 71 * hash + (this.inplay ? 1 : 0);
+        hash = 71 * hash + (this.inPlay ? 1 : 0);
         hash = 71 * hash + this.betDelay;
         hash = 71 * hash + (int) (this.runnerId ^ (this.runnerId >>> 32));
         hash = 71 * hash + Objects.hashCode(this.runnerStatus);
@@ -287,8 +238,8 @@ public class SafeBet
         return hash;
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
@@ -306,7 +257,7 @@ public class SafeBet
         if (this.marketStatus != other.marketStatus) {
             return false;
         }
-        if (this.inplay != other.inplay) {
+        if (this.inPlay != other.inPlay) {
             return false;
         }
         if (this.betDelay != other.betDelay) {
@@ -321,7 +272,7 @@ public class SafeBet
         if (Double.doubleToLongBits(this.price) != Double.doubleToLongBits(other.price)) {
             return false;
         }
-        if (!Objects.equals(this.side, other.side)) {
+        if (this.side != other.side) {
             return false;
         }
         return Math.round(this.size) == Math.round(other.size);

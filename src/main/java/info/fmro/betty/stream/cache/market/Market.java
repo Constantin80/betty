@@ -19,7 +19,7 @@ public class Market
         implements Serializable {
     private static final long serialVersionUID = -288902433432290477L;
     private final String marketId;
-    private Map<RunnerId, MarketRunner> marketRunners = new ConcurrentHashMap<>(); // the only place where MarketRunners are permanently stored
+    private final Map<RunnerId, MarketRunner> marketRunners = new ConcurrentHashMap<>(); // the only place where MarketRunners are permanently stored
     private MarketDefinition marketDefinition;
     private double tv; //total value traded
 
@@ -35,7 +35,7 @@ public class Market
         //runners changed
         Optional.ofNullable(marketChange.getRc()).ifPresent(l -> l.forEach(p -> onPriceChange(isImage, p)));
 
-        tv = Utils.selectPrice(isImage, tv, marketChange.getTv());
+        this.tv = Utils.selectPrice(isImage, this.tv, marketChange.getTv());
     }
 
     private synchronized void onPriceChange(final boolean isImage, final RunnerChange runnerChange) {
@@ -56,8 +56,7 @@ public class Market
     }
 
     private synchronized MarketRunner getOrAdd(final RunnerId runnerId) {
-        final MarketRunner runner = marketRunners.computeIfAbsent(runnerId, k -> new MarketRunner(getMarketId(), k));
-        return runner;
+        return this.marketRunners.computeIfAbsent(runnerId, k -> new MarketRunner(getMarketId(), k));
     }
 
     public synchronized MarketRunner getMarketRunner(final RunnerId runnerId) {
@@ -65,11 +64,11 @@ public class Market
     }
 
     public synchronized HashSet<RunnerId> getRunnerIds() {
-        return new HashSet<>(marketRunners.keySet());
+        return new HashSet<>(this.marketRunners.keySet());
     }
 
     private synchronized double getTv() {
-        return tv;
+        return this.tv;
     }
 
     public synchronized double getTvEUR() {
@@ -77,24 +76,24 @@ public class Market
     }
 
     public synchronized String getMarketId() {
-        return marketId;
+        return this.marketId;
     }
 
     public synchronized boolean isClosed() {
         //whether the market is closed
-        return (marketDefinition != null && marketDefinition.getStatus() == MarketStatus.CLOSED);
+        return (this.marketDefinition != null && this.marketDefinition.getStatus() == MarketStatus.CLOSED);
     }
 
     public synchronized MarketDefinition getMarketDefinition() {
-        return marketDefinition;
+        return this.marketDefinition;
     }
 
     @Override
     public synchronized String toString() {
         return "Market{" +
-               "marketId='" + marketId + '\'' +
-               ", marketRunners=" + marketRunners +
-               ", marketDefinition=" + marketDefinition +
+               "marketId='" + this.marketId + '\'' +
+               ", marketRunners=" + this.marketRunners +
+               ", marketDefinition=" + this.marketDefinition +
                '}';
     }
 }

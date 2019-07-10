@@ -2,6 +2,7 @@ package info.fmro.betty.entities;
 
 import info.fmro.betty.enums.InstructionReportErrorCode;
 import info.fmro.betty.enums.InstructionReportStatus;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
 
@@ -10,13 +11,11 @@ public class CancelInstructionReport {
     private InstructionReportErrorCode errorCode;
     private CancelInstruction instruction;
     private Double sizeCancelled;
+    @Nullable
     private Date cancelledDate;
 
-    public CancelInstructionReport() {
-    }
-
     public synchronized InstructionReportStatus getStatus() {
-        return status;
+        return this.status;
     }
 
     public synchronized void setStatus(final InstructionReportStatus status) {
@@ -24,7 +23,7 @@ public class CancelInstructionReport {
     }
 
     public synchronized InstructionReportErrorCode getErrorCode() {
-        return errorCode;
+        return this.errorCode;
     }
 
     public synchronized void setErrorCode(final InstructionReportErrorCode errorCode) {
@@ -32,7 +31,7 @@ public class CancelInstructionReport {
     }
 
     public synchronized CancelInstruction getInstruction() {
-        return instruction;
+        return this.instruction;
     }
 
     public synchronized void setInstruction(final CancelInstruction instruction) {
@@ -40,15 +39,16 @@ public class CancelInstructionReport {
     }
 
     public synchronized Double getSizeCancelled() {
-        return sizeCancelled;
+        return this.sizeCancelled;
     }
 
     public synchronized void setSizeCancelled(final Double sizeCancelled) {
         this.sizeCancelled = sizeCancelled;
     }
 
+    @Nullable
     public synchronized Date getCancelledDate() {
-        return cancelledDate == null ? null : (Date) cancelledDate.clone();
+        return this.cancelledDate == null ? null : (Date) this.cancelledDate.clone();
     }
 
     public synchronized void setCancelledDate(final Date cancelledDate) {

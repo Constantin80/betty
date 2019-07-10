@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeMap;
 
 public class Utils {
@@ -29,10 +30,10 @@ public class Utils {
         }
     }
 
-    public static void calculateMarketLimits(final double maxTotalLimit, final Collection<ManagedMarket> marketsSet, final boolean shouldCalculateExposure, final boolean marketLimitsCanBeIncreased) {
+    public static void calculateMarketLimits(final double maxTotalLimit, final Iterable<? extends ManagedMarket> marketsSet, final boolean shouldCalculateExposure, final boolean marketLimitsCanBeIncreased) {
         double totalMatchedExposure = 0d, totalExposure = 0d, sumOfMaxMarketLimits = 0d;
-        final HashSet<ManagedMarket> marketsWithErrorCalculatingExposure = new HashSet<>(), marketsWithExposureHigherThanTheirMaxLimit = new HashSet<>();
-        for (ManagedMarket managedMarket : marketsSet) {
+        final Collection<ManagedMarket> marketsWithErrorCalculatingExposure = new HashSet<>(), marketsWithExposureHigherThanTheirMaxLimit = new HashSet<>();
+        for (final ManagedMarket managedMarket : marketsSet) {
             if (shouldCalculateExposure) {
                 managedMarket.calculateExposure();
             } else { // no need to calculate exposure, it was just calculated previously
@@ -63,10 +64,10 @@ public class Utils {
         final double availableTotalExposureConsideringOnlyMatched = maxTotalLimit - totalMatchedExposure; // can be positive or negative
         final double availableExposureInTheMarketsConsideringOnlyMatched = sumOfMaxMarketLimits - totalMatchedExposure; // should always be positive, else this is an error
 
-        for (ManagedMarket managedMarket : marketsWithErrorCalculatingExposure) {
+        for (final ManagedMarket managedMarket : marketsWithErrorCalculatingExposure) {
             managedMarket.cancelAllUnmatchedBets.set(true);
         }
-        for (ManagedMarket managedMarket : marketsWithExposureHigherThanTheirMaxLimit) {
+        for (final ManagedMarket managedMarket : marketsWithExposureHigherThanTheirMaxLimit) {
 //            final double totalExposure = managedMarket.getMarketTotalExposure();
             final double maxLimit = managedMarket.getMaxMarketLimit();
 //            final double reducedExposure = totalExposure - maxLimit;
@@ -89,7 +90,7 @@ public class Utils {
             } else {
                 proportionOfAvailableMarketExposureThatWillBeUsed = availableTotalExposureConsideringOnlyMatched / availableExposureInTheMarketsConsideringOnlyMatched;
             }
-            for (ManagedMarket managedMarket : marketsSet) {
+            for (final ManagedMarket managedMarket : marketsSet) {
                 if (marketsWithErrorCalculatingExposure.contains(managedMarket)) { // nothing to do, all unmatched bets on this market were previously been canceled
                 } else { // calculatedLimit = (maxMarketLimit - matchedExposure) / proportionOfAvailableMarketExposureThatWillBeUsed
                     final double maxMarketLimit = managedMarket.getMaxMarketLimit();
@@ -109,7 +110,7 @@ public class Utils {
             } else {
                 proportionMatchedExposureWithinLimit = maxTotalLimit / totalMatchedExposure;
             }
-            for (ManagedMarket managedMarket : marketsSet) {
+            for (final ManagedMarket managedMarket : marketsSet) {
                 if (marketsWithErrorCalculatingExposure.contains(managedMarket)) { // nothing to do, all unmatched bets on this market were previously been canceled
                 } else {
                     final double matchedExposure = managedMarket.getMarketMatchedExposure();
@@ -137,13 +138,13 @@ public class Utils {
             resultList = List.of(0d, 0d);
         } else {
             final @NotNull Side firstSide = sideList.get(0), secondSide = sideList.get(1);
-            if (firstSide.equals(Side.B) && secondSide.equals(Side.L)) {
+            if (firstSide == Side.B && secondSide == Side.L) {
                 existingTempExposures = List.of(firstOrderRunner.getTempBackExposure(), secondOrderRunner.getTempLayExposure());
                 existingNonMatchedExposures = List.of(firstOrderRunner.getUnmatchedBackExposure() + firstOrderRunner.getTempBackExposure(), secondOrderRunner.getUnmatchedLayExposure() + secondOrderRunner.getTempLayExposure());
                 nonMatchedExposureLimitList = List.of(firstRunner.getBackAmountLimit() - firstOrderRunner.getMatchedBackExposure(), secondRunner.getLayAmountLimit() - secondOrderRunner.getMatchedLayExposure());
                 toBeUsedOdds = List.of(firstRunner.getToBeUsedBackOdds(), secondRunner.getToBeUsedLayOdds());
                 resultList = getExposureToBePlacedForTwoWayMarket(existingTempExposures, existingNonMatchedExposures, nonMatchedExposureLimitList, sideList, toBeUsedOdds, excessMatchedExposure);
-            } else if (firstSide.equals(Side.L) && secondSide.equals(Side.B)) {
+            } else if (firstSide == Side.L && secondSide == Side.B) {
                 existingTempExposures = List.of(firstOrderRunner.getTempLayExposure(), secondOrderRunner.getTempBackExposure());
                 existingNonMatchedExposures = List.of(firstOrderRunner.getUnmatchedLayExposure() + firstOrderRunner.getTempLayExposure(), secondOrderRunner.getUnmatchedBackExposure() + secondOrderRunner.getTempBackExposure());
                 nonMatchedExposureLimitList = List.of(firstRunner.getLayAmountLimit() - firstOrderRunner.getMatchedLayExposure(), secondRunner.getBackAmountLimit() - secondOrderRunner.getMatchedBackExposure());
@@ -249,7 +250,7 @@ public class Utils {
         } else {
             final double firstToBeUsedOdds = toBeUsedOdds.get(0), secondToBeUsedOdds = toBeUsedOdds.get(1);
             final Side firstSide = sideList.get(0), secondSide = sideList.get(1);
-            if (!Formulas.oddsAreUsable(firstToBeUsedOdds) || !Formulas.oddsAreUsable(secondToBeUsedOdds) || firstSide.equals(secondSide)) {
+            if (!Formulas.oddsAreUsable(firstToBeUsedOdds) || !Formulas.oddsAreUsable(secondToBeUsedOdds) || firstSide == secondSide) {
                 logger.error("bogus internal arguments for getExposureToBePlacedForTwoWayMarket: {} {} {}", Generic.objectToString(sideList), Generic.objectToString(toBeUsedOdds), excessMatchedExposure);
                 resultList = List.of(0d, 0d);
             } else {
@@ -286,14 +287,14 @@ public class Utils {
             resultList = List.of(0d, 0d);
         } else {
             final @NotNull Side firstSide = sideList.get(0), secondSide = sideList.get(1);
-            if (firstSide.equals(Side.B) && secondSide.equals(Side.L)) {
+            if (firstSide == Side.B && secondSide == Side.L) {
                 existingUnmatchedExposures = List.of(firstOrderRunner.getUnmatchedBackExposure(), secondOrderRunner.getUnmatchedLayExposure());
                 existingNonMatchedExposures = List.of(firstOrderRunner.getUnmatchedBackExposure() + firstOrderRunner.getTempBackExposure(), secondOrderRunner.getUnmatchedLayExposure() + secondOrderRunner.getTempLayExposure());
                 availableLimitList = List.of(firstRunner.getBackAmountLimit() - firstOrderRunner.getMatchedBackExposure() - firstOrderRunner.getUnmatchedBackExposure() - firstOrderRunner.getTempBackExposure(),
                                              secondRunner.getLayAmountLimit() - secondOrderRunner.getMatchedLayExposure() - secondOrderRunner.getUnmatchedLayExposure() - secondOrderRunner.getTempLayExposure());
                 toBeUsedOdds = List.of(firstRunner.getToBeUsedBackOdds(), secondRunner.getToBeUsedLayOdds());
                 resultList = getAmountsToBePlacedForTwoWayMarket(existingUnmatchedExposures, existingNonMatchedExposures, availableLimitList, sideList, toBeUsedOdds, availableLimit);
-            } else if (firstSide.equals(Side.L) && secondSide.equals(Side.B)) {
+            } else if (firstSide == Side.L && secondSide == Side.B) {
                 existingUnmatchedExposures = List.of(firstOrderRunner.getUnmatchedLayExposure(), secondOrderRunner.getUnmatchedBackExposure());
                 existingNonMatchedExposures = List.of(firstOrderRunner.getUnmatchedLayExposure() + firstOrderRunner.getTempLayExposure(), secondOrderRunner.getUnmatchedBackExposure() + secondOrderRunner.getTempBackExposure());
                 availableLimitList = List.of(firstRunner.getLayAmountLimit() - firstOrderRunner.getMatchedLayExposure() - firstOrderRunner.getUnmatchedLayExposure() - firstOrderRunner.getTempLayExposure(),
@@ -352,7 +353,7 @@ public class Utils {
         } else {
             final double firstToBeUsedOdds = toBeUsedOdds.get(0), secondToBeUsedOdds = toBeUsedOdds.get(1);
             final Side firstSide = sideList.get(0), secondSide = sideList.get(1);
-            if (!Formulas.oddsAreUsable(firstToBeUsedOdds) || !Formulas.oddsAreUsable(secondToBeUsedOdds) || firstSide.equals(secondSide)) {
+            if (!Formulas.oddsAreUsable(firstToBeUsedOdds) || !Formulas.oddsAreUsable(secondToBeUsedOdds) || firstSide == secondSide) {
                 logger.error("bogus internal arguments for getAmountsToBePlacedForTwoWayMarket: {} {} {}", Generic.objectToString(sideList), Generic.objectToString(toBeUsedOdds), availableLimit);
                 resultList = List.of(0d, 0d);
             } else {

@@ -12,11 +12,8 @@ public class DeveloperAppVersion {
     private String vendorId; // Public unique string provided to the Vendor that they can use to pass to the Betfair API in order to identify themselves.
     private String vendorSecret; // Private unique string provided to the Vendor that they pass with certain calls to confirm their identity. Linked to a particular App Key.
 
-    public DeveloperAppVersion() {
-    }
-
     public synchronized String getOwner() {
-        return owner;
+        return this.owner;
     }
 
     public synchronized void setOwner(final String owner) {
@@ -24,7 +21,7 @@ public class DeveloperAppVersion {
     }
 
     public synchronized Long getVersionId() {
-        return versionId;
+        return this.versionId;
     }
 
     public synchronized void setVersionId(final Long versionId) {
@@ -32,7 +29,7 @@ public class DeveloperAppVersion {
     }
 
     public synchronized String getVersion() {
-        return version;
+        return this.version;
     }
 
     public synchronized void setVersion(final String version) {
@@ -40,42 +37,58 @@ public class DeveloperAppVersion {
     }
 
     public synchronized String getApplicationKey() {
-        return applicationKey;
+        return this.applicationKey;
     }
 
     public synchronized void setApplicationKey(final String applicationKey) {
         this.applicationKey = applicationKey;
     }
 
-    public synchronized Boolean isDelayData() {
-        return delayData;
+    public synchronized Boolean getDelayData() {
+        return this.delayData;
     }
 
     public synchronized void setDelayData(final Boolean delayData) {
         this.delayData = delayData;
     }
 
-    public synchronized Boolean isSubscriptionRequired() {
-        return subscriptionRequired;
+    public synchronized Boolean getSubscriptionRequired() {
+        return this.subscriptionRequired;
     }
 
     public synchronized void setSubscriptionRequired(final Boolean subscriptionRequired) {
         this.subscriptionRequired = subscriptionRequired;
     }
 
-    public synchronized Boolean isOwnerManaged() {
-        return ownerManaged;
+    public synchronized Boolean getOwnerManaged() {
+        return this.ownerManaged;
     }
 
     public synchronized void setOwnerManaged(final Boolean ownerManaged) {
         this.ownerManaged = ownerManaged;
     }
 
-    public synchronized Boolean isActive() {
-        return active;
+    public synchronized Boolean getActive() {
+        return this.active;
     }
 
     public synchronized void setActive(final Boolean active) {
         this.active = active;
+    }
+
+    public synchronized String getVendorId() {
+        return this.vendorId;
+    }
+
+    public synchronized void setVendorId(final String vendorId) {
+        this.vendorId = vendorId;
+    }
+
+    public synchronized String getVendorSecret() {
+        return this.vendorSecret;
+    }
+
+    public synchronized void setVendorSecret(final String vendorSecret) {
+        this.vendorSecret = vendorSecret;
     }
 }

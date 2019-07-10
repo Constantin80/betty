@@ -7,9 +7,8 @@ import org.slf4j.LoggerFactory;
 
 public class TimeJumpDetectorThread
         implements Runnable {
-
     private static final Logger logger = LoggerFactory.getLogger(TimeJumpDetectorThread.class);
-    public final long SLEEP_INTERVAL = 200L;
+    public static final long SLEEP_INTERVAL = 200L;
 
     @Override
     public void run() {
@@ -21,7 +20,6 @@ public class TimeJumpDetectorThread
                 }
 
                 timeBeforeSleep = System.currentTimeMillis();
-
                 timeDifference = Math.abs(timeBeforeSleep - timeAfterSleep);
                 if (timeBeforeSleep > timeAfterSleep) {
                     if (timeDifference > 10_000L) {
@@ -49,7 +47,6 @@ public class TimeJumpDetectorThread
                 }
 
                 Generic.threadSleep(SLEEP_INTERVAL);
-
                 timeAfterSleep = System.currentTimeMillis();
 
                 final long expectedTimeAfterSleep = timeBeforeSleep + SLEEP_INTERVAL;

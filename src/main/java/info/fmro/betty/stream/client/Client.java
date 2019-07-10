@@ -6,6 +6,7 @@ import info.fmro.betty.stream.definitions.AuthenticationMessage;
 import info.fmro.betty.stream.definitions.FilterFlag;
 import info.fmro.betty.stream.definitions.MarketDataFilter;
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -46,6 +48,7 @@ public class Client
     public final AtomicLong startedStamp = new AtomicLong();
     public final AtomicBoolean streamError = new AtomicBoolean();
 
+    @Nullable
     private Socket socket;
 
     public final AtomicLong conflateMs = new AtomicLong();
@@ -57,9 +60,9 @@ public class Client
         this.hostName = hostName;
         this.port = port;
 
-        processor = new RequestResponseProcessor(this);
-        readerThread = new ReaderThread(this);
-        writerThread = new WriterThread(this);
+        this.processor = new RequestResponseProcessor(this);
+        this.readerThread = new ReaderThread(this);
+        this.writerThread = new WriterThread(this);
 //        keepAliveTimer = Executors.newSingleThreadScheduledExecutor();
 
 //        setChangeHandler(this);
@@ -76,10 +79,10 @@ public class Client
 
     void setStreamError(final boolean newValue) { // not synchronized, as it's not needed and I have sleep inside, and synchronization would lead to deadlocks
         if (newValue == false) {
-            streamError.set(newValue);
+            this.streamError.set(newValue);
         } else {
-            if (System.currentTimeMillis() > startedStamp.get() + 500L) {
-                streamError.set(newValue);
+            if (System.currentTimeMillis() > this.startedStamp.get() + 500L) {
+                this.streamError.set(newValue);
             } else { // setReaderError might be related to the start itself, maybe error was fixed by the start; nothing to be done
             }
             Generic.threadSleepSegmented(500L, 50L, Statics.mustStop);
@@ -87,49 +90,49 @@ public class Client
     }
 
     private synchronized void startThreads() {
-        if (processor.isAlive()) {
+        if (this.processor.isAlive()) {
             logger.error("[{}]processor thread already alive", this.id);
         } else {
-            processor.start();
+            this.processor.start();
         }
-        if (readerThread.isAlive()) {
+        if (this.readerThread.isAlive()) {
             logger.error("[{}]reader thread already alive", this.id);
         } else {
-            readerThread.start();
+            this.readerThread.start();
         }
-        if (writerThread.isAlive()) {
+        if (this.writerThread.isAlive()) {
             logger.error("[{}]writer thread already alive", this.id);
         } else {
-            writerThread.start();
+            this.writerThread.start();
         }
 //        keepAliveTimer.scheduleAtFixedRate(processor::keepAliveCheck, timeout, timeout, TimeUnit.MILLISECONDS);
     }
 
     private synchronized boolean startClient() {
         final boolean attemptedToStart;
-        if (writerThread.bufferNotEmpty.get() || processor.hasValidHandler()) {
-            if (isStopped.get()) {
+        if (this.writerThread.bufferNotEmpty.get() || this.processor.hasValidHandler()) {
+            if (this.isStopped.get()) {
                 do {
                     connectSocket();
 
                     connectAuthenticateAndResubscribe();
 
-                    if (socketIsConnected.get() && streamIsConnected.get() && isAuth.get()) {
-                        isStopped.set(false);
+                    if (this.socketIsConnected.get() && this.streamIsConnected.get() && this.isAuth.get()) {
+                        this.isStopped.set(false);
                         setStreamError(false);
                     } else {
                         if (!Statics.mustStop.get()) {
                             if (Statics.sessionTokenObject.isRecent()) {
-                                logger.info("something went wrong during startClient, disconnecting[{}]: {} {} {}", this.id, socketIsConnected.get(), streamIsConnected.get(), isAuth.get());
+                                logger.info("something went wrong during startClient, disconnecting[{}]: {} {} {}", this.id, this.socketIsConnected.get(), this.streamIsConnected.get(), this.isAuth.get());
                             } else {
-                                logger.error("something went wrong during startClient, disconnecting[{}]: {} {} {}", this.id, socketIsConnected.get(), streamIsConnected.get(), isAuth.get());
+                                logger.error("something went wrong during startClient, disconnecting[{}]: {} {} {}", this.id, this.socketIsConnected.get(), this.streamIsConnected.get(), this.isAuth.get());
                             }
                         } else { // normal behavior to get this error after stop
                         }
                         disconnect();
                         Generic.threadSleepSegmented(10_000L, 100L, Statics.mustStop);
                     }
-                } while (isStopped.get() && !Statics.mustStop.get());
+                } while (this.isStopped.get() && !Statics.mustStop.get());
             } else {
                 logger.error("[{}]trying to start an already started client", this.id);
             }
@@ -146,20 +149,20 @@ public class Client
 //    }
 
     private synchronized void connectSocket() {
-        if (!socketIsConnected.get()) {
+        if (!this.socketIsConnected.get()) {
             try {
-                logger.info("[{}]ESAClient: Opening socket to: {}:{}", this.id, hostName, port);
-                if (socket != null && !socket.isClosed()) {
+                logger.info("[{}]ESAClient: Opening socket to: {}:{}", this.id, this.hostName, this.port);
+                if (this.socket != null && !this.socket.isClosed()) {
                     logger.error("[{}]previous socket not closed in connectSocket, disconnecting", this.id);
                     disconnect();
                 }
-                socket = createSocket(hostName, port);
-                socket.setReceiveBufferSize(1024 * 1000 * 2); //shaves about 20s off firehose image.
+                this.socket = createSocket(this.hostName, this.port);
+                this.socket.setReceiveBufferSize(1024 * 1000 * 2); //shaves about 20s off firehose image.
 
-                readerThread.setBufferedReader(new BufferedReader(new InputStreamReader(socket.getInputStream())));
-                writerThread.setBufferedWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())));
+                this.readerThread.setBufferedReader(new BufferedReader(new InputStreamReader(this.socket.getInputStream(), StandardCharsets.UTF_8)));
+                this.writerThread.setBufferedWriter(new BufferedWriter(new OutputStreamWriter(this.socket.getOutputStream(), StandardCharsets.UTF_8)));
 
-                socketIsConnected.set(true);
+                this.socketIsConnected.set(true);
                 setStreamError(false); // I need to reset the error here as well, to get the readerThread going
             } catch (IOException e) {
                 logger.error("[{}]Failed to connect streamClient", this.id, e);
@@ -179,7 +182,7 @@ public class Client
         while (newSocket == null && !Statics.mustStop.get()) {
             try {
                 newSocket = (SSLSocket) factory.createSocket(hostName, port);
-                newSocket.setSoTimeout((int) timeout);
+                newSocket.setSoTimeout((int) this.timeout);
                 newSocket.startHandshake();
             } catch (IOException e) {
                 logger.error("[{}]IOException in streamClient.createSocket", this.id, e);
@@ -193,10 +196,10 @@ public class Client
     }
 
     private synchronized void connectAuthenticateAndResubscribe() {
-        if (streamIsConnected.get()) {
+        if (this.streamIsConnected.get()) {
             logger.error("[{}]connecting a stream that is already connected", this.id);
         }
-        Generic.threadSleepSegmented(timeout, 50L, streamIsConnected, Statics.mustStop);
+        Generic.threadSleepSegmented(this.timeout, 50L, this.streamIsConnected, Statics.mustStop);
 
 //        ConnectionMessage result = null;
 //        try {
@@ -205,7 +208,7 @@ public class Client
 //            logger.error("[{}]Exception in streamClient.connectAuthenticateAndResubscribe", this.id, e);
 //        }
 
-        if (!streamIsConnected.get()) { //timeout
+        if (!this.streamIsConnected.get()) { //timeout
             if (!Statics.mustStop.get()) {
                 logger.error("[{}]No connection message in streamClient.connectAuthenticateAndResubscribe", this.id);
             }
@@ -221,7 +224,7 @@ public class Client
         }
 
         if (!Statics.mustStop.get()) {
-            if (isAuth.get()) {
+            if (this.isAuth.get()) {
                 logger.error("[{}]auth on a stream that is already auth", this.id);
             }
 
@@ -231,18 +234,18 @@ public class Client
             authenticationMessage.setSession(Statics.sessionTokenObject.getSessionToken());
 //        ClientCommands.waitFor(this, processor.authenticate(authenticationMessage));
 
-            processor.authenticate(authenticationMessage);
-            Generic.threadSleepSegmented(timeout, 10L, isAuth, Statics.mustStop);
+            this.processor.authenticate(authenticationMessage);
+            Generic.threadSleepSegmented(this.timeout, 10L, this.isAuth, Statics.mustStop);
 
-            if (socketIsConnected.get() && streamIsConnected.get() && isAuth.get()) {
-                processor.resubscribe();
-                isAuth.set(true); // after resubscribe, else I might get some racing condition bugs
+            if (this.socketIsConnected.get() && this.streamIsConnected.get() && this.isAuth.get()) {
+                this.processor.resubscribe();
+                this.isAuth.set(true); // after resubscribe, else I might get some racing condition bugs
             } else {
                 if (!Statics.mustStop.get()) {
                     if (Statics.sessionTokenObject.isRecent()) {
-                        logger.info("something went wrong in streamClient before auth[{}]: {} {}", id, socketIsConnected.get(), streamIsConnected.get());
+                        logger.info("something went wrong in streamClient before auth[{}]: {} {}", this.id, this.socketIsConnected.get(), this.streamIsConnected.get());
                     } else {
-                        logger.error("something went wrong in streamClient before auth[{}]: {} {}", id, socketIsConnected.get(), streamIsConnected.get());
+                        logger.error("something went wrong in streamClient before auth[{}]: {} {}", this.id, this.socketIsConnected.get(), this.streamIsConnected.get());
                     }
                 } else { // normal behavior to get this error after stop
                 }
@@ -256,7 +259,7 @@ public class Client
 
         disconnect(true);
 
-        processor.stopped();
+        this.processor.stopped();
     }
 
     private synchronized void disconnect() {
@@ -264,8 +267,8 @@ public class Client
     }
 
     private synchronized void disconnect(final boolean stoppingClient) {
-        if (socket != null) {
-            if (socket.isClosed()) {
+        if (this.socket != null) {
+            if (this.socket.isClosed()) {
                 if (stoppingClient) {
                     logger.info("[{}]socket already closed in streamClient.disconnect during stopping", this.id);
                 } else {
@@ -273,13 +276,13 @@ public class Client
                 }
             } else {
                 try {
-                    socket.close();
+                    this.socket.close();
                 } catch (IOException e) {
                     logger.error("[{}]Exception in close socket in streamClient.disconnect", this.id, e);
                 }
             }
 
-            socket = null;
+            this.socket = null;
         } else {
             if (stoppingClient) { // quite common, shouldn't print message
 //                logger.info("[{}]tried to disconnect a null socket during stopping", this.id);
@@ -288,12 +291,12 @@ public class Client
             }
         }
 
-        isStopped.set(true);
-        socketIsConnected.set(false);
-        streamIsConnected.set(false);
-        isAuth.set(false);
+        this.isStopped.set(true);
+        this.socketIsConnected.set(false);
+        this.streamIsConnected.set(false);
+        this.isAuth.set(false);
 
-        processor.disconnected();
+        this.processor.disconnected();
     }
 
 //    private synchronized void shutdownKeepAliveTimer() {
@@ -310,37 +313,37 @@ public class Client
 
         while (!Statics.mustStop.get()) {
             try {
-                if (isStopped.get()) {
+                if (this.isStopped.get()) {
                     final boolean hasAttemptedStart = startClient();
                     if (!hasAttemptedStart) {
-                        Generic.threadSleepSegmented(5_000L, 10L, writerThread.bufferNotEmpty, Statics.mustStop);
+                        Generic.threadSleepSegmented(5_000L, 10L, this.writerThread.bufferNotEmpty, Statics.mustStop);
                     }
-                } else if (streamError.get()) {
+                } else if (this.streamError.get()) {
                     disconnect(); // can attempt restart on the next loop iteration
 //                    if (!startClient()) {
 //                        Generic.threadSleepSegmented(5_000L, 10L, writerThread.bufferNotEmpty, Statics.mustStop);
 //                    }
                 }
 
-                Generic.threadSleepSegmented(5_000L, 10L, isStopped, streamError, Statics.mustStop);
+                Generic.threadSleepSegmented(5_000L, 10L, this.isStopped, this.streamError, Statics.mustStop);
             } catch (Throwable throwable) {
                 logger.error("[{}]STRANGE ERROR inside Client loop", this.id, throwable);
             }
         } // end while
 
         try {
-            if (readerThread != null) {
-                if (readerThread.isAlive()) {
+            if (this.readerThread != null) {
+                if (this.readerThread.isAlive()) {
                     logger.info("[{}]joining readerThread", this.id);
-                    readerThread.join();
+                    this.readerThread.join();
                 }
             } else {
                 logger.error("[{}]null readerThread during stream end", this.id);
             }
-            if (writerThread != null) {
-                if (writerThread.isAlive()) {
+            if (this.writerThread != null) {
+                if (this.writerThread.isAlive()) {
                     logger.info("[{}]joining writerThread", this.id);
-                    writerThread.join();
+                    this.writerThread.join();
                 }
             } else {
                 logger.error("[{}]null writerThread during stream end", this.id);

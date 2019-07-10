@@ -12,10 +12,10 @@ public class DebugLevel
     private static final Logger logger = LoggerFactory.getLogger(DebugLevel.class);
     private static final long serialVersionUID = -2888763923758409582L;
     private int level;
-    private TIntHashSet codesSet = new TIntHashSet(0);
+    private final TIntHashSet codesSet = new TIntHashSet(0);
 
     public synchronized int getLevel() {
-        return level;
+        return this.level;
     }
 
     public synchronized void setLevel(final int level) {
@@ -23,26 +23,25 @@ public class DebugLevel
     }
 
     public synchronized boolean add(final int code) {
-        return codesSet.add(code);
+        return this.codesSet.add(code);
     }
 
     public synchronized boolean remove(final int code) {
-        return codesSet.remove(code);
+        return this.codesSet.remove(code);
     }
 
     public synchronized boolean contains(final int code) {
-        return codesSet.contains(code);
+        return this.codesSet.contains(code);
     }
 
     public synchronized void clear() {
-        codesSet.clear();
+        this.codesSet.clear();
     }
 
-    public synchronized boolean check(final int level, final int code) {
-        return this.level >= level || this.codesSet.contains(code);
+    public synchronized boolean check(final int levelToCheck, final int code) {
+        return this.level >= levelToCheck || this.codesSet.contains(code);
     }
 
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized void copyFrom(final DebugLevel debugLevel) {
         if (!this.codesSet.isEmpty()) {
             logger.error("not empty set in DebugLevel copyFrom: {}", Generic.objectToString(this));
@@ -54,11 +53,7 @@ public class DebugLevel
             this.setLevel(debugLevel.level);
 
             this.codesSet.clear();
-            if (debugLevel.codesSet != null) {
-                this.codesSet.addAll(debugLevel.codesSet);
-            } else {
-                logger.error("null codesSet in DebugLevel copyFrom: {}", Generic.objectToString(debugLevel));
-            }
+            this.codesSet.addAll(debugLevel.codesSet);
         }
     }
 }

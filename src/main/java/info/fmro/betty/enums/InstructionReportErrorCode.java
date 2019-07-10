@@ -24,7 +24,7 @@ public enum InstructionReportErrorCode {
     TIME_IN_FORCE_CONFLICT, // You may only specify a time in force on either the place request OR on individual limit order instructions (not both), since the implied behaviors are incompatible.
     UNEXPECTED_PERSISTENCE_TYPE, // You have specified a persistence type for a FILL_OR_KILL order, which is nonsensical because no umatched portion can remain after the order has been placed.
     INVALID_ORDER_TYPE, // You have specified a time in force of FILL_OR_KILL, but have included a non-LIMIT order type.
-    UNEXPECTED_MIN_FILL_SIZE, // You have specified a minFillSize on a limit order, where the limit order's time in force is not FILL_OR_KILL. Using minFillSize is not supported where the time in force of the request (as opposed to an order) is FILL_OR_KILL.
+    UNEXPECTED_MIN_FILL_SIZE, // You have specified a minFillSize on a limit order, where the limit order's time in force is not FILL_OR_KILL.Using minFillSize is not supported where the time in force of the request (as opposed to an order) is FILL_OR_KILL
     INVALID_CUSTOMER_ORDER_REF, // The supplied customer order reference is too long.
     INVALID_MIN_FILL_SIZE // The minFillSize must be greater than zero and less than or equal to the order's size. The minFillSize cannot be less than the minimum bet size for your currency
 }

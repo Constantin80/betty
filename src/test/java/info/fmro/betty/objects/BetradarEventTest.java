@@ -12,12 +12,9 @@ public class BetradarEventTest
         extends ApiDefault {
     private static final long startTime = System.currentTimeMillis();
 
-    public BetradarEventTest() {
-    }
-
     @Test
     void getHomeScore() {
-        BetradarEvent instance = new BetradarEvent(1, startTime);
+        final BetradarEvent instance = new BetradarEvent(1, startTime);
         int expResult = -1;
         int result = instance.getHomeScore();
         assertEquals(expResult, result, "1");
@@ -38,16 +35,16 @@ public class BetradarEventTest
 
     @Test
     void setHomeScore() {
-        BetradarEvent instance = new BetradarEvent(1, startTime);
+        final BetradarEvent instance = new BetradarEvent(1, startTime);
         instance.setHomeScore(1);
-        int result = instance.getHomeScore();
-        int expResult = 1;
+        final int result = instance.getHomeScore();
+        final int expResult = 1;
         assertEquals(expResult, result);
     }
 
     @Test
     void getHomeHtScore() {
-        BetradarEvent instance = new BetradarEvent(1, startTime);
+        final BetradarEvent instance = new BetradarEvent(1, startTime);
         int expResult = -1;
         int result = instance.getHomeHtScore();
         assertEquals(expResult, result, "1");
@@ -68,34 +65,34 @@ public class BetradarEventTest
 
     @Test
     void setHomeHtScore() {
-        BetradarEvent instance = new BetradarEvent(1, startTime);
+        final BetradarEvent instance = new BetradarEvent(1, startTime);
         instance.setHomeHtScore(1);
-        int result = instance.getHomeHtScore();
-        int expResult = 1;
+        final int result = instance.getHomeHtScore();
+        final int expResult = 1;
         assertEquals(expResult, result);
     }
 
     @Test
     void update() {
-        BetradarEvent scraperEvent = new BetradarEvent(1, startTime);
-        BetradarEvent instance = new BetradarEvent(1, startTime);
-        int expResult = 0;
-        int result = instance.update(scraperEvent);
+        final BetradarEvent scraperEvent = new BetradarEvent(1, startTime);
+        final BetradarEvent instance = new BetradarEvent(1, startTime);
+        final int expResult = 0;
+        final int result = instance.update(scraperEvent);
         assertEquals(expResult, result);
     }
 
     @Test
     void errors() {
-        BetradarEvent scraperEvent = new BetradarEvent(1, startTime);
+        final BetradarEvent scraperEvent = new BetradarEvent(1, startTime);
         scraperEvent.timeStamp();
         scraperEvent.setStartTime(new Date());
         scraperEvent.setHomeTeam("Barcelona");
         scraperEvent.setAwayTeam("Real Madrid");
-        String classModifiers = "status_recentChange";
+        final String classModifiers = "status_recentChange";
         scraperEvent.setClassModifiers(classModifiers);
         scraperEvent.setMatchStatus(MatchStatus.NOT_STARTED);
-        long expResult = 614400;
-        long result = scraperEvent.errors();
+        final long expResult = 614400;
+        final long result = scraperEvent.errors();
         assertEquals(expResult, result);
     }
 }

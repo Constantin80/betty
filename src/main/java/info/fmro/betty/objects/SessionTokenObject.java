@@ -15,7 +15,7 @@ public class SessionTokenObject
     private long timeStamp;
 
     public synchronized String getSessionToken() {
-        return sessionToken;
+        return this.sessionToken;
     }
 
     public synchronized void setSessionToken(final String sessionToken) {
@@ -24,7 +24,7 @@ public class SessionTokenObject
     }
 
     public synchronized long getTimeStamp() {
-        return timeStamp;
+        return this.timeStamp;
     }
 
     public synchronized void setTimeStamp(final long timeStamp) {
@@ -39,12 +39,11 @@ public class SessionTokenObject
         return isRecent(defaultRecentPeriod);
     }
 
-    public synchronized boolean isRecent(final long recentPeriod) {
+    private synchronized boolean isRecent(@SuppressWarnings("SameParameterValue") final long recentPeriod) {
         final long currentTime = System.currentTimeMillis();
-        return currentTime - timeStamp <= recentPeriod;
+        return currentTime - this.timeStamp <= recentPeriod;
     }
 
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized void copyFrom(final SessionTokenObject sessionTokenObject) {
         if (sessionTokenObject == null) {
             logger.error("null sessionTokenObject in copyFrom for: {}", Generic.objectToString(this));

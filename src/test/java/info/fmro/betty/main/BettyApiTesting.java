@@ -6,9 +6,7 @@ import org.junit.jupiter.api.BeforeAll;
 
 public class BettyApiTesting
         extends ApiDefault {
-    public BettyApiTesting() {
-    }
-
+    @SuppressWarnings("ThrowsRuntimeException")
     @BeforeAll
     public static void setUpClass()
             throws IllegalArgumentException {
@@ -20,7 +18,7 @@ public class BettyApiTesting
         Generic.turnOffHtmlUnitLogger();
         VarsIO.readVarsFromFile(Statics.VARS_FILE_NAME);
         VarsIO.readObjectsFromFiles();
-        MaintenanceThread maintenanceThread = new MaintenanceThread();
+        final MaintenanceThread maintenanceThread = new MaintenanceThread();
         maintenanceThread.start();
     }
 
@@ -29,7 +27,7 @@ public class BettyApiTesting
 //    void findNewMarketTypes() {
 //        DebuggingMethods.findNewMarketTypes();
 //        DebuggingMethods.listCurrentOrders();
-//        DebuggingMethods.listClearedtOrders();
+//        DebuggingMethods.listClearedOrders();
 ////        DebuggingMethods.printMarketType("ACCA");
 //    }
 }

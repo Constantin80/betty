@@ -1,18 +1,19 @@
 package info.fmro.betty.entities;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class MarketProfitAndLoss {
     private String marketId;
     private Double commissionApplied;
+    @Nullable
     private List<RunnerProfitAndLoss> profitAndLosses;
 
-    public MarketProfitAndLoss() {
-    }
-
     public synchronized String getMarketId() {
-        return marketId;
+        return this.marketId;
     }
 
     public synchronized void setMarketId(final String marketId) {
@@ -20,18 +21,19 @@ public class MarketProfitAndLoss {
     }
 
     public synchronized Double getCommissionApplied() {
-        return commissionApplied;
+        return this.commissionApplied;
     }
 
     public synchronized void setCommissionApplied(final Double commissionApplied) {
         this.commissionApplied = commissionApplied;
     }
 
+    @Nullable
     public synchronized List<RunnerProfitAndLoss> getProfitAndLosses() {
-        return profitAndLosses == null ? null : new ArrayList<>(profitAndLosses);
+        return this.profitAndLosses == null ? null : new ArrayList<>(this.profitAndLosses);
     }
 
-    public synchronized void setProfitAndLosses(final List<RunnerProfitAndLoss> profitAndLosses) {
+    public synchronized void setProfitAndLosses(final List<? extends RunnerProfitAndLoss> profitAndLosses) {
         this.profitAndLosses = profitAndLosses == null ? null : new ArrayList<>(profitAndLosses);
     }
 }

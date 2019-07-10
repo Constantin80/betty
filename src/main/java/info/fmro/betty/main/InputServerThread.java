@@ -2,26 +2,27 @@ package info.fmro.betty.main;
 
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+
 public class InputServerThread
         extends Thread {
-
     private static final Logger logger = LoggerFactory.getLogger(InputServerThread.class);
 
     @Override
-    @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     public void run() {
         ServerSocket serverSocket = null;
         try {
+            //noinspection resource,IOResourceOpenedButNotSafelyClosed,SocketOpenedButNotSafelyClosed
             serverSocket = new ServerSocket(Statics.inputServerPort.get());
         } catch (IOException iOException) {
             logger.error("IOException in InputServer", iOException);
             try {
+                //noinspection resource,IOResourceOpenedButNotSafelyClosed,SocketOpenedButNotSafelyClosed
                 serverSocket = new ServerSocket(0);
             } catch (IOException innerIOException) {
                 logger.error("IOException in InputServer inner", innerIOException);
@@ -36,9 +37,9 @@ public class InputServerThread
             while (!Statics.mustStop.get()) {
                 try {
                     final Socket socket = serverSocket.accept();
-                    if (socket.getInetAddress().getHostAddress().equals("127.0.0.1")) {
+                    if ("127.0.0.1".equals(socket.getInetAddress().getHostAddress())) {
                         Statics.inputConnectionSocketsSet.add(socket);
-                        InputConnectionThread inputConnectionThread = new InputConnectionThread(socket);
+                        final InputConnectionThread inputConnectionThread = new InputConnectionThread(socket);
                         Statics.inputConnectionThreadsSet.add(inputConnectionThread);
                         inputConnectionThread.start();
                     } else {
@@ -46,9 +47,9 @@ public class InputServerThread
                         socket.close();
                     }
                 } catch (IOException iOException) {
-                    if (!Statics.mustStop.get()) {
+                    if (Statics.mustStop.get()) { // program is stopping and the socket has been closed from another thread
+                    } else {
                         logger.error("IOException in InputServer socket accept", iOException);
-                    } else { // program is stopping and the socket has been closed from another thread
                     }
                 } catch (Throwable throwable) {
                     logger.error("STRANGE throwable in InputServer socket accept", throwable);

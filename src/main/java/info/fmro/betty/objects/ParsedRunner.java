@@ -1,6 +1,8 @@
 package info.fmro.betty.objects;
 
 import info.fmro.betty.enums.ParsedRunnerType;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -13,11 +15,13 @@ public class ParsedRunner
     private final Double handicap;
     private ParsedRunnerType parsedRunnerType;
 
+    @Contract(pure = true)
     public ParsedRunner(final Long selectionId, final Double handicap) {
         this.selectionId = selectionId;
         this.handicap = handicap;
     }
 
+    @Contract(pure = true)
     public ParsedRunner(final Long selectionId, final Double handicap, final ParsedRunnerType parsedRunnerType) {
         this.selectionId = selectionId;
         this.handicap = handicap;
@@ -25,74 +29,72 @@ public class ParsedRunner
     }
 
     public synchronized Double getHandicap() {
-        return handicap;
+        return this.handicap;
     }
 
     public synchronized Long getSelectionId() {
-        return selectionId;
+        return this.selectionId;
     }
 
     public synchronized ParsedRunnerType getParsedRunnerType() {
-        return parsedRunnerType;
+        return this.parsedRunnerType;
     }
 
     public synchronized void setParsedRunnerType(final ParsedRunnerType parsedRunnerType) {
         this.parsedRunnerType = parsedRunnerType;
     }
 
+    @SuppressWarnings("MethodWithMultipleReturnPoints")
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(final ParsedRunner other) {
-        if (other == null) {
+    public synchronized int compareTo(@NotNull final ParsedRunner o) {
+        //noinspection ConstantConditions
+        if (o == null) {
             return AFTER;
         }
-        if (this == other) {
+        if (this == o) {
             return EQUAL;
         }
 
-        if (this.getClass() != other.getClass()) {
-            if (this.getClass().hashCode() < other.getClass().hashCode()) {
-                return BEFORE;
-            } else {
-                return AFTER;
-            }
+        if (this.getClass() != o.getClass()) {
+            return this.getClass().hashCode() < o.getClass().hashCode() ? BEFORE : AFTER;
         }
-        if (!Objects.equals(this.selectionId, other.selectionId)) {
+        if (!Objects.equals(this.selectionId, o.selectionId)) {
             if (this.selectionId == null) {
                 return BEFORE;
             }
-            if (other.selectionId == null) {
+            if (o.selectionId == null) {
                 return AFTER;
             }
-            return this.selectionId.compareTo(other.selectionId);
+            return this.selectionId.compareTo(o.selectionId);
         }
-        if (!Objects.equals(this.handicap, other.handicap)) {
+        if (!Objects.equals(this.handicap, o.handicap)) {
             if (this.handicap == null) {
                 return BEFORE;
             }
-            if (other.handicap == null) {
+            if (o.handicap == null) {
                 return AFTER;
             }
-            return this.handicap.compareTo(other.handicap);
+            return this.handicap.compareTo(o.handicap);
         }
         return EQUAL;
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
-    public synchronized boolean equals(final Object o) {
-        if (this == o) {
+    public synchronized boolean equals(final Object obj) {
+        if (this == obj) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final ParsedRunner that = (ParsedRunner) o;
-        return Objects.equals(selectionId, that.selectionId) &&
-               Objects.equals(handicap, that.handicap);
+        final ParsedRunner that = (ParsedRunner) obj;
+        return Objects.equals(this.selectionId, that.selectionId) &&
+               Objects.equals(this.handicap, that.handicap);
     }
 
     @Override
     public synchronized int hashCode() {
-        return Objects.hash(selectionId, handicap);
+        return Objects.hash(this.selectionId, this.handicap);
     }
 }

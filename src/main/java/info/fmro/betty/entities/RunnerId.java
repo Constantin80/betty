@@ -1,55 +1,48 @@
 package info.fmro.betty.entities;
 
+import org.jetbrains.annotations.Contract;
+
 import java.util.Objects;
 
 public class RunnerId {
+    @SuppressWarnings("unused")
     private String marketId; // The id of the market bet on
+    @SuppressWarnings("unused")
     private Long selectionId; // The id of the selection bet on
+    @SuppressWarnings("unused")
     private Double handicap; // The handicap associated with the runner in case of asian handicap markets, otherwise returns '0.0'.
 
-    public RunnerId() {
-    }
-
     public synchronized String getMarketId() {
-        return marketId;
-    }
-
-    public synchronized void setMarketId(final String marketId) {
-        this.marketId = marketId;
+        return this.marketId;
     }
 
     public synchronized Long getSelectionId() {
-        return selectionId;
-    }
-
-    public synchronized void setSelectionId(final Long selectionId) {
-        this.selectionId = selectionId;
+        return this.selectionId;
     }
 
     public synchronized Double getHandicap() {
-        return handicap;
+        return this.handicap;
     }
 
-    public synchronized void setHandicap(final Double handicap) {
-        this.handicap = handicap;
-    }
-
+    @SuppressWarnings("NonFinalFieldReferenceInEquals")
+    @Contract(value = "null -> false", pure = true)
     @Override
-    public synchronized boolean equals(final Object o) {
-        if (this == o) {
+    public synchronized boolean equals(final Object obj) {
+        if (this == obj) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        RunnerId runnerId = (RunnerId) o;
-        return Objects.equals(marketId, runnerId.marketId) &&
-               Objects.equals(selectionId, runnerId.selectionId) &&
-               Objects.equals(handicap, runnerId.handicap);
+        final RunnerId runnerId = (RunnerId) obj;
+        return Objects.equals(this.marketId, runnerId.marketId) &&
+               Objects.equals(this.selectionId, runnerId.selectionId) &&
+               Objects.equals(this.handicap, runnerId.handicap);
     }
 
+    @SuppressWarnings("NonFinalFieldReferencedInHashCode")
     @Override
     public synchronized int hashCode() {
-        return Objects.hash(marketId, selectionId, handicap);
+        return Objects.hash(this.marketId, this.selectionId, this.handicap);
     }
 }

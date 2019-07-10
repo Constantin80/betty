@@ -9,13 +9,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class GetFundsThread
         extends Thread {
-
     private static final Logger logger = LoggerFactory.getLogger(GetFundsThread.class);
     private static final AtomicInteger getAccountFundsThreadCounter = new AtomicInteger();
 
-    public static long timedGetAccountFunds() {
+    private static long timedGetAccountFunds() {
         final long currentTime = System.currentTimeMillis();
-        long runInterval;
+        final long runInterval;
         final boolean newQuickRun = currentTime - Statics.timeLastFundsOp.get() <= 20000L;
         final boolean quickRun = Statics.fundsQuickRun.getAndSet(newQuickRun);
         if (quickRun) {
@@ -42,6 +41,7 @@ public class GetFundsThread
                 getAccountFundsThreadCounter.getAndIncrement();
                 Statics.threadPoolExecutor.execute(new RescriptOpThread<>(Statics.safetyLimits, getAccountFundsThreadCounter)); // get funds thread
 
+                //noinspection ReuseOfLocalVariable
                 timeForNext = Statics.timeStamps.getLastGetAccountFunds() + runInterval;
 
                 timeTillNext = timeForNext - currentTime;
@@ -60,10 +60,10 @@ public class GetFundsThread
         return timeTillNext;
     }
 
-    public static long timedListCurrencyRates() { // server updates a few seconds after each exact hour; I'll get it at 3 minutes past exact hour
+    private static long timedListCurrencyRates() { // server updates a few seconds after each exact hour; I'll get it at 3 minutes past exact hour
         final long currentTime = System.currentTimeMillis();
         long timeForNext = Statics.timeStamps.getLastListCurrencyRates() + Generic.HOUR_LENGTH_MILLISECONDS;
-        long timeOverExactHour = timeForNext % Generic.HOUR_LENGTH_MILLISECONDS;
+        final long timeOverExactHour = timeForNext % Generic.HOUR_LENGTH_MILLISECONDS;
         timeForNext = timeForNext - timeOverExactHour + 3 * Generic.MINUTE_LENGTH_MILLISECONDS;
 
         long timeTillNext = timeForNext - currentTime;

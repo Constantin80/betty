@@ -1,5 +1,6 @@
 package info.fmro.betty.entities;
 
+@SuppressWarnings("unused")
 public class AccountDetailsResponse {
     private String currencyCode; // Default user currency Code.
     private String firstName; // First Name.
@@ -11,11 +12,8 @@ public class AccountDetailsResponse {
     private Integer pointsBalance; // The Betfair points balance.
     private String countryCode; // The customer's country of residence (ISO 2 Char format)
 
-    public AccountDetailsResponse() {
-    }
-
     public synchronized String getCurrencyCode() {
-        return currencyCode;
+        return this.currencyCode;
     }
 
     public synchronized void setCurrencyCode(final String currencyCode) {
@@ -23,7 +21,7 @@ public class AccountDetailsResponse {
     }
 
     public synchronized String getFirstName() {
-        return firstName;
+        return this.firstName;
     }
 
     public synchronized void setFirstName(final String firstName) {
@@ -31,7 +29,7 @@ public class AccountDetailsResponse {
     }
 
     public synchronized String getLastName() {
-        return lastName;
+        return this.lastName;
     }
 
     public synchronized void setLastName(final String lastName) {
@@ -39,7 +37,7 @@ public class AccountDetailsResponse {
     }
 
     public synchronized String getLocaleCode() {
-        return localeCode;
+        return this.localeCode;
     }
 
     public synchronized void setLocaleCode(final String localeCode) {
@@ -47,7 +45,7 @@ public class AccountDetailsResponse {
     }
 
     public synchronized String getRegion() {
-        return region;
+        return this.region;
     }
 
     public synchronized void setRegion(final String region) {
@@ -55,7 +53,7 @@ public class AccountDetailsResponse {
     }
 
     public synchronized String getTimezone() {
-        return timezone;
+        return this.timezone;
     }
 
     public synchronized void setTimezone(final String timezone) {
@@ -63,7 +61,7 @@ public class AccountDetailsResponse {
     }
 
     public synchronized Double getDiscountRate() {
-        return discountRate;
+        return this.discountRate;
     }
 
     public synchronized void setDiscountRate(final Double discountRate) {
@@ -71,7 +69,7 @@ public class AccountDetailsResponse {
     }
 
     public synchronized Integer getPointsBalance() {
-        return pointsBalance;
+        return this.pointsBalance;
     }
 
     public synchronized void setPointsBalance(final Integer pointsBalance) {
@@ -79,7 +77,7 @@ public class AccountDetailsResponse {
     }
 
     public synchronized String getCountryCode() {
-        return countryCode;
+        return this.countryCode;
     }
 
     public synchronized void setCountryCode(final String countryCode) {

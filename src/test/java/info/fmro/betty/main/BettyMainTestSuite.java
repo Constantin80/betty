@@ -13,9 +13,9 @@ import org.junit.jupiter.api.BeforeEach;
 ////    info.fmro.betty.main.BettyIT.class,
 //    info.fmro.betty.main.QuickCheckThreadTest.class
 //})
+@SuppressWarnings("JUnitTestCaseWithNoTests")
 public class BettyMainTestSuite
         extends ApiDefault {
-
     // no longer needed after extending ApiDefault
 //    @BeforeAll
 //    public static void setUpClass()
@@ -28,19 +28,15 @@ public class BettyMainTestSuite
 //        factoryClass.addField(newField);
 //        factoryClass.toClass();
 //    }
-
     @AfterAll
-    public static void tearDownClass()
-            throws Exception {
+    public static void tearDownClass() {
     }
 
     @BeforeEach
-    public void setUp()
-            throws Exception {
+    public void setUp() {
     }
 
     @AfterEach
-    public void tearDown()
-            throws Exception {
+    public void tearDown() {
     }
 }

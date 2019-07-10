@@ -2,23 +2,27 @@ package info.fmro.betty.main;
 
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jetbrains.annotations.Contract;
 
 public class GetPageThread
         implements Runnable {
+    private final ScraperThread scraperThread;
+    private final WebClient webClient;
+    private HtmlPage htmlPage;
+    private boolean hasRun;
 
-    private static final Logger logger = LoggerFactory.getLogger(GetPageThread.class);
-    public final ScraperThread scraperThread;
-    public final WebClient webClient;
-    @SuppressWarnings("PublicField")
-    public HtmlPage htmlPage;
-    @SuppressWarnings("PublicField")
-    public boolean hasRun;
-
-    public GetPageThread(final ScraperThread scraperThread, final WebClient webClient) {
+    @Contract(pure = true)
+    GetPageThread(final ScraperThread scraperThread, final WebClient webClient) {
         this.scraperThread = scraperThread;
         this.webClient = webClient;
+    }
+
+    HtmlPage getHtmlPage() { // probably shouldn't synchronize this method
+        return this.htmlPage;
+    }
+
+    boolean isHasRun() { // probably shouldn't synchronize this method
+        return this.hasRun;
     }
 
     @Override

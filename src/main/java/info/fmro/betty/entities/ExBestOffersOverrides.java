@@ -9,11 +9,8 @@ public class ExBestOffersOverrides {
     private Double rollupLiabilityThreshold;
     private Integer rollupLiabilityFactor;
 
-    public ExBestOffersOverrides() {
-    }
-
     public synchronized Integer getBestPricesDepth() {
-        return bestPricesDepth;
+        return this.bestPricesDepth;
     }
 
     public synchronized void setBestPricesDepth(final Integer bestPricesDepth) {
@@ -21,7 +18,7 @@ public class ExBestOffersOverrides {
     }
 
     public synchronized RollupModel getRollupModel() {
-        return rollupModel;
+        return this.rollupModel;
     }
 
     public synchronized void setRollupModel(final RollupModel rollupModel) {
@@ -29,7 +26,7 @@ public class ExBestOffersOverrides {
     }
 
     public synchronized Integer getRollupLimit() {
-        return rollupLimit;
+        return this.rollupLimit;
     }
 
     public synchronized void setRollupLimit(final Integer rollupLimit) {
@@ -37,7 +34,7 @@ public class ExBestOffersOverrides {
     }
 
     public synchronized Double getRollupLiabilityThreshold() {
-        return rollupLiabilityThreshold;
+        return this.rollupLiabilityThreshold;
     }
 
     public synchronized void setRollupLiabilityThreshold(final Double rollupLiabilityThreshold) {
@@ -45,7 +42,7 @@ public class ExBestOffersOverrides {
     }
 
     public synchronized Integer getRollupLiabilityFactor() {
-        return rollupLiabilityFactor;
+        return this.rollupLiabilityFactor;
     }
 
     public synchronized void setRollupLiabilityFactor(final Integer rollupLiabilityFactor) {

@@ -4,11 +4,15 @@ import info.fmro.betty.enums.OrderStatus;
 import info.fmro.betty.enums.OrderType;
 import info.fmro.betty.enums.PersistenceType;
 import info.fmro.betty.enums.Side;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
+@SuppressWarnings("ClassWithTooManyFields")
 public class Order
         implements Serializable {
     private static final long serialVersionUID = 3021807768896649660L;
@@ -27,14 +31,20 @@ public class Order
     private Double sizeLapsed;
     private Double sizeCancelled;
     private Double sizeVoided;
+    @SuppressWarnings("unused")
     private String customerOrderRef; // The customer order reference sent for this bet
+    @SuppressWarnings("unused")
     private String customerStrategyRef; // The customer strategy reference sent for this bet
 
-    public Order() {
+    @SuppressWarnings("unused")
+    @Contract(pure = true)
+    private Order() {
     }
 
-    public Order(final String betId, final OrderType orderType, final OrderStatus status, final PersistenceType persistenceType, final Side side, final Double price, final Double size, final Double bspLiability, final Date placedDate, final Double avgPriceMatched, final Double sizeMatched, final Double sizeRemaining,
-                 final Double sizeLapsed, final Double sizeCancelled, final Double sizeVoided) {
+    @SuppressWarnings("ConstructorWithTooManyParameters")
+    @Contract(pure = true)
+    public Order(final String betId, final OrderType orderType, final OrderStatus status, final PersistenceType persistenceType, final Side side, final Double price, final Double size, final Double bspLiability, @NotNull final Date placedDate,
+                 final Double avgPriceMatched, final Double sizeMatched, final Double sizeRemaining, final Double sizeLapsed, final Double sizeCancelled, final Double sizeVoided) {
         this.betId = betId;
         this.orderType = orderType;
         this.status = status;
@@ -43,7 +53,7 @@ public class Order
         this.price = price;
         this.size = size;
         this.bspLiability = bspLiability;
-        this.placedDate = placedDate;
+        this.placedDate = (Date) placedDate.clone();
         this.avgPriceMatched = avgPriceMatched;
         this.sizeMatched = sizeMatched;
         this.sizeRemaining = sizeRemaining;
@@ -53,110 +63,67 @@ public class Order
     }
 
     public synchronized String getBetId() {
-        return betId;
+        return this.betId;
     }
 
-    //    public synchronized void setBetId(String betId) {
-//        this.betId = betId;
-//    }
     public synchronized OrderType getOrderType() {
-        return orderType;
+        return this.orderType;
     }
 
-    //    public synchronized void setOrderType(OrderType orderType) {
-//        this.orderType = orderType;
-//    }
     public synchronized OrderStatus getStatus() {
-        return status;
+        return this.status;
     }
 
-    //    public synchronized void setStatus(OrderStatus status) {
-//        this.status = status;
-//    }
     public synchronized PersistenceType getPersistenceType() {
-        return persistenceType;
+        return this.persistenceType;
     }
 
-    //    public synchronized void setPersistenceType(PersistenceType persistenceType) {
-//        this.persistenceType = persistenceType;
-//    }
     public synchronized Side getSide() {
-        return side;
+        return this.side;
     }
 
-    //    public synchronized void setSide(Side side) {
-//        this.side = side;
-//    }
     public synchronized Double getPrice() {
-        return price;
+        return this.price;
     }
 
-    //    public synchronized void setPrice(Double price) {
-//        this.price = price;
-//    }
     public synchronized Double getSize() {
-        return size;
+        return this.size;
     }
 
-    //    public synchronized void setSize(Double size) {
-//        this.size = size;
-//    }
     public synchronized Double getBspLiability() {
-        return bspLiability;
+        return this.bspLiability;
     }
 
-    //    public synchronized void setBspLiability(Double bspLiability) {
-//        this.bspLiability = bspLiability;
-//    }
+    @Nullable
     public synchronized Date getPlacedDate() {
-        return placedDate == null ? null : (Date) placedDate.clone();
+        return this.placedDate == null ? null : (Date) this.placedDate.clone();
     }
 
-    //    public synchronized void setPlacedDate(Date placedDate) {
-//        this.placedDate = placedDate == null ? null : (Date) placedDate.clone();
-//    }
     public synchronized Double getAvgPriceMatched() {
-        return avgPriceMatched;
+        return this.avgPriceMatched;
     }
 
-    //    public synchronized void setAvgPriceMatched(Double avgPriceMatched) {
-//        this.avgPriceMatched = avgPriceMatched;
-//    }
     public synchronized Double getSizeMatched() {
-        return sizeMatched;
+        return this.sizeMatched;
     }
 
-    //    public synchronized void setSizeMatched(Double sizeMatched) {
-//        this.sizeMatched = sizeMatched;
-//    }
     public synchronized Double getSizeRemaining() {
-        return sizeRemaining;
+        return this.sizeRemaining;
     }
 
-    //    public synchronized void setSizeRemaining(Double sizeRemaining) {
-//        this.sizeRemaining = sizeRemaining;
-//    }
     public synchronized Double getSizeLapsed() {
-        return sizeLapsed;
+        return this.sizeLapsed;
     }
 
-    //    public synchronized void setSizeLapsed(Double sizeLapsed) {
-//        this.sizeLapsed = sizeLapsed;
-//    }
     public synchronized Double getSizeCancelled() {
-        return sizeCancelled;
+        return this.sizeCancelled;
     }
 
-    //    public synchronized void setSizeCancelled(Double sizeCancelled) {
-//        this.sizeCancelled = sizeCancelled;
-//    }
     public synchronized Double getSizeVoided() {
-        return sizeVoided;
+        return this.sizeVoided;
     }
 
-    //    public synchronized void setSizeVoided(Double sizeVoided) {
-//        this.sizeVoided = sizeVoided;
-//    }
+    @SuppressWarnings("NonFinalFieldReferencedInHashCode")
     @Override
     public synchronized int hashCode() {
         int hash = 7;
@@ -178,8 +145,9 @@ public class Order
         return hash;
     }
 
+    @SuppressWarnings("NonFinalFieldReferenceInEquals")
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (this == obj) {
             return true;

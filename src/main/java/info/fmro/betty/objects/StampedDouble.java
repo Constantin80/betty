@@ -1,15 +1,16 @@
 package info.fmro.betty.objects;
 
+import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class StampedDouble { // access to the value is stamped
-
     private static final Logger logger = LoggerFactory.getLogger(StampedDouble.class);
     private final double value;
     private long stamp;
 
-    public StampedDouble(final double value, final long stamp) {
+    @Contract(pure = true)
+    private StampedDouble(final double value, final long stamp) {
         this.value = value;
         this.stamp = stamp;
     }
@@ -20,16 +21,16 @@ public class StampedDouble { // access to the value is stamped
 
     public synchronized double getValue() {
         this.stamp();
-        return value;
+        return this.value;
     }
 
-    public synchronized double getValue(final long stamp) {
-        this.setStamp(stamp);
-        return value;
+    public synchronized double getValue(final long newStamp) {
+        this.setStamp(newStamp);
+        return this.value;
     }
 
     public synchronized long getStamp() {
-        return stamp;
+        return this.stamp;
     }
 
     public synchronized void setStamp(final long stamp) {
@@ -55,8 +56,8 @@ public class StampedDouble { // access to the value is stamped
         return hash;
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;

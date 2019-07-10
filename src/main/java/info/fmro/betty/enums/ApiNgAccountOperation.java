@@ -1,5 +1,8 @@
 package info.fmro.betty.enums;
 
+import org.jetbrains.annotations.Contract;
+
+@SuppressWarnings("SpellCheckingInspection")
 public enum ApiNgAccountOperation {
     CREATEDEVELOPERAPPKEYS("createDeveloperAppKeys"),
     GETDEVELOPERAPPKEYS("getDeveloperAppKeys"),
@@ -17,11 +20,13 @@ public enum ApiNgAccountOperation {
 
     private final String operationName;
 
-    private ApiNgAccountOperation(final String operationName) {
+    @Contract(pure = true)
+    ApiNgAccountOperation(final String operationName) {
         this.operationName = operationName;
     }
 
+    @Contract(pure = true)
     public synchronized String getOperationName() {
-        return operationName;
+        return this.operationName;
     }
 }

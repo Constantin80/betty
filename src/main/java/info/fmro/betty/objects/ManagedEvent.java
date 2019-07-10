@@ -2,8 +2,8 @@ package info.fmro.betty.objects;
 
 import info.fmro.betty.stream.cache.util.Utils;
 import info.fmro.shared.utility.SynchronizedSet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -11,22 +11,22 @@ import java.util.Objects;
 
 public class ManagedEvent
         implements Serializable {
-    private static final Logger logger = LoggerFactory.getLogger(ManagedEvent.class);
     private static final long serialVersionUID = 9206333179442623395L;
     private final String id;
     private double amountLimit = -1d;
     public final SynchronizedSet<String> marketIds = new SynchronizedSet<>(); // managedMarket ids associated with this event
-    public transient ManagedMarketsMap marketsMap; // managedMarkets associated with this event
+    @SuppressWarnings("PackageVisibleField")
+    transient ManagedMarketsMap marketsMap; // managedMarkets associated with this event
 
-    public ManagedEvent(final String id) {
+    ManagedEvent(final String id) {
         this.id = id;
         this.marketsMap = new ManagedMarketsMap(this.id);
     }
 
-    private void readObject(final java.io.ObjectInputStream in)
+    private void readObject(@NotNull final java.io.ObjectInputStream in)
             throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        marketsMap = new ManagedMarketsMap(this.id);
+        this.marketsMap = new ManagedMarketsMap(this.id);
     }
 
 //    private synchronized HashMap<String, ManagedMarket> getMarketsMap() {
@@ -39,15 +39,17 @@ public class ManagedEvent
 //    }
 
     public synchronized double getAmountLimit() {
-        return amountLimit;
+        return this.amountLimit;
     }
 
-    public synchronized boolean setAmountLimit(final double amountLimit) {
+    @SuppressWarnings("UnusedReturnValue")
+    synchronized boolean setAmountLimit(final double newAmountLimit) {
         final boolean modified;
-        if (this.amountLimit == amountLimit) {
+        //noinspection FloatingPointEquality
+        if (this.amountLimit == newAmountLimit) {
             modified = false;
         } else {
-            this.amountLimit = amountLimit;
+            this.amountLimit = newAmountLimit;
             modified = true;
         }
 
@@ -75,34 +77,32 @@ public class ManagedEvent
 
     private synchronized double getMaxEventLimit() {
         final double result;
-        final double safetyLimit = Statics.safetyLimits.getDefaultEventLimit(id);
-        if (this.amountLimit >= 0) {
-            result = Math.min(this.amountLimit, safetyLimit);
-        } else {
-            result = safetyLimit;
-        }
+        final double safetyLimit = Statics.safetyLimits.getDefaultEventLimit(this.id);
+        result = this.amountLimit >= 0 ? Math.min(this.amountLimit, safetyLimit) : safetyLimit;
         return result;
     }
 
-    public synchronized void calculateMarketLimits() {
+    synchronized void calculateMarketLimits() {
         final double maxEventLimit = getMaxEventLimit();
+        //noinspection NonPrivateFieldAccessedInSynchronizedContext
         Utils.calculateMarketLimits(maxEventLimit, this.marketsMap.valuesCopy(), false, false);
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
-    public synchronized boolean equals(final Object o) {
-        if (this == o) {
+    public synchronized boolean equals(final Object obj) {
+        if (this == obj) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final ManagedEvent that = (ManagedEvent) o;
-        return Objects.equals(id, that.id);
+        final ManagedEvent that = (ManagedEvent) obj;
+        return Objects.equals(this.id, that.id);
     }
 
     @Override
     public synchronized int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(this.id);
     }
 }

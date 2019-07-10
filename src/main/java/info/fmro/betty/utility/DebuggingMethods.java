@@ -23,32 +23,36 @@ import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.cache.market.Market;
 import info.fmro.betty.stream.cache.order.OrderMarket;
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class DebuggingMethods {
-
+@SuppressWarnings({"UtilityClass", "ReuseOfLocalVariable"})
+public final class DebuggingMethods {
     private static final Logger logger = LoggerFactory.getLogger(DebuggingMethods.class);
 
+    @Contract(pure = true)
     private DebuggingMethods() {
     }
 
     public static void printCachedOrders() {
         final Iterable<OrderMarket> orderMarkets = Statics.orderCache.getOrderMarkets();
-        for (OrderMarket orderMarket : orderMarkets) {
+        for (final OrderMarket orderMarket : orderMarkets) {
             logger.info("listing orderMarket: {}", Generic.objectToString(orderMarket));
         }
     }
 
-    public static void printCachedMarkets(final String marketIds) {
+    public static void printCachedMarkets(@NotNull final String marketIds) {
         final String[] marketIdsArray = marketIds.split(" ");
-        for (String marketId : marketIdsArray) {
+        for (final String marketId : marketIdsArray) {
             final Market market = Statics.marketCache.getMarket(marketId);
             final String toPrint = market == null ? "null " + marketId : Generic.objectToString(market);
             logger.info("listing market: {}", toPrint);
@@ -57,22 +61,25 @@ public class DebuggingMethods {
 
     public static void listCurrentOrders() {
         final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
-        final HashSet<CurrentOrderSummary> currentOrderSummarySet = ApiNgRescriptOperations.listCurrentOrders(null, null, OrderProjection.ALL, null, OrderBy.BY_PLACE_TIME, SortDir.EARLIEST_TO_LATEST, 0, 0, Statics.appKey.get(), rescriptResponseHandler);
+        final HashSet<CurrentOrderSummary> currentOrderSummarySet =
+                ApiNgRescriptOperations.listCurrentOrders(null, null, OrderProjection.ALL, null, OrderBy.BY_PLACE_TIME, SortDir.EARLIEST_TO_LATEST, 0, 0, Statics.appKey.get(), rescriptResponseHandler);
 
         logger.info("listCurrentOrders size: {}", currentOrderSummarySet == null ? null : currentOrderSummarySet.size());
         logger.info("listCurrentOrders: {}", Generic.objectToString(currentOrderSummarySet));
     }
 
-    public static void listClearedtOrders() {
+    public static void listClearedOrders() {
         final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
-        final HashSet<ClearedOrderSummary> clearedOrderSummarySet = ApiNgRescriptOperations.listClearedOrders(BetStatus.SETTLED, null, null, null, null, null, null, null, null, true, 0, 0, Statics.appKey.get(), rescriptResponseHandler);
+        final HashSet<ClearedOrderSummary> clearedOrderSummarySet =
+                ApiNgRescriptOperations.listClearedOrders(BetStatus.SETTLED, null, null, null, null, null, null, null, null, true, 0, 0,
+                                                          Statics.appKey.get(), rescriptResponseHandler);
 
         logger.info("listClearedOrders size: {}", clearedOrderSummarySet == null ? null : clearedOrderSummarySet.size());
         logger.info("listClearedOrders: {}", Generic.objectToString(clearedOrderSummarySet));
     }
 
     public static void findNewMarketTypes() {
-        final HashSet<String> eventTypeIdsSet = new HashSet<>(2, 0.75f);
+        final Set<String> eventTypeIdsSet = new HashSet<>(2, 0.75f);
         eventTypeIdsSet.add("1"); // soccer
         final MarketFilter marketFilter = new MarketFilter();
         marketFilter.setEventTypeIds(eventTypeIdsSet);
@@ -84,8 +91,8 @@ public class DebuggingMethods {
 
         int counterNewMarketType = 0;
         if (marketTypeResultList != null) {
-            for (MarketTypeResult marketTypeResult : marketTypeResultList) {
-                String marketType = marketTypeResult.getMarketType();
+            for (final MarketTypeResult marketTypeResult : marketTypeResultList) {
+                final String marketType = marketTypeResult.getMarketType();
                 if (Statics.marketTypes.add(marketType)) {
                     logger.info("new marketType: {}", Generic.objectToString(marketTypeResult));
                     counterNewMarketType++;
@@ -96,13 +103,13 @@ public class DebuggingMethods {
     }
 
     public static void printMarket(final String marketId) {
-        final List<String> marketIdsList = Arrays.asList(marketId);
+        final List<String> marketIdsList = Collections.singletonList(marketId);
         final PriceProjection priceProjection = new PriceProjection();
         // priceProjection.setVirtualise(true);
-        final HashSet<PriceData> priceDataSet = new HashSet<>(8, 0.75f);
+        final EnumSet<PriceData> priceDataSet = EnumSet.of(PriceData.EX_ALL_OFFERS);
         // priceDataSet.add(PriceData.SP_AVAILABLE);
         // priceDataSet.add(PriceData.SP_TRADED);
-        priceDataSet.add(PriceData.EX_ALL_OFFERS);
+//        priceDataSet.add(PriceData.EX_ALL_OFFERS);
         // priceDataSet.add(PriceData.EX_TRADED);
         priceProjection.setPriceData(priceDataSet);
 
@@ -133,18 +140,18 @@ public class DebuggingMethods {
         final Set<String> marketIds = new HashSet<>(2, 0.75f);
         marketIds.add(marketId);
         marketFilter.setMarketIds(marketIds);
-        final HashSet<MarketProjection> marketProjectionsSet = new HashSet<>(8, 0.75f);
-        marketProjectionsSet.add(MarketProjection.COMPETITION);
-        marketProjectionsSet.add(MarketProjection.EVENT);
-        marketProjectionsSet.add(MarketProjection.EVENT_TYPE);
-        marketProjectionsSet.add(MarketProjection.MARKET_DESCRIPTION);
-        marketProjectionsSet.add(MarketProjection.RUNNER_DESCRIPTION);
-        marketProjectionsSet.add(MarketProjection.MARKET_START_TIME);
+        final EnumSet<MarketProjection> marketProjectionsSet =
+                EnumSet.of(MarketProjection.COMPETITION, MarketProjection.EVENT, MarketProjection.EVENT_TYPE, MarketProjection.MARKET_DESCRIPTION, MarketProjection.RUNNER_DESCRIPTION, MarketProjection.MARKET_START_TIME);
+//        marketProjectionsSet.add(MarketProjection.COMPETITION);
+//        marketProjectionsSet.add(MarketProjection.EVENT);
+//        marketProjectionsSet.add(MarketProjection.EVENT_TYPE);
+//        marketProjectionsSet.add(MarketProjection.MARKET_DESCRIPTION);
+//        marketProjectionsSet.add(MarketProjection.RUNNER_DESCRIPTION);
+//        marketProjectionsSet.add(MarketProjection.MARKET_START_TIME);
         // marketProjectionsSet.add(MarketProjection.RUNNER_METADATA); // gives strange recursion error when printing with objectToString
 
         rescriptResponseHandler = new RescriptResponseHandler();
-        final List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, Statics.appKey.get(),
-                                                                                                      rescriptResponseHandler);
+        final List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, Statics.appKey.get(), rescriptResponseHandler);
 
         logger.info("printing marketCatalogueList for {}: {}", marketId, Generic.objectToString(marketCatalogueList));
 
@@ -170,13 +177,14 @@ public class DebuggingMethods {
 
         logger.info("printing marketTypeResultList for {}: {}", eventId, Generic.objectToString(marketTypeResultList));
 
-        HashSet<MarketProjection> marketProjectionsSet = new HashSet<>(8, 0.75f);
-        marketProjectionsSet.add(MarketProjection.COMPETITION);
-        marketProjectionsSet.add(MarketProjection.EVENT);
-        marketProjectionsSet.add(MarketProjection.EVENT_TYPE);
-        marketProjectionsSet.add(MarketProjection.MARKET_DESCRIPTION);
-        marketProjectionsSet.add(MarketProjection.RUNNER_DESCRIPTION);
-        marketProjectionsSet.add(MarketProjection.MARKET_START_TIME);
+        final EnumSet<MarketProjection> marketProjectionsSet =
+                EnumSet.of(MarketProjection.COMPETITION, MarketProjection.EVENT, MarketProjection.EVENT_TYPE, MarketProjection.MARKET_DESCRIPTION, MarketProjection.RUNNER_DESCRIPTION, MarketProjection.MARKET_START_TIME);
+//        marketProjectionsSet.add(MarketProjection.COMPETITION);
+//        marketProjectionsSet.add(MarketProjection.EVENT);
+//        marketProjectionsSet.add(MarketProjection.EVENT_TYPE);
+//        marketProjectionsSet.add(MarketProjection.MARKET_DESCRIPTION);
+//        marketProjectionsSet.add(MarketProjection.RUNNER_DESCRIPTION);
+//        marketProjectionsSet.add(MarketProjection.MARKET_START_TIME);
 
         marketFilter = new MarketFilter();
         marketFilter.setEventIds(eventIds);
@@ -186,7 +194,7 @@ public class DebuggingMethods {
 
         if (marketCatalogueList != null) {
             final HashSet<String> unknownMarketTypesSet = new HashSet<>(0, 0.75f), unknownMarketNamesSet = new HashSet<>(0, 0.75f);
-            for (MarketCatalogue marketCatalogue : marketCatalogueList) {
+            for (final MarketCatalogue marketCatalogue : marketCatalogueList) {
                 final MarketDescription marketDescription = marketCatalogue.getDescription();
                 final String marketType = marketDescription.getMarketType();
                 if (marketType == null) {
@@ -202,10 +210,10 @@ public class DebuggingMethods {
                 }
             } // end for
             logger.info("event: {} unknownMarketTypesSet size: {} unknownMarketNamesSet size: {}", eventId, unknownMarketTypesSet.size(), unknownMarketNamesSet.size());
-            if (unknownMarketTypesSet.size() > 0) {
+            if (!unknownMarketTypesSet.isEmpty()) {
                 logger.info("event: {} unknownMarketTypesSet: {}", eventId, unknownMarketTypesSet); // Generic.objectToString doesn't prins collections of String rigth
             }
-            if (unknownMarketNamesSet.size() > 0) {
+            if (!unknownMarketNamesSet.isEmpty()) {
                 logger.info("event: {} unknownMarketNamesSet: {}", eventId, unknownMarketNamesSet); // Generic.objectToString doesn't prins collections of String rigth
             }
         } else {
@@ -214,7 +222,7 @@ public class DebuggingMethods {
     }
 
     public static void printMarketType(final String marketType) {
-        final HashSet<String> eventTypeIdsSet = new HashSet<>(2, 0.75f);
+        final Set<String> eventTypeIdsSet = new HashSet<>(2, 0.75f);
         eventTypeIdsSet.add("1"); // soccer
         final Set<String> marketTypeCodes = new HashSet<>(2, 0.75f);
         marketTypeCodes.add(marketType);
@@ -227,13 +235,14 @@ public class DebuggingMethods {
 
         logger.info("printing eventResultList for {}: {}", marketType, Generic.objectToString(eventResultList));
 
-        final HashSet<MarketProjection> marketProjectionsSet = new HashSet<>(8, 0.75f);
-        marketProjectionsSet.add(MarketProjection.COMPETITION);
-        marketProjectionsSet.add(MarketProjection.EVENT);
-        marketProjectionsSet.add(MarketProjection.EVENT_TYPE);
-        marketProjectionsSet.add(MarketProjection.MARKET_DESCRIPTION);
-        marketProjectionsSet.add(MarketProjection.RUNNER_DESCRIPTION);
-        marketProjectionsSet.add(MarketProjection.MARKET_START_TIME);
+        final EnumSet<MarketProjection> marketProjectionsSet =
+                EnumSet.of(MarketProjection.COMPETITION, MarketProjection.EVENT, MarketProjection.EVENT_TYPE, MarketProjection.MARKET_DESCRIPTION, MarketProjection.RUNNER_DESCRIPTION, MarketProjection.MARKET_START_TIME);
+//        marketProjectionsSet.add(MarketProjection.COMPETITION);
+//        marketProjectionsSet.add(MarketProjection.EVENT);
+//        marketProjectionsSet.add(MarketProjection.EVENT_TYPE);
+//        marketProjectionsSet.add(MarketProjection.MARKET_DESCRIPTION);
+//        marketProjectionsSet.add(MarketProjection.RUNNER_DESCRIPTION);
+//        marketProjectionsSet.add(MarketProjection.MARKET_START_TIME);
 
         rescriptResponseHandler = new RescriptResponseHandler();
         final List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, Statics.appKey.get(), rescriptResponseHandler);
@@ -245,23 +254,21 @@ public class DebuggingMethods {
         weightTest(null);
     }
 
-    public static void weightTest(final String argMarketId) {
+    @SuppressWarnings("OverlyLongMethod")
+    private static void weightTest(@SuppressWarnings("SameParameterValue") final String argMarketId) {
         // test ex all offers for weight 17/16 -> 11/12 ids; wieght 17 as expected
         // test EX_BEST_OFFERS 10 for weight 11/12/14/15 -> 18/16/14/13; weight 11
         // test EX_BEST_OFFERS 1 for weight 2/3/4/5 -> 100/66/50/40; weight 2
         // test EX_BEST_OFFERS 2 for weight 2 -> 100/101; weight 2
 
         final String marketId;
-        if (argMarketId == null) {
-            marketId = "1.115707687"; // I have to assign this manually if I don't use a method argument
-        } else {
-            marketId = argMarketId;
-        }
+        // I have to assign this manually if I don't use a method argument
+        marketId = argMarketId == null ? "1.115707687" : argMarketId;
 
         // marketIdsList = Arrays.asList(marketId);
         PriceProjection priceProjection = new PriceProjection();
-        HashSet<PriceData> priceDataSet = new HashSet<>(2);
-        priceDataSet.add(PriceData.EX_ALL_OFFERS);
+        EnumSet<PriceData> priceDataSet = EnumSet.of(PriceData.EX_ALL_OFFERS);
+//        priceDataSet.add(PriceData.EX_ALL_OFFERS);
         priceProjection.setPriceData(priceDataSet);
 
         List<String> marketIdsList = new ArrayList<>(11);
@@ -284,8 +291,8 @@ public class DebuggingMethods {
         logger.info("EX_ALL_OFFERS 12 ids tooMuchData: {}", rescriptResponseHandler.isTooMuchData());
 
         priceProjection = new PriceProjection();
-        priceDataSet = new HashSet<>(2);
-        priceDataSet.add(PriceData.EX_BEST_OFFERS);
+        priceDataSet = EnumSet.of(PriceData.EX_BEST_OFFERS);
+//        priceDataSet.add(PriceData.EX_BEST_OFFERS);
         priceProjection.setPriceData(priceDataSet);
         ExBestOffersOverrides exBestOffersOverrides = new ExBestOffersOverrides();
         exBestOffersOverrides.setBestPricesDepth(10);
@@ -313,8 +320,8 @@ public class DebuggingMethods {
         logger.info("EX_BEST_OFFERS depth=10 19 ids tooMuchData: {}", rescriptResponseHandler.isTooMuchData());
 
         priceProjection = new PriceProjection();
-        priceDataSet = new HashSet<>(2);
-        priceDataSet.add(PriceData.EX_BEST_OFFERS);
+        priceDataSet = EnumSet.of(PriceData.EX_BEST_OFFERS);
+//        priceDataSet.add(PriceData.EX_BEST_OFFERS);
         priceProjection.setPriceData(priceDataSet);
         exBestOffersOverrides = new ExBestOffersOverrides();
         exBestOffersOverrides.setBestPricesDepth(1);
@@ -342,8 +349,8 @@ public class DebuggingMethods {
         logger.info("EX_BEST_OFFERS depth=1 101 ids tooMuchData: {}", rescriptResponseHandler.isTooMuchData());
 
         priceProjection = new PriceProjection();
-        priceDataSet = new HashSet<>(2);
-        priceDataSet.add(PriceData.EX_BEST_OFFERS);
+        priceDataSet = EnumSet.of(PriceData.EX_BEST_OFFERS);
+//        priceDataSet.add(PriceData.EX_BEST_OFFERS);
         priceProjection.setPriceData(priceDataSet);
         exBestOffersOverrides = new ExBestOffersOverrides();
         exBestOffersOverrides.setBestPricesDepth(2);

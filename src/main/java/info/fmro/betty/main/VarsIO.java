@@ -17,10 +17,13 @@ import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.SynchronizedMap;
 import info.fmro.shared.utility.SynchronizedReader;
 import info.fmro.shared.utility.SynchronizedSafeSet;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -33,50 +36,52 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class VarsIO {
+@SuppressWarnings("UtilityClass")
+public final class VarsIO {
     private static final Logger logger = LoggerFactory.getLogger(VarsIO.class);
     public static final AtomicLong writeSettingsCounter = new AtomicLong();
 
+    @Contract(pure = true)
     private VarsIO() {
     }
 
-    public static long fileLastModified(final String fileName) {
+    private static long fileLastModified(final String fileName) {
         return (new File(fileName)).lastModified();
     }
 
-    public static List<String> getUnescapedSplits(final String string, final char marker) {
-        return getUnescapedSplits(string, marker, 0);
+    public static List<String> getUnescapedSplits(final CharSequence charSequence, final char marker) {
+        return getUnescapedSplits(charSequence, marker, 0);
     }
 
-    public static List<String> getUnescapedSplits(final String string, final char marker, final int nExpected) {
+    private static List<String> getUnescapedSplits(final CharSequence charSequence, final char marker, final int nExpected) {
         // doesn't get empty strings
-        List<String> matchList = new ArrayList<>(nExpected);
-        Pattern regex = Pattern.compile("(?:\\\\.|[^" + marker + "\\\\]++)+");
-        Matcher regexMatcher = regex.matcher(string);
+        final List<String> matchList = new ArrayList<>(nExpected);
+        final Pattern regex = Pattern.compile("(?:\\\\.|[^" + marker + "\\\\]++)+");
+        final Matcher regexMatcher = regex.matcher(charSequence);
         while (regexMatcher.find()) {
             matchList.add(regexMatcher.group());
         }
         return matchList;
     }
 
-    public static boolean readAliases(final String fileName, final Map<String, String> map) {
+    @SuppressWarnings("OverlyNestedMethod")
+    private static boolean readAliases(final String fileName, final Map<? super String, String> syncMap) {
         boolean success;
         SynchronizedReader localSynchronizedReader = null;
-
         if (fileName != null) {
             try {
-                final int mapCapacity = Generic.getCollectionCapacity(map.size() + 1, 0.75f);
+                final int mapCapacity = Generic.getCollectionCapacity(syncMap.size() + 1, 0.75f);
                 final LinkedHashMap<String, String> newMap = new LinkedHashMap<>(mapCapacity, 0.75f);
 
                 success = true;
                 localSynchronizedReader = new SynchronizedReader(fileName);
                 String fileLine = localSynchronizedReader.readLine();
-//                synchronized (map) {
+//                synchronized (syncMap) {
 //                newMap.clear(); // clear previous values
                 while (fileLine != null) {
                     fileLine = fileLine.trim(); // only whole line is trimmed, not the individual aliases
                     fileLine = fileLine.toLowerCase(Locale.ENGLISH);
-                    if (!fileLine.isEmpty() && !fileLine.startsWith("#")) {
+                    if (!fileLine.isEmpty() && fileLine.charAt(0) != '#') {
                         final List<String> stringList = getUnescapedSplits(fileLine, '"', 3);
                         final int size = stringList.size();
                         if (size == 2 || size == 3) {
@@ -100,7 +105,7 @@ public class VarsIO {
                             }
                         } else {
                             logger.error("Bogus line in aliases file {}: {} listSize={} list:{}", fileName, fileLine, size, Generic.objectToString(stringList));
-//                                map.clear();
+//                                syncMap.clear();
 //                                success = false;
                         }
                     } else { // won't do anything with this line
@@ -110,26 +115,26 @@ public class VarsIO {
                 } // end while
 
                 // apply toLowerCase() to all keys & values
-                synchronized (map) {
-                    final int mapSize = map.size(), newMapSize = newMap.size();
-
+                //noinspection SynchronizationOnLocalVariableOrMethodParameter
+                synchronized (syncMap) {
+                    final int mapSize = syncMap.size(), newMapSize = newMap.size();
                     if (newMapSize <= mapSize) {
                         logger.error("newMapSize {} smaller or equal to mapSize {} in aliases file {}", newMapSize, mapSize, fileName);
 //                    newMap.clear();
                         success = false;
                     } else {
-                        map.clear();
+                        syncMap.clear();
                         final Set<Entry<String, String>> entries = newMap.entrySet();
-                        for (Entry<String, String> entry : entries) {
+                        for (final Entry<String, String> entry : entries) {
                             final String key = entry.getKey(), value = entry.getValue();
                             if (key == null || value == null) {
                                 logger.error("STRANGE null key {} or value {} while reading aliases from: {}", key, value, fileName);
-                                map.clear(); // very bad error, clear map
+                                syncMap.clear(); // very bad error, clear syncMap
                                 success = false;
                                 break;
                             } else {
                                 final String modifiedKey = key.toLowerCase(Locale.ENGLISH), modifiedValue = value.toLowerCase(Locale.ENGLISH);
-                                final String previousValue = map.put(modifiedKey, modifiedValue);
+                                final String previousValue = syncMap.put(modifiedKey, modifiedValue);
                                 if (previousValue != null) {
                                     logger.error("double key after lowerCase in aliases file {}: key={} value={}", fileName, modifiedKey, modifiedValue);
                                 }
@@ -139,6 +144,9 @@ public class VarsIO {
 //                        newMap.putAll(tempMap);
                     } // end else
                 } // end synchronized
+            } catch (FileNotFoundException e) {
+                logger.error("FileNotFoundException inside readAliases from {}", fileName, e);
+                success = false;
             } catch (IOException iOException) {
                 logger.error("IOException inside readAliases from {}", fileName, iOException);
                 success = false;
@@ -156,11 +164,11 @@ public class VarsIO {
         return success;
     }
 
-    public static boolean checkAliasesFile(final String fileName, final AtomicLong fileTimeStamp, final Map<String, String> map) {
-        boolean haveRead;
-        long newFileStamp = fileLastModified(fileName);
+    public static boolean checkAliasesFile(final String fileName, @NotNull final AtomicLong fileTimeStamp, final Map<? super String, String> syncMap) {
+        final boolean haveRead;
+        final long newFileStamp = fileLastModified(fileName);
         if (newFileStamp > fileTimeStamp.get()) {
-            haveRead = readAliases(fileName, map);
+            haveRead = readAliases(fileName, syncMap);
 //            if (haveRead) {
             fileTimeStamp.set(newFileStamp); // update fileStamp anyway, else program will keep trying and get the same error
 //            }
@@ -195,6 +203,7 @@ public class VarsIO {
                     } else if (fileLine.startsWith("bp=")) {
                         Statics.bp.set(Generic.backwardString(fileLine.substring(fileLine.indexOf("bp=") + "bp=".length())));
                     } else if (fileLine.startsWith("defaultInputServerPort=")) {
+                        //noinspection NestedTryStatement
                         try {
                             Statics.inputServerPort.set(Integer.parseInt(fileLine.substring(fileLine.indexOf("defaultInputServerPort=") + "defaultInputServerPort=".length())));
                         } catch (NumberFormatException numberFormatException) {
@@ -203,9 +212,10 @@ public class VarsIO {
                     } else {
                         logger.error("Bogus line in vars file {}: {}", fileName, fileLine);
                     }
-
                     fileLine = localSynchronizedReader.readLine();
                 } // end while
+            } catch (FileNotFoundException e) {
+                logger.error("FileNotFoundException inside readVarsFromFile {}", fileName, e);
             } catch (IOException iOException) {
                 logger.error("IOException inside readVarsFromFile {}", fileName, iOException);
             } finally {
@@ -218,9 +228,9 @@ public class VarsIO {
     }
 
     public static void readObjectsFromFiles() {
-        final Set<String> keySet = Statics.objectFileNamesMap.keySet();
-        for (String key : keySet) {
-            final Object objectFromFile = Generic.readObjectFromFile(Statics.objectFileNamesMap.get(key));
+        for (final Entry<String, String> entry : Statics.objectFileNamesMap.entrySet()) {
+            final String key = entry.getKey();
+            final Object objectFromFile = Generic.readObjectFromFile(entry.getValue());
             if (objectFromFile != null) {
                 try {
                     switch (key) {
@@ -297,16 +307,16 @@ public class VarsIO {
 //                            Statics.offlineOrderCache.copyFrom(orderCache);
 //                            break;
                         default:
-                            logger.error("unknown object in the fileNames map: {} {}", key, Statics.objectFileNamesMap.get(key));
+                            logger.error("unknown object in the fileNames map: {} {}", key, entry.getValue());
                             break;
                     } // end switch
                 } catch (ClassCastException classCastException) { // the object class was probably changed recently
                     logger.error("classCastException while reading objects from files for: {}", key, classCastException);
-                } catch (NullPointerException nullPointerException) { // the object class was probably changed recently; this is normally thrown from copyFrom methods
+                } catch (@SuppressWarnings("ProhibitedExceptionCaught") NullPointerException nullPointerException) { // the object class was probably changed recently; this is normally thrown from copyFrom methods
                     logger.error("nullPointerException while reading objects from files for: {}", key, nullPointerException);
                 }
             } else {
-                logger.warn("objectFromFile null for: {} {}", key, Statics.objectFileNamesMap.get(key));
+                logger.warn("objectFromFile null for: {} {}", key, entry.getValue());
             }
         } // end for
 //        Ignorable.database.syncIgnorableDatabase(Statics.programIsRunningMultiThreaded);
@@ -315,23 +325,23 @@ public class VarsIO {
         logger.info("have read objects from files");
     }
 
-    public static void writeObjectsToFiles() {
+    static void writeObjectsToFiles() {
         Statics.timeStamps.lastObjectsSaveStamp(Generic.MINUTE_LENGTH_MILLISECONDS * 10L);
         Statics.timeLastSaveToDisk.set(System.currentTimeMillis());
-        final Set<String> keyset = Statics.objectFileNamesMap.keySet();
-        for (String key : keyset) {
+        for (final Entry<String, String> entry : Statics.objectFileNamesMap.entrySet()) {
+            final String key = entry.getKey();
             switch (key) {
                 case "timeStamps":
-                    Generic.synchronizedWriteObjectToFile(Statics.timeStamps, Statics.objectFileNamesMap.get(key));
+                    Generic.synchronizedWriteObjectToFile(Statics.timeStamps, entry.getValue());
                     break;
                 case "debugLevel":
-                    Generic.synchronizedWriteObjectToFile(Statics.debugLevel, Statics.objectFileNamesMap.get(key));
+                    Generic.synchronizedWriteObjectToFile(Statics.debugLevel, entry.getValue());
                     break;
                 case "sessionTokenObject":
-                    Generic.synchronizedWriteObjectToFile(Statics.sessionTokenObject, Statics.objectFileNamesMap.get(key));
+                    Generic.synchronizedWriteObjectToFile(Statics.sessionTokenObject, entry.getValue());
                     break;
                 case "safetyLimits":
-                    Generic.synchronizedWriteObjectToFile(Statics.safetyLimits, Statics.objectFileNamesMap.get(key));
+                    Generic.synchronizedWriteObjectToFile(Statics.safetyLimits, entry.getValue());
                     break;
 //                case "blackList":
 //                    Generic.synchronizedWriteObjectToFile(Statics.blackList, Statics.objectFileNamesMap.get(key));
@@ -340,28 +350,28 @@ public class VarsIO {
 //                    Generic.synchronizedWriteObjectToFile(Statics.placedAmounts, Statics.objectFileNamesMap.get(key));
 //                    break;
                 case "betradarEventsMap":
-                    Generic.synchronizedWriteObjectToFile(Statics.betradarEventsMap, Statics.objectFileNamesMap.get(key));
+                    Generic.synchronizedWriteObjectToFile(Statics.betradarEventsMap, entry.getValue());
                     break;
                 case "coralEventsMap":
-                    Generic.synchronizedWriteObjectToFile(Statics.coralEventsMap, Statics.objectFileNamesMap.get(key));
+                    Generic.synchronizedWriteObjectToFile(Statics.coralEventsMap, entry.getValue());
                     break;
                 case "eventsMap":
-                    Generic.synchronizedWriteObjectToFile(Statics.eventsMap, Statics.objectFileNamesMap.get(key));
+                    Generic.synchronizedWriteObjectToFile(Statics.eventsMap, entry.getValue());
                     break;
                 case "marketCataloguesMap":
-                    Generic.synchronizedWriteObjectToFile(Statics.marketCataloguesMap, Statics.objectFileNamesMap.get(key));
+                    Generic.synchronizedWriteObjectToFile(Statics.marketCataloguesMap, entry.getValue());
                     break;
                 case "safeMarketsMap":
-                    Generic.synchronizedWriteObjectToFile(Statics.safeMarketsMap, Statics.objectFileNamesMap.get(key));
+                    Generic.synchronizedWriteObjectToFile(Statics.safeMarketsMap, entry.getValue());
                     break;
                 case "safeMarketBooksMap":
-                    Generic.synchronizedWriteObjectToFile(Statics.safeMarketBooksMap, Statics.objectFileNamesMap.get(key));
+                    Generic.synchronizedWriteObjectToFile(Statics.safeMarketBooksMap, entry.getValue());
                     break;
 //                case "alreadyPrintedMap":
 //                    Generic.synchronizedWriteObjectToFile(Generic.alreadyPrintedMap, Statics.objectFileNamesMap.get(key));
 //                    break;
                 case "timedWarningsMap":
-                    Generic.synchronizedWriteObjectToFile(Statics.timedWarningsMap, Statics.objectFileNamesMap.get(key));
+                    Generic.synchronizedWriteObjectToFile(Statics.timedWarningsMap, entry.getValue());
                     break;
 //                case "ignorableDatabase":
 //                    Generic.synchronizedWriteObjectToFile(Ignorable.database, Statics.objectFileNamesMap.get(key));
@@ -376,7 +386,7 @@ public class VarsIO {
 //                    Generic.synchronizedWriteObjectToFile(Statics.orderCache, Statics.objectFileNamesMap.get(key));
 //                    break;
                 default:
-                    logger.error("unknown key in the fileNames map: {} {}", key, Statics.objectFileNamesMap.get(key));
+                    logger.error("unknown key in the fileNames map: {} {}", key, entry.getValue());
                     break;
             } // end switch
         } // end for
@@ -390,7 +400,7 @@ public class VarsIO {
         writeSettingsCounter.incrementAndGet();
     }
 
-    public static boolean readSettings() {
+    static boolean readSettings() {
         final boolean readSuccessful;
         final Object objectFromFile = Generic.readObjectFromFile(Statics.SETTINGS_FILE_NAME);
         if (objectFromFile != null) {

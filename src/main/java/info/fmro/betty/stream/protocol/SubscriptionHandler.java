@@ -3,6 +3,7 @@ package info.fmro.betty.stream.protocol;
 import info.fmro.betty.stream.definitions.ChangeType;
 import info.fmro.betty.stream.definitions.RequestMessage;
 import info.fmro.betty.stream.definitions.SegmentType;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.profiler.StopWatch;
@@ -24,12 +25,13 @@ public class SubscriptionHandler<S extends RequestMessage, C extends ChangeMessa
     private final int subscriptionId;
     private final S subscriptionMessage;
     private boolean isSubscribed;
-    private boolean isMergeSegments;
+    private final boolean isMergeSegments;
+    @Nullable
     private List<I> mergedChanges;
-    private StopWatch ttfm;
-    private StopWatch ttlm;
+    private final StopWatch ttfm;
+    private final StopWatch ttlm;
     private int itemCount;
-    private CountDownLatch subscriptionComplete = new CountDownLatch(1);
+    private final CountDownLatch subscriptionComplete = new CountDownLatch(1);
 
     private Date lastPublishTime;
     private Date lastArrivalTime;
@@ -41,73 +43,76 @@ public class SubscriptionHandler<S extends RequestMessage, C extends ChangeMessa
     public SubscriptionHandler(final S subscriptionMessage, final boolean isMergeSegments) {
         this.subscriptionMessage = subscriptionMessage;
         this.isMergeSegments = isMergeSegments;
-        isSubscribed = false;
-        subscriptionId = subscriptionMessage.getId();
-        ttfm = new StopWatch("ttfm");
-        ttlm = new StopWatch("ttlm");
+        this.isSubscribed = false;
+        this.subscriptionId = subscriptionMessage.getId();
+        this.ttfm = new StopWatch("ttfm");
+        this.ttlm = new StopWatch("ttlm");
     }
 
     public synchronized int getSubscriptionId() {
-        return subscriptionId;
+        return this.subscriptionId;
     }
 
     public synchronized S getSubscriptionMessage() {
-        return subscriptionMessage;
+        return this.subscriptionMessage;
     }
 
     public synchronized boolean isSubscribed() {
-        return isSubscribed;
+        return this.isSubscribed;
     }
 
+    @Nullable
     public synchronized Date getLastPublishTime() {
-        return lastPublishTime == null ? null : (Date) lastPublishTime.clone();
+        return this.lastPublishTime == null ? null : (Date) this.lastPublishTime.clone();
     }
 
+    @Nullable
     public synchronized Date getLastArrivalTime() {
-        return lastArrivalTime == null ? null : (Date) lastArrivalTime.clone();
+        return this.lastArrivalTime == null ? null : (Date) this.lastArrivalTime.clone();
     }
 
     public synchronized Long getHeartbeatMs() {
-        return heartbeatMs;
+        return this.heartbeatMs;
     }
 
     public synchronized Long getConflationMs() {
-        return conflationMs;
+        return this.conflationMs;
     }
 
     public synchronized String getInitialClk() {
-        return initialClk;
+        return this.initialClk;
     }
 
     public synchronized String getClk() {
-        return clk;
+        return this.clk;
     }
 
     public synchronized void cancel() {
         //unwind waiters
-        subscriptionComplete.countDown();
+        this.subscriptionComplete.countDown();
     }
 
+    @Nullable
     public synchronized C processChangeMessage(C changeMessage) {
-        if (subscriptionId != changeMessage.getId()) {
+        if (this.subscriptionId != changeMessage.getId()) {
             //previous subscription id - ignore
             return null;
         }
 
         //Every message store timings
-        lastPublishTime = changeMessage.getPublishTime();
-        lastArrivalTime = changeMessage.getArrivalTime();
+        this.lastPublishTime = changeMessage.getPublishTime();
+        this.lastArrivalTime = changeMessage.getArrivalTime();
 
         if (changeMessage.isStartOfRecovery()) {
             //Start of recovery
-            ttfm.stop();
-            logger.info("{}: Start of image", subscriptionMessage.getOp());
+            this.ttfm.stop();
+            logger.info("{}: Start of image", this.subscriptionMessage.getOp());
         }
 
         if (changeMessage.getChangeType() == ChangeType.HEARTBEAT) {
             //Swallow heartbeats
             changeMessage = null;
-        } else if (changeMessage.getSegmentType() != SegmentType.NONE && isMergeSegments) {
+        } else if (changeMessage.getSegmentType() != SegmentType.NONE && this.isMergeSegments) {
             //Segmented message and we're instructed to merge (which makes segments look atomic).
             changeMessage = MergeMessage(changeMessage);
         }
@@ -115,36 +120,36 @@ public class SubscriptionHandler<S extends RequestMessage, C extends ChangeMessa
         if (changeMessage != null) {
             //store clocks
             if (changeMessage.getInitialClk() != null) {
-                initialClk = changeMessage.getInitialClk();
+                this.initialClk = changeMessage.getInitialClk();
             }
             if (changeMessage.getClk() != null) {
-                clk = changeMessage.getClk();
+                this.clk = changeMessage.getClk();
             }
 
-            if (!isSubscribed) {
+            if (!this.isSubscribed) {
                 //During recovery
                 if (changeMessage.getItems() != null) {
-                    itemCount += changeMessage.getItems().size();
+                    this.itemCount += changeMessage.getItems().size();
                 }
             }
 
             if (changeMessage.isEndOfRecovery()) {
                 //End of recovery
-                isSubscribed = true;
-                heartbeatMs = changeMessage.getHeartbeatMs();
-                conflationMs = changeMessage.getConflateMs();
-                ttlm.stop();
+                this.isSubscribed = true;
+                this.heartbeatMs = changeMessage.getHeartbeatMs();
+                this.conflationMs = changeMessage.getConflateMs();
+                this.ttlm.stop();
                 logger.info("{}: End of image: type:{}, ttfm:{}, ttlm:{}, conflation:{}, heartbeat:{}, change.items:{}",
-                            subscriptionMessage.getOp(),
+                            this.subscriptionMessage.getOp(),
                             changeMessage.getChangeType(),
-                            ttfm,
-                            ttlm,
-                            conflationMs,
-                            heartbeatMs,
-                            itemCount);
+                            this.ttfm,
+                            this.ttlm,
+                            this.conflationMs,
+                            this.heartbeatMs,
+                            this.itemCount);
 
                 //unwind future
-                subscriptionComplete.countDown();
+                this.subscriptionComplete.countDown();
             }
         }
         return changeMessage;
@@ -154,16 +159,16 @@ public class SubscriptionHandler<S extends RequestMessage, C extends ChangeMessa
         //merge segmented messages so client sees atomic view across segments
         if (changeMessage.getSegmentType() == SegmentType.SEG_START) {
             //start merging
-            mergedChanges = new ArrayList<>();
+            this.mergedChanges = new ArrayList<>();
         }
         //accumulate
-        mergedChanges.addAll(changeMessage.getItems());
+        this.mergedChanges.addAll(changeMessage.getItems());
 
         if (changeMessage.getSegmentType() == SegmentType.SEG_END) {
             //finish merging
             changeMessage.setSegmentType(SegmentType.NONE);
-            changeMessage.setItems(mergedChanges);
-            mergedChanges = null;
+            changeMessage.setItems(this.mergedChanges);
+            this.mergedChanges = null;
         } else {
             //swallow message as we're still merging
             changeMessage = null;

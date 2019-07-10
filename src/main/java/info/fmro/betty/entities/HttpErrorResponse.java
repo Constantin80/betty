@@ -1,15 +1,12 @@
 package info.fmro.betty.entities;
 
+@SuppressWarnings("SpellCheckingInspection")
 public class HttpErrorResponse {
-
     private HttpErrorResponseException detail;
     private String faultcode, faultstring;
 
-    public HttpErrorResponse() {
-    }
-
     public synchronized HttpErrorResponseException getDetail() {
-        return detail;
+        return this.detail;
     }
 
     public synchronized void setDetail(final HttpErrorResponseException detail) {
@@ -17,7 +14,7 @@ public class HttpErrorResponse {
     }
 
     public synchronized String getFaultcode() {
-        return faultcode;
+        return this.faultcode;
     }
 
     public synchronized void setFaultcode(final String faultcode) {
@@ -25,7 +22,7 @@ public class HttpErrorResponse {
     }
 
     public synchronized String getFaultstring() {
-        return faultstring;
+        return this.faultstring;
     }
 
     public synchronized void setFaultstring(final String faultstring) {

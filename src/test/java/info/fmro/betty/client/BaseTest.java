@@ -4,15 +4,14 @@ import info.fmro.betty.main.MaintenanceThread;
 import info.fmro.betty.main.VarsIO;
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Contract;
 import org.junit.jupiter.api.BeforeAll;
 
-/**
- * Created by mulveyj on 08/07/2016.
- */
-public class BaseTest {
-    private static String appKey;
-    private static String userName;
-    private static String password;
+@SuppressWarnings("UtilityClass")
+public final class BaseTest {
+    @Contract(pure = true)
+    private BaseTest() {
+    }
 
     @BeforeAll
     public static void beforeClass() {
@@ -20,34 +19,9 @@ public class BaseTest {
         Generic.turnOffHtmlUnitLogger();
         VarsIO.readVarsFromFile(Statics.VARS_FILE_NAME);
         VarsIO.readObjectsFromFiles();
-        MaintenanceThread maintenanceThread = new MaintenanceThread();
+        final MaintenanceThread maintenanceThread = new MaintenanceThread();
         maintenanceThread.start();
-
-        appKey = Statics.appKey.get();
-        userName = Statics.bu.get();
-        password = Statics.bp.get();
     }
-
-//    private static String getSystemProperty(String key) {
-//        String value = System.getProperty(key);
-//        if (value == null) {
-//            throw new IllegalArgumentException(String.format("System property %s must be set for tests to run", key));
-//        }
-//        return value;
-//    }
-
-    public static String getAppKey() {
-        return appKey;
-    }
-
-    public static String getUserName() {
-        return userName;
-    }
-
-    public static String getPassword() {
-        return password;
-    }
-
 //    public AppKeyAndSessionProvider getValidSessionProvider() {
 //        return new AppKeyAndSessionProvider(
 //                Statics.SSO_HOST_RO,

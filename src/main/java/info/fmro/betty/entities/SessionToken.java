@@ -1,15 +1,11 @@
 package info.fmro.betty.entities;
 
 public class SessionToken {
-
     private String sessionToken;
     private String loginStatus;
 
-    public SessionToken() {
-    }
-
     public synchronized String getSessionToken() {
-        return sessionToken;
+        return this.sessionToken;
     }
 
     public synchronized void setSessionToken(final String sessionToken) {
@@ -17,11 +13,11 @@ public class SessionToken {
     }
 
     public synchronized int getSessionTokenLength() {
-        return sessionToken == null ? -1 : sessionToken.length();
+        return this.sessionToken == null ? -1 : this.sessionToken.length();
     }
 
     public synchronized String getLoginStatus() {
-        return loginStatus;
+        return this.loginStatus;
     }
 
     public synchronized void setLoginStatus(final String loginStatus) {

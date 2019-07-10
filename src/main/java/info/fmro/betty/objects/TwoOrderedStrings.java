@@ -1,13 +1,12 @@
 package info.fmro.betty.objects;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Objects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TwoOrderedStrings
         implements Comparable<TwoOrderedStrings> {
-
-    private static final Logger logger = LoggerFactory.getLogger(TwoOrderedStrings.class);
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
     private final String first, second;
 
@@ -28,47 +27,44 @@ public class TwoOrderedStrings
     }
 
     public synchronized String getFirst() {
-        return first;
+        return this.first;
     }
 
     public synchronized String getSecond() {
-        return second;
+        return this.second;
     }
 
+    @SuppressWarnings("MethodWithMultipleReturnPoints")
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(final TwoOrderedStrings other) {
-        if (other == null) {
+    public synchronized int compareTo(@NotNull final TwoOrderedStrings o) {
+        //noinspection ConstantConditions
+        if (o == null) {
             return AFTER;
         }
-        if (this == other) {
+        if (this == o) {
             return EQUAL;
         }
 
-        if (this.getClass() != other.getClass()) {
-            if (this.getClass().hashCode() < other.getClass().hashCode()) {
-                return BEFORE;
-            } else {
-                return AFTER;
-            }
+        if (this.getClass() != o.getClass()) {
+            return this.getClass().hashCode() < o.getClass().hashCode() ? BEFORE : AFTER;
         }
-        if (!Objects.equals(this.first, other.first)) {
+        if (!Objects.equals(this.first, o.first)) {
             if (this.first == null) {
                 return BEFORE;
             }
-            if (other.first == null) {
+            if (o.first == null) {
                 return AFTER;
             }
-            return this.first.compareTo(other.first);
+            return this.first.compareTo(o.first);
         }
-        if (!Objects.equals(this.second, other.second)) {
+        if (!Objects.equals(this.second, o.second)) {
             if (this.second == null) {
                 return BEFORE;
             }
-            if (other.second == null) {
+            if (o.second == null) {
                 return AFTER;
             }
-            return this.second.compareTo(other.second);
+            return this.second.compareTo(o.second);
         }
 
         return EQUAL;
@@ -82,8 +78,8 @@ public class TwoOrderedStrings
         return hash;
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;

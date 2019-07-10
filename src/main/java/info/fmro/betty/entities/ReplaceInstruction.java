@@ -1,14 +1,12 @@
 package info.fmro.betty.entities;
 
+@SuppressWarnings("unused")
 public class ReplaceInstruction {
     private String betId;
     private Double newPrice;
 
-    public ReplaceInstruction() {
-    }
-
     public synchronized String getBetId() {
-        return betId;
+        return this.betId;
     }
 
     public synchronized void setBetId(final String betId) {
@@ -16,7 +14,7 @@ public class ReplaceInstruction {
     }
 
     public synchronized Double getNewPrice() {
-        return newPrice;
+        return this.newPrice;
     }
 
     public synchronized void setNewPrice(final Double newPrice) {

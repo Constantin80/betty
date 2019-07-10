@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -18,24 +19,23 @@ public class LoggerThread
     private static final Logger logger = LoggerFactory.getLogger(LoggerThread.class);
     public static final long DEFAULT_TIME_OUT_TO_PRINT = 1_000L;
     private final HashMap<String, ArrayList<Long>> logEntries = new HashMap<>(2);
-    private final HashMap<String, Long> logEntriesExpiration = new HashMap<>(2);
+    private final Map<String, Long> logEntriesExpiration = new HashMap<>(2);
 
     public synchronized void addLogEntry(final String messageFormat, final long timeDifference) {
         final ArrayList<Long> list;
-        if (logEntries.containsKey(messageFormat)) {
-            list = logEntries.get(messageFormat);
+        if (this.logEntries.containsKey(messageFormat)) {
+            list = this.logEntries.get(messageFormat);
         } else {
             list = new ArrayList<>(32);
-            logEntries.put(messageFormat, list);
+            this.logEntries.put(messageFormat, list);
         }
         list.add(timeDifference);
 
-        logEntriesExpiration.put(messageFormat, System.currentTimeMillis() + DEFAULT_TIME_OUT_TO_PRINT);
+        this.logEntriesExpiration.put(messageFormat, System.currentTimeMillis() + DEFAULT_TIME_OUT_TO_PRINT);
     }
 
     private synchronized void printEntry(final String messageFormat) {
-        final ArrayList<Long> list = logEntries.remove(messageFormat);
-
+        final ArrayList<Long> list = this.logEntries.remove(messageFormat);
         // logEntriesExpiration entry gets removed outside this method, using the Iterator
 //        logEntriesExpiration.remove(messageFormat);
         if (list == null) {
@@ -46,8 +46,8 @@ public class LoggerThread
             final long lowest = Collections.min(list);
             final long highest = Collections.max(list);
             final long sum = list.stream().mapToLong(Long::longValue).sum();
-            final long average = Math.round((double) sum / (double) nEntries);
-            final String valuesString = (new StringBuilder(64)).append("(").append("nEntries:").append(nEntries).append(" lowest:").append(lowest).append(" average:").append(average).append(" highest:").append(highest).append(")").toString();
+            final long average = Math.round((double) sum / nEntries);
+            final String valuesString = "(nEntries:" + nEntries + " lowest:" + lowest + " average:" + average + " highest:" + highest + ")";
             final String formattedString = MessageFormatter.arrayFormat(messageFormat, new Object[]{valuesString}).getMessage();
 
             logger.info("loggerThread {}ms after last input: {}", DEFAULT_TIME_OUT_TO_PRINT, formattedString);
@@ -57,14 +57,14 @@ public class LoggerThread
     private synchronized long checkEntries() {
         long timeToSleep = 0L;
 
-        if (!this.logEntriesExpiration.isEmpty()) {
+        if (this.logEntriesExpiration.isEmpty()) { // nothing to be done, there are no entries
+        } else {
             final long currentTime = System.currentTimeMillis();
             final Set<Entry<String, Long>> entrySet = this.logEntriesExpiration.entrySet();
             final Iterator<Entry<String, Long>> iterator = entrySet.iterator();
             while (iterator.hasNext()) {
                 final Entry<String, Long> entry = iterator.next();
                 final long timeToExecute = entry.getValue();
-
                 if (timeToExecute < currentTime) {
                     final String messageFormat = entry.getKey();
                     printEntry(messageFormat);
@@ -74,7 +74,6 @@ public class LoggerThread
                     timeToSleep = Math.max(timeToSleep, timeLeft);
                 }
             } // end while
-        } else { // nothing to be done, there are no entries
         }
         if (timeToSleep == 0L) {
             timeToSleep = LoggerThread.DEFAULT_TIME_OUT_TO_PRINT;
@@ -83,14 +82,14 @@ public class LoggerThread
     }
 
     private synchronized void finalPrintEntries() {
-        if (!this.logEntriesExpiration.isEmpty()) {
+        if (this.logEntriesExpiration.isEmpty()) { // nothing to be done, there are no entries
+        } else {
             final long currentTime = System.currentTimeMillis();
             final Set<Entry<String, Long>> entrySet = this.logEntriesExpiration.entrySet();
             final Iterator<Entry<String, Long>> iterator = entrySet.iterator();
             while (iterator.hasNext()) {
                 final Entry<String, Long> entry = iterator.next();
                 final long timeToExecute = entry.getValue();
-
                 final long timeLeft = timeToExecute - currentTime; // can be negative
                 if (timeLeft < -1_000L) {
                     logger.error("LoggerThread.finalPrintEntries, printing entry with negative timeLeft {}ms", timeLeft);
@@ -102,7 +101,6 @@ public class LoggerThread
                 printEntry(messageFormat);
                 iterator.remove();
             } // end while
-        } else { // nothing to be done, there are no entries
         }
     }
 
@@ -115,7 +113,6 @@ public class LoggerThread
                 }
 
                 final long timeToSleep = this.checkEntries();
-
                 Generic.threadSleepSegmented(timeToSleep, 100L, Statics.mustStop);
             } catch (Throwable throwable) {
                 logger.error("STRANGE ERROR inside LoggerThread loop", throwable);

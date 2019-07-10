@@ -8,6 +8,19 @@ public class KeyLineSelection
     private Long selectionId;
     private Double handicap;
 
-    public KeyLineSelection() {
+    public synchronized Long getSelectionId() {
+        return this.selectionId;
+    }
+
+    public synchronized void setSelectionId(final Long selectionId) {
+        this.selectionId = selectionId;
+    }
+
+    public synchronized Double getHandicap() {
+        return this.handicap;
+    }
+
+    public synchronized void setHandicap(final Double handicap) {
+        this.handicap = handicap;
     }
 }

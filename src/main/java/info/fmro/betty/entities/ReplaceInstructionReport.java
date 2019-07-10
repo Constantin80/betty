@@ -9,11 +9,8 @@ public class ReplaceInstructionReport {
     private CancelInstructionReport cancelInstructionReport;
     private PlaceInstructionReport placeInstructionReport;
 
-    public ReplaceInstructionReport() {
-    }
-
     public synchronized InstructionReportStatus getStatus() {
-        return status;
+        return this.status;
     }
 
     public synchronized void setStatus(final InstructionReportStatus status) {
@@ -21,7 +18,7 @@ public class ReplaceInstructionReport {
     }
 
     public synchronized InstructionReportErrorCode getErrorCode() {
-        return errorCode;
+        return this.errorCode;
     }
 
     public synchronized void setErrorCode(final InstructionReportErrorCode errorCode) {
@@ -29,7 +26,7 @@ public class ReplaceInstructionReport {
     }
 
     public synchronized CancelInstructionReport getCancelInstructionReport() {
-        return cancelInstructionReport;
+        return this.cancelInstructionReport;
     }
 
     public synchronized void setCancelInstructionReport(final CancelInstructionReport cancelInstructionReport) {
@@ -37,7 +34,7 @@ public class ReplaceInstructionReport {
     }
 
     public synchronized PlaceInstructionReport getPlaceInstructionReport() {
-        return placeInstructionReport;
+        return this.placeInstructionReport;
     }
 
     public synchronized void setPlaceInstructionReport(final PlaceInstructionReport placeInstructionReport) {

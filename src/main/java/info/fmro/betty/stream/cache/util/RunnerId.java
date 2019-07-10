@@ -23,11 +23,11 @@ public class RunnerId
     }
 
     public synchronized Long getSelectionId() {
-        return selectionId;
+        return this.selectionId;
     }
 
     public synchronized Double getHandicap() {
-        return handicap;
+        return this.handicap;
     }
 
 //    public synchronized LongDoublePair toLongDoublePair() {
@@ -49,20 +49,20 @@ public class RunnerId
             return false;
         }
         final RunnerId runnerId = (RunnerId) o;
-        return Objects.equals(selectionId, runnerId.selectionId) &&
-               Objects.equals(handicap, runnerId.handicap);
+        return Objects.equals(this.selectionId, runnerId.selectionId) &&
+               Objects.equals(this.handicap, runnerId.handicap);
     }
 
     @Override
     public synchronized int hashCode() {
-        return Objects.hash(selectionId, handicap);
+        return Objects.hash(this.selectionId, this.handicap);
     }
 
     @Override
     public synchronized String toString() {
         return "RunnerId{" +
-               "selectionId=" + selectionId +
-               ", handicap=" + handicap +
+               "selectionId=" + this.selectionId +
+               ", handicap=" + this.handicap +
                '}';
     }
 }

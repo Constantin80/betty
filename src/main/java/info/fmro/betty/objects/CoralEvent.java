@@ -4,12 +4,15 @@ import info.fmro.betty.enums.MatchStatus;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicLong;
 
+@SuppressWarnings("ClassTooDeepInInheritanceTree")
 public class CoralEvent
         extends ScraperEvent
         implements Serializable {
@@ -25,14 +28,15 @@ public class CoralEvent
         super("coral", eventId, timeStamp);
     }
 
-    public synchronized int parseName() {
+    @SuppressWarnings("UnusedReturnValue")
+    private synchronized int parseName() {
         final int modified;
-        if (eventName.contains(" v ")) {
-            int homeModified = this.setHomeTeam(eventName.substring(0, eventName.indexOf(" v ")).trim());
-            int awayModified = this.setAwayTeam(eventName.substring(eventName.indexOf(" v ") + " v ".length()).trim());
+        if (this.eventName.contains(" v ")) {
+            final int homeModified = this.setHomeTeam(this.eventName.substring(0, this.eventName.indexOf(" v ")).trim());
+            final int awayModified = this.setAwayTeam(this.eventName.substring(this.eventName.indexOf(" v ") + " v ".length()).trim());
             modified = homeModified + awayModified;
         } else {
-            Generic.alreadyPrintedMap.logOnce(logger, LogLevel.WARN, "unknown coralEvent name home/away separator for: {}", eventName);
+            Generic.alreadyPrintedMap.logOnce(logger, LogLevel.WARN, "unknown coralEvent name home/away separator for: {}", this.eventName);
 
             // won't allow null to be set
             // homeName = null;
@@ -43,36 +47,35 @@ public class CoralEvent
         return modified;
     }
 
-    public synchronized String getEventName() {
-        return eventName;
+    @Contract(pure = true)
+    private synchronized String getEventName() {
+        return this.eventName;
     }
 
-    public synchronized int setEventName(final String eventName) {
+    public synchronized int setEventName(final String newEventName) {
         final int modified;
         if (this.eventName == null) {
-            if (eventName == null) {
+            if (newEventName == null) {
                 modified = 0;
             } else {
-                this.eventName = eventName;
+                this.eventName = newEventName;
                 modified = 1;
             }
-        } else if (this.eventName.equals(eventName)) {
+        } else if (this.eventName.equals(newEventName)) {
             modified = 0;
         } else {
-            if (Formulas.matchTeams(this.eventName, eventName) > Statics.highThreshold) {
+            if (Formulas.matchTeams(this.eventName, newEventName) > Statics.highThreshold) {
                 this.setIgnored(minimalBlackListPeriod); // avoid filling logs
 //                modified = -10000; // blackListed
 
-                this.eventName = eventName;
-                modified = 1;
             } else {
                 this.setIgnored(standardBlackListPeriod);
 //                modified = -10000; // blackListed
 
-                this.eventName = eventName;
-                modified = 1;
             }
-            logger.error("change eventName {} to {} in coralEvent: {}", this.eventName, eventName, Generic.objectToString(this));
+            this.eventName = newEventName;
+            modified = 1;
+            logger.error("change eventName {} to {} in coralEvent: {}", this.eventName, newEventName, Generic.objectToString(this));
         }
         if (modified > 0) {
             this.parseName();
@@ -81,64 +84,63 @@ public class CoralEvent
     }
 
     @Override
-    public synchronized int setMinutesPlayed(final int minutesPlayed) {
+    public synchronized int setMinutesPlayed(final int newMinutesPlayed) {
         final int modified;
         final int existingMinutesPlayed = this.getMinutesPlayed();
-        if (existingMinutesPlayed == minutesPlayed) {
+        if (existingMinutesPlayed == newMinutesPlayed) {
             modified = 0;
-        } else if (minutesPlayed == -1) {
-            logger.info("{} reset attempt mainutesPlayed to {} from {} for: {} {}/{}", objectId, minutesPlayed, existingMinutesPlayed, this.getEventId(), this.getHomeTeam(),
-                        this.getAwayTeam());
+        } else if (newMinutesPlayed == -1) {
+            logger.info("{} reset attempt minutesPlayed to {} from {} for: {} {}/{}", this.objectId, newMinutesPlayed, existingMinutesPlayed, this.getEventId(), this.getHomeTeam(), this.getAwayTeam());
             modified = 0;
-        } else if (existingMinutesPlayed < minutesPlayed) {
-            modified = this.setMinutesPlayedUnckeched(minutesPlayed);
+        } else if (existingMinutesPlayed < newMinutesPlayed) {
+            modified = this.setMinutesPlayedUnckeched(newMinutesPlayed);
         } else if (existingMinutesPlayed <= 0) { // this.minutesPlayed > minutesPlayed && minutesPlayed != -1
             this.setIgnored(minimalBlackListPeriod);
-            logger.error("{} outOfRange change minutesPlayed {} to {} in scraperEvent: {}", objectId, existingMinutesPlayed, minutesPlayed, Generic.objectToString(this));
+            logger.error("{} outOfRange change minutesPlayed {} to {} in scraperEvent: {}", this.objectId, existingMinutesPlayed, newMinutesPlayed, Generic.objectToString(this));
 //            modified = -10000; // blackListed
 
-            modified = this.setMinutesPlayedUnckeched(minutesPlayed);
-        } else if (minutesPlayed > 0 && existingMinutesPlayed - minutesPlayed == 1) {
-            modified = this.setMinutesPlayedUnckeched(minutesPlayed); // minutesPlayed taken back by 1; happens sometimes
-        } else if ((minutesPlayed == 120 && this.getMatchStatus() == MatchStatus.AWAITING_PEN) || (minutesPlayed >= 105 && this.getMatchStatus() == MatchStatus.SECOND_ET) ||
-                   (minutesPlayed == 105 && this.getMatchStatus() == MatchStatus.ET_HALF_TIME) || (minutesPlayed >= 90 && this.getMatchStatus() == MatchStatus.FIRST_ET) ||
-                   (minutesPlayed == 90 && this.getMatchStatus() == MatchStatus.AWAITING_ET) || (minutesPlayed >= 45 && this.getMatchStatus() == MatchStatus.SECOND_HALF) ||
-                   (minutesPlayed == 45 && this.getMatchStatus() == MatchStatus.HALF_TIME) || (minutesPlayed >= 0 && this.getMatchStatus() == MatchStatus.FIRST_HALF)) {
-            logger.warn("REVIEW {} minutesPlayed {} reduced to {} in scraperEvent: {}", objectId, existingMinutesPlayed, minutesPlayed, Generic.objectToString(this));
-            modified = this.setMinutesPlayedUnckeched(minutesPlayed); // minutesPlayed taken back by larger amount, but in the same period; happens sometimes
+            modified = this.setMinutesPlayedUnckeched(newMinutesPlayed);
+        } else if (newMinutesPlayed > 0 && existingMinutesPlayed - newMinutesPlayed == 1) {
+            modified = this.setMinutesPlayedUnckeched(newMinutesPlayed); // minutesPlayed taken back by 1; happens sometimes
+        } else if ((newMinutesPlayed == 120 && this.getMatchStatus() == MatchStatus.AWAITING_PEN) || (newMinutesPlayed >= 105 && this.getMatchStatus() == MatchStatus.SECOND_ET) ||
+                   (newMinutesPlayed == 105 && this.getMatchStatus() == MatchStatus.ET_HALF_TIME) || (newMinutesPlayed >= 90 && this.getMatchStatus() == MatchStatus.FIRST_ET) ||
+                   (newMinutesPlayed == 90 && this.getMatchStatus() == MatchStatus.AWAITING_ET) || (newMinutesPlayed >= 45 && this.getMatchStatus() == MatchStatus.SECOND_HALF) ||
+                   (newMinutesPlayed == 45 && this.getMatchStatus() == MatchStatus.HALF_TIME) || (newMinutesPlayed >= 0 && this.getMatchStatus() == MatchStatus.FIRST_HALF)) {
+            logger.warn("REVIEW {} minutesPlayed {} reduced to {} in scraperEvent: {}", this.objectId, existingMinutesPlayed, newMinutesPlayed, Generic.objectToString(this));
+            modified = this.setMinutesPlayedUnckeched(newMinutesPlayed); // minutesPlayed taken back by larger amount, but in the same period; happens sometimes
         } else {
             this.setIgnored(minimalBlackListPeriod);
-            logger.error("{} change differentPeriod minutesPlayed {} to {} in scraperEvent: {}", objectId, existingMinutesPlayed, minutesPlayed, Generic.objectToString(this));
+            logger.error("{} change differentPeriod minutesPlayed {} to {} in scraperEvent: {}", this.objectId, existingMinutesPlayed, newMinutesPlayed, Generic.objectToString(this));
 //            modified = -10000; // blackListed
 
-            modified = this.setMinutesPlayedUnckeched(minutesPlayed);
+            modified = this.setMinutesPlayedUnckeched(newMinutesPlayed);
         }
         return modified;
     }
 
     public synchronized int getSeconds() {
-        return seconds;
+        return this.seconds;
     }
 
-    public synchronized int setSeconds(final int seconds) {
+    public synchronized int setSeconds(final int newSeconds) {
         final int modified;
-        if (this.seconds == seconds) {
+        if (this.seconds == newSeconds) {
             modified = 0;
-        } else if (seconds == -1) {
-            logger.info("{} reset attempt seconds to {} from {} for: {} {}/{}", objectId, seconds, this.seconds, this.getEventId(), this.getHomeTeam(), this.getAwayTeam());
+        } else if (newSeconds == -1) {
+            logger.info("{} reset attempt seconds to {} from {} for: {} {}/{}", this.objectId, newSeconds, this.seconds, this.getEventId(), this.getHomeTeam(), this.getAwayTeam());
             modified = 0;
         } else {
-            this.seconds = seconds;
+            this.seconds = newSeconds;
             modified = 1;
         }
         return modified;
     }
 
     @Override
-    public synchronized int setMatchStatus(final MatchStatus matchStatus) {
+    public synchronized int setMatchStatus(final MatchStatus newMatchStatus) {
         int modified = 0;
-        modified += super.setMatchStatus(matchStatus, true);
-        if (modified > 0 && matchStatus == MatchStatus.HALF_TIME) {
+        modified += setMatchStatus(newMatchStatus, true);
+        if (modified > 0 && newMatchStatus == MatchStatus.HALF_TIME) {
             modified += setHomeHtScore(getHomeScore());
             modified += setAwayHtScore(getAwayScore());
         }
@@ -147,9 +149,9 @@ public class CoralEvent
     }
 
     @Override
-    public synchronized int innerUpdate(final ScraperEvent scraperEvent) {
+    public synchronized int innerUpdate(@NotNull final ScraperEvent scraperEvent) {
         int modified = super.innerUpdate(scraperEvent);
-        CoralEvent coralEvent = (CoralEvent) scraperEvent;
+        final CoralEvent coralEvent = (CoralEvent) scraperEvent;
 
         modified += this.setEventName(coralEvent.getEventName());
         modified += this.setSeconds(coralEvent.getSeconds());
@@ -160,9 +162,12 @@ public class CoralEvent
     @Override
     public synchronized long innerErrors(final AtomicLong blackListPeriod) {
         long errors = super.innerErrors(blackListPeriod);
-        int minutesPlayed = this.getMinutesPlayed(), homeScore = this.getHomeScore(), awayScore = this.getAwayScore(), homeHtScore = this.getHomeHtScore(),
-                awayHtScore = this.getAwayHtScore();
-        if ((minutesPlayed >= 0 && this.seconds < 0) || (minutesPlayed < 0 && this.seconds >= 0)) {
+        final int minutesPlayed = this.getMinutesPlayed();
+        final int homeScore = this.getHomeScore();
+        final int awayScore = this.getAwayScore();
+        final int homeHtScore = this.getHomeHtScore();
+        final int awayHtScore = this.getAwayHtScore();
+        if ((minutesPlayed >= 0) == (this.seconds < 0)) {
             errors += 102400L;
             blackListPeriod.set(Math.max(blackListPeriod.get(), shortBlackListPeriod));
         }
@@ -170,7 +175,7 @@ public class CoralEvent
             errors += 204800L;
             blackListPeriod.set(Math.max(blackListPeriod.get(), shortBlackListPeriod));
         }
-        MatchStatus matchStatus = this.getMatchStatus();
+        final MatchStatus matchStatus = this.getMatchStatus();
         if (matchStatus == null) { // sometimes the period is not known
         } else {
             switch (matchStatus) {
@@ -191,8 +196,7 @@ public class CoralEvent
                     errors += 409600L; // unsupported status
                     break;
                 case NOT_STARTED:
-                    if (this.getHomeScore() != 0 || this.getAwayScore() != 0 || anyHtScoreExists() || this.getHomeRedCards() > 0 || this.getAwayRedCards() > 0 ||
-                        stoppageTimeExists() || !minutesAre(0) || this.getSeconds() != 0) {
+                    if (this.getHomeScore() != 0 || this.getAwayScore() != 0 || anyHtScoreExists() || this.getHomeRedCards() > 0 || this.getAwayRedCards() > 0 || stoppageTimeExists() || !minutesAre(0) || this.getSeconds() != 0) {
                         errors += 13107200L;
                     }
                     break;

@@ -1,5 +1,7 @@
 package info.fmro.betty.stream.definitions;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,13 +13,11 @@ public class OrderMarketChange
     private Long accountId;
     private Boolean closed;
     private String id; // Market Id - the id of the market the order is on
+    @Nullable
     private List<OrderRunnerChange> orc; // Order Changes - a list of changes to orders on a selection
 
-    public OrderMarketChange() {
-    }
-
     public synchronized Long getAccountId() {
-        return accountId;
+        return this.accountId;
     }
 
     public synchronized void setAccountId(final Long accountId) {
@@ -25,7 +25,7 @@ public class OrderMarketChange
     }
 
     public synchronized Boolean getClosed() {
-        return closed;
+        return this.closed;
     }
 
     public synchronized void setClosed(final Boolean closed) {
@@ -33,18 +33,19 @@ public class OrderMarketChange
     }
 
     public synchronized String getId() {
-        return id;
+        return this.id;
     }
 
     public synchronized void setId(final String id) {
         this.id = id;
     }
 
+    @Nullable
     public synchronized List<OrderRunnerChange> getOrc() {
-        return orc == null ? null : new ArrayList<>(orc);
+        return this.orc == null ? null : new ArrayList<>(this.orc);
     }
 
-    public synchronized void setOrc(final List<OrderRunnerChange> orc) {
+    public synchronized void setOrc(final List<? extends OrderRunnerChange> orc) {
         this.orc = orc == null ? null : new ArrayList<>(orc);
     }
 }

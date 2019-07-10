@@ -6,12 +6,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
+@SuppressWarnings({"UtilityClass", "NonFinalUtilityClass"})
 public class ApiDefault {
-    private final static AtomicInteger hasRun = new AtomicInteger(), initializationFinished = new AtomicInteger(), strangeFailureHappened = new AtomicInteger();
+    private static final AtomicInteger hasRun = new AtomicInteger(), initializationFinished = new AtomicInteger(), strangeFailureHappened = new AtomicInteger();
     private static final int MAX_WHILE_COUNTER = 30;
 
     @BeforeAll
-    public synchronized static void defaultSetUpClass()
+    public static void defaultSetUpClass()
             throws InterruptedException { // runs before everything else
         // javassist version has slow .toClass() method
         if (hasRun.getAndIncrement() == 0) {
@@ -33,6 +34,7 @@ public class ApiDefault {
         } else if (initializationFinished.get() == 0) { // has run, but not yet initialized
             int whileCounter = 0;
             while (strangeFailureHappened.get() == 0 && initializationFinished.get() == 0 && whileCounter < MAX_WHILE_COUNTER) {
+                //noinspection BusyWait
                 Thread.sleep(100L);
                 whileCounter++;
             }

@@ -4,15 +4,14 @@ import info.fmro.betty.enums.TemporaryOrderType;
 import info.fmro.betty.stream.cache.util.RunnerId;
 import info.fmro.betty.stream.definitions.Side;
 import info.fmro.shared.utility.Generic;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Objects;
 
 public class TemporaryOrder
         implements Serializable {
-    private static final Logger logger = LoggerFactory.getLogger(TemporaryOrder.class);
     public static final long defaultTooOldPeriod = Generic.MINUTE_LENGTH_MILLISECONDS * 10L;
     private static final long serialVersionUID = -6977868264246613172L;
     private final TemporaryOrderType type;
@@ -20,6 +19,7 @@ public class TemporaryOrder
     private final RunnerId runnerId;
     private final Side side;
     private final double price, size;
+    @Nullable
     private final Double sizeReduction;
     private final long creationTime;
     private String betId;
@@ -36,7 +36,8 @@ public class TemporaryOrder
         this.creationTime = System.currentTimeMillis();
     }
 
-    public TemporaryOrder(final String marketId, final RunnerId runnerId, final Side side, final double price, final double size, final String betId, final Double sizeReduction) {
+    @SuppressWarnings("ConstructorWithTooManyParameters")
+    public TemporaryOrder(final String marketId, final RunnerId runnerId, final Side side, final double price, final double size, final String betId, @Nullable final Double sizeReduction) {
         this.type = TemporaryOrderType.CANCEL;
         this.marketId = marketId;
         this.betId = betId;
@@ -48,44 +49,45 @@ public class TemporaryOrder
         this.creationTime = System.currentTimeMillis();
     }
 
-    public synchronized boolean runnerEquals(final String marketId, final RunnerId runnerId) {
-        return marketId != null && marketId.equals(this.marketId) && runnerId != null && runnerId.equals(this.runnerId);
+    public synchronized boolean runnerEquals(final String marketIdToCheck, final RunnerId runnerIdToCheck) {
+        return marketIdToCheck != null && marketIdToCheck.equals(this.marketId) && runnerIdToCheck != null && runnerIdToCheck.equals(this.runnerId);
     }
 
     public synchronized TemporaryOrderType getType() {
-        return type;
+        return this.type;
     }
 
     public synchronized String getMarketId() {
-        return marketId;
+        return this.marketId;
     }
 
     public synchronized RunnerId getRunnerId() {
-        return runnerId;
+        return this.runnerId;
     }
 
     public synchronized Side getSide() {
-        return side;
+        return this.side;
     }
 
     public synchronized double getPrice() {
-        return price;
+        return this.price;
     }
 
     public synchronized double getSize() {
-        return size;
+        return this.size;
     }
 
+    @Nullable
     public synchronized Double getSizeReduction() {
-        return sizeReduction;
+        return this.sizeReduction;
     }
 
     public synchronized long getCreationTime() {
-        return creationTime;
+        return this.creationTime;
     }
 
     public synchronized String getBetId() {
-        return betId;
+        return this.betId;
     }
 
     public synchronized void setBetId(final String betId) {
@@ -93,7 +95,7 @@ public class TemporaryOrder
     }
 
     public synchronized long getExpirationTime() {
-        return expirationTime;
+        return this.expirationTime;
     }
 
     public synchronized void setExpirationTime(final long expirationTime) {
@@ -105,7 +107,8 @@ public class TemporaryOrder
         return isExpired(currentTime);
     }
 
-    public synchronized boolean isExpired(final long currentTime) {
+    @Contract(pure = true)
+    private synchronized boolean isExpired(final long currentTime) {
         return this.expirationTime > 0L && currentTime >= this.expirationTime;
     }
 
@@ -118,27 +121,28 @@ public class TemporaryOrder
         return currentTime >= this.creationTime + TemporaryOrder.defaultTooOldPeriod;
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
-    public synchronized boolean equals(final Object o) {
-        if (this == o) {
+    public synchronized boolean equals(final Object obj) {
+        if (this == obj) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        TemporaryOrder that = (TemporaryOrder) o;
-        return Double.compare(that.price, price) == 0 &&
-               Double.compare(that.size, size) == 0 &&
-               type == that.type &&
-               Objects.equals(marketId, that.marketId) &&
-               Objects.equals(runnerId, that.runnerId) &&
-               side == that.side &&
-               Objects.equals(sizeReduction, that.sizeReduction) &&
-               Objects.equals(betId, that.betId);
+        final TemporaryOrder that = (TemporaryOrder) obj;
+        return Double.compare(that.price, this.price) == 0 &&
+               Double.compare(that.size, this.size) == 0 &&
+               this.type == that.type &&
+               Objects.equals(this.marketId, that.marketId) &&
+               Objects.equals(this.runnerId, that.runnerId) &&
+               this.side == that.side &&
+               Objects.equals(this.sizeReduction, that.sizeReduction);
+        // && Objects.equals(this.betId, that.betId);
     }
 
     @Override
     public synchronized int hashCode() {
-        return Objects.hash(type, marketId, runnerId, side, price, size, sizeReduction, betId);
+        return Objects.hash(this.type, this.marketId, this.runnerId, this.side, this.price, this.size, this.sizeReduction); // , this.betId
     }
 }

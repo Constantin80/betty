@@ -1,6 +1,7 @@
 package info.fmro.betty.objects;
 
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,22 +11,23 @@ public class Exposure
         implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(Exposure.class);
     private static final long serialVersionUID = 281818769916579900L;
-    public final static long recentPeriod = 5_000L;
+    public static final long recentPeriod = 5_000L;
     private double backMatchedExposure, layMatchedExposure, backTotalExposure, layTotalExposure, backUnmatchedProfit, layUnmatchedProfit, tempBackCancel, tempLayCancel;
     private long timeStamp;
 
+    @Contract(pure = true)
     Exposure() {
     }
 
-    public synchronized void resetExposure() {
-        backMatchedExposure = 0d;
-        layMatchedExposure = 0d;
-        backTotalExposure = 0d;
-        layTotalExposure = 0d;
-        backUnmatchedProfit = 0d;
-        layUnmatchedProfit = 0d;
-        tempBackCancel = 0d;
-        tempLayCancel = 0d;
+    synchronized void resetExposure() {
+        this.backMatchedExposure = 0d;
+        this.layMatchedExposure = 0d;
+        this.backTotalExposure = 0d;
+        this.layTotalExposure = 0d;
+        this.backUnmatchedProfit = 0d;
+        this.layUnmatchedProfit = 0d;
+        this.tempBackCancel = 0d;
+        this.tempLayCancel = 0d;
         this.timeStamp = 0L;
     }
 
@@ -58,13 +60,14 @@ public class Exposure
         return this.timeStamp;
     }
 
-    public synchronized boolean isRecent() {
+    @SuppressWarnings("UnusedReturnValue")
+    private synchronized boolean isRecent() {
         final long currentTime = System.currentTimeMillis();
         return isRecent(currentTime);
     }
 
-    public synchronized boolean isRecent(final long currentTime) {
-        final long timeSinceUpdate = currentTime - timeStamp;
+    private synchronized boolean isRecent(final long currentTime) {
+        final long timeSinceUpdate = currentTime - this.timeStamp;
         final boolean isRecent = timeSinceUpdate <= recentPeriod;
         if (!isRecent) {
             logger.warn("non recent Exposure {} for: {}", timeSinceUpdate, Generic.objectToString(this));
@@ -105,43 +108,43 @@ public class Exposure
         this.tempLayCancel = tempLayCancel;
     }
 
-    public synchronized double getBackMatchedExposure() {
-        isRecent(); // this prints a warning if not recent, but I'll return hte value anyway
-        return backMatchedExposure;
+    synchronized double getBackMatchedExposure() {
+        isRecent(); // this prints a warning if not recent, but I'll return the value anyway
+        return this.backMatchedExposure;
     }
 
-    public synchronized double getLayMatchedExposure() {
-        isRecent(); // this prints a warning if not recent, but I'll return hte value anyway
-        return layMatchedExposure;
+    synchronized double getLayMatchedExposure() {
+        isRecent(); // this prints a warning if not recent, but I'll return the value anyway
+        return this.layMatchedExposure;
     }
 
-    public synchronized double getBackTotalExposure() {
-        isRecent(); // this prints a warning if not recent, but I'll return hte value anyway
-        return backTotalExposure;
+    synchronized double getBackTotalExposure() {
+        isRecent(); // this prints a warning if not recent, but I'll return the value anyway
+        return this.backTotalExposure;
     }
 
-    public synchronized double getLayTotalExposure() {
-        isRecent(); // this prints a warning if not recent, but I'll return hte value anyway
-        return layTotalExposure;
+    synchronized double getLayTotalExposure() {
+        isRecent(); // this prints a warning if not recent, but I'll return the value anyway
+        return this.layTotalExposure;
     }
 
-    public synchronized double getBackUnmatchedProfit() {
-        isRecent(); // this prints a warning if not recent, but I'll return hte value anyway
-        return backUnmatchedProfit;
+    private synchronized double getBackUnmatchedProfit() {
+        isRecent(); // this prints a warning if not recent, but I'll return the value anyway
+        return this.backUnmatchedProfit;
     }
 
-    public synchronized double getLayUnmatchedProfit() {
-        isRecent(); // this prints a warning if not recent, but I'll return hte value anyway
-        return layUnmatchedProfit;
+    private synchronized double getLayUnmatchedProfit() {
+        isRecent(); // this prints a warning if not recent, but I'll return the value anyway
+        return this.layUnmatchedProfit;
     }
 
-    public synchronized double getTempBackCancel() {
-        isRecent(); // this prints a warning if not recent, but I'll return hte value anyway
-        return tempBackCancel;
+    private synchronized double getTempBackCancel() {
+        isRecent(); // this prints a warning if not recent, but I'll return the value anyway
+        return this.tempBackCancel;
     }
 
-    public synchronized double getTempLayCancel() {
-        isRecent(); // this prints a warning if not recent, but I'll return hte value anyway
-        return tempLayCancel;
+    private synchronized double getTempLayCancel() {
+        isRecent(); // this prints a warning if not recent, but I'll return the value anyway
+        return this.tempLayCancel;
     }
 }

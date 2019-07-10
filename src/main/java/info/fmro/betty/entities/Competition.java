@@ -1,38 +1,32 @@
 package info.fmro.betty.entities;
 
+import org.jetbrains.annotations.Contract;
+
 import java.io.Serializable;
 import java.util.Objects;
 
 public class Competition
         implements Serializable {
     private static final long serialVersionUID = -3187113086865598702L;
-    private String id;
-    private String name;
+    private final String id;
+    private final String name;
 
-    public Competition() {
-    }
-
+    @Contract(pure = true)
     public Competition(final String id, final String name) {
         this.id = id;
         this.name = name;
     }
 
     public synchronized String getId() {
-        return id;
+        return this.id;
     }
 
-    //    public synchronized void setId(String id) {
-//        this.id = id;
-//    }
     public synchronized String getName() {
-        return name;
+        return this.name;
     }
 
-    //    public synchronized void setName(String name) {
-//        this.name = name;
-//    }
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;

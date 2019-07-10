@@ -20,7 +20,7 @@ public class ClientHandler {
     public static final Client[] streamClients = new Client[nClients];
     @SuppressWarnings("unchecked")
     private static final ArrayList<String>[] lists = (ArrayList<String>[]) new ArrayList<?>[nClients];
-    public static final ConcurrentSkipListSet<Integer> modifiedLists = new ConcurrentSkipListSet<>();
+    public static final Collection<Integer> modifiedLists = new ConcurrentSkipListSet<>();
     public static final AtomicInteger threadsWithOcmCommandReceived = new AtomicInteger();
     public static final AtomicInteger threadsWithMcmCommandReceived = new AtomicInteger();
     public static final AtomicInteger nMcmCommandsNeeded = new AtomicInteger();
@@ -41,9 +41,9 @@ public class ClientHandler {
     }
 
     public static void streamMarkets(final Collection<String> marketIds) {
-        if (modifiedLists.size() > 0) {
+        if (!modifiedLists.isEmpty()) {
             logger.info("following clients have internally modified lists: {}", Generic.objectToString(modifiedLists));
-            for (Integer i : modifiedLists) {
+            for (final Integer i : modifiedLists) {
                 final Set<String> marketsSet = streamClients[i].processor.getMarketsSet();
                 final ArrayList<String> list = lists[i];
                 list.clear();
@@ -64,7 +64,7 @@ public class ClientHandler {
         }
 
         final ArrayList<String> marketsLeft = new ArrayList<>(marketIds);
-        for (int i = 0; i < nClients && marketsLeft.size() > 0; i++) {
+        for (int i = 0; i < nClients && !marketsLeft.isEmpty(); i++) {
             if (
 //                    modified[i] ||
                     sizes[i] <= 900) {
@@ -91,7 +91,7 @@ public class ClientHandler {
             }
         }
 
-        if (marketsLeft.size() > 0) {
+        if (!marketsLeft.isEmpty()) {
             logger.error("markets still left in streamMarkets: {} {} {}", marketsLeft.size(), Statics.marketCataloguesMap.size(), Generic.objectToString(sizes));
         }
 

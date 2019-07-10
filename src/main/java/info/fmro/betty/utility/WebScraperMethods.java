@@ -1,17 +1,24 @@
 package info.fmro.betty.utility;
 
+import com.gargoylesoftware.htmlunit.AlertHandler;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.Cache;
 import com.gargoylesoftware.htmlunit.CollectingAlertHandler;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
+import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.TopLevelWindow;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.WebClientOptions;
+import com.gargoylesoftware.htmlunit.html.DomElement;
+import com.gargoylesoftware.htmlunit.html.DomNode;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.SerialClone;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,13 +28,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class WebScraperMethods {
-
+@SuppressWarnings({"ClassWithTooManyMethods", "UtilityClass"})
+public final class WebScraperMethods {
     private static final Logger logger = LoggerFactory.getLogger(WebScraperMethods.class);
     public static final String ONLY_PRINT_INFO_IF_FAIL_PREFIX = "(onlyPrintInfoIfFail)";
     public static final long defaultInitialWaitForScripts = 25_000L, defaultSecondaryWaitForScripts = 1_000L, defaultFinalWaitForScripts = 5_000L;
     public static final int defaultCacheMaxSize = 200;
 
+    @Contract(pure = true)
     private WebScraperMethods() {
     }
 
@@ -62,17 +70,18 @@ public class WebScraperMethods {
         return savePage(htmlPage, mustSavePage, prefix, baseName, ".html", threadId);
     }
 
-    public static boolean savePage(final HtmlPage htmlPage, final AtomicBoolean mustSavePage, final String prefix, final String baseName, final String suffix, final String threadId) {
+    private static boolean savePage(final HtmlPage htmlPage, final AtomicBoolean mustSavePage, final String prefix, final String baseName, @SuppressWarnings("SameParameterValue") final String suffix, final String threadId) {
         boolean success;
         try {
             final long timeBegin = System.currentTimeMillis();
             final String fileName = Generic.tempFileName(prefix + baseName + suffix);
+            //noinspection NestedTryStatement
             try {
                 htmlPage.save(new File(fileName));
-            } catch (NullPointerException nullPointerException) { // HtmlUnit has a NullPointerException bug, that I reported, in build 2.21
+            } catch (@SuppressWarnings("ProhibitedExceptionCaught") NullPointerException nullPointerException) { // HtmlUnit has a NullPointerException bug, that I reported, in build 2.21
                 logger.error("nullPointerException while saving htmlPage in file: {}", fileName, nullPointerException);
             }
-            logger.info("{} saving page took {} ms {} {}", threadId, System.currentTimeMillis() - timeBegin, fileName, htmlPage.toString());
+            logger.info("{} saving page took {} ms {} {}", threadId, System.currentTimeMillis() - timeBegin, fileName, htmlPage);
 
             if (mustSavePage != null && mustSavePage.get()) {
                 mustSavePage.set(false);
@@ -103,11 +112,11 @@ public class WebScraperMethods {
         }
     }
 
-    public static void closeTopLevelWindow(final HtmlPage htmlPage, final String threadId) {
+    public static void closeTopLevelWindow(final Page htmlPage, final String threadId) {
         if (htmlPage != null) {
             final TopLevelWindow topLevelWindow = (TopLevelWindow) htmlPage.getEnclosingWindow().getTopWindow();
             topLevelWindow.close();
-            logger.info("{} closed top level window for: {}", threadId, htmlPage.toString());
+            logger.info("{} closed top level window for: {}", threadId, htmlPage);
         } else {
             logger.error("{} null htmlPage in closeTopLevelWindow", threadId);
         }
@@ -156,30 +165,27 @@ public class WebScraperMethods {
 //
 //        return success;
 //    }
-    public static HtmlPage getPage(final WebClient webClient, final String savePrefix, final AtomicBoolean mustRefreshPage, final AtomicBoolean mustSavePage, final String url, final String threadId,
+    public static HtmlPage getPage(final WebClient webClient, final String savePrefix, final AtomicBoolean mustRefreshPage, final AtomicBoolean mustSavePage, final String url, final String threadId, final String... expressionXPaths) {
+        return getPage(webClient, savePrefix, mustRefreshPage, mustSavePage, defaultInitialWaitForScripts, defaultSecondaryWaitForScripts, defaultFinalWaitForScripts, url, threadId, expressionXPaths);
+    }
+
+    public static HtmlPage getPage(final WebClient webClient, final String savePrefix, final AtomicBoolean mustRefreshPage, final AtomicBoolean mustSavePage, final long waitForScripts, final String url, final String threadId,
                                    final String... expressionXPaths) {
-        return getPage(webClient, savePrefix, mustRefreshPage, mustSavePage, defaultInitialWaitForScripts, defaultSecondaryWaitForScripts, defaultFinalWaitForScripts, url, threadId,
-                       expressionXPaths);
+        return getPage(webClient, savePrefix, mustRefreshPage, mustSavePage, waitForScripts, defaultSecondaryWaitForScripts, defaultFinalWaitForScripts, url, threadId, expressionXPaths);
     }
 
-    public static HtmlPage getPage(final WebClient webClient, final String savePrefix, final AtomicBoolean mustRefreshPage, final AtomicBoolean mustSavePage, final long waitForScripts, final String url,
-                                   final String threadId, final String... expressionXPaths) {
-        return getPage(webClient, savePrefix, mustRefreshPage, mustSavePage, waitForScripts, defaultSecondaryWaitForScripts, defaultFinalWaitForScripts, url, threadId,
-                       expressionXPaths);
-    }
-
-    public static HtmlPage getPage(final WebClient webClient, final String savePrefix, final AtomicBoolean mustRefreshPage, final AtomicBoolean mustSavePage, final long waitForScripts,
-                                   final long secondaryWaitForScripts, final long finalWaitForScripts, final String url, final String threadId, final String... expressionXPaths) {
-        HtmlPage htmlPage;
+    public static HtmlPage getPage(@NotNull final WebClient webClient, final String savePrefix, final AtomicBoolean mustRefreshPage, final AtomicBoolean mustSavePage, final long waitForScripts, final long secondaryWaitForScripts,
+                                   final long finalWaitForScripts, final String url, final String threadId, final String... expressionXPaths) {
+        @Nullable HtmlPage htmlPage;
         final long beginLoadPageTime = System.currentTimeMillis();
         try {
             htmlPage = webClient.getPage(url);
-        } catch (IOException | FailingHttpStatusCodeException exception) {
+        } catch (@SuppressWarnings("OverlyBroadCatchBlock") IOException | FailingHttpStatusCodeException exception) {
             logger.error("{} exception in getPage for url: {}", threadId, url, exception);
             htmlPage = null;
         }
         if (htmlPage != null) {
-            logger.info("{} page finished loading in {}ms: {} {}", threadId, System.currentTimeMillis() - beginLoadPageTime, htmlPage.toString(), htmlPage.getTitleText());
+            logger.info("{} page finished loading in {}ms: {} {}", threadId, System.currentTimeMillis() - beginLoadPageTime, htmlPage, htmlPage.getTitleText());
 
             waitForScripts(webClient, waitForScripts, threadId);
 
@@ -203,31 +209,30 @@ public class WebScraperMethods {
         return htmlPage;
     }
 
-    public static HtmlPage clickElement(final WebClient webClient, final AtomicBoolean mustRefreshPage, final HtmlPage htmlPage, final String expressionXPath, final String threadId, final String savePrefix,
-                                        final AtomicBoolean mustSavePage) {
+    public static HtmlPage clickElement(final WebClient webClient, final AtomicBoolean mustRefreshPage, final HtmlPage htmlPage, final String expressionXPath, final String threadId, final String savePrefix, final AtomicBoolean mustSavePage) {
         return clickElement(webClient, mustRefreshPage, htmlPage, defaultSecondaryWaitForScripts, expressionXPath, threadId, savePrefix, mustSavePage);
     }
 
-    @SuppressWarnings("AssignmentToMethodParameter")
-    public static HtmlPage clickElement(final WebClient webClient, final AtomicBoolean mustRefreshPage, HtmlPage htmlPage, final long secondaryWaitForScripts, String expressionXPath, final String threadId,
-                                        final String savePrefix, final AtomicBoolean mustSavePage) {
+    private static HtmlPage clickElement(final WebClient webClient, final AtomicBoolean mustRefreshPage, final HtmlPage htmlPage, @SuppressWarnings("SameParameterValue") final long secondaryWaitForScripts, @NotNull final String expressionXPath,
+                                         final String threadId, final String savePrefix, final AtomicBoolean mustSavePage) {
         // clicks only the first found element
-
+        HtmlPage page = htmlPage;
+        String xPath = expressionXPath;
         final boolean onlyPrintInfoIfFail;
-        if (expressionXPath.startsWith(ONLY_PRINT_INFO_IF_FAIL_PREFIX)) {
+        if (xPath.startsWith(ONLY_PRINT_INFO_IF_FAIL_PREFIX)) {
             onlyPrintInfoIfFail = true;
-            expressionXPath = expressionXPath.substring(ONLY_PRINT_INFO_IF_FAIL_PREFIX.length());
+            xPath = xPath.substring(ONLY_PRINT_INFO_IF_FAIL_PREFIX.length());
         } else {
             onlyPrintInfoIfFail = false;
         }
 
-        final HtmlElement htmlElement = htmlPage.getFirstByXPath(expressionXPath);
+        final HtmlElement htmlElement = page.getFirstByXPath(xPath);
         if (htmlElement != null) {
             if (Statics.debugLevel.check(3, 129)) {
                 logger.info("{} htmlElement: {}", threadId, htmlElement.asXml());
             }
             try {
-                htmlPage = htmlElement.click();
+                page = htmlElement.click();
             } catch (IOException iOException) {
                 logger.error("{} iOException while clicking on htmlElement", threadId, iOException);
             }
@@ -235,43 +240,50 @@ public class WebScraperMethods {
             waitForScripts(webClient, secondaryWaitForScripts, threadId);
         } else {
             if (onlyPrintInfoIfFail) {
-                logger.warn("{} htmlElement not found for: {}", threadId, expressionXPath);
+                logger.warn("{} htmlElement not found for: {}", threadId, xPath);
             } else {
-                logger.error("{} htmlElement not found, will save page, for: {}", threadId, expressionXPath);
-                savePage(htmlPage, mustSavePage, savePrefix, threadId);
+                logger.error("{} htmlElement not found, will save page, for: {}", threadId, xPath);
+                savePage(page, mustSavePage, savePrefix, threadId);
                 mustRefreshPage.set(true);
             }
         }
-        return htmlPage;
+        return page;
     }
 
-    public static HtmlPage clickElements(final WebClient webClient, final AtomicBoolean mustRefreshPage, final HtmlPage htmlPage, final String expressionXPath, final String threadId, final String savePrefix,
-                                         final AtomicBoolean mustSavePage) {
+    public static HtmlPage clickElements(final WebClient webClient, final AtomicBoolean mustRefreshPage, final HtmlPage htmlPage, final String expressionXPath, final String threadId, final String savePrefix, final AtomicBoolean mustSavePage) {
         return clickElements(webClient, mustRefreshPage, htmlPage, defaultSecondaryWaitForScripts, expressionXPath, threadId, savePrefix, mustSavePage);
     }
 
-    @SuppressWarnings("AssignmentToMethodParameter")
-    public static HtmlPage clickElements(final WebClient webClient, final AtomicBoolean mustRefreshPage, HtmlPage htmlPage, final long secondaryWaitForScripts, String expressionXPath,
-                                         final String threadId, final String savePrefix, final AtomicBoolean mustSavePage) {
+    public static HtmlPage clickElements(final WebClient webClient, final AtomicBoolean mustRefreshPage, final HtmlPage htmlPage, final long secondaryWaitForScripts, @NotNull final String expressionXPath, final String threadId, final String savePrefix,
+                                         final AtomicBoolean mustSavePage) {
         // clicks all found elements
-
+        HtmlPage page = htmlPage;
+        String xPath = expressionXPath;
         final boolean onlyPrintInfoIfFail;
-        if (expressionXPath.startsWith(ONLY_PRINT_INFO_IF_FAIL_PREFIX)) {
+        if (xPath.startsWith(ONLY_PRINT_INFO_IF_FAIL_PREFIX)) {
             onlyPrintInfoIfFail = true;
-            expressionXPath = expressionXPath.substring(ONLY_PRINT_INFO_IF_FAIL_PREFIX.length());
+            xPath = xPath.substring(ONLY_PRINT_INFO_IF_FAIL_PREFIX.length());
         } else {
             onlyPrintInfoIfFail = false;
         }
 
-        final List<?> htmlElements = htmlPage.getByXPath(expressionXPath);
-        if (htmlElements.size() > 0) {
-            for (Object htmlElement : htmlElements) {
+        final List<?> htmlElements = page.getByXPath(xPath);
+        if (htmlElements.isEmpty()) {
+            if (onlyPrintInfoIfFail) {
+                logger.warn("{} {} htmlElements found for: {}", threadId, htmlElements.size(), xPath);
+            } else {
+                logger.error("{} {} htmlElements found, will save page, for: {}", threadId, htmlElements.size(), xPath);
+                savePage(page, mustSavePage, savePrefix, threadId);
+                mustRefreshPage.set(true);
+            }
+        } else {
+            for (final Object htmlElement : htmlElements) {
                 if (htmlElement != null) {
                     if (Statics.debugLevel.check(3, 129)) {
-                        logger.info("{} htmlElement: {}", threadId, ((HtmlElement) htmlElement).asXml());
+                        logger.info("{} htmlElement: {}", threadId, ((DomNode) htmlElement).asXml());
                     }
                     try {
-                        htmlPage = ((HtmlElement) htmlElement).click();
+                        page = ((DomElement) htmlElement).click();
                     } catch (IOException iOException) {
                         logger.error("{} iOException while clicking on htmlElement", threadId, iOException);
                     }
@@ -280,21 +292,13 @@ public class WebScraperMethods {
                 } else {
                     // no onlyPrintInfoIfFail support here, as htmlElements.size should be zero if element is not found
                     // on this branch it's always an error, probably related to real time update of the page by JavaScript
-                    logger.error("{} htmlElement not found inside loop, will save page, for: {}", threadId, expressionXPath);
-                    savePage(htmlPage, mustSavePage, savePrefix, threadId);
+                    logger.error("{} htmlElement not found inside loop, will save page, for: {}", threadId, xPath);
+                    savePage(page, mustSavePage, savePrefix, threadId);
                     mustRefreshPage.set(true);
                 }
             } // end for
-        } else {
-            if (onlyPrintInfoIfFail) {
-                logger.warn("{} {} htmlElements found for: {}", threadId, htmlElements.size(), expressionXPath);
-            } else {
-                logger.error("{} {} htmlElements found, will save page, for: {}", threadId, htmlElements.size(), expressionXPath);
-                savePage(htmlPage, mustSavePage, savePrefix, threadId);
-                mustRefreshPage.set(true);
-            }
         }
-        return htmlPage;
+        return page;
     }
 
     public static void waitForScripts(final WebClient webClient, final String threadId) {
@@ -305,14 +309,13 @@ public class WebScraperMethods {
         if (waitForScripts >= 0) {
             final long beginExecuteScriptsTime = System.currentTimeMillis();
             final int jobsStillActive = webClient.waitForBackgroundJavaScriptStartingBefore(waitForScripts);
-            logger.info("{} waitForBackgroundJavaScriptStartingBefore({}) finished in {} ms , {} jobsStillActive", threadId, waitForScripts,
-                        System.currentTimeMillis() - beginExecuteScriptsTime, jobsStillActive);
+            logger.info("{} waitForBackgroundJavaScriptStartingBefore({}) finished in {} ms , {} jobsStillActive", threadId, waitForScripts, System.currentTimeMillis() - beginExecuteScriptsTime, jobsStillActive);
         }
     }
 
-    public static ArrayList<String> getAlertsList(final WebClient webClient) {
+    public static ArrayList<String> getAlertsList(@NotNull final WebClient webClient) {
         final ArrayList<String> collectedAlertsList = new ArrayList<>(0);
-        final CollectingAlertHandler collectingAlertHandler = new CollectingAlertHandler(collectedAlertsList);
+        final AlertHandler collectingAlertHandler = new CollectingAlertHandler(collectedAlertsList);
         webClient.setAlertHandler(collectingAlertHandler);
 
         return collectedAlertsList;
@@ -342,8 +345,8 @@ public class WebScraperMethods {
         return initializeCache(webClient, null, null, cacheMaxSize, threadId);
     }
 
-    public static Cache initializeCache(final WebClient webClient, final String fileName, final Cache sourceCache, final int cacheMaxSize, final String threadId) {
-        Cache cache;
+    private static Cache initializeCache(final WebClient webClient, final String fileName, final Cache sourceCache, final int cacheMaxSize, final String threadId) {
+        @Nullable Cache cache;
         if (sourceCache != null) {
             cache = SerialClone.clone(sourceCache);
         } else if (fileName != null) {
@@ -389,8 +392,8 @@ public class WebScraperMethods {
 //        browserVersion.setXmlHttpRequestAcceptHeader(BrowserVersion.INTERNET_EXPLORER_8.getXmlHttpRequestAcceptHeader());
 
         final WebClient webClient = new WebClient(browserVersion);
-        logger.info("{} browserVersion: {}", threadId, webClient.getBrowserVersion().toString());
-        WebClientOptions webClientOptions = webClient.getOptions();
+        logger.info("{} browserVersion: {}", threadId, webClient.getBrowserVersion());
+        final WebClientOptions webClientOptions = webClient.getOptions();
         webClientOptions.setUseInsecureSSL(true);
 //        webClientOptions.setCssEnabled(false); // this might be the cause that disables the refresh pop-up on betradar
         webClientOptions.setThrowExceptionOnScriptError(false);

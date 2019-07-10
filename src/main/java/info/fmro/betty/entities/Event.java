@@ -9,6 +9,9 @@ import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
 import info.fmro.shared.utility.SynchronizedMap;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +28,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 
+@SuppressWarnings({"ClassWithTooManyFields", "ClassWithTooManyMethods", "OverlyComplexClass"})
 public class Event
         extends Ignorable
         implements Serializable, Comparable<Event> {
@@ -39,15 +43,15 @@ public class Event
     private String countryCode;
     private String timezone;
     private String venue;
+    @Nullable
     private Date openDate;
     private int marketCount; // taken from EventResult manually; initialization doesn't work when using Gson
     private String homeName;
     private String awayName;
     private long timeFirstSeen, timeStamp, matchedTimeStamp;
 
-    //    public Event() {
-//    }
     public Event(final String id) {
+        super();
         this.id = id;
         this.initializeCollections();
     }
@@ -59,7 +63,8 @@ public class Event
 //
 //        this.scraperEvents = new LinkedHashSet<>(0);
 //    }
-    public synchronized int initializeCollections() {
+    @SuppressWarnings({"FinalMethod", "UnusedReturnValue"})
+    final synchronized int initializeCollections() {
         int modified = 0;
 
         if (this.scraperEventIds == null) {
@@ -106,9 +111,10 @@ public class Event
             } // end while
 
             final int size = ignoredExpirations.size();
-            if (size >= Statics.MIN_MATCHED) {
+            //noinspection ConstantConditions,ConditionCoveredByFurtherCondition
+            if (size >= Statics.MIN_MATCHED && size > 0) {
                 Collections.sort(ignoredExpirations);
-                final long newIgnoredExpiration = ignoredExpirations.get(Statics.MIN_MATCHED - 1);
+                final long newIgnoredExpiration = ignoredExpirations.get(size - 1);
                 modified = this.setIgnored(0L, newIgnoredExpiration);
             } else { // not enough matched scrapers, nothing to be done
                 modified = 0;
@@ -127,20 +133,21 @@ public class Event
         return setIgnored(period, currentTime);
     }
 
+    @SuppressWarnings("OverlyNestedMethod")
     @Override
-    public synchronized int setIgnored(final long period, final long currentTime) {
-        final int modified = super.setIgnored(period, currentTime);
+    public synchronized int setIgnored(final long period, final long startTime) {
+        final int modified = super.setIgnored(period, startTime);
 
         if (modified > 0) {
             final Collection<MarketCatalogue> marketCataloguesCopy = Statics.marketCataloguesMap.valuesCopy();
-            for (MarketCatalogue marketCatalogue : marketCataloguesCopy) {
+            for (final MarketCatalogue marketCatalogue : marketCataloguesCopy) {
                 if (marketCatalogue != null) {
                     final Event event = marketCatalogue.getEventStump();
                     if (event != null) {
                         final String eventId = event.getId();
                         if (eventId != null) {
                             if (eventId.equals(this.id)) {
-                                marketCatalogue.setIgnored(period, currentTime);
+                                marketCatalogue.setIgnored(period, startTime);
                             } else { // nothing to be done
                             }
                         } else {
@@ -159,7 +166,7 @@ public class Event
 
             // delayed starting of threads might no longer be necessary
             final long realCurrentTime = System.currentTimeMillis();
-            final long realPeriod = period + currentTime - realCurrentTime + 500L; // 500ms added to account for clock errors
+            final long realPeriod = period + startTime - realCurrentTime + 500L; // 500ms added to account for clock errors
             final HashSet<Event> eventsSet = new HashSet<>(2);
             eventsSet.add(this);
 
@@ -173,136 +180,141 @@ public class Event
     }
 
     public synchronized String getId() {
-        return id;
+        return this.id;
     }
 
     public synchronized String getName() {
-        return name;
+        return this.name;
     }
 
-    public synchronized int setName(final String name) {
+    private synchronized int setName(final String newName) {
         final int modified;
         if (this.name == null) {
-            if (name == null) {
+            if (newName == null) {
                 modified = 0;
             } else {
-                this.name = name;
+                this.name = newName;
                 modified = 1;
             }
-        } else if (this.name.equals(name)) {
+        } else if (this.name.equals(newName)) {
             modified = 0;
         } else {
-            this.name = name;
+            this.name = newName;
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized String getCountryCode() {
-        return countryCode;
+    @Contract(pure = true)
+    private synchronized String getCountryCode() {
+        return this.countryCode;
     }
 
-    public synchronized int setCountryCode(final String countryCode) {
+    private synchronized int setCountryCode(final String newCountryCode) {
         final int modified;
         if (this.countryCode == null) {
-            if (countryCode == null) {
+            if (newCountryCode == null) {
                 modified = 0;
             } else {
-                this.countryCode = countryCode;
+                this.countryCode = newCountryCode;
                 modified = 1;
             }
-        } else if (this.countryCode.equals(countryCode)) {
+        } else if (this.countryCode.equals(newCountryCode)) {
             modified = 0;
         } else {
-            this.countryCode = countryCode;
+            this.countryCode = newCountryCode;
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized String getTimezone() {
-        return timezone;
+    @Contract(pure = true)
+    private synchronized String getTimezone() {
+        return this.timezone;
     }
 
-    public synchronized int setTimezone(final String timezone) {
+    private synchronized int setTimezone(final String newTimezone) {
         final int modified;
         if (this.timezone == null) {
-            if (timezone == null) {
+            if (newTimezone == null) {
                 modified = 0;
             } else {
-                this.timezone = timezone;
+                this.timezone = newTimezone;
                 modified = 1;
             }
-        } else if (this.timezone.equals(timezone)) {
+        } else if (this.timezone.equals(newTimezone)) {
             modified = 0;
         } else {
-            this.timezone = timezone;
+            this.timezone = newTimezone;
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized String getVenue() {
-        return venue;
+    @Contract(pure = true)
+    private synchronized String getVenue() {
+        return this.venue;
     }
 
-    public synchronized int setVenue(final String venue) {
+    private synchronized int setVenue(final String newVenue) {
         final int modified;
         if (this.venue == null) {
-            if (venue == null) {
+            if (newVenue == null) {
                 modified = 0;
             } else {
-                this.venue = venue;
+                this.venue = newVenue;
                 modified = 1;
             }
-        } else if (this.venue.equals(venue)) {
+        } else if (this.venue.equals(newVenue)) {
             modified = 0;
         } else {
-            logger.warn("changing venue from {} to {} in Event.setVenue for: {}", this.venue, venue, Generic.objectToString(this));
-            this.venue = venue;
+            logger.warn("changing venue from {} to {} in Event.setVenue for: {}", this.venue, newVenue, Generic.objectToString(this));
+            this.venue = newVenue;
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized Date getOpenDate() {
-        return openDate == null ? null : (Date) openDate.clone();
+    @Contract(pure = true)
+    @Nullable
+    private synchronized Date getOpenDate() {
+        return this.openDate == null ? null : (Date) this.openDate.clone();
     }
 
-    public synchronized int setOpenDate(final Date openDate) {
+    private synchronized int setOpenDate(final Date newOpenDate) {
         final int modified;
         if (this.openDate == null) {
-            if (openDate == null) {
+            if (newOpenDate == null) {
                 modified = 0;
             } else {
-                this.openDate = (Date) openDate.clone();
+                this.openDate = (Date) newOpenDate.clone();
                 modified = 1;
             }
-        } else if (this.openDate.equals(openDate)) {
+        } else if (this.openDate.equals(newOpenDate)) {
             modified = 0;
         } else {
-            this.openDate = openDate == null ? null : (Date) openDate.clone();
+            this.openDate = newOpenDate == null ? null : (Date) newOpenDate.clone();
             modified = 1;
         }
         return modified;
     }
 
     public synchronized int getMarketCount() {
-        return marketCount;
+        return this.marketCount;
     }
 
-    public synchronized int setMarketCount(final Integer marketCount) {
+    public synchronized int setMarketCount(final Integer newMarketCount) {
         final int modified;
 
-        if (marketCount == null) {
+        if (newMarketCount == null) {
             modified = 0;
             logger.error("null marketCount in Event.setMarketCount for: {}", Generic.objectToString(this));
-        } else if (marketCount == this.marketCount) {
+        } else if (newMarketCount == this.marketCount) {
             modified = 0;
-        } else if (marketCount < 0) {
-            if (marketCount != -1) {
-                logger.error("not allowed to set negative value {} for marketCount in Event: {}", marketCount, Generic.objectToString(this));
-            } else { // attempt to set -1 is made when events are updated from eventStumps, normal behaviour
+        } else if (newMarketCount < 0) {
+            if (newMarketCount == -1) { // attempt to set -1 is made when events are updated from eventStumps, normal behaviour
+            } else {
+                logger.error("not allowed to set negative value {} for marketCount in Event: {}", newMarketCount, Generic.objectToString(this));
             }
             modified = 0;
 
@@ -315,14 +327,15 @@ public class Event
             //     modified = 0;
             // }
         } else {
-            this.marketCount = marketCount;
+            this.marketCount = newMarketCount;
             modified = 1;
         }
 
         return modified;
     }
 
-    public synchronized int setMarketCountStump() { // indicate the fact marketCount is not used, for eventStumps
+    @SuppressWarnings("UnusedReturnValue")
+    synchronized int setMarketCountStump() { // indicate the fact marketCount is not used, for eventStumps
         final int modified;
 
         if (this.marketCount == 0) {
@@ -339,26 +352,17 @@ public class Event
     }
 
     public synchronized String getHomeName() {
-        return homeName;
+        return this.homeName;
     }
 
-    public synchronized int setHomeName(final String homeName) {
+    private synchronized int setHomeName(final String newHomeName) {
         final int modified;
-        if (homeName == null) {
-            if (this.homeName == null) {
-                modified = 0;
-            } else { // happens with update from stump
-//                logger.error("not allowed to set null value for homeName in Event: {}" + Generic.objectToString(this));
-                // won't allow null to be set
-                // this.homeName = homeName;
-                // modified = 1;
-
-                modified = 0;
-            }
-        } else if (homeName.equals(this.homeName)) {
+        if (newHomeName == null) {
+            modified = 0;
+        } else if (newHomeName.equals(this.homeName)) {
             modified = 0;
         } else {
-            this.homeName = homeName;
+            this.homeName = newHomeName;
             modified = 1;
         }
 
@@ -366,26 +370,17 @@ public class Event
     }
 
     public synchronized String getAwayName() {
-        return awayName;
+        return this.awayName;
     }
 
-    public synchronized int setAwayName(final String awayName) {
+    private synchronized int setAwayName(final String newAwayName) {
         final int modified;
-        if (awayName == null) {
-            if (this.awayName == null) {
-                modified = 0;
-            } else { // happens with update from stump
-//                logger.error("not allowed to set null value for awayName in Event: {}" + Generic.objectToString(this));
-                // won't allow null to be set
-                // this.awayName = awayName;
-                // modified = 1;
-
-                modified = 0;
-            }
-        } else if (awayName.equals(this.awayName)) {
+        if (newAwayName == null) {
+            modified = 0;
+        } else if (newAwayName.equals(this.awayName)) {
             modified = 0;
         } else {
-            this.awayName = awayName;
+            this.awayName = newAwayName;
             modified = 1;
         }
 
@@ -394,13 +389,13 @@ public class Event
 
     public synchronized int parseName() {
         final int modified;
-        if (name.contains(" v ")) {
-            int homeModified = this.setHomeName(name.substring(0, name.indexOf(" v ")));
-            int awayModified = this.setAwayName(name.substring(name.indexOf(" v ") + " v ".length()));
+        if (this.name.contains(" v ")) {
+            final int homeModified = this.setHomeName(this.name.substring(0, this.name.indexOf(" v ")));
+            final int awayModified = this.setAwayName(this.name.substring(this.name.indexOf(" v ") + " v ".length()));
             modified = homeModified + awayModified;
-        } else if (name.contains(" @ ")) {
-            int homeModified = this.setHomeName(name.substring(0, name.indexOf(" @ ")));
-            int awayModified = this.setAwayName(name.substring(name.indexOf(" @ ") + " @ ".length()));
+        } else if (this.name.contains(" @ ")) {
+            final int homeModified = this.setHomeName(this.name.substring(0, this.name.indexOf(" @ ")));
+            final int awayModified = this.setAwayName(this.name.substring(this.name.indexOf(" @ ") + " @ ".length()));
             modified = homeModified + awayModified;
         } else { // creates clutter in the logs even if logging once
             //            Generic.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "unknown event name home/away separator for: {}", name);
@@ -415,21 +410,21 @@ public class Event
     }
 
     public synchronized long getTimeFirstSeen() {
-        return timeFirstSeen;
+        return this.timeFirstSeen;
     }
 
-    public synchronized int setTimeFirstSeen(final long timeFirstSeen) {
+    private synchronized int setTimeFirstSeen(final long newTimeFirstSeen) {
         final int modified;
         if (this.timeFirstSeen > 0) {
-            if (this.timeFirstSeen > timeFirstSeen) {
-                logger.error("changing timeFirstSeen event difference {} from {} to {} for: {}", this.timeFirstSeen - timeFirstSeen, this.timeFirstSeen, timeFirstSeen, Generic.objectToString(this));
-                this.timeFirstSeen = timeFirstSeen;
+            if (this.timeFirstSeen > newTimeFirstSeen) {
+                logger.error("changing timeFirstSeen event difference {} from {} to {} for: {}", this.timeFirstSeen - newTimeFirstSeen, this.timeFirstSeen, newTimeFirstSeen, Generic.objectToString(this));
+                this.timeFirstSeen = newTimeFirstSeen;
                 modified = 1;
             } else {
                 modified = 0; // values are equal or new value is more recent
             }
-        } else if (timeFirstSeen > 0) {
-            this.timeFirstSeen = timeFirstSeen;
+        } else if (newTimeFirstSeen > 0) {
+            this.timeFirstSeen = newTimeFirstSeen;
             modified = 1;
         } else {
             modified = 0; // values are both <= 0
@@ -438,11 +433,11 @@ public class Event
     }
 
     public synchronized long getTimeStamp() {
-        return timeStamp;
+        return this.timeStamp;
     }
 
-    public synchronized int setTimeStamp(final long timeStamp) {
-        this.timeStamp = timeStamp;
+    public synchronized int setTimeStamp(final long newTimeStamp) {
+        this.timeStamp = newTimeStamp;
         return setTimeFirstSeen(this.timeStamp);
     }
 
@@ -452,21 +447,21 @@ public class Event
     }
 
     public synchronized long getMatchedTimeStamp() {
-        return matchedTimeStamp;
+        return this.matchedTimeStamp;
     }
 
-    public synchronized int setMatchedTimeStamp(final long timeStamp) {
+    public synchronized int setMatchedTimeStamp(final long newTimeStamp) {
         final int modified;
         if (this.matchedTimeStamp > 0) {
-            if (this.matchedTimeStamp < timeStamp) {
+            if (this.matchedTimeStamp < newTimeStamp) {
 //                logger.error("changing matchedTimeStamp event difference {} from {} to {} for: {}", timeStamp-this.matchedTimeStamp, this.matchedTimeStamp, timeStamp, Generic.objectToString(this));
-                this.matchedTimeStamp = timeStamp;
+                this.matchedTimeStamp = newTimeStamp;
                 modified = 1;
             } else {
                 modified = 0; // values are equal or new value is older
             }
-        } else if (timeStamp > 0) {
-            this.matchedTimeStamp = timeStamp;
+        } else if (newTimeStamp > 0) {
+            this.matchedTimeStamp = newTimeStamp;
             modified = 1;
         } else {
             modified = 0; // values are both <= 0
@@ -474,11 +469,12 @@ public class Event
         return modified;
     }
 
-    public synchronized int matchedTimeStamp() {
+    @SuppressWarnings("UnusedReturnValue")
+    private synchronized int matchedTimeStamp() {
         return matchedTimeStamp(true); // default behavior is true
     }
 
-    public synchronized int matchedTimeStamp(final boolean runIgnoredScrapersCheck) {
+    private synchronized int matchedTimeStamp(final boolean runIgnoredScrapersCheck) {
         if (runIgnoredScrapersCheck) {
             this.ignoredScrapersCheck(); // check at every modification
         } else { // not running ignoredScrapersCheck, that's likely because this method was invoked from within ignoredScrapersCheck
@@ -523,8 +519,7 @@ public class Event
 //                        logger.info("notExist scraperEvent in getNValidScraperEventIds, timeSinceLastRemoved: {}ms for: {} {} {} {}", timeSinceLastRemoved, scraperClazz, scraperId,
 //                                    this.id, this.name);
 //                    } else {
-                        logger.error("notExist scraperEvent in getNValidScraperEventIds, timeSinceLastRemoved: {}ms for: {} {} {}", timeSinceLastRemoved, scraperClazz, scraperId,
-                                     Generic.objectToString(this));
+                        logger.error("notExist scraperEvent in getNValidScraperEventIds, timeSinceLastRemoved: {}ms for: {} {} {}", timeSinceLastRemoved, scraperClazz, scraperId, Generic.objectToString(this));
 //                    }
                         iterator.remove();
                         this.matchedTimeStamp(); // removal of existing matchedScraper
@@ -580,23 +575,18 @@ public class Event
 
     public synchronized int setScraperEventId(final Class<? extends ScraperEvent> clazz, final long scraperEventId) {
         final int modified;
-        long existingScraperEventId;
-        if (this.scraperEventIds.containsKey(clazz)) {
-            existingScraperEventId = this.scraperEventIds.get(clazz);
-        } else {
-            existingScraperEventId = -1;
-        }
+        final long existingScraperEventId = this.scraperEventIds.containsKey(clazz) ? this.scraperEventIds.get(clazz) : -1;
 
         if (existingScraperEventId >= 0) {
-            if (existingScraperEventId != scraperEventId) {
+            if (existingScraperEventId == scraperEventId) {
+                modified = 0; // values are equal
+            } else {
                 logger.error("changing matched scraper event from {} to {} for: {}", existingScraperEventId, scraperEventId, Generic.objectToString(this));
 
 //                this.removeScraperEvent(clazz);
 //                this.addScraperEvent(clazz, scraperEventId);
                 this.scraperEventIds.put(clazz, scraperEventId);
                 modified = 1;
-            } else {
-                modified = 0; // values are equal
             }
         } else if (scraperEventId >= 0) {
 //            this.addScraperEvent(clazz, scraperEventId);
@@ -613,6 +603,7 @@ public class Event
         return modified;
     }
 
+    @Nullable
     public synchronized LinkedHashMap<Class<? extends ScraperEvent>, Long> getScraperEventIds() {
         return this.scraperEventIds == null ? null : new LinkedHashMap<>(this.scraperEventIds);
     }
@@ -694,31 +685,28 @@ public class Event
         return modified;
     }
 
+    @SuppressWarnings("MethodWithMultipleReturnPoints")
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(final Event other) {
-        if (other == null) {
+    public synchronized int compareTo(@NotNull final Event o) {
+        //noinspection ConstantConditions
+        if (o == null) {
             return AFTER;
         }
-        if (this == other) {
+        if (this == o) {
             return EQUAL;
         }
 
-        if (this.getClass() != other.getClass()) {
-            if (this.getClass().hashCode() < other.getClass().hashCode()) {
-                return BEFORE;
-            } else {
-                return AFTER;
-            }
+        if (this.getClass() != o.getClass()) {
+            return this.getClass().hashCode() < o.getClass().hashCode() ? BEFORE : AFTER;
         }
-        if (!Objects.equals(this.id, other.id)) {
+        if (!Objects.equals(this.id, o.id)) {
             if (this.id == null) {
                 return BEFORE;
             }
-            if (other.id == null) {
+            if (o.id == null) {
                 return AFTER;
             }
-            return this.id.compareTo(other.id);
+            return this.id.compareTo(o.id);
         }
 
         return EQUAL;
@@ -731,8 +719,8 @@ public class Event
         return hash;
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;

@@ -24,13 +24,11 @@ hs_err_pid*
 nb*.xml
 logs/*
 /*.txt
-data/*
 .idea/*
 gradle/*
 .gradle/*
 /gradlew*
 build/*
 out/*
-jar/*
 /input/
 /data/

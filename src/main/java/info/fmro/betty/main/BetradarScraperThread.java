@@ -18,6 +18,8 @@ import info.fmro.betty.objects.Statics;
 import info.fmro.betty.utility.WebScraperMethods;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
@@ -35,6 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+@SuppressWarnings({"OverlyComplexClass", "SpellCheckingInspection"})
 public class BetradarScraperThread
         extends ScraperThread {
     private static final Logger logger = LoggerFactory.getLogger(BetradarScraperThread.class);
@@ -49,7 +52,8 @@ public class BetradarScraperThread
         super("betradar", 500L, BrowserVersion.FIREFOX_52, 50, false);
     }
 
-    public boolean scrapeStartTime(final BetradarEvent scraperEvent, final BookMark bookMark) {
+    @SuppressWarnings("NestedTryStatement")
+    private boolean scrapeStartTime(final BetradarEvent scraperEvent, @NotNull final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
         final VTDNav vtdNav = bookMark.getNav();
@@ -87,35 +91,35 @@ public class BetradarScraperThread
                         // logger.info("" + scraperEvent.getStartTime().getTime());
                         success = true;
                     } catch (ParseException parseException) {
-                        logger.error("{} parseException while converting time", threadId, parseException);
+                        logger.error("{} parseException while converting time", this.threadId, parseException);
                         success = false;
                     }
                 } else {
                     if (Statics.debugLevel.check(2, 145)) {
-                        logger.error("{} Time text not found", threadId);
+                        logger.error("{} Time text not found", this.threadId);
                     }
                     success = false;
                 }
             } else {
                 if (Statics.debugLevel.check(2, 130)) {
-                    logger.error("{} Time not found", threadId);
+                    logger.error("{} Time not found", this.threadId);
                 }
                 success = false;
             }
         } catch (XPathParseException xPathParseException) {
-            logger.error("{} xPathParseException in autoPilot Time", threadId, xPathParseException);
+            logger.error("{} xPathParseException in autoPilot Time", this.threadId, xPathParseException);
             success = false;
         } catch (XPathEvalException xPathEvalException) {
-            logger.error("{} xPathEvalException in autoPilot Time", threadId, xPathEvalException);
+            logger.error("{} xPathEvalException in autoPilot Time", this.threadId, xPathEvalException);
             success = false;
         } catch (NavException navException) {
-            logger.error("{} navException in autoPilot Time", threadId, navException);
+            logger.error("{} navException in autoPilot Time", this.threadId, navException);
             success = false;
         }
         return success;
     }
 
-    public boolean scrapeHomeTeam(final BetradarEvent scraperEvent, final BookMark bookMark) {
+    private boolean scrapeHomeTeam(final BetradarEvent scraperEvent, @NotNull final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
         final VTDNav vtdNav = bookMark.getNav();
@@ -135,7 +139,7 @@ public class BetradarScraperThread
                     success = true;
                 } else {
                     if (Statics.debugLevel.check(2, 143)) {
-                        logger.error("{} Home text not found", threadId);
+                        logger.error("{} Home text not found", this.threadId);
                     }
                     success = false;
                 }
@@ -155,24 +159,24 @@ public class BetradarScraperThread
                 }
             } else {
                 if (Statics.debugLevel.check(2, 131)) {
-                    logger.error("{} HomeTeam not found", threadId);
+                    logger.error("{} HomeTeam not found", this.threadId);
                 }
                 success = false;
             }
         } catch (XPathParseException xPathParseException) {
-            logger.error("{} xPathParseException in autoPilot HomeTeam", threadId, xPathParseException);
+            logger.error("{} xPathParseException in autoPilot HomeTeam", this.threadId, xPathParseException);
             success = false;
         } catch (XPathEvalException xPathEvalException) {
-            logger.error("{} xPathEvalException in autoPilot HomeTeam", threadId, xPathEvalException);
+            logger.error("{} xPathEvalException in autoPilot HomeTeam", this.threadId, xPathEvalException);
             success = false;
         } catch (NavException navException) {
-            logger.error("{} navException in autoPilot HomeTeam", threadId, navException);
+            logger.error("{} navException in autoPilot HomeTeam", this.threadId, navException);
             success = false;
         }
         return success;
     }
 
-    public boolean scrapeAwayTeam(final BetradarEvent scraperEvent, final BookMark bookMark) {
+    private boolean scrapeAwayTeam(final BetradarEvent scraperEvent, @NotNull final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
         final VTDNav vtdNav = bookMark.getNav();
@@ -192,7 +196,7 @@ public class BetradarScraperThread
                     success = true;
                 } else {
                     if (Statics.debugLevel.check(2, 142)) {
-                        logger.error("{} Away text not found", threadId);
+                        logger.error("{} Away text not found", this.threadId);
                     }
                     success = false;
                 }
@@ -212,24 +216,25 @@ public class BetradarScraperThread
                 }
             } else {
                 if (Statics.debugLevel.check(2, 132)) {
-                    logger.error("{} AwayTeam not found", threadId);
+                    logger.error("{} AwayTeam not found", this.threadId);
                 }
                 success = false;
             }
         } catch (XPathParseException xPathParseException) {
-            logger.error("{} xPathParseException in autoPilot awayTeam", threadId, xPathParseException);
+            logger.error("{} xPathParseException in autoPilot awayTeam", this.threadId, xPathParseException);
             success = false;
         } catch (XPathEvalException xPathEvalException) {
-            logger.error("{} xPathEvalException in autoPilot awayTeam", threadId, xPathEvalException);
+            logger.error("{} xPathEvalException in autoPilot awayTeam", this.threadId, xPathEvalException);
             success = false;
         } catch (NavException navException) {
-            logger.error("{} navException in autoPilot awayTeam", threadId, navException);
+            logger.error("{} navException in autoPilot awayTeam", this.threadId, navException);
             success = false;
         }
         return success;
     }
 
-    public boolean scrapeScore(final BetradarEvent scraperEvent, final BookMark bookMark) {
+    @SuppressWarnings({"NestedTryStatement", "OverlyLongMethod", "OverlyNestedMethod"})
+    private boolean scrapeScore(final BetradarEvent scraperEvent, @NotNull final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
         final VTDNav vtdNav = bookMark.getNav();
@@ -240,7 +245,7 @@ public class BetradarScraperThread
             autoPilot.selectXPath("./td[@class='score' or (starts-with(@class, 'score') and contains(@class, 'recent'))]");
             final int indexDataCellScore = autoPilot.evalXPath();
             if (indexDataCellScore >= 0) {
-                BookMark bookMarkCellScore = new BookMark(vtdNav);
+                final BookMark bookMarkCellScore = new BookMark(vtdNav);
                 bookMarkCellScore.recordCursorPosition();
 
                 autoPilot.selectXPath("./span");
@@ -256,7 +261,7 @@ public class BetradarScraperThread
                         if (indexText >= 0) {
                             scoreBookMarksList.add(scoreBookMark);
                         } else {
-                            logger.error("{} no text for Score Span listSize: {}", threadId, scoreBookMarksList.size());
+                            logger.error("{} no text for Score Span listSize: {}", this.threadId, scoreBookMarksList.size());
                         }
                     }
                 } while (indexSpan >= 0);
@@ -273,7 +278,8 @@ public class BetradarScraperThread
                     if (homeScoreString != null && awayScoreString != null) {
                         homeScoreString = homeScoreString.trim();
                         awayScoreString = awayScoreString.trim();
-                        int homeScore, awayScore;
+                        final int homeScore;
+                        final int awayScore;
                         try {
                             homeScore = Integer.parseInt(homeScoreString);
                             scraperEvent.setHomeScore(homeScore);
@@ -282,59 +288,60 @@ public class BetradarScraperThread
                             success = true;
                         } catch (NumberFormatException numberFormatException) {
                             if (Statics.debugLevel.check(2, 148)) {
-                                logger.error("{} numberFormatException while getting score from: {} {}", threadId, homeScoreString, awayScoreString, numberFormatException);
+                                logger.error("{} numberFormatException while getting score from: {} {}", this.threadId, homeScoreString, awayScoreString, numberFormatException);
                             }
                             success = false;
                         }
                     } else {
-                        logger.error("{} homeScoreString {} or awayScoreString {} are null", threadId, homeScoreString, awayScoreString);
+                        logger.error("{} homeScoreString {} or awayScoreString {} are null", this.threadId, homeScoreString, awayScoreString);
                         success = false;
                     }
                 } else {
-                    if (listSize != 0) {
-                        if (Statics.debugLevel.check(2, 147)) {
-                            logger.error("{} Spancounter bad in Score: {}", threadId, listSize);
-                        }
-                        success = false;
-                    } else {
+                    if (listSize == 0) {
                         bookMarkCellScore.setCursorPosition();
                         final int indexCellScoreText = vtdNav.getText();
                         if (indexCellScoreText < 0) {
                             if (Statics.debugLevel.check(2, 140)) {
-                                logger.error("{} no CellScoreText found", threadId);
+                                logger.error("{} no CellScoreText found", this.threadId);
                             }
                             success = false;
                         } else {
                             final String textContent = vtdNav.toString(indexCellScoreText);
-                            if (!textContent.contains("-:-")) {
-                                logger.error("{} textContent bad for Score: {}", threadId, textContent);
-                                success = false;
-                            } else { // match hasn't started, thus no score
+                            if (textContent.contains("-:-")) { // match hasn't started, thus no score
                                 success = true; // it's normal
+                            } else {
+                                logger.error("{} textContent bad for Score: {}", this.threadId, textContent);
+                                success = false;
                             }
                         }
+                    } else {
+                        if (Statics.debugLevel.check(2, 147)) {
+                            logger.error("{} Span counter bad in Score: {}", this.threadId, listSize);
+                        }
+                        success = false;
                     }
                 }
             } else {
                 if (Statics.debugLevel.check(2, 133)) {
-                    logger.error("{} Score not found", threadId);
+                    logger.error("{} Score not found", this.threadId);
                 }
                 success = false;
             }
         } catch (XPathParseException xPathParseException) {
-            logger.error("{} xPathParseException in autoPilot Score", threadId, xPathParseException);
+            logger.error("{} xPathParseException in autoPilot Score", this.threadId, xPathParseException);
             success = false;
         } catch (XPathEvalException xPathEvalException) {
-            logger.error("{} xPathEvalException in autoPilot Score", threadId, xPathEvalException);
+            logger.error("{} xPathEvalException in autoPilot Score", this.threadId, xPathEvalException);
             success = false;
         } catch (NavException navException) {
-            logger.error("{} navException in autoPilot Score", threadId, navException);
+            logger.error("{} navException in autoPilot Score", this.threadId, navException);
             success = false;
         }
         return success;
     }
 
-    public boolean scrapeHtScore(final BetradarEvent scraperEvent, final BookMark bookMark) {
+    @SuppressWarnings({"OverlyNestedMethod", "NestedTryStatement"})
+    private boolean scrapeHtScore(final BetradarEvent scraperEvent, @NotNull final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
         final VTDNav vtdNav = bookMark.getNav();
@@ -354,11 +361,11 @@ public class BetradarScraperThread
                     if (indexSpan >= 0) {
                         final BookMark htBookMark = new BookMark(vtdNav);
                         htBookMark.recordCursorPosition();
-                        int indexText = vtdNav.getText();
+                        final int indexText = vtdNav.getText();
                         if (indexText >= 0) {
                             htBookMarksList.add(htBookMark);
                         } else {
-                            logger.error("{} no text for Ht Span listSize: {}", threadId, htBookMarksList.size());
+                            logger.error("{} no text for Ht Span listSize: {}", this.threadId, htBookMarksList.size());
                         }
                     }
                 } while (indexSpan >= 0);
@@ -375,7 +382,8 @@ public class BetradarScraperThread
                     if (homeScoreString != null && awayScoreString != null) {
                         homeScoreString = homeScoreString.trim();
                         awayScoreString = awayScoreString.trim();
-                        int homeScore, awayScore;
+                        final int homeScore;
+                        final int awayScore;
                         try {
                             homeScore = Integer.parseInt(homeScoreString);
                             scraperEvent.setHomeHtScore(homeScore);
@@ -386,44 +394,45 @@ public class BetradarScraperThread
                             success = true;
                         } catch (NumberFormatException numberFormatException) {
                             if (Statics.debugLevel.check(2, 149)) {
-                                logger.error("{} numberFormatException while getting ht score from: {} {}", threadId, homeScoreString, awayScoreString, numberFormatException);
+                                logger.error("{} numberFormatException while getting ht score from: {} {}", this.threadId, homeScoreString, awayScoreString, numberFormatException);
                             }
                             success = false;
                         }
                     } else {
-                        logger.error("{} homeScoreString {} or awayScoreString {} are null at ht", threadId, homeScoreString, awayScoreString);
+                        logger.error("{} homeScoreString {} or awayScoreString {} are null at ht", this.threadId, homeScoreString, awayScoreString);
                         success = false;
                     }
                 } else {
-                    if (listSize != 0) {
+                    if (listSize == 0) {
+                        success = true; // normal behaviour
+                    } else {
                         if (Statics.debugLevel.check(2, 146)) {
-                            logger.error("{} Spancounter bad in HtScore: {}", threadId, listSize);
+                            logger.error("{} Span counter bad in HtScore: {}", this.threadId, listSize);
                         }
                         success = false;
-                    } else {
-                        success = true; // normal behaviour
                     }
                 }
             } else {
                 if (Statics.debugLevel.check(2, 134)) {
-                    logger.error("{} HtScore not found", threadId);
+                    logger.error("{} HtScore not found", this.threadId);
                 }
                 success = false;
             }
         } catch (XPathParseException xPathParseException) {
-            logger.error("{} xPathParseException in autoPilot HtScore", threadId, xPathParseException);
+            logger.error("{} xPathParseException in autoPilot HtScore", this.threadId, xPathParseException);
             success = false;
         } catch (XPathEvalException xPathEvalException) {
-            logger.error("{} xPathEvalException in autoPilot HtScore", threadId, xPathEvalException);
+            logger.error("{} xPathEvalException in autoPilot HtScore", this.threadId, xPathEvalException);
             success = false;
         } catch (NavException navException) {
-            logger.error("{} navException in autoPilot HtScore", threadId, navException);
+            logger.error("{} navException in autoPilot HtScore", this.threadId, navException);
             success = false;
         }
         return success;
     }
 
-    public boolean scrapeMatchStatus(final BetradarEvent scraperEvent, final BookMark bookMark) {
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "OverlyNestedMethod"})
+    private boolean scrapeMatchStatus(final BetradarEvent scraperEvent, @NotNull final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
         final VTDNav vtdNav = bookMark.getNav();
@@ -442,8 +451,13 @@ public class BetradarScraperThread
                         String statusString = vtdNav.toString(indexStatusString);
                         if (statusString != null) {
                             statusString = statusString.trim();
-                            if (!statusString.isEmpty()) {
-                                MatchStatus matchStatus;
+                            if (statusString.isEmpty()) {
+                                if (Statics.debugLevel.check(2, 141)) {
+                                    logger.error("{} statusString empty", this.threadId);
+                                }
+                                success = false;
+                            } else {
+                                final MatchStatus matchStatus;
                                 switch (statusString) {
                                     case "Abandoned":
                                         matchStatus = MatchStatus.ABANDONED;
@@ -504,59 +518,55 @@ public class BetradarScraperThread
                                         break;
                                     default:
                                         matchStatus = MatchStatus.UNKNOWN;
-                                        logger.error("{} unknown statusString in scrapeMatchStatus: {} {}", threadId, statusString, Generic.objectToString(scraperEvent));
+                                        logger.error("{} unknown statusString in scrapeMatchStatus: {} {}", this.threadId, statusString, Generic.objectToString(scraperEvent));
 
-                                        long currentTime = System.currentTimeMillis();
-                                        synchronized (lastTimedPageSave) { // synchronized not necessary for now, added just in case
-                                            if (currentTime - lastTimedPageSave.get() > Generic.MINUTE_LENGTH_MILLISECONDS * 30L) {
-                                                lastTimedPageSave.set(currentTime);
-                                                mustSavePage.set(true);
+                                        final long currentTime = System.currentTimeMillis();
+                                        synchronized (this.lastTimedPageSave) { // synchronized not necessary for now, added just in case
+                                            if (currentTime - this.lastTimedPageSave.get() > Generic.MINUTE_LENGTH_MILLISECONDS * 30L) {
+                                                this.lastTimedPageSave.set(currentTime);
+                                                this.mustSavePage.set(true);
                                             }
                                         } // end synchronized
                                         break;
                                 } // end switch
                                 scraperEvent.setMatchStatus(matchStatus);
                                 success = true;
-                            } else {
-                                if (Statics.debugLevel.check(2, 141)) {
-                                    logger.error("{} statusString empty", threadId);
-                                }
-                                success = false;
                             }
                         } else {
-                            logger.error("{} statusString null", threadId);
+                            logger.error("{} statusString null", this.threadId);
                             success = false;
                         }
                     } else {
-                        logger.error("{} statusString not found in MatchStatus", threadId);
+                        logger.error("{} statusString not found in MatchStatus", this.threadId);
                         success = false;
                     }
                 } else {
                     if (Statics.debugLevel.check(2, 144)) {
-                        logger.error("{} Span not found in MatchStatus", threadId);
+                        logger.error("{} Span not found in MatchStatus", this.threadId);
                     }
                     success = false;
                 }
             } else {
                 if (Statics.debugLevel.check(2, 135)) {
-                    logger.error("{} MatchStatus not found", threadId);
+                    logger.error("{} MatchStatus not found", this.threadId);
                 }
                 success = false;
             }
         } catch (XPathParseException xPathParseException) {
-            logger.error("{} xPathParseException in autoPilot MatchStatus", threadId, xPathParseException);
+            logger.error("{} xPathParseException in autoPilot MatchStatus", this.threadId, xPathParseException);
             success = false;
         } catch (XPathEvalException xPathEvalException) {
-            logger.error("{} xPathEvalException in autoPilot MatchStatus", threadId, xPathEvalException);
+            logger.error("{} xPathEvalException in autoPilot MatchStatus", this.threadId, xPathEvalException);
             success = false;
         } catch (NavException navException) {
-            logger.error("{} navException in autoPilot MatchStatus", threadId, navException);
+            logger.error("{} navException in autoPilot MatchStatus", this.threadId, navException);
             success = false;
         }
         return success;
     }
 
-    public boolean scrapeMinutesPlayed(final BetradarEvent scraperEvent, final BookMark bookMark) {
+    @SuppressWarnings({"OverlyNestedMethod", "NestedTryStatement"})
+    private boolean scrapeMinutesPlayed(final BetradarEvent scraperEvent, @NotNull final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
         final VTDNav vtdNav = bookMark.getNav();
@@ -574,7 +584,7 @@ public class BetradarScraperThread
                     minutesString = minutesString.trim();
                     if (minutesString.contains("'")) {
                         minutesString = minutesString.substring(0, minutesString.indexOf('\''));
-                        int stoppage;
+                        final int stoppage;
                         try {
                             if (minutesString.contains("+")) {
                                 final String stoppageString = minutesString.substring(minutesString.indexOf('+') + "+".length());
@@ -589,7 +599,7 @@ public class BetradarScraperThread
                             scraperEvent.setMinutesPlayed(minutes);
                             success = true;
                         } catch (NumberFormatException numberFormatException) {
-                            logger.error("{} numberFormatException getting played time from: {}", threadId, minutesString, numberFormatException);
+                            logger.error("{} numberFormatException getting played time from: {}", this.threadId, minutesString, numberFormatException);
                             success = false;
                         }
                     } else { // no minutes played
@@ -601,18 +611,18 @@ public class BetradarScraperThread
                 }
             } else {
                 if (Statics.debugLevel.check(2, 136)) {
-                    logger.error("{} DataCellMinutes not found", threadId);
+                    logger.error("{} DataCellMinutes not found", this.threadId);
                 }
                 success = false;
             }
         } catch (XPathParseException xPathParseException) {
-            logger.error("{} xPathParseException in autoPilot MinutesPlayed", threadId, xPathParseException);
+            logger.error("{} xPathParseException in autoPilot MinutesPlayed", this.threadId, xPathParseException);
             success = false;
         } catch (XPathEvalException xPathEvalException) {
-            logger.error("{} xPathEvalException in autoPilot MinutesPlayed", threadId, xPathEvalException);
+            logger.error("{} xPathEvalException in autoPilot MinutesPlayed", this.threadId, xPathEvalException);
             success = false;
         } catch (NavException navException) {
-            logger.error("{} navException in autoPilot MinutesPlayed", threadId, navException);
+            logger.error("{} navException in autoPilot MinutesPlayed", this.threadId, navException);
             success = false;
         }
         return success;
@@ -620,33 +630,32 @@ public class BetradarScraperThread
 
     @Override
     public void pageManipulation(final WebClient webClient, final HtmlPage htmlPage) {
-        if (mustSelectFootball.getAndSet(false)) {
-            timeLastPageManipulation.set(System.currentTimeMillis());
-            WebScraperMethods.clickElements(webClient, mustRefreshPage, htmlPage, 5_000L, selectFootballXPath, threadId, SAVE_FOLDER + "/click", mustSavePage);
+        if (this.mustSelectFootball.getAndSet(false)) {
+            this.timeLastPageManipulation.set(System.currentTimeMillis());
+            WebScraperMethods.clickElements(webClient, this.mustRefreshPage, htmlPage, 5_000L, selectFootballXPath, this.threadId, this.saveFolder + "/click", this.mustSavePage);
         }
-        if (mustOrderByKickoff.getAndSet(false)) {
-            timeLastPageManipulation.set(System.currentTimeMillis());
-            WebScraperMethods.clickElements(webClient, mustRefreshPage, htmlPage, 5_000L, orderByKickoffXPath, threadId, SAVE_FOLDER + "/click", mustSavePage);
+        if (this.mustOrderByKickoff.getAndSet(false)) {
+            this.timeLastPageManipulation.set(System.currentTimeMillis());
+            WebScraperMethods.clickElements(webClient, this.mustRefreshPage, htmlPage, 5_000L, orderByKickoffXPath, this.threadId, this.saveFolder + "/click", this.mustSavePage);
         }
-        if (mustTickerZero.getAndSet(false)) {
-            timeLastPageManipulation.set(System.currentTimeMillis());
-            WebScraperMethods.clickElements(webClient, mustRefreshPage, htmlPage, 5_000L, tickerZeroXPath, threadId, SAVE_FOLDER + "/click", mustSavePage);
+        if (this.mustTickerZero.getAndSet(false)) {
+            this.timeLastPageManipulation.set(System.currentTimeMillis());
+            WebScraperMethods.clickElements(webClient, this.mustRefreshPage, htmlPage, 5_000L, tickerZeroXPath, this.threadId, this.saveFolder + "/click", this.mustSavePage);
         }
 
         final long timeStamp = System.currentTimeMillis();
-        if (timeStamp - timeLastPageManipulation.get() > 30L * Generic.MINUTE_LENGTH_MILLISECONDS) {
-            timeLastPageManipulation.set(timeStamp);
+        if (timeStamp - this.timeLastPageManipulation.get() > 30L * Generic.MINUTE_LENGTH_MILLISECONDS) {
+            this.timeLastPageManipulation.set(timeStamp);
             // attempts to avoid need for refresh
-            WebScraperMethods.clickElements(webClient, mustRefreshPage, htmlPage, 5_000L, tickerZeroXPath, threadId, SAVE_FOLDER + "/click", mustSavePage);
+            WebScraperMethods.clickElements(webClient, this.mustRefreshPage, htmlPage, 5_000L, tickerZeroXPath, this.threadId, this.saveFolder + "/click", this.mustSavePage);
         }
     }
 
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "OverlyNestedMethod"})
     @Override
-    public void getScraperEventsInner(final long startTime, final boolean fullRun, final boolean checkAll, final AutoPilot autoPilot, final VTDNav vtdNav, final AtomicInteger listSize,
-                                      final AtomicInteger scrapedEventsCounter)
+    public void getScraperEventsInner(final long startTime, final boolean fullRun, final boolean checkAll, final AutoPilot autoPilot, final VTDNav vtdNav, final AtomicInteger listSize, final AtomicInteger scrapedEventsCounter)
             throws XPathParseException, XPathEvalException, NavException {
-
-        final boolean checkForErrors = (timedScraperCounter.get() - 1) % 10 == 0;
+        final boolean checkForErrors = (this.timedScraperCounter.get() - 1) % 10 == 0;
 
         if (checkForErrors) {
             // refresh dialog errors
@@ -654,8 +663,8 @@ public class BetradarScraperThread
             final int indexRefresh = autoPilot.evalXPath();
             if (indexRefresh >= 0) {
                 // Formulas.logOnce(Generic.MINUTE_LENGTH_MILLISECONDS * 5L, logger, LogLevel.INFO, "{} refresh dialog found", threadId);
-                if (!mustRefreshPage.getAndSet(true)) {
-                    logger.info("{} refresh dialog found", threadId);
+                if (!this.mustRefreshPage.getAndSet(true)) {
+                    logger.info("{} refresh dialog found", this.threadId);
                 }
             } else { // no refresh needed
             }
@@ -665,7 +674,7 @@ public class BetradarScraperThread
             final int indexFootballSelected = autoPilot.evalXPath();
             if (indexFootballSelected < 0) {
                 logger.error("indexFootballSelected not found");
-                mustSelectFootball.set(true);
+                this.mustSelectFootball.set(true);
             } else { // football selected, bnothing to be done
             }
 
@@ -674,7 +683,7 @@ public class BetradarScraperThread
             final int indexOrderByKickoff = autoPilot.evalXPath();
             if (indexOrderByKickoff < 0) {
                 logger.error("indexOrderByKickoff not found");
-                mustOrderByKickoff.set(true);
+                this.mustOrderByKickoff.set(true);
             } else { // order by kickoff selected, bnothing to be done
             }
 
@@ -683,7 +692,7 @@ public class BetradarScraperThread
             final int indexTickerZero = autoPilot.evalXPath();
             if (indexTickerZero < 0) {
                 logger.error("indexTickerZero not found");
-                mustTickerZero.set(true);
+                this.mustTickerZero.set(true);
             } else { // ticker rero selected, bnothing to be done
             }
         } else {
@@ -693,20 +702,15 @@ public class BetradarScraperThread
         autoPilot.selectXPath("//div[contains(@class, 'sport_1 ')]");
         final int indexDivisionFootball = autoPilot.evalXPath();
         if (indexDivisionFootball >= 0) {
-            majorScrapingError.set(0); // page seems to be loaded fine
+            this.majorScrapingError.set(0); // page seems to be loaded fine
             autoPilot.selectXPath(".//tr[@class and contains(@id, 'match-')]");
 
-            int expectedLiveEvents = liveMaxValue.getValue();
+            int expectedLiveEvents = this.liveMaxValue.getValue();
             if (fullRun) {
                 expectedLiveEvents++; // get 1 extra event; in case something started between checkAll runs
             }
 
-            int listCapacity;
-            if (checkAll) {
-                listCapacity = listSizeMaxValue.getValue();
-            } else {
-                listCapacity = expectedLiveEvents;
-            }
+            final int listCapacity = checkAll ? this.listSizeMaxValue.getValue() : expectedLiveEvents;
             final List<BookMark> trBookMarksList = new ArrayList<>(listCapacity);
 
             int trIndex, whileCounter = 0;
@@ -759,14 +763,14 @@ public class BetradarScraperThread
                                 final boolean scrapedMatchStatus = scrapeMatchStatus(scraperEvent, bookMark);
                                 final boolean scrapedMinutesPlayed = scrapeMinutesPlayed(scraperEvent, bookMark);
 
-                                MatchStatus matchStatus = scraperEvent.getMatchStatus();
+                                final MatchStatus matchStatus = scraperEvent.getMatchStatus();
                                 if (matchStatus == null) { // likely not scraped properly; nothing to be done; error messages are printed in other places
                                 } else if (matchStatus.hasStarted()) {
                                     nLiveEvents = i + 1 + counterNotStarted; // will get a few extra but ensures I get all; i+1 because it starts from 0
                                     if (counterNotStarted > 0) {
                                         if (Statics.debugLevel.check(2, 195)) {
                                             Generic.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "{} found started game after not started: counterNotStarted={} {} id:{}",
-                                                                              threadId, counterNotStarted, matchStatus.name(), eventId);
+                                                                              this.threadId, counterNotStarted, matchStatus.name(), eventId);
                                         }
 //                                                            lastFoundStartedAfterNotStarted.set(startTime);
                                     }
@@ -784,37 +788,36 @@ public class BetradarScraperThread
                                     if (scraperErrors <= 0L) {
                                         scrapedEventsCounter.incrementAndGet();
 
-                                        BetradarEvent existingScraperEvent;
+                                        @Nullable BetradarEvent existingScraperEvent;
 //                                            synchronized (Statics.betradarEventsMap) {
                                         if (Statics.betradarEventsMap.containsKey(eventId)) {
                                             existingScraperEvent = Statics.betradarEventsMap.get(eventId);
                                             if (matchStatus != null && matchStatus.hasStarted()) { // all good, nothing to be done here
                                             } else if (matchStatus == null) {
-                                                logger.error("{} matchStatus null; this else branch shouldn't be entered: {} {}", threadId, scrapedMatchStatus,
-                                                             Generic.objectToString(scraperEvent));
-                                            } else { // !matchStatus.hasStarted()
-                                                if (existingScraperEvent != null) {
-                                                    logger.error("{} !hasStarted exists in map: {} {}", threadId, Generic.objectToString(existingScraperEvent, Generic.objectToString(scraperEvent)));
-                                                    scraperEvent.setIgnored(Generic.MINUTE_LENGTH_MILLISECONDS * 2L);
+                                                    logger.error("{} matchStatus null; this else branch shouldn't be entered: {} {}", this.threadId, scrapedMatchStatus,
+                                                                 Generic.objectToString(scraperEvent));
+                                                } else { // !matchStatus.hasStarted()
+                                                    if (existingScraperEvent != null) {
+                                                        logger.error("{} !hasStarted exists in map: {} {}", this.threadId, Generic.objectToString(existingScraperEvent), Generic.objectToString(scraperEvent));
+                                                        scraperEvent.setIgnored(Generic.MINUTE_LENGTH_MILLISECONDS << 1); // * 2
 //                                                    MaintenanceThread.removeScraper(scraperEvent);
-                                                } else { // existingScraperEvent null & betradarEventsMap.containsKey(eventId)
-                                                    long timeSinceLastRemoved = startTime - Statics.betradarEventsMap.getTimeStampRemoved();
-                                                    Statics.betradarEventsMap.removeValueAll(null);
+                                                    } else { // existingScraperEvent null & betradarEventsMap.containsKey(eventId)
+                                                        final long timeSinceLastRemoved = startTime - Statics.betradarEventsMap.getTimeStampRemoved();
+                                                        Statics.betradarEventsMap.removeValueAll(null);
 
-                                                    String printedString = MessageFormatter.arrayFormat(
-                                                            "{} null betradarEvent in map, timeSinceLastRemoved: {} for eventId: {} of scraperEvent: {} {}",
-                                                            new Object[]{threadId, timeSinceLastRemoved, eventId, Generic.objectToString(scraperEvent),
-                                                                         Generic.objectToString(existingScraperEvent)}).getMessage();
+                                                        final String printedString = MessageFormatter.arrayFormat(
+                                                                "{} null betradarEvent in map, timeSinceLastRemoved: {} for eventId: {} of scraperEvent: {} {}",
+                                                                new Object[]{this.threadId, timeSinceLastRemoved, eventId, Generic.objectToString(scraperEvent),
+                                                                             Generic.objectToString(existingScraperEvent)}).getMessage();
 //                                                    if (timeSinceLastRemoved < 1_000L) {
 //                                                        logger.info("{} null betradarEvent in map timeSinceLastRemoved {} for eventId {}", threadId, timeSinceLastRemoved,
 //                                                                eventId);
 //                                                    } else {
-                                                    logger.error(printedString);
+                                                        logger.error(printedString);
 //                                                    }
-                                                }
-
-                                                existingScraperEvent = null; // has just been removed
-                                            } // end else
+                                                    }
+                                                    existingScraperEvent = null; // has just been removed
+                                                } // end else
                                         } else {
                                             if (matchStatus != null && matchStatus.hasStarted()) {
 //                                                if (!BlackList.dummyScraperEvent.equals(BlackList.checkedPutScraper(eventId, scraperEvent))) {
@@ -822,12 +825,12 @@ public class BetradarScraperThread
                                                 if (existingScraperEvent == null) { // event was added, no previous event existed, double check to avoid racing issues
 //                                                    existingScraperEvent = null;
                                                     addedScraperEvents.add(scraperEvent);
-                                                    lastUpdatedScraperEvent.set(startTime); // event has been added
+                                                    this.lastUpdatedScraperEvent.set(startTime); // event has been added
 //                                                } else {
 //                                                    logger.error("{} won't add blackListed scraperEvent: {}", threadId, eventId);
 //                                                }
                                                 } else {
-                                                    logger.error("existingScraperEvent found during {} put double check: {} {}", threadId,
+                                                    logger.error("existingScraperEvent found during {} put double check: {} {}", this.threadId,
                                                                  Generic.objectToString(existingScraperEvent), Generic.objectToString(scraperEvent));
 //                                                    existingScraperEvent = inMapScraperEvent;
                                                 }
@@ -841,13 +844,13 @@ public class BetradarScraperThread
 //                                            scraperEvent.setMatchedEventId(matchedEventId); // placed before update, else error in update
                                             final int update = existingScraperEvent.update(scraperEvent);
                                             if (update > 0) {
-                                                lastUpdatedScraperEvent.set(startTime); // updated scraperEvent, not necessarely attached to a betfair event
+                                                this.lastUpdatedScraperEvent.set(startTime); // updated scraperEvent, not necessarely attached to a betfair event
                                                 if (matchedEventId != null) {
                                                     final Event event = Statics.eventsMap.get(matchedEventId);
                                                     if (event != null) {
-                                                        if (!event.isIgnored()) {
+                                                        if (event.isIgnored()) { // won't do anything about ignored events
+                                                        } else {
                                                             eventsAttachedToModifiedScraperEvents.add(event);
-                                                        } else { // won't do anything about ignored events
                                                         }
                                                     } else {
                                                         final long timeSinceLastRemoved = startTime - Statics.eventsMap.getTimeStampRemoved();
@@ -857,11 +860,11 @@ public class BetradarScraperThread
 
                                                         final String printedString = MessageFormatter.arrayFormat(
                                                                 "{} null event in map or id not found, timeSinceLastRemoved: {} for matchedEventId: {} of scraperEvent: {} {}",
-                                                                new Object[]{threadId, timeSinceLastRemoved, matchedEventId, Generic.objectToString(scraperEvent),
+                                                                new Object[]{this.threadId, timeSinceLastRemoved, matchedEventId, Generic.objectToString(scraperEvent),
                                                                              Generic.objectToString(existingScraperEvent)}).getMessage();
                                                         if (timeSinceLastRemoved < 1_000L) {
                                                             logger.info("{} null event in map or id not found, timeSinceLastRemoved {} for matchedEventId {} of scraperEventId {}",
-                                                                        threadId, timeSinceLastRemoved, matchedEventId, eventId);
+                                                                        this.threadId, timeSinceLastRemoved, matchedEventId, eventId);
                                                         } else {
                                                             logger.error(printedString);
                                                         }
@@ -876,7 +879,7 @@ public class BetradarScraperThread
 //                                                            Generic.objectToString(scraperEvent), Generic.objectToString(existingScraperEvent));
 
                                                     Generic.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR,
-                                                                                      "{} check true scraperEvent updated into check false {} scraperEvent: {} {}", threadId, existingScraperErrors,
+                                                                                      "{} check true scraperEvent updated into check false {} scraperEvent: {} {}", this.threadId, existingScraperErrors,
                                                                                       Generic.objectToString(scraperEvent, "seconds", "classModifiers", "minutesPlayed", "stoppageTime", "Stamp"),
                                                                                       Generic.objectToString(existingScraperEvent, "seconds", "classModifiers", "minutesPlayed", "stoppageTime", "Stamp"));
 
@@ -889,9 +892,10 @@ public class BetradarScraperThread
 
                                         if (Statics.debugLevel.check(3, 108)) {
                                             final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+                                            final Date scraperEventStartTime = scraperEvent.getStartTime();
                                             final String formattedDate = scraperEvent.getHomeTeam() + "/" + scraperEvent.getAwayTeam() + ": " +
-                                                                         scraperEvent.getStartTime().getTime() + " " + simpleDateFormat.format(scraperEvent.getStartTime());
-                                            logger.info("{} scraperEvent parsed: {} {}", threadId, formattedDate, Generic.objectToString(scraperEvent));
+                                                                         (scraperEventStartTime != null ? scraperEventStartTime.getTime() + " " + simpleDateFormat.format(scraperEventStartTime) : null);
+                                            logger.info("{} scraperEvent parsed: {} {}", this.threadId, formattedDate, Generic.objectToString(scraperEvent));
                                         }
                                     } else {
                                         final String scraperString = Generic.objectToString(scraperEvent, "seconds", "classModifiers", "minutesPlayed", "stoppageTime", "Stamp");
@@ -899,8 +903,8 @@ public class BetradarScraperThread
                                         if (scraperErrors >= 100) {
 //                                            logger.error("{} scraperEvent scraperErrors: {} in getScraperEvents for: {}", threadId, scraperErrors, scraperString);
                                             Generic.alreadyPrintedMap.logOnce(5L * Generic.MINUTE_LENGTH_MILLISECONDS, logger, LogLevel.ERROR,
-                                                                              "{} scraperEvent scraperErrors: {} in getScraperEvents for: {}", threadId, scraperErrors, scraperString);
-                                        } else if (scraperErrors >= 1) {
+                                                                              "{} scraperEvent scraperErrors: {} in getScraperEvents for: {}", this.threadId, scraperErrors, scraperString);
+                                        } else { // scraperErrors >= 1
                                             final long currentTime = System.currentTimeMillis();
 
                                             if (Statics.timedWarningsMap.containsKey(scraperString)) {
@@ -908,21 +912,18 @@ public class BetradarScraperThread
                                                 final long lapsedTime = currentTime - existingTime;
 
                                                 if (lapsedTime > Generic.MINUTE_LENGTH_MILLISECONDS) { // temporary errors allowed for at most 1 minute
-                                                    logger.error("{} scraperEvent minor but lasting {} ms scraperErrors: {} in getScraperEvents for: {}", threadId,
+                                                    logger.error("{} scraperEvent minor but lasting {} ms scraperErrors: {} in getScraperEvents for: {}", this.threadId,
                                                                  lapsedTime, scraperErrors, scraperString);
                                                 } else { // might be a normal temporary error; not enough time has lapsed
                                                 }
                                             } else { // first time this particular error is found
                                                 Statics.timedWarningsMap.put(scraperString, currentTime);
                                             }
-                                        } else {
-                                            logger.error("STRANGE {} scraperErrors {} value for scraperEvent: {}", threadId, scraperErrors,
-                                                         Generic.objectToString(scraperEvent));
                                         }
                                     } // end else
                                 } else {
                                     if (Statics.debugLevel.check(2, 137)) {
-                                        logger.error("{} scraperEvent not scraped properly: {} {} {} {} {} {} {} {}", threadId, Generic.objectToString(scraperEvent),
+                                        logger.error("{} scraperEvent not scraped properly: {} {} {} {} {} {} {} {}", this.threadId, Generic.objectToString(scraperEvent),
                                                      scrapedStartTime, scrapedHomeTeam, scrapedAwayTeam, scrapedScore, scrapedHtScore, scrapedMatchStatus,
                                                      scrapedMinutesPlayed);
                                     }
@@ -930,79 +931,64 @@ public class BetradarScraperThread
                             } else { // event not changed recently and not fullRun
                             }
                         } else {
-                            logger.error("{} indexClassAttributeVal not found in getScraperEvents", threadId);
+                            logger.error("{} indexClassAttributeVal not found in getScraperEvents", this.threadId);
                         }
 //                        } else { // blackListed scraperId
 //                        }
                     } catch (NumberFormatException numberFormatException) {
-                        logger.error("{} numberFormatException while getting eventId from: {}", threadId, eventIdString, numberFormatException);
+                        logger.error("{} numberFormatException while getting eventId from: {}", this.threadId, eventIdString, numberFormatException);
                     }
                 } else {
-                    logger.error("{} indexIdAttributeVal not found in getScraperEvents", threadId);
+                    logger.error("{} indexIdAttributeVal not found in getScraperEvents", this.threadId);
                 }
             } // end for
 
-            listSizeMaxValue.setValue(listSize.get(), startTime);
-            liveMaxValue.setValue(nLiveEvents, startTime);
+            this.listSizeMaxValue.setValue(listSize.get(), startTime);
+            this.liveMaxValue.setValue(nLiveEvents, startTime);
             Statics.betradarEventsMap.timeStamp();
 
             final int sizeAdded = addedScraperEvents.size();
             if (sizeAdded > 0) {
-                logger.info("{} getScraperEvents addedScraperEvents: {} launch: mapEventsToScraperEvents", threadId, sizeAdded);
+                logger.info("{} getScraperEvents addedScraperEvents: {} launch: mapEventsToScraperEvents", this.threadId, sizeAdded);
                 Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents, addedScraperEvents, BetradarEvent.class));
             }
             final int sizeEvents = eventsAttachedToModifiedScraperEvents.size();
             if (sizeEvents > 0) {
-                logger.info("{} getScraperEvents toCheckEvents: {} launch: findSafeRunners", threadId, sizeEvents);
+                logger.info("{} getScraperEvents toCheckEvents: {} launch: findSafeRunners", this.threadId, sizeEvents);
                 Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, eventsAttachedToModifiedScraperEvents));
             }
 
-            if (!mustRefreshPage.get()) {
+            if (this.mustRefreshPage.get()) { // mustRefresh already true, no need to recheck
+            } else {
                 // lastUpdatedScraperEvent refresh support is designed to detect errors; it's not supposed to be a reliable way of refreshing
-                long timeSinceLastUpdate = startTime - lastUpdatedScraperEvent.get();
+                final long timeSinceLastUpdate = startTime - this.lastUpdatedScraperEvent.get();
                 if (nLiveEvents > 0) {
                     if (timeSinceLastUpdate > Generic.MINUTE_LENGTH_MILLISECONDS * 3L) {
                         if (timeSinceLastUpdate > Generic.MINUTE_LENGTH_MILLISECONDS * 20L) { // upto 15 minutes without update during "Half Time"
-                            logger.error("started events exist and no updated {} events for {}ms", threadId, timeSinceLastUpdate);
-                            mustRefreshPage.set(true);
+                            logger.error("started events exist and no updated {} events for {}ms", this.threadId, timeSinceLastUpdate);
+                            this.mustRefreshPage.set(true);
                         } else {
                             long maxTimeBetweenUpdates = Generic.MINUTE_LENGTH_MILLISECONDS * 20L;
-                            Collection<BetradarEvent> valuesCopy = Statics.betradarEventsMap.valuesCopy();
-                            for (BetradarEvent betradarEvent : valuesCopy) {
+                            final Collection<BetradarEvent> valuesCopy = Statics.betradarEventsMap.valuesCopy();
+                            for (final BetradarEvent betradarEvent : valuesCopy) {
                                 if (betradarEvent != null) {
-                                    MatchStatus matchStatus = betradarEvent.getMatchStatus();
+                                    final MatchStatus matchStatus = betradarEvent.getMatchStatus();
                                     if (matchStatus != null) {
                                         switch (matchStatus) {
                                             case PENALTIES:
                                                 maxTimeBetweenUpdates = Math.min(maxTimeBetweenUpdates, Generic.MINUTE_LENGTH_MILLISECONDS * 3L);
                                                 break;
                                             case FIRST_HALF:
-                                                if (betradarEvent.minutesAre(45)) {
-                                                    maxTimeBetweenUpdates = Math.min(maxTimeBetweenUpdates, Generic.MINUTE_LENGTH_MILLISECONDS * 10L);
-                                                } else {
-                                                    maxTimeBetweenUpdates = Math.min(maxTimeBetweenUpdates, Generic.MINUTE_LENGTH_MILLISECONDS * 3L);
-                                                }
+                                                maxTimeBetweenUpdates = betradarEvent.minutesAre(45) ? Math.min(maxTimeBetweenUpdates, Generic.MINUTE_LENGTH_MILLISECONDS * 10L) : Math.min(maxTimeBetweenUpdates, Generic.MINUTE_LENGTH_MILLISECONDS * 3L);
                                                 break;
                                             case SECOND_HALF:
-                                                if (betradarEvent.minutesAre(90)) {
-                                                    maxTimeBetweenUpdates = Math.min(maxTimeBetweenUpdates, Generic.MINUTE_LENGTH_MILLISECONDS * 10L);
-                                                } else {
-                                                    maxTimeBetweenUpdates = Math.min(maxTimeBetweenUpdates, Generic.MINUTE_LENGTH_MILLISECONDS * 3L);
-                                                }
+                                                maxTimeBetweenUpdates = betradarEvent.minutesAre(90) ? Math.min(maxTimeBetweenUpdates, Generic.MINUTE_LENGTH_MILLISECONDS * 10L) : Math.min(maxTimeBetweenUpdates, Generic.MINUTE_LENGTH_MILLISECONDS * 3L);
                                                 break;
                                             case FIRST_ET:
-                                                if (betradarEvent.minutesAre(105)) {
-                                                    maxTimeBetweenUpdates = Math.min(maxTimeBetweenUpdates, Generic.MINUTE_LENGTH_MILLISECONDS * 10L);
-                                                } else {
-                                                    maxTimeBetweenUpdates = Math.min(maxTimeBetweenUpdates, Generic.MINUTE_LENGTH_MILLISECONDS * 3L);
-                                                }
+                                                maxTimeBetweenUpdates = betradarEvent.minutesAre(105) ? Math.min(maxTimeBetweenUpdates, Generic.MINUTE_LENGTH_MILLISECONDS * 10L) : Math.min(maxTimeBetweenUpdates, Generic.MINUTE_LENGTH_MILLISECONDS * 3L);
                                                 break;
                                             case SECOND_ET:
-                                                if (betradarEvent.minutesAre(120)) {
-                                                    maxTimeBetweenUpdates = Math.min(maxTimeBetweenUpdates, Generic.MINUTE_LENGTH_MILLISECONDS * 10L);
-                                                } else {
-                                                    maxTimeBetweenUpdates = Math.min(maxTimeBetweenUpdates, Generic.MINUTE_LENGTH_MILLISECONDS * 3L);
-                                                }
+                                                maxTimeBetweenUpdates = betradarEvent.minutesAre(120) ? Math.min(maxTimeBetweenUpdates, Generic.MINUTE_LENGTH_MILLISECONDS * 10L) : Math.min(maxTimeBetweenUpdates, Generic.MINUTE_LENGTH_MILLISECONDS * 3L);
                                                 break;
                                             case ET_HALF_TIME:
                                                 maxTimeBetweenUpdates = Math.min(maxTimeBetweenUpdates, Generic.MINUTE_LENGTH_MILLISECONDS * 10L);
@@ -1022,7 +1008,7 @@ public class BetradarScraperThread
                                                 break;
                                             default:
                                                 // maxTimeBetweenUpdates = Math.min(maxTimeBetweenUpdates, Generic.MINUTE_LENGTH_MILLISECONDS * 20L);
-                                                logger.error("STRANGE matchstatus {} in Statics.{}EventsMap during matchStatus check for: {}", matchStatus.name(), threadId, Generic.objectToString(betradarEvent));
+                                                logger.error("STRANGE matchStatus {} in Statics.{}EventsMap during matchStatus check for: {}", matchStatus.name(), this.threadId, Generic.objectToString(betradarEvent));
                                                 betradarEvent.setIgnored(Generic.MINUTE_LENGTH_MILLISECONDS * 15L);
 //                                                MaintenanceThread.removeScraper(betradarEvent);
 //                                                Statics.betradarEventsMap.removeValueAll(betradarEvent);
@@ -1030,55 +1016,56 @@ public class BetradarScraperThread
                                         } // end switch
                                         if (maxTimeBetweenUpdates == Generic.MINUTE_LENGTH_MILLISECONDS * 3L) {
                                             break;
-                                        } else if (maxTimeBetweenUpdates > Generic.MINUTE_LENGTH_MILLISECONDS * 3L) { // nothing to be done, for continues
-                                        } else if (maxTimeBetweenUpdates < Generic.MINUTE_LENGTH_MILLISECONDS * 3L) {
-                                            logger.error("maxTimeBetweenUpdates too small: {}", maxTimeBetweenUpdates);
-                                            break;
-                                        }
+                                        } else //noinspection ConstantConditions
+                                            if (maxTimeBetweenUpdates > Generic.MINUTE_LENGTH_MILLISECONDS * 3L) { // nothing to be done, for continues
+                                            } else if (maxTimeBetweenUpdates < Generic.MINUTE_LENGTH_MILLISECONDS * 3L) {
+                                                logger.error("maxTimeBetweenUpdates too small: {}", maxTimeBetweenUpdates);
+                                                break;
+                                            }
                                     } else { // matchstatus == null
-                                        logger.error("null matchStatus in Statics.{}EventsMap while checking matchStatus for: {}", threadId, Generic.objectToString(betradarEvent));
-                                        betradarEvent.setIgnored(Generic.MINUTE_LENGTH_MILLISECONDS * 2L);
+                                        logger.error("null matchStatus in Statics.{}EventsMap while checking matchStatus for: {}", this.threadId, Generic.objectToString(betradarEvent));
+                                        betradarEvent.setIgnored(Generic.MINUTE_LENGTH_MILLISECONDS << 1); // * 2L
 //                                        MaintenanceThread.removeScraper(betradarEvent);
 //                                        Statics.betradarEventsMap.removeValueAll(betradarEvent);
                                     }
                                 } else { // betradarEvent == null
-                                    logger.error("null value in Statics.{}EventsMap while checking matchStatus", threadId);
+                                    logger.error("null value in Statics.{}EventsMap while checking matchStatus", this.threadId);
                                     Statics.betradarEventsMap.removeValueAll(null); // null removal
                                 }
                             } // end for
                             if (timeSinceLastUpdate > maxTimeBetweenUpdates) {
-                                logger.error("started events exist and no updated {} events for {}ms max:{}ms", threadId, timeSinceLastUpdate, maxTimeBetweenUpdates);
-                                mustRefreshPage.set(true);
+                                logger.error("started events exist and no updated {} events for {}ms max:{}ms", this.threadId, timeSinceLastUpdate, maxTimeBetweenUpdates);
+                                this.mustRefreshPage.set(true);
                             }
                         } // end else
                     } else { // too little time passed
                     }
                 } else { // program will enter on this branch when no updated events exist (nLiveEvents won't update); time < 20 minutes can activate during half_time
-                    long timeSinceLastPageGet = startTime - lastPageGet.get();
+                    final long timeSinceLastPageGet = startTime - this.lastPageGet.get();
                     if (timeSinceLastUpdate > Generic.MINUTE_LENGTH_MILLISECONDS * 30L ||
                         (timeSinceLastUpdate > Generic.MINUTE_LENGTH_MILLISECONDS * 20L && timeSinceLastPageGet > Generic.MINUTE_LENGTH_MILLISECONDS * 30L)) {
-                        logger.warn("no started events exist and no updated {} events for {}ms", threadId, timeSinceLastUpdate);
-                        mustRefreshPage.set(true);
+                        logger.warn("no started events exist and no updated {} events for {}ms", this.threadId, timeSinceLastUpdate);
+                        this.mustRefreshPage.set(true);
                     } else { // too little time passed or page get too recent
                     }
                 }
-            } else { // mustRefresh already true, no need to recheck
             }
         } else {
-            logger.info("{} htmlDivisionFootball not found in getScraperEvents", threadId);
-            if (majorScrapingError.get() >= 1) {
-                majorScrapingError.set(0);
-                mustRefreshPage.set(true); // the page might not be loaded properly
+            logger.info("{} htmlDivisionFootball not found in getScraperEvents", this.threadId);
+            if (this.majorScrapingError.get() >= 1) {
+                this.majorScrapingError.set(0);
+                this.mustRefreshPage.set(true); // the page might not be loaded properly
             } else {
-                majorScrapingError.incrementAndGet();
+                this.majorScrapingError.incrementAndGet();
             }
         }
     }
 
+    @SuppressWarnings("ReuseOfLocalVariable")
     @Override
     public HtmlPage getHtmlPage(final WebClient webClient) {
-        HtmlPage htmlPage = WebScraperMethods.getPage(webClient, SAVE_FOLDER + "/start", mustRefreshPage, mustSavePage,
-                                                      "http://livescore.betradar.com/ls/livescore/?/betfair/en/page", threadId, selectFootballXPath, orderByKickoffXPath, tickerZeroXPath);
+        @Nullable HtmlPage htmlPage = WebScraperMethods.getPage(webClient, this.saveFolder + "/start", this.mustRefreshPage, this.mustSavePage,
+                                                                "http://livescore.betradar.com/ls/livescore/?/betfair/en/page", this.threadId, selectFootballXPath, orderByKickoffXPath, tickerZeroXPath);
         //                onclick="SRLive.trigger('treefilter:select', { _id: '1', selected: { type: 'sports', property: '_sid', value: '1' }})"
         //                onclick="SRLive.trigger('treefilter:select', { _id: '1', selected: { type: 'sports', property: '_sid', value: '1' }})"
         //                onclick="SRLive.trigger('treefilter:select', { _id: '1', selected: { type: 'sports', property: '_sid', value: '1' }})"
@@ -1087,12 +1074,11 @@ public class BetradarScraperThread
         boolean hasError = false;
 
         if (htmlPage != null) {
-            boolean indexFootballSelected;
+            final boolean indexFootballSelected;
             // "tree-item active expanded tree-type-sports"
             // "tree-item active expanded live  tree-type-sports"
 //            HtmlListItem htmlListItem = htmlPage.getFirstByXPath("//li[@class='tree-item active expanded live  tree-type-sports' and @id='tree-_sid-1']");
-            HtmlListItem htmlListItem =
-                    htmlPage.getFirstByXPath("//li[starts-with(@class, 'tree-item active expanded ') and ends-with(@class, ' tree-type-sports') and @id='tree-_sid-1']");
+            HtmlListItem htmlListItem = htmlPage.getFirstByXPath("//li[starts-with(@class, 'tree-item active expanded ') and ends-with(@class, ' tree-type-sports') and @id='tree-_sid-1']");
             if (htmlListItem == null) {
                 logger.warn("indexFootballSelected not found");
                 indexFootballSelected = false;
@@ -1101,7 +1087,7 @@ public class BetradarScraperThread
                 indexFootballSelected = true;
             }
 
-            boolean indexOrderByKickoff;
+            final boolean indexOrderByKickoff;
             htmlListItem = htmlPage.getFirstByXPath("//li[contains(@class, 'srlive-list-item-kickoff active')]");
             if (htmlListItem == null) {
                 logger.warn("indexOrderByKickoff not found");
@@ -1111,7 +1097,7 @@ public class BetradarScraperThread
                 indexOrderByKickoff = true;
             }
 
-            boolean indexTickerZero;
+            final boolean indexTickerZero;
             htmlListItem = htmlPage.getFirstByXPath("//li[contains(@class, 'srlive-list-item-0 active')]");
             if (htmlListItem == null) {
                 logger.warn("indexTickerZero not found");
@@ -1122,15 +1108,15 @@ public class BetradarScraperThread
             }
 
             if (hasError) {
-                logger.warn("error found in {} getHtmlPage: {} {} {}", threadId, indexFootballSelected, indexOrderByKickoff, indexTickerZero);
+                logger.warn("error found in {} getHtmlPage: {} {} {}", this.threadId, indexFootballSelected, indexOrderByKickoff, indexTickerZero);
                 if (!indexFootballSelected) {
-                    WebScraperMethods.clickElements(webClient, mustRefreshPage, htmlPage, 5_000L, selectFootballXPath, threadId, SAVE_FOLDER + "/click", mustSavePage);
+                    WebScraperMethods.clickElements(webClient, this.mustRefreshPage, htmlPage, 5_000L, selectFootballXPath, this.threadId, this.saveFolder + "/click", this.mustSavePage);
                 }
                 if (!indexOrderByKickoff) {
-                    WebScraperMethods.clickElements(webClient, mustRefreshPage, htmlPage, 5_000L, orderByKickoffXPath, threadId, SAVE_FOLDER + "/click", mustSavePage);
+                    WebScraperMethods.clickElements(webClient, this.mustRefreshPage, htmlPage, 5_000L, orderByKickoffXPath, this.threadId, this.saveFolder + "/click", this.mustSavePage);
                 }
                 if (!indexTickerZero) {
-                    WebScraperMethods.clickElements(webClient, mustRefreshPage, htmlPage, 5_000L, tickerZeroXPath, threadId, SAVE_FOLDER + "/click", mustSavePage);
+                    WebScraperMethods.clickElements(webClient, this.mustRefreshPage, htmlPage, 5_000L, tickerZeroXPath, this.threadId, this.saveFolder + "/click", this.mustSavePage);
                 }
 
                 hasError = false;
@@ -1153,15 +1139,15 @@ public class BetradarScraperThread
                 }
             }
         } else {
-            logger.error("null htmlPage in {} getHtmlPage", threadId);
+            logger.error("null htmlPage in {} getHtmlPage", this.threadId);
             hasError = true;
         }
 
         if (hasError) {
-            logger.warn("hasError in {} getHtmlPage, returning null page to retry", threadId);
+            logger.warn("hasError in {} getHtmlPage, returning null page to retry", this.threadId);
             htmlPage = null; // returning null causes client close and another attempt
         } else {
-            timeLastPageManipulation.set(System.currentTimeMillis());
+            this.timeLastPageManipulation.set(System.currentTimeMillis());
         }
 
         return htmlPage;

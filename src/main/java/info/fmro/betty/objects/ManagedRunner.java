@@ -10,6 +10,8 @@ import info.fmro.betty.stream.definitions.Order;
 import info.fmro.betty.stream.definitions.Side;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +22,7 @@ import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+@SuppressWarnings({"ClassWithTooManyFields", "ClassWithTooManyMethods", "OverlyComplexClass"})
 public class ManagedRunner
         extends Exposure
         implements Serializable {
@@ -30,31 +33,34 @@ public class ManagedRunner
     //    private final long selectionId;
     //    private final double handicap; // The handicap associated with the runner in case of Asian handicap markets (e.g. marketTypes ASIAN_HANDICAP_DOUBLE_LINE, ASIAN_HANDICAP_SINGLE_LINE) null otherwise.
     private double backAmountLimit, layAmountLimit; // amountLimits at 0d by default, which means no betting unless modified; negative limit means no limit
-    private double toBeUsedBackOdds = 1_001d, toBeUsedLayOdds = 1.0001d, minBackOdds = 1_001d, maxLayOdds = 1.0001d; // defaults are unusable, which means no betting unless modified
+    private final double minBackOdds = 1_001d, maxLayOdds = 1.0001d; // defaults are unusable, which means no betting unless modified
+    private double toBeUsedBackOdds = 1_001d, toBeUsedLayOdds = 1.0001d;
     private double proportionOfMarketLimitPerRunner, idealBackExposure;
     private transient MarketRunner marketRunner;
+    @Nullable
     private transient OrderMarketRunner orderMarketRunner;
 
-    public ManagedRunner(final String marketId, final RunnerId runnerId) {
+    ManagedRunner(final String marketId, final RunnerId runnerId) {
+        super();
         this.marketId = marketId;
         this.runnerId = runnerId;
     }
 
-    public synchronized void attachRunner() {
-        if (marketRunner == null) {
-            final Market market = Utils.getMarket(marketId);
+    private synchronized void attachRunner() {
+        if (this.marketRunner == null) {
+            final Market market = Utils.getMarket(this.marketId);
             attachRunner(market);
         } else { // I already have the marketRunner, nothing to be done
         }
     }
 
-    public synchronized void attachRunner(final Market market) {
-        if (marketRunner == null) {
+    synchronized void attachRunner(final Market market) {
+        if (this.marketRunner == null) {
             if (market == null) {
                 logger.error("null market in attachRunner for: {}", Generic.objectToString(this)); // I'll just print the error message; this error shouldn't happen and I don't think it's properly fixable
             } else {
-                marketRunner = market.getMarketRunner(this.runnerId);
-                if (marketRunner == null) {
+                this.marketRunner = market.getMarketRunner(this.runnerId);
+                if (this.marketRunner == null) {
                     logger.error("no marketRunner found in attachRunner for: {} {}", Generic.objectToString(this), Generic.objectToString(market));
                 }
             }
@@ -62,68 +68,68 @@ public class ManagedRunner
         }
     }
 
-    public synchronized void attachOrderRunner() {
-        if (orderMarketRunner == null) {
-            final OrderMarket orderMarket = Utils.getOrderMarket(marketId);
+    private synchronized void attachOrderRunner() {
+        if (this.orderMarketRunner == null) {
+            final OrderMarket orderMarket = Utils.getOrderMarket(this.marketId);
             attachOrderRunner(orderMarket);
         } else { // I already have the orderMarketRunner, nothing to be done
         }
     }
 
-    public synchronized void attachOrderRunner(final OrderMarket orderMarket) {
-        if (orderMarketRunner == null) {
+    synchronized void attachOrderRunner(final OrderMarket orderMarket) {
+        if (this.orderMarketRunner == null) {
             if (orderMarket == null) {
                 logger.error("null orderMarket in attachOrderRunner for: {}", Generic.objectToString(this)); // I'll just print the error message; this error shouldn't happen and I don't think it's properly fixable
             } else {
-                orderMarketRunner = orderMarket.getOrderMarketRunner(this.runnerId);
-                if (orderMarketRunner == null) { // normal, it means no orders exist for this managedRunner, nothing else to be done
+                this.orderMarketRunner = orderMarket.getOrderMarketRunner(this.runnerId);
+                if (this.orderMarketRunner == null) { // normal, it means no orders exist for this managedRunner, nothing else to be done
                 }
             }
         } else { // I already have the orderMarketRunner, nothing to be done
         }
     }
 
+    @SuppressWarnings("WeakerAccess")
     public synchronized MarketRunner getMarketRunner() {
         attachRunner();
-        return marketRunner;
+        return this.marketRunner;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public synchronized OrderMarketRunner getOrderMarketRunner() {
         attachOrderRunner();
-        return orderMarketRunner;
+        return this.orderMarketRunner;
     }
 
-    public synchronized void processOrders() {
-        this.processOrders(this.getOrderMarketRunner());
-    }
-
-    public synchronized void processOrders(final OrderMarketRunner orderMarketRunner) {
-        if (orderMarketRunner == null) {
+    synchronized void processOrders() {
+        getOrderMarketRunner(); // updates the orderMarketRunner
+        if (this.orderMarketRunner == null) {
             logger.error("null orderMarketRunner in ManagedRunner.processOrders for: {}", Generic.objectToString(this));
         } else {
-            final RunnerId orderRunnerId = orderMarketRunner.getRunnerId();
-            final RunnerId localRunnerVariables = this.runnerId;
-            if (localRunnerVariables.equals(orderRunnerId)) {
+            final RunnerId orderRunnerId = this.orderMarketRunner.getRunnerId();
+            final RunnerId localRunnerId = this.runnerId;
+            if (localRunnerId.equals(orderRunnerId)) {
 //                this.updateExposure(orderMarketRunner.getExposure());
-                orderMarketRunner.getExposure(this); // updates the exposure into this object
+                this.orderMarketRunner.getExposure(this); // updates the exposure into this object
             } else {
-                logger.error("not equal runnerIds in ManagedRunner.processOrders for: {} {} {}", Generic.objectToString(orderRunnerId), Generic.objectToString(localRunnerVariables), Generic.objectToString(this));
+                logger.error("not equal runnerIds in ManagedRunner.processOrders for: {} {} {}", Generic.objectToString(orderRunnerId), Generic.objectToString(localRunnerId), Generic.objectToString(this));
             }
         }
     }
 
-    public synchronized void resetOrderMarketRunner() {
+    synchronized void resetOrderMarketRunner() {
         this.orderMarketRunner = null;
     }
 
     private synchronized void resetToBeUsedOdds() { // reset to unusable values
-        toBeUsedBackOdds = 1_001d;
-        toBeUsedLayOdds = 1d;
+        this.toBeUsedBackOdds = 1_001d;
+        this.toBeUsedLayOdds = 1d;
     }
 
-    public synchronized int checkRunnerLimits() { // check the back/lay exposure limits for the runner, to make sure there's no error
+    synchronized int checkRunnerLimits() { // check the back/lay exposure limits for the runner, to make sure there's no error
         int exposureHasBeenModified = 0;
-        if (this.getOrderMarketRunner() != null) {
+        getOrderMarketRunner(); // updates the orderMarketRunner
+        if (this.orderMarketRunner != null) {
             final double backTotalExposure = this.getBackTotalExposure(), layTotalExposure = this.getLayTotalExposure();
             if (this.backAmountLimit + .1d < backTotalExposure || this.layAmountLimit + .1d < layTotalExposure) {
                 logger.error("exposure limit has been breached back:{} {} lay:{} {} for runner: {}", this.backAmountLimit, backTotalExposure, this.layAmountLimit, layTotalExposure, Generic.objectToString(this));
@@ -151,9 +157,10 @@ public class ManagedRunner
         return exposureHasBeenModified;
     }
 
-    public synchronized int removeExposure() { // check the back/lay exposure limits for the runner, to make sure there's no error
+    synchronized int removeExposure() { // check the back/lay exposure limits for the runner, to make sure there's no error
         int exposureHasBeenModified = 0;
-        if (this.getOrderMarketRunner() != null) {
+        getOrderMarketRunner(); // updates the orderMarketRunner
+        if (this.orderMarketRunner != null) {
             final double backMatchedExposure = this.getBackMatchedExposure(), layMatchedExposure = this.getLayMatchedExposure();
             final double backMatchedExcessExposure, layMatchedExcessExposure;
             if (backMatchedExposure > layMatchedExposure) {
@@ -213,18 +220,18 @@ public class ManagedRunner
         return exposureHasBeenModified;
     }
 
-    public synchronized int calculateOdds(final String marketId, final double marketCalculatedLimit) { // updates toBeUsedBackOdds and toBeUsedLayOdds
+    synchronized int calculateOdds(final double marketCalculatedLimit) { // updates toBeUsedBackOdds and toBeUsedLayOdds
         int exposureHasBeenModified = 0;
         resetToBeUsedOdds();
-        final MarketRunner marketRunner = this.getMarketRunner();
-        final OrderMarketRunner orderMarketRunner = this.getOrderMarketRunner();
-        if (marketRunner == null) {
+        this.getMarketRunner(); // updates the marketRunner
+        this.getOrderMarketRunner(); // updates the orderMarketRunner
+        if (this.marketRunner == null) {
             logger.error("trying to calculateOdds with null marketRunner for: {}", Generic.objectToString(this));
         } else {
-            final HashMap<String, Order> unmatchedOrders = orderMarketRunner == null ? null : orderMarketRunner.getUnmatchedOrders();
+            final HashMap<String, Order> unmatchedOrders = this.orderMarketRunner == null ? null : this.orderMarketRunner.getUnmatchedOrders();
 
-            final double existingBackOdds = marketRunner.getBestAvailableBackPrice(unmatchedOrders, this.getBackAmountLimit(marketCalculatedLimit));
-            final double existingLayOdds = marketRunner.getBestAvailableLayPrice(unmatchedOrders, this.getLayAmountLimit(marketCalculatedLimit));
+            final double existingBackOdds = this.marketRunner.getBestAvailableBackPrice(unmatchedOrders, this.getBackAmountLimit(marketCalculatedLimit));
+            final double existingLayOdds = this.marketRunner.getBestAvailableLayPrice(unmatchedOrders, this.getLayAmountLimit(marketCalculatedLimit));
 
             final double layNStepDifferentOdds = existingLayOdds == 0 ? 1_000d : Formulas.getNStepDifferentOdds(existingLayOdds, -1);
             final double backNStepDifferentOdds = existingBackOdds == 0 ? 1.01d : Formulas.getNStepDifferentOdds(existingBackOdds, 1);
@@ -236,23 +243,17 @@ public class ManagedRunner
 //            this.toBeUsedBackOdds = Math.min(Math.max(this.toBeUsedBackOdds, 1.01d), 1_000d);
 //            this.toBeUsedLayOdds = Math.min(Math.max(this.toBeUsedLayOdds, 1.01d), 1_000d);
         }
-        if (orderMarketRunner != null) {
-            if (Formulas.oddsAreUsable(toBeUsedBackOdds)) { // send order to cancel all back bets at worse odds than to be used ones
-                exposureHasBeenModified += orderMarketRunner.cancelUnmatched(Side.B, toBeUsedBackOdds);
-            } else { // send order to cancel all back bets
-                exposureHasBeenModified += orderMarketRunner.cancelUnmatched(Side.B);
-            }
+        if (this.orderMarketRunner != null) {
+            // send order to cancel all back bets at worse odds than to be used ones / send order to cancel all back bets
+            exposureHasBeenModified += Formulas.oddsAreUsable(this.toBeUsedBackOdds) ? this.orderMarketRunner.cancelUnmatched(Side.B, this.toBeUsedBackOdds) : this.orderMarketRunner.cancelUnmatched(Side.B);
 
-            if (Formulas.oddsAreUsable(toBeUsedLayOdds)) { // send order to cancel all lay bets at worse odds than to be used ones
-                exposureHasBeenModified += orderMarketRunner.cancelUnmatched(Side.L, toBeUsedLayOdds);
-            } else { // send order to cancel all lay bets
-                exposureHasBeenModified += orderMarketRunner.cancelUnmatched(Side.L);
-            }
+            // send order to cancel all lay bets at worse odds than to be used ones / send order to cancel all lay bets
+            exposureHasBeenModified += Formulas.oddsAreUsable(this.toBeUsedLayOdds) ? this.orderMarketRunner.cancelUnmatched(Side.L, this.toBeUsedLayOdds) : this.orderMarketRunner.cancelUnmatched(Side.L);
         } else {
             logger.error("null orderMarketRunner in calculateOdds: {}", Generic.objectToString(this));
         }
 
-        if (marketRunner != null && orderMarketRunner != null) {
+        if (this.marketRunner != null && this.orderMarketRunner != null) {
             exposureHasBeenModified += this.cancelHardToReachOrders();
         } else { // error messages were printed previously, nothing to be done
         }
@@ -263,84 +264,90 @@ public class ManagedRunner
     private synchronized int cancelHardToReachOrders() {
         // find orders at good odds, but that are useless now as they are unlikely to be reached, and cancel them, updating runner exposure; the algorithm may not be simple
         int modifications = 0;
+        this.getMarketRunner(); // updates the marketRunner
+        this.getOrderMarketRunner(); // updates the orderMarketRunner
 
-        // back
-        final TreeMap<Double, Double> unmatchedBackAmounts = orderMarketRunner.getUnmatchedBackAmounts(), availableLayAmounts = marketRunner.getAvailableToLay();
-        Utils.removeOwnAmountsFromAvailableTreeMap(availableLayAmounts, unmatchedBackAmounts);
-        final NavigableSet<Double> unmatchedBackPrices = unmatchedBackAmounts.descendingKeySet();
-        double worstOddsThatAreGettingCanceledBack = 0d;
-        for (final Double unmatchedPrice : unmatchedBackPrices) {
-            if (unmatchedPrice == null) {
-                logger.error("null unmatchedPrice in cancelHardToReachOrders for: {} {}", Generic.objectToString(unmatchedBackAmounts), Generic.objectToString(this));
-            } else {
-                final Double unmatchedAmount = unmatchedBackAmounts.get(unmatchedPrice);
-                final double unmatchedAmountPrimitive = unmatchedAmount == null ? 0d : unmatchedAmount;
-                final SortedMap<Double, Double> smallerPriceAvailableAmounts = availableLayAmounts.headMap(unmatchedPrice);
-                double smallerSum = 0d;
-                for (final Double smallerAmount : smallerPriceAvailableAmounts.values()) {
-                    final double smallerAmountPrimitive = smallerAmount == null ? 0d : smallerAmount;
-                    smallerSum += smallerAmountPrimitive;
-                }
-
-                // simple condition for deciding that my amount can't be reached
-                if (smallerSum > 2d * unmatchedAmountPrimitive) {
-                    worstOddsThatAreGettingCanceledBack = unmatchedPrice; // only the last price will matter, all odds that are better or same will get canceled
-                } else {
-                    break; // breaks when 1 amount is not removed, and the next ones won't be removed
-                }
-            }
-        } // end for
-        if (worstOddsThatAreGettingCanceledBack == 0d) { // nothing to be done
+        if (this.orderMarketRunner == null || this.marketRunner == null) {
+            logger.error("null orderMarketRunner or marketRunner in cancelHardToReachOrders for: {}", Generic.objectToString(this));
         } else {
-            modifications += orderMarketRunner.cancelUnmatchedTooGoodOdds(Side.B, worstOddsThatAreGettingCanceledBack);
-        }
-
-        // lay
-        final TreeMap<Double, Double> unmatchedLayAmounts = orderMarketRunner.getUnmatchedLayAmounts(), availableBackAmounts = marketRunner.getAvailableToBack();
-        Utils.removeOwnAmountsFromAvailableTreeMap(availableBackAmounts, unmatchedLayAmounts);
-        final NavigableSet<Double> unmatchedLayPrices = unmatchedLayAmounts.descendingKeySet();
-        double worstOddsThatAreGettingCanceledLay = 0d;
-        for (final Double unmatchedPrice : unmatchedLayPrices) {
-            if (unmatchedPrice == null) {
-                logger.error("null unmatchedPrice in cancelHardToReachOrders for: {} {}", Generic.objectToString(unmatchedLayAmounts), Generic.objectToString(this));
-            } else {
-                final Double unmatchedAmount = unmatchedLayAmounts.get(unmatchedPrice);
-                final double unmatchedAmountPrimitive = unmatchedAmount == null ? 0d : unmatchedAmount;
-                final SortedMap<Double, Double> higherPriceAvailableAmounts = availableBackAmounts.tailMap(unmatchedPrice, false);
-                double higherSum = 0d;
-                for (final Double higherAmount : higherPriceAvailableAmounts.values()) {
-                    final double higherAmountPrimitive = higherAmount == null ? 0d : higherAmount;
-                    higherSum += higherAmountPrimitive;
-                }
-
-                // simple condition for deciding that my amount can't be reached
-                if (higherSum > 2d * unmatchedAmountPrimitive) {
-                    worstOddsThatAreGettingCanceledLay = unmatchedPrice; // only the last price will matter, all odds that are better or same will get canceled
+            // back
+            final TreeMap<Double, Double> unmatchedBackAmounts = this.orderMarketRunner.getUnmatchedBackAmounts(), availableLayAmounts = this.marketRunner.getAvailableToLay();
+            Utils.removeOwnAmountsFromAvailableTreeMap(availableLayAmounts, unmatchedBackAmounts);
+            final NavigableSet<Double> unmatchedBackPrices = unmatchedBackAmounts.descendingKeySet();
+            double worstOddsThatAreGettingCanceledBack = 0d;
+            for (final Double unmatchedPrice : unmatchedBackPrices) {
+                if (unmatchedPrice == null) {
+                    logger.error("null unmatchedPrice in cancelHardToReachOrders for: {} {}", Generic.objectToString(unmatchedBackAmounts), Generic.objectToString(this));
                 } else {
-                    break; // breaks when 1 amount is not removed, and the next ones won't be removed
+                    final Double unmatchedAmount = unmatchedBackAmounts.get(unmatchedPrice);
+                    final double unmatchedAmountPrimitive = unmatchedAmount == null ? 0d : unmatchedAmount;
+                    final SortedMap<Double, Double> smallerPriceAvailableAmounts = availableLayAmounts.headMap(unmatchedPrice);
+                    double smallerSum = 0d;
+                    for (final Double smallerAmount : smallerPriceAvailableAmounts.values()) {
+                        final double smallerAmountPrimitive = smallerAmount == null ? 0d : smallerAmount;
+                        smallerSum += smallerAmountPrimitive;
+                    }
+
+                    // simple condition for deciding that my amount can't be reached
+                    if (smallerSum > 2d * unmatchedAmountPrimitive) {
+                        worstOddsThatAreGettingCanceledBack = unmatchedPrice; // only the last price will matter, all odds that are better or same will get canceled
+                    } else {
+                        break; // breaks when 1 amount is not removed, and the next ones won't be removed
+                    }
                 }
+            } // end for
+            if (worstOddsThatAreGettingCanceledBack == 0d) { // nothing to be done
+            } else {
+                modifications += this.orderMarketRunner.cancelUnmatchedTooGoodOdds(Side.B, worstOddsThatAreGettingCanceledBack);
             }
-        } // end for
-        if (worstOddsThatAreGettingCanceledLay == 0d) { // nothing to be done
-        } else {
-            modifications += orderMarketRunner.cancelUnmatchedTooGoodOdds(Side.L, worstOddsThatAreGettingCanceledLay);
+
+            // lay
+            final TreeMap<Double, Double> unmatchedLayAmounts = this.orderMarketRunner.getUnmatchedLayAmounts(), availableBackAmounts = this.marketRunner.getAvailableToBack();
+            Utils.removeOwnAmountsFromAvailableTreeMap(availableBackAmounts, unmatchedLayAmounts);
+            final NavigableSet<Double> unmatchedLayPrices = unmatchedLayAmounts.descendingKeySet();
+            double worstOddsThatAreGettingCanceledLay = 0d;
+            for (final Double unmatchedPrice : unmatchedLayPrices) {
+                if (unmatchedPrice == null) {
+                    logger.error("null unmatchedPrice in cancelHardToReachOrders for: {} {}", Generic.objectToString(unmatchedLayAmounts), Generic.objectToString(this));
+                } else {
+                    final Double unmatchedAmount = unmatchedLayAmounts.get(unmatchedPrice);
+                    final double unmatchedAmountPrimitive = unmatchedAmount == null ? 0d : unmatchedAmount;
+                    final SortedMap<Double, Double> higherPriceAvailableAmounts = availableBackAmounts.tailMap(unmatchedPrice, false);
+                    double higherSum = 0d;
+                    for (final Double higherAmount : higherPriceAvailableAmounts.values()) {
+                        final double higherAmountPrimitive = higherAmount == null ? 0d : higherAmount;
+                        higherSum += higherAmountPrimitive;
+                    }
+
+                    // simple condition for deciding that my amount can't be reached
+                    if (higherSum > 2d * unmatchedAmountPrimitive) {
+                        worstOddsThatAreGettingCanceledLay = unmatchedPrice; // only the last price will matter, all odds that are better or same will get canceled
+                    } else {
+                        break; // breaks when 1 amount is not removed, and the next ones won't be removed
+                    }
+                }
+            } // end for
+            if (worstOddsThatAreGettingCanceledLay == 0d) { // nothing to be done
+            } else {
+                modifications += this.orderMarketRunner.cancelUnmatchedTooGoodOdds(Side.L, worstOddsThatAreGettingCanceledLay);
+            }
         }
 
         return modifications;
     }
 
     public synchronized double getToBeUsedBackOdds() {
-        return toBeUsedBackOdds;
+        return this.toBeUsedBackOdds;
     }
 
     public synchronized double getToBeUsedLayOdds() {
-        return toBeUsedLayOdds;
+        return this.toBeUsedLayOdds;
     }
 
     public synchronized double getTotalValue() {
         final double result;
         if (this.getMarketRunner() != null) {
-            result = marketRunner.getTvEUR();
+            result = this.marketRunner.getTvEUR();
         } else {
             logger.error("no marketRunner present in getTotalValue for: {}", Generic.objectToString(this));
             result = 0d;
@@ -348,10 +355,10 @@ public class ManagedRunner
         return result;
     }
 
-    public synchronized double getLastTradedPrice() {
+    synchronized double getLastTradedPrice() {
         final double result;
         if (this.getMarketRunner() != null) {
-            result = marketRunner.getLtp();
+            result = this.marketRunner.getLtp();
         } else {
             logger.error("no marketRunner present in getLastTradedPrice for: {}", Generic.objectToString(this));
             result = 0d;
@@ -372,10 +379,11 @@ public class ManagedRunner
     }
 
     public synchronized double getBackAmountLimit() {
-        return backAmountLimit;
+        return this.backAmountLimit;
     }
 
-    public synchronized double getBackAmountLimit(final double marketCalculatedLimit) {
+    @Contract(pure = true)
+    private synchronized double getBackAmountLimit(final double marketCalculatedLimit) {
         final double result;
         if (marketCalculatedLimit < 0) {
             result = this.backAmountLimit;
@@ -388,10 +396,11 @@ public class ManagedRunner
     }
 
     public synchronized double getLayAmountLimit() {
-        return layAmountLimit;
+        return this.layAmountLimit;
     }
 
-    public synchronized double getLayAmountLimit(final double marketCalculatedLimit) {
+    @Contract(pure = true)
+    private synchronized double getLayAmountLimit(final double marketCalculatedLimit) {
         final double result;
         if (marketCalculatedLimit < 0) {
             result = this.layAmountLimit;
@@ -403,15 +412,15 @@ public class ManagedRunner
         return result;
     }
 
-    public synchronized double getMinBackOdds() {
-        return minBackOdds;
+    synchronized double getMinBackOdds() {
+        return this.minBackOdds;
     }
 
-    public synchronized double getMaxLayOdds() {
-        return maxLayOdds;
+    synchronized double getMaxLayOdds() {
+        return this.maxLayOdds;
     }
 
-    public synchronized void setProportionOfMarketLimitPerRunner(final double proportionOfMarketLimitPerRunner) {
+    synchronized void setProportionOfMarketLimitPerRunner(final double proportionOfMarketLimitPerRunner) {
         if (proportionOfMarketLimitPerRunner >= 0d) {
             this.proportionOfMarketLimitPerRunner = proportionOfMarketLimitPerRunner;
         } else {
@@ -419,56 +428,57 @@ public class ManagedRunner
         }
     }
 
-    public synchronized double getProportionOfMarketLimitPerRunner() {
-        return proportionOfMarketLimitPerRunner;
+    synchronized double getProportionOfMarketLimitPerRunner() {
+        return this.proportionOfMarketLimitPerRunner;
     }
 
-    public synchronized double addIdealBackExposure(final double idealBackExposureToBeAdded) {
+    synchronized double addIdealBackExposure(final double idealBackExposureToBeAdded) {
         return setIdealBackExposure(getIdealBackExposure() + idealBackExposureToBeAdded);
     }
 
-    public synchronized double setIdealBackExposure(final double idealBackExposure) {
+    synchronized double setIdealBackExposure(final double newIdealBackExposure) {
         final double newExposureAssigned;
-        if (idealBackExposure >= 0d) {
+        if (newIdealBackExposure >= 0d) {
             if (Formulas.oddsAreUsable(this.minBackOdds)) {
-                if (idealBackExposure >= this.backAmountLimit) {
+                if (newIdealBackExposure >= this.backAmountLimit) {
                     newExposureAssigned = this.backAmountLimit - this.idealBackExposure;
                     this.idealBackExposure = this.backAmountLimit;
                 } else {
-                    newExposureAssigned = idealBackExposure - this.idealBackExposure;
-                    this.idealBackExposure = idealBackExposure;
+                    newExposureAssigned = newIdealBackExposure - this.idealBackExposure;
+                    this.idealBackExposure = newIdealBackExposure;
                 }
             } else { // won't place back bets, I won't set the idealBackExposure
                 this.idealBackExposure = 0d;
                 newExposureAssigned = 0d; // limit in this case should be 0d, so it is reached
             }
         } else {
-            logger.error("trying to set negative idealBackExposure {} for: {} {}", idealBackExposure, this.idealBackExposure, Generic.objectToString(this));
+            logger.error("trying to set negative idealBackExposure {} for: {} {}", newIdealBackExposure, this.idealBackExposure, Generic.objectToString(this));
             this.idealBackExposure = 0d;
             newExposureAssigned = 0d; // in case of this strange error, I'll also return 0d, as I don't want to further try to setIdealBackExposure
         }
         return newExposureAssigned;
     }
 
-    public synchronized double getIdealBackExposure() {
-        return idealBackExposure;
+    synchronized double getIdealBackExposure() {
+        return this.idealBackExposure;
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
-    public synchronized boolean equals(final Object o) {
-        if (this == o) {
+    public synchronized boolean equals(final Object obj) {
+        if (this == obj) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final ManagedRunner that = (ManagedRunner) o;
-        return Objects.equals(marketId, that.marketId) &&
-               Objects.equals(runnerId, that.runnerId);
+        final ManagedRunner that = (ManagedRunner) obj;
+        return Objects.equals(this.marketId, that.marketId) &&
+               Objects.equals(this.runnerId, that.runnerId);
     }
 
     @Override
     public synchronized int hashCode() {
-        return Objects.hash(marketId, runnerId);
+        return Objects.hash(this.marketId, this.runnerId);
     }
 }

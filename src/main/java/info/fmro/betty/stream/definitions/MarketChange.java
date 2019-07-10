@@ -1,5 +1,7 @@
 package info.fmro.betty.stream.definitions;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,14 +14,12 @@ public class MarketChange
     private String id; // Market Id - the id of the market
     private Boolean img; // Image - replace existing prices / data with the data supplied: it is not a delta (or null if delta)
     private MarketDefinition marketDefinition;
+    @Nullable
     private List<RunnerChange> rc; // Runner Changes - a list of changes to runners (or null if un-changed)
     private Double tv; // The total amount matched across the market. This value is truncated at 2dp (or null if un-changed)
 
-    public MarketChange() {
-    }
-
     public synchronized Boolean getCon() {
-        return con;
+        return this.con;
     }
 
     public synchronized void setCon(final Boolean con) {
@@ -27,7 +27,7 @@ public class MarketChange
     }
 
     public synchronized String getId() {
-        return id;
+        return this.id;
     }
 
     public synchronized void setId(final String id) {
@@ -35,7 +35,7 @@ public class MarketChange
     }
 
     public synchronized Boolean getImg() {
-        return img;
+        return this.img;
     }
 
     public synchronized void setImg(final Boolean img) {
@@ -43,23 +43,24 @@ public class MarketChange
     }
 
     public synchronized MarketDefinition getMarketDefinition() {
-        return marketDefinition;
+        return this.marketDefinition;
     }
 
     public synchronized void setMarketDefinition(final MarketDefinition marketDefinition) {
         this.marketDefinition = marketDefinition;
     }
 
+    @Nullable
     public synchronized List<RunnerChange> getRc() {
-        return rc == null ? null : new ArrayList<>(rc);
+        return this.rc == null ? null : new ArrayList<>(this.rc);
     }
 
-    public synchronized void setRc(final List<RunnerChange> rc) {
+    public synchronized void setRc(final List<? extends RunnerChange> rc) {
         this.rc = rc == null ? null : new ArrayList<>(rc);
     }
 
     public synchronized Double getTv() {
-        return tv;
+        return this.tv;
     }
 
     public synchronized void setTv(final Double tv) {

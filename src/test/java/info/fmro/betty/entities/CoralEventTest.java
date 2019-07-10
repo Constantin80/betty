@@ -1,6 +1,5 @@
 package info.fmro.betty.entities;
 
-import info.fmro.betty.objects.BetradarEvent;
 import info.fmro.betty.objects.CoralEvent;
 import info.fmro.shared.utility.Generic;
 import org.junit.jupiter.api.Test;
@@ -16,7 +15,7 @@ class CoralEventTest {
     @Test
     void update() {
         try {
-            final CoralEvent firstObject = new CoralEvent(1220L, 0L), secondObject = new CoralEvent(1220L, 0L);
+            final CoralEvent firstObject = new CoralEvent(1_220L, 0L), secondObject = new CoralEvent(1_220L, 0L);
             Generic.fillRandom(firstObject);
             Generic.fillRandom(secondObject);
 
@@ -25,7 +24,7 @@ class CoralEventTest {
             assertThat(firstObject).as("updated object different").isEqualToIgnoringGivenFields(secondObject, "ignoredExpiration", "ignored", "setIgnoredStamp");
             final long currentTime = System.currentTimeMillis();
             if (firstObject.isIgnored()) {
-                assertTrue(Math.abs(firstObject.getIgnoredExpiration() - currentTime) < Generic.DAY_LENGTH_MILLISECONDS * 3650L, "ignoredExpiration ignored=true");
+                assertTrue(Math.abs(firstObject.getIgnoredExpiration() - currentTime) < Generic.DAY_LENGTH_MILLISECONDS * 3_650L, "ignoredExpiration ignored=true");
                 assertTrue(Math.abs(firstObject.getSetIgnoredStamp() - currentTime) < 10_000L, "setIgnoredStamp ignored=true");
             } else {
                 assertEquals(0L, firstObject.getIgnoredExpiration(), "ignoredExpiration ignored=false");

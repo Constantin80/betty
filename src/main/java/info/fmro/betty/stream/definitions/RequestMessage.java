@@ -17,7 +17,7 @@ public class RequestMessage
     }
 
     public synchronized Integer getId() {
-        return id;
+        return this.id;
     }
 
     public synchronized void setId(final Integer id) {
@@ -25,7 +25,7 @@ public class RequestMessage
     }
 
     public synchronized RequestOperationType getOp() {
-        return op;
+        return this.op;
     }
 
     public synchronized void setOp(final RequestOperationType op) {

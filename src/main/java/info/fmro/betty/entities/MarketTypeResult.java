@@ -4,11 +4,8 @@ public class MarketTypeResult {
     private String marketType;
     private Integer marketCount;
 
-    public MarketTypeResult() {
-    }
-
     public synchronized String getMarketType() {
-        return marketType;
+        return this.marketType;
     }
 
     public synchronized void setMarketType(final String marketType) {
@@ -16,7 +13,7 @@ public class MarketTypeResult {
     }
 
     public synchronized Integer getMarketCount() {
-        return marketCount;
+        return this.marketCount;
     }
 
     public synchronized void setMarketCount(final Integer marketCount) {

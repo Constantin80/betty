@@ -12,6 +12,8 @@ import info.fmro.betty.objects.Statics;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
@@ -28,11 +30,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-public class SafeBetModuleMethods {
+@SuppressWarnings({"unused", "OverlyComplexClass", "UtilityClass"})
+public final class SafeBetModuleMethods {
     private static final Logger logger = LoggerFactory.getLogger(SafeBetModuleMethods.class);
 
-    public static List<EventResult> getLiveEventResultList(final String appKeyString) {
-        final HashSet<String> eventTypeIdsSet = new HashSet<>(2, 0.75f);
+    @Contract(pure = true)
+    private SafeBetModuleMethods() {
+    }
+
+    private static List<EventResult> getLiveEventResultList(final String appKeyString) {
+        final Set<String> eventTypeIdsSet = new HashSet<>(2, 0.75f);
         eventTypeIdsSet.add("1"); // soccer
 
         final MarketFilter marketFilter = new MarketFilter();
@@ -50,13 +57,14 @@ public class SafeBetModuleMethods {
         return eventResultList;
     }
 
+    @SuppressWarnings("OverlyNestedMethod")
     public static void parseEventResultList() {
         final long startTime = System.currentTimeMillis();
         final List<EventResult> eventResultList = getLiveEventResultList(Statics.appKey.get());
         if (eventResultList != null) {
             // Statics.timeStamps.lastParseEventResultListStamp(Generic.MINUTE_LENGTH_MILLISECONDS);
             final HashSet<Event> addedEvents = new HashSet<>(0);
-            final HashSet<Event> modifiedEvents = new HashSet<>(0);
+            final Collection<Event> modifiedEvents = new HashSet<>(0);
             for (final EventResult eventResult : eventResultList) {
                 final Event event = eventResult.getEvent();
                 if (event.parseName() > 0) {
@@ -68,7 +76,7 @@ public class SafeBetModuleMethods {
                         } else {
                             if (event.isIgnored(startTime)) { // these events don't already exist in map, so they can't be ignored already; this would be an error
                                 logger.error("blackListed event added: {}", eventId);
-                            } else {
+                            } else { // probably nothing to do on this branch
                             }
 
                             existingEvent = Statics.eventsMap.putIfAbsent(eventId, event);
@@ -81,7 +89,7 @@ public class SafeBetModuleMethods {
                     } // end synchronized
 
                     if (existingEvent != null) {
-                        int update = existingEvent.update(event);
+                        final int update = existingEvent.update(event);
                         if (update > 0) {
                             modifiedEvents.add(existingEvent);
                         }
@@ -92,10 +100,10 @@ public class SafeBetModuleMethods {
             } // end for
             Statics.eventsMap.timeStamp();
 
-            int sizeModified = modifiedEvents.size();
+            final int sizeModified = modifiedEvents.size();
             if (sizeModified > 0) { // check on whether the modified events are matched is done in findInterestingMarkets
                 final HashSet<Event> notIgnoredModifiedEvents = new HashSet<>(Generic.getCollectionCapacity(modifiedEvents));
-                for (Event event : modifiedEvents) {
+                for (final Event event : modifiedEvents) {
                     if (!event.isIgnored()) {
                         notIgnoredModifiedEvents.add(event);
                     }
@@ -107,7 +115,7 @@ public class SafeBetModuleMethods {
                 }
             }
 
-            int sizeAdded = addedEvents.size();
+            final int sizeAdded = addedEvents.size();
             if (sizeAdded > 0) { // only added; modified will be checked during fullRun
                 if (Statics.safeBetModuleActivated) {
                     logger.info("parseEventResultList addedEvents: {} launch: mapEventsToScraperEvents delayed", sizeAdded);
@@ -125,13 +133,14 @@ public class SafeBetModuleMethods {
         logger.info("parseEventResultList finished in {} ms eventResultList size: {}", System.currentTimeMillis() - startTime, eventResultList == null ? null : eventResultList.size());
     }
 
-    public static void findInterestingMarkets(final TreeSet<String> marketIdsSet) {
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "OverlyNestedMethod"})
+    public static void findInterestingMarkets(final Collection<String> marketIdsSet) {
         if (marketIdsSet != null) {
             final long methodStartTime = System.currentTimeMillis();
             final Set<MarketCatalogue> returnSet = Collections.synchronizedSet(new HashSet<>(Generic.getCollectionCapacity(marketIdsSet.size())));
             final Iterable<List<String>> splitsIterable = Iterables.partition(marketIdsSet, 200);
-            final List<Thread> threadList = new ArrayList<>(Iterables.size(splitsIterable));
-            for (List<String> marketIdsList : splitsIterable) {
+            final Collection<Thread> threadList = new ArrayList<>(Iterables.size(splitsIterable));
+            for (final List<String> marketIdsList : splitsIterable) {
                 final RescriptOpThread<MarketCatalogue> rescriptOpThread = new RescriptOpThread<>(returnSet, new TreeSet<>(marketIdsList), FindMarkets.marketProjectionsSet);
                 final Thread thread = new Thread(rescriptOpThread);
                 thread.start();
@@ -150,8 +159,8 @@ public class SafeBetModuleMethods {
                 }
             } // end for
 
-            final HashSet<Event> modifiedEvents = new HashSet<>(0);
-            final LinkedHashSet<Map.Entry<String, MarketCatalogue>> toCheckMarkets = new LinkedHashSet<>(0);
+            final Collection<Event> modifiedEvents = new HashSet<>(0);
+            final Collection<Map.Entry<String, MarketCatalogue>> toCheckMarkets = new LinkedHashSet<>(0);
             int nModifiedMarkets = 0, nAddedMarkets = 0;
             for (MarketCatalogue marketCatalogue : returnSet) {
                 marketCatalogue.setTimeStamp(startedWaitingTime);
@@ -193,14 +202,7 @@ public class SafeBetModuleMethods {
                         }
                     }
 
-                    final MarketCatalogue existingMarketCatalogue;
-
-                    if (Statics.marketCataloguesMap.containsKey(marketId)) {
-                        existingMarketCatalogue = Statics.marketCataloguesMap.get(marketId);
-                    } else {
-                        existingMarketCatalogue = null;
-                    }
-
+                    @Nullable final MarketCatalogue existingMarketCatalogue = Statics.marketCataloguesMap.containsKey(marketId) ? Statics.marketCataloguesMap.get(marketId) : null;
                     if (existingMarketCatalogue != null) {
                         existingMarketCatalogue.setTotalMatched(marketCatalogue.getTotalMatched()); // else market marked as updated almost every time
                         marketCatalogue.setParsedMarket(existingMarketCatalogue.getParsedMarket());
@@ -233,28 +235,28 @@ public class SafeBetModuleMethods {
                 logger.info(printedString);
 
                 final HashSet<Event> notIgnoredModifiedEvents = new HashSet<>(Generic.getCollectionCapacity(modifiedEvents));
-                for (Event event : modifiedEvents) {
+                for (final Event event : modifiedEvents) {
                     if (!event.isIgnored()) {
                         notIgnoredModifiedEvents.add(event);
                     }
                 } // end for
-                if (notIgnoredModifiedEvents.size() > 0) {
+                if (!notIgnoredModifiedEvents.isEmpty()) {
                     Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, notIgnoredModifiedEvents));
                 }
             }
             final int sizeEntries = toCheckMarkets.size();
             if (sizeEntries > 0) {
-                final String printedString = MessageFormatter.arrayFormat("findInterestingMarkets toCheckMarkets(modif/add): {}({}/{}) launch: findSafeRunners", new Object[]{sizeEntries, nModifiedMarkets, nAddedMarkets}).getMessage();
+                final String printedString = MessageFormatter.arrayFormat("findInterestingMarkets toCheckMarkets(modify/add): {}({}/{}) launch: findSafeRunners", new Object[]{sizeEntries, nModifiedMarkets, nAddedMarkets}).getMessage();
                 logger.info(printedString);
 
                 final LinkedHashSet<Map.Entry<String, MarketCatalogue>> notIgnoredToCheckMarkets = new LinkedHashSet<>(Generic.getCollectionCapacity(toCheckMarkets));
-                for (Map.Entry<String, MarketCatalogue> entry : toCheckMarkets) {
-                    MarketCatalogue value = entry.getValue();
+                for (final Map.Entry<String, MarketCatalogue> entry : toCheckMarkets) {
+                    final MarketCatalogue value = entry.getValue();
                     if (!value.isIgnored()) {
                         notIgnoredToCheckMarkets.add(entry);
                     }
                 } // end for
-                if (notIgnoredToCheckMarkets.size() > 0) {
+                if (!notIgnoredToCheckMarkets.isEmpty()) {
                     if (Statics.safeBetModuleActivated) {
                         Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, notIgnoredToCheckMarkets));
                     }
@@ -265,17 +267,11 @@ public class SafeBetModuleMethods {
         }
     }
 
-    public static void findInterestingMarkets(final HashSet<Event> eventsSet, final boolean checkAll) {
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "OverlyNestedMethod"})
+    public static void findInterestingMarkets(final Collection<Event> eventsSet, final boolean checkAll) {
         if (!Statics.safeBetModuleActivated || System.currentTimeMillis() - Statics.scraperEventMaps.getNTimeStamp() <= Generic.HOUR_LENGTH_MILLISECONDS * 3L) {
             final long methodStartTime = System.currentTimeMillis();
-
-            final Collection<Event> eventsCopy;
-            if (eventsSet != null) {
-                eventsCopy = eventsSet;
-            } else {
-                eventsCopy = Statics.eventsMap.valuesCopy();
-            }
-
+            final Collection<Event> eventsCopy = eventsSet != null ? eventsSet : Statics.eventsMap.valuesCopy();
             final Iterator<Event> iterator = eventsCopy.iterator();
             while (iterator.hasNext()) {
                 final Event event = iterator.next();
@@ -298,9 +294,16 @@ public class SafeBetModuleMethods {
                 }
             } // end while
 
-            if (!eventsCopy.isEmpty()) {
-                final Set<MarketCatalogue> returnSet = Collections.synchronizedSet(new HashSet<MarketCatalogue>(128));
-                final List<Thread> threadList = new ArrayList<>(1);
+            if (eventsCopy.isEmpty()) {
+                final boolean fullRun = eventsSet == null;
+                final String fullRunString = fullRun ? " fullRun" : "";
+                final String checkAllString = checkAll ? " checkAll" : "";
+                final String printedString = MessageFormatter.arrayFormat("findInterestingMarkets{}{}: no matched events to work with", new Object[]{fullRunString, checkAllString}).getMessage();
+                logger.info(printedString); // this is info, not error; the set can become empty after removal at beginning of method
+            } // end else
+            else {
+                final Set<MarketCatalogue> returnSet = Collections.synchronizedSet(new HashSet<>(128));
+                final Collection<Thread> threadList = new ArrayList<>(1);
                 HashSet<String> eventIds = new HashSet<>(8);
                 int setMarketCount = 0;
                 for (final Event event : eventsCopy) { // null and ignored verification have been done previously
@@ -319,7 +322,7 @@ public class SafeBetModuleMethods {
                         setMarketCount = marketCount;
                     }
                 } // end for
-                if (eventIds.size() > 0) {
+                if (!eventIds.isEmpty()) {
                     final RescriptOpThread<MarketCatalogue> rescriptOpThread = new RescriptOpThread<>(returnSet, eventIds, FindMarkets.marketProjectionsSet);
                     final Thread thread = new Thread(rescriptOpThread);
                     thread.start();
@@ -339,9 +342,9 @@ public class SafeBetModuleMethods {
                 } // end for
 
                 final long endTime = System.currentTimeMillis();
-                final LinkedHashSet<Map.Entry<String, MarketCatalogue>> toCheckMarkets = new LinkedHashSet<>(0);
+                final Collection<Map.Entry<String, MarketCatalogue>> toCheckMarkets = new LinkedHashSet<>(0);
                 int nModifiedMarkets = 0, nAddedMarkets = 0;
-                final HashSet<Event> modifiedEvents = new HashSet<>(0);
+                final Collection<Event> modifiedEvents = new HashSet<>(0);
 
                 for (MarketCatalogue marketCatalogue : returnSet) {
                     marketCatalogue.setTimeStamp(startedWaitingTime);
@@ -377,13 +380,9 @@ public class SafeBetModuleMethods {
                             logger.warn("event modified {} in findInterestingMarkets for: {} {} {}", update, marketId, Generic.objectToString(eventStump), Generic.objectToString(event)); // this might be normal behaviour
                         }
 
-                        MarketCatalogue existingMarketCatalogue;
+                        @Nullable MarketCatalogue existingMarketCatalogue;
                         if (nMatched >= Statics.MIN_MATCHED) {
-                            if (Statics.marketCataloguesMap.containsKey(marketId)) {
-                                existingMarketCatalogue = Statics.marketCataloguesMap.get(marketId);
-                            } else {
-                                existingMarketCatalogue = null;
-                            }
+                            existingMarketCatalogue = Statics.marketCataloguesMap.containsKey(marketId) ? Statics.marketCataloguesMap.get(marketId) : null;
                             if (existingMarketCatalogue != null) {
                                 existingMarketCatalogue.setTotalMatched(marketCatalogue.getTotalMatched()); // else market marked as updated almost every time
                                 marketCatalogue.setParsedMarket(existingMarketCatalogue.getParsedMarket());
@@ -401,9 +400,9 @@ public class SafeBetModuleMethods {
                                 logger.error("this branch should not be entered when safeBet module disabled");
                             }
 
-                            long timeSinceLastRemoved = methodStartTime - Statics.scraperEventMaps.getNTimeStampRemoved();
-                            String printedString = MessageFormatter.arrayFormat("no scraperEvent found in findInterestingMarkets timeSinceLastRemoved: {}ms for eventId: {} marketId: {} marketCatalogue: {}",
-                                                                                new Object[]{timeSinceLastRemoved, eventId, marketId, Generic.objectToString(marketCatalogue)}).getMessage();
+                            final long timeSinceLastRemoved = methodStartTime - Statics.scraperEventMaps.getNTimeStampRemoved();
+                            final String printedString = MessageFormatter.arrayFormat("no scraperEvent found in findInterestingMarkets timeSinceLastRemoved: {}ms for eventId: {} marketId: {} marketCatalogue: {}",
+                                                                                      new Object[]{timeSinceLastRemoved, eventId, marketId, Generic.objectToString(marketCatalogue)}).getMessage();
                             if (timeSinceLastRemoved < 1_000L) {
                                 logger.info(printedString);
                             } else {
@@ -427,6 +426,7 @@ public class SafeBetModuleMethods {
                                 final boolean interestingMarket = FindMarkets.parseSupportedMarket(eventHomeNameString, eventAwayNameString, marketCatalogue, marketId, marketName, marketDescription, runnerCatalogsList);
 //                                logger.info("interesting or not: {} {} {}", marketId, interestingMarket, nMatched);
                                 if (interestingMarket) {
+                                    //noinspection ConstantConditions
                                     if (nMatched >= Statics.MIN_MATCHED) { // double check, just in case an error slips through
                                         final MarketCatalogue inMapMarketCatalogue = Statics.marketCataloguesMap.putIfAbsent(marketId, marketCatalogue);
                                         if (inMapMarketCatalogue == null) { // marketCatalogue was added, no previous marketCatalogue existed
@@ -445,13 +445,13 @@ public class SafeBetModuleMethods {
                                             final long timeDifference = currentTimeStamp - existingTimeStamp;
                                             if (timeDifference > 1_000L && startedWaitingTime - existingTimeStamp > 1_000L) {
                                                 Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "probably modified {}({}) ms parsedMarket for: {} {}", timeDifference, startedWaitingTime - existingTimeStamp,
-                                                                                  Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"), Generic.objectToString(inMapMarketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
+                                                                                  Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"),
+                                                                                  Generic.objectToString(inMapMarketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
                                             } else { // can happen due to concurrent threads, no need to print message
                                             }
                                         }
                                     } else {
-                                        logger.error("nMatched {} found in findInterestingMarkets for eventId: {} marketId: {} marketCatalogue: {}", nMatched, eventId, marketId,
-                                                     Generic.objectToString(marketCatalogue));
+                                        logger.error("nMatched {} found in findInterestingMarkets for eventId: {} marketId: {} marketCatalogue: {}", nMatched, eventId, marketId, Generic.objectToString(marketCatalogue));
 
                                         if (Statics.marketCataloguesMap.containsKey(marketId)) {
                                             // will not remove, having a bad error message is good enough
@@ -501,19 +501,19 @@ public class SafeBetModuleMethods {
                     }
 
                     final HashSet<Event> notIgnoredModifiedEvents = new HashSet<>(Generic.getCollectionCapacity(modifiedEvents));
-                    for (Event event : modifiedEvents) {
+                    for (final Event event : modifiedEvents) {
                         if (!event.isIgnored()) {
                             notIgnoredModifiedEvents.add(event);
                         }
                     } // end for
-                    if (notIgnoredModifiedEvents.size() > 0) {
+                    if (!notIgnoredModifiedEvents.isEmpty()) {
                         Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, notIgnoredModifiedEvents));
                     }
                 }
                 final int sizeEntries = toCheckMarkets.size();
                 if (sizeEntries > 0) {
                     final String printedString =
-                            MessageFormatter.arrayFormat("findInterestingMarkets{}{} toCheckMarkets(modif/add): {}({}/{}) launch: findSafeRunners", new Object[]{fullRunString, checkAllString, sizeEntries, nModifiedMarkets, nAddedMarkets}).getMessage();
+                            MessageFormatter.arrayFormat("findInterestingMarkets{}{} toCheckMarkets(modify/add): {}({}/{}) launch: findSafeRunners", new Object[]{fullRunString, checkAllString, sizeEntries, nModifiedMarkets, nAddedMarkets}).getMessage();
                     if (fullRun) {
                         if (nModifiedMarkets > 0) {
                             logger.warn(printedString); // sometimes, rarely, does happen
@@ -525,29 +525,19 @@ public class SafeBetModuleMethods {
                     }
 
                     final LinkedHashSet<Map.Entry<String, MarketCatalogue>> notIgnoredToCheckMarkets = new LinkedHashSet<>(Generic.getCollectionCapacity(toCheckMarkets));
-                    for (Map.Entry<String, MarketCatalogue> entry : toCheckMarkets) {
-                        MarketCatalogue value = entry.getValue();
+                    for (final Map.Entry<String, MarketCatalogue> entry : toCheckMarkets) {
+                        final MarketCatalogue value = entry.getValue();
                         if (!value.isIgnored()) {
                             notIgnoredToCheckMarkets.add(entry);
                         }
                     } // end for
-                    if (notIgnoredToCheckMarkets.size() > 0) {
+                    if (!notIgnoredToCheckMarkets.isEmpty()) {
                         if (Statics.safeBetModuleActivated) {
                             Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, notIgnoredToCheckMarkets));
                         }
                     }
                 }
-            } else {
-                final boolean fullRun = eventsSet == null;
-                final String fullRunString = fullRun ? " fullRun" : "";
-                final String checkAllString = checkAll ? " checkAll" : "";
-                final String printedString = MessageFormatter.arrayFormat("findInterestingMarkets{}{}: no matched events to work with", new Object[]{fullRunString, checkAllString}).getMessage();
-                if (fullRun) {
-                    logger.info(printedString);
-                } else {
-                    logger.info(printedString); // this is info as well, not error; the set can become empty after removal at beginning of method
-                }
-            } // end else
+            }
         } else {
             logger.info("scraperEventsMap too old in findInterestingMarkets");
         }

@@ -1,5 +1,7 @@
 package info.fmro.betty.stream.definitions;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,16 +10,15 @@ import java.util.List;
 public class KeyLineDefinition
         implements Serializable {
     private static final long serialVersionUID = 3111037495464828868L;
+    @Nullable
     private List<KeyLineSelection> kl;
 
-    public KeyLineDefinition() {
-    }
-
+    @Nullable
     public synchronized List<KeyLineSelection> getKl() {
-        return kl == null ? null : new ArrayList<>(kl);
+        return this.kl == null ? null : new ArrayList<>(this.kl);
     }
 
-    public synchronized void setKl(final List<KeyLineSelection> kl) {
+    public synchronized void setKl(final List<? extends KeyLineSelection> kl) {
         this.kl = kl == null ? null : new ArrayList<>(kl);
     }
 }

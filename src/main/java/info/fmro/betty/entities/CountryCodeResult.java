@@ -1,14 +1,12 @@
 package info.fmro.betty.entities;
 
+@SuppressWarnings("unused")
 public class CountryCodeResult {
     private String countryCode;
     private Integer marketCount;
 
-    public CountryCodeResult() {
-    }
-
     public synchronized String getCountryCode() {
-        return countryCode;
+        return this.countryCode;
     }
 
     public synchronized void setCountryCode(final String countryCode) {
@@ -16,7 +14,7 @@ public class CountryCodeResult {
     }
 
     public synchronized Integer getMarketCount() {
-        return marketCount;
+        return this.marketCount;
     }
 
     public synchronized void setMarketCount(final Integer marketCount) {

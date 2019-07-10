@@ -1,5 +1,7 @@
 package info.fmro.betty.objects;
 
+import org.jetbrains.annotations.Contract;
+
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -16,28 +18,28 @@ public class BetradarPeriodScore
     }
 
     public synchronized String getPeriodName() {
-        return periodName;
+        return this.periodName;
     }
 
     //    public synchronized void setPeriodName(String periodName) {
 //        this.periodName = periodName;
 //    }
     public synchronized int getHomeScore() {
-        return homeScore;
+        return this.homeScore;
     }
 
     //    public synchronized void setHomeScore(int homeScore) {
 //        this.homeScore = homeScore;
 //    }
     public synchronized int getAwayScore() {
-        return awayScore;
+        return this.awayScore;
     }
 
     //    public synchronized void setAwayScore(int awayScore) {
 //        this.awayScore = awayScore;
 //    }
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;

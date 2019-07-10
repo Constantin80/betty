@@ -4,11 +4,8 @@ public class EventTypeResult {
     private EventType eventType;
     private Integer marketCount;
 
-    public EventTypeResult() {
-    }
-
     public synchronized EventType getEventType() {
-        return eventType;
+        return this.eventType;
     }
 
     public synchronized void setEventType(final EventType eventType) {
@@ -16,7 +13,7 @@ public class EventTypeResult {
     }
 
     public synchronized Integer getMarketCount() {
-        return marketCount;
+        return this.marketCount;
     }
 
     public synchronized void setMarketCount(final Integer marketCount) {

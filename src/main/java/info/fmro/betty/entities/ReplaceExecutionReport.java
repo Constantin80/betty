@@ -2,22 +2,22 @@ package info.fmro.betty.entities;
 
 import info.fmro.betty.enums.ExecutionReportErrorCode;
 import info.fmro.betty.enums.ExecutionReportStatus;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public class ReplaceExecutionReport {
     private String customerRef;
     private ExecutionReportStatus status;
     private ExecutionReportErrorCode errorCode;
     private String marketId;
+    @Nullable
     private List<ReplaceInstructionReport> instructionReports;
 
-    public ReplaceExecutionReport() {
-    }
-
     public synchronized String getCustomerRef() {
-        return customerRef;
+        return this.customerRef;
     }
 
     public synchronized void setCustomerRef(final String customerRef) {
@@ -25,7 +25,7 @@ public class ReplaceExecutionReport {
     }
 
     public synchronized ExecutionReportStatus getStatus() {
-        return status;
+        return this.status;
     }
 
     public synchronized void setStatus(final ExecutionReportStatus status) {
@@ -33,7 +33,7 @@ public class ReplaceExecutionReport {
     }
 
     public synchronized ExecutionReportErrorCode getErrorCode() {
-        return errorCode;
+        return this.errorCode;
     }
 
     public synchronized void setErrorCode(final ExecutionReportErrorCode errorCode) {
@@ -41,18 +41,19 @@ public class ReplaceExecutionReport {
     }
 
     public synchronized String getMarketId() {
-        return marketId;
+        return this.marketId;
     }
 
     public synchronized void setMarketId(final String marketId) {
         this.marketId = marketId;
     }
 
+    @Nullable
     public synchronized List<ReplaceInstructionReport> getInstructionReports() {
-        return instructionReports == null ? null : new ArrayList<>(instructionReports);
+        return this.instructionReports == null ? null : new ArrayList<>(this.instructionReports);
     }
 
-    public synchronized void setInstructionReports(final List<ReplaceInstructionReport> instructionReports) {
+    public synchronized void setInstructionReports(final List<? extends ReplaceInstructionReport> instructionReports) {
         this.instructionReports = instructionReports == null ? null : new ArrayList<>(instructionReports);
     }
 }

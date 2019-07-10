@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FindSafeRunnersTest {
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod"})
     @Test
     void marketSafeRunners() {
         // ANYTIME_SCORE
@@ -12,12 +13,7 @@ public class FindSafeRunnersTest {
             for (int awayScore = 0; awayScore < 10; awayScore++) {
                 int foundSafeRunners = 0;
 
-                final int additionalBack;
-                if (homeScore == 0 || awayScore == 0) {
-                    additionalBack = Math.abs(Math.min(homeScore, 3) - Math.min(awayScore, 3)) - 1;
-                } else {
-                    additionalBack = 0;
-                }
+                final int additionalBack = homeScore == 0 || awayScore == 0 ? Math.abs(Math.min(homeScore, 3) - Math.min(awayScore, 3)) - 1 : 0;
                 final int additionalLay;
                 if (additionalBack != 0) {
                     additionalLay = 0;
@@ -26,8 +22,7 @@ public class FindSafeRunnersTest {
                 } else {
                     additionalLay = 0;
                 }
-                final int nSafeRunners = 1 + additionalBack + additionalLay +
-                                         Math.min(homeScore, 4) * (3 - Math.min(awayScore, 3)) + Math.min(awayScore, 4) * (3 - Math.min(homeScore, 3));
+                final int nSafeRunners = 1 + additionalBack + additionalLay + Math.min(homeScore, 4) * (3 - Math.min(awayScore, 3)) + Math.min(awayScore, 4) * (3 - Math.min(homeScore, 3));
 
                 if (homeScore == 0 && awayScore >= 1) {
                     foundSafeRunners++;

@@ -8,11 +8,8 @@ public class UpdateInstructionReport {
     private InstructionReportErrorCode errorCode;
     private UpdateInstruction instruction;
 
-    public UpdateInstructionReport() {
-    }
-
     public synchronized InstructionReportStatus getStatus() {
-        return status;
+        return this.status;
     }
 
     public synchronized void setStatus(final InstructionReportStatus status) {
@@ -20,7 +17,7 @@ public class UpdateInstructionReport {
     }
 
     public synchronized InstructionReportErrorCode getErrorCode() {
-        return errorCode;
+        return this.errorCode;
     }
 
     public synchronized void setErrorCode(final InstructionReportErrorCode errorCode) {
@@ -28,7 +25,7 @@ public class UpdateInstructionReport {
     }
 
     public synchronized UpdateInstruction getInstruction() {
-        return instruction;
+        return this.instruction;
     }
 
     public synchronized void setInstruction(final UpdateInstruction instruction) {

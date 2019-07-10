@@ -6,11 +6,13 @@ import info.fmro.betty.main.MaintenanceThread;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.SafeObjectInterface;
 import info.fmro.shared.utility.SynchronizedMap;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -19,7 +21,6 @@ import java.util.Set;
 // replace the container of SafeRunner from SynchronizedSet to Safe variant, to have on add and on remove methods; on remove I'll add a removed boolean
 public class SafeRunner
         implements SafeObjectInterface, Serializable, Comparable<SafeRunner> {
-
     private static final Logger logger = LoggerFactory.getLogger(SafeRunner.class);
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
     private static final long serialVersionUID = -7260869968913768056L;
@@ -27,42 +28,41 @@ public class SafeRunner
     private final String marketId;
     private final Long selectionId; // The unique id of the runner (unique for that particular market)
     private final Side side; // only one side can ever be safe
-    private final HashMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapers = new HashMap<>(4);
+    private final EnumMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapers = new EnumMap<>(ScrapedField.class);
+    @SuppressWarnings("FieldHasSetterButNoGetter")
     private boolean hasBeenRemoved; // flag placed as I remove the object from set, so I don't use the object anymore
 //    private double placedAmount; // only used for the specialLimitPeriod
 
-    @SuppressWarnings("LeakingThisInConstructor")
-    public SafeRunner(final String marketId, final Long selectionId, final Side side, final long timeStamp, final Map<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapers,
-                      final ScrapedField... scrapedFields) {
+    @SuppressWarnings("ConstructorWithTooManyParameters")
+    private SafeRunner(final String marketId, final Long selectionId, final Side side, final long timeStamp, final Map<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapers, final ScrapedField... scrapedFields) {
         this.marketId = marketId;
         this.selectionId = selectionId;
         this.side = side;
         if (scrapedFields != null) {
-            final int length = scrapedFields.length;
-            for (int i = 0; i < length; i++) {
-                SynchronizedMap<Class<? extends ScraperEvent>, Long> existingValue = usedScrapers.get(scrapedFields[i]);
+            for (final ScrapedField scrapedField : scrapedFields) {
+                final SynchronizedMap<Class<? extends ScraperEvent>, Long> existingValue = usedScrapers.get(scrapedField);
                 if (existingValue != null && existingValue.size() >= Statics.MIN_MATCHED) {
-                    this.usedScrapers.put(scrapedFields[i], existingValue);
+                    this.usedScrapers.put(scrapedField, existingValue);
                 } else {
-                    logger.error("null or too low size map during SafeRunner creation for: {} {} {} {}", Generic.objectToString(scrapedFields[i]),
-                                 Generic.objectToString(existingValue), Generic.objectToString(scrapedFields), Generic.objectToString(this));
+                    //noinspection ThisEscapedInObjectConstruction
+                    logger.error("null or too low size map during SafeRunner creation for: {} {} {} {}", Generic.objectToString(scrapedField), Generic.objectToString(existingValue), Generic.objectToString(scrapedFields), Generic.objectToString(this));
                 }
             } // end for
         } else {
             this.usedScrapers.putAll(usedScrapers); // allows using the entire map
             if (!sufficientScrapers()) {
+                //noinspection ThisEscapedInObjectConstruction
                 logger.error("insufficient scrapers during SafeRunner creation for: {}", Generic.objectToString(this));
             }
         } // end else
-        addedStamp = timeStamp;
+        this.addedStamp = timeStamp;
     }
 
-    public SafeRunner(final String marketId, final Long selectionId, final Side side, final Map<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapers,
-                      final ScrapedField... scrapedFields) {
+    public SafeRunner(final String marketId, final Long selectionId, final Side side, final Map<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapers, final ScrapedField... scrapedFields) {
         this(marketId, selectionId, side, System.currentTimeMillis(), usedScrapers, scrapedFields);
     }
 
-    public SafeRunner(final String marketId, final Long selectionId, final Side side) {
+    SafeRunner(final String marketId, final Long selectionId, final Side side) {
         // create stump for SafetyLimits use
         this.marketId = marketId;
         this.selectionId = selectionId;
@@ -70,22 +70,17 @@ public class SafeRunner
         this.addedStamp = System.currentTimeMillis();
     }
 
-    public synchronized boolean hasBeenRemoved() {
+    synchronized boolean hasBeenRemoved() {
         return this.hasBeenRemoved;
     }
 
-    public synchronized void setHasBeenRemoved(final boolean hasBeenRemoved) {
+    private synchronized void setHasBeenRemoved(@SuppressWarnings("SameParameterValue") final boolean hasBeenRemoved) {
         this.hasBeenRemoved = hasBeenRemoved;
     }
 
     @Override
     public synchronized int runAfterRemoval() {
-        final int modified;
-        if (!this.hasBeenRemoved()) {
-            modified = 1;
-        } else {
-            modified = 0;
-        }
+        final int modified = this.hasBeenRemoved() ? 0 : 1;
         this.setHasBeenRemoved(true);
 
         return modified;
@@ -100,7 +95,7 @@ public class SafeRunner
     }
 
     public synchronized String getMarketId() {
-        return marketId;
+        return this.marketId;
     }
 
     //    public double getPlacedAmount() {
@@ -115,114 +110,46 @@ public class SafeRunner
 //        this.placedAmount += placedAmount;
 //        return placedAmount;
 //    }
-    public synchronized int getMatchedScrapers(final ScrapedField scrapedField) {
-        SynchronizedMap<Class<? extends ScraperEvent>, Long> map = usedScrapers.get(scrapedField);
-        int result;
-        if (map == null) {
-            result = 0;
-        } else {
-            result = map.size();
-        }
-        return result;
+    private synchronized int getMatchedScrapers(final ScrapedField scrapedField) {
+        final SynchronizedMap<Class<? extends ScraperEvent>, Long> map = this.usedScrapers.get(scrapedField);
+        return map == null ? 0 : map.size();
     }
 
-    public synchronized int getMinScoreScrapers() {
+    synchronized int getMinScoreScrapers() {
         return Math.min(this.getMatchedScrapers(ScrapedField.HOME_SCORE), this.getMatchedScrapers(ScrapedField.AWAY_SCORE));
     }
 
-    public synchronized long getAddedStamp() {
-        return addedStamp;
+    synchronized long getAddedStamp() {
+        return this.addedStamp;
     }
 
     public synchronized Long getSelectionId() {
-        return selectionId;
+        return this.selectionId;
     }
 
     //    public synchronized void setSelectionId(long selectionId) {
 //        this.selectionId = selectionId;
 //    }
     public synchronized Side getSide() {
-        return side;
+        return this.side;
     }
 
     //    public synchronized void setSide(Side side) {
 //        this.side = side;
 //    }
-    public synchronized HashMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> getUsedScrapers() {
-        return usedScrapers == null ? null : new HashMap<>(usedScrapers);
+    public synchronized EnumMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> getUsedScrapers() {
+        return new EnumMap<>(this.usedScrapers);
     }
 
-    //    public synchronized SynchronizedMap<Class<? extends ScraperEvent>, Long> removeUsedField(ScrapedField scrapedField) {
-//        return usedScrapers.remove(scrapedField);
-//    }
-//    public synchronized boolean removeUsedScraper(ScrapedField scrapedField, Class<? extends ScraperEvent> clazz, Long scraperId) {
-//        boolean returnValue;
-//        SynchronizedMap<Class<? extends ScraperEvent>, Long> map = usedScrapers.get(scrapedField);
-//        if (map == null) {
-//            returnValue = false;
-//        } else {
-//            returnValue = map.remove(clazz, scraperId);
-//        }
-//        return returnValue;
-//    }
-//
-//    public synchronized Long removeUsedScraper(ScrapedField scrapedField, Class<? extends ScraperEvent> clazz) {
-//        Long returnValue;
-//        SynchronizedMap<Class<? extends ScraperEvent>, Long> map = usedScrapers.get(scrapedField);
-//        if (map == null) {
-//            returnValue = null;
-//        } else {
-//            returnValue = map.remove(clazz);
-//        }
-//        return returnValue;
-//    }
-//
-//    public synchronized boolean removeUsedScraper(Class<? extends ScraperEvent> clazz, Long scraperId) {
-//        boolean returnValue = false;
-//        for (SynchronizedMap<Class<? extends ScraperEvent>, Long> map : usedScrapers.values()) {
-//            if (map != null) {
-//                if (map.remove(clazz, scraperId)) {
-//                    returnValue = true;
-//                }
-//            } else {
-//                logger.error("null map found in removeUsedScraper: {} {} {} {}", returnValue, clazz.getSimpleName(), scraperId, selectionId);
-//            }
-//        } // end for
-//
-//        return returnValue;
-//    }
-//
-//    public synchronized Long removeUsedScraper(Class<? extends ScraperEvent> clazz) {
-//        Long returnValue = null;
-//        for (SynchronizedMap<Class<? extends ScraperEvent>, Long> map : usedScrapers.values()) {
-//            if (map != null) {
-//                Long removeResult = map.remove(clazz);
-//                if (removeResult != null) {
-//                    if (returnValue == null) {
-//                        returnValue = removeResult;
-//                    } else if (Objects.equals(returnValue, removeResult)) { // nothing to be done
-//                    } else {
-//                        logger.error("different scraperIds found in removeUsedScraper: {} {} {} {}", returnValue, removeResult, clazz.getSimpleName(), selectionId);
-//                    }
-//                } else { // nothing removed, nothing to be done
-//                }
-//            } else {
-//                logger.error("null map found in removeUsedScraper: {} {} {}", returnValue, clazz.getSimpleName(), selectionId);
-//            }
-//        } // end for
-//
-//        return returnValue;
-//    }
-    public synchronized int leastUsedScrapers() {
+    private synchronized int leastUsedScrapers() {
         int minimum = Integer.MAX_VALUE;
-        for (SynchronizedMap<Class<? extends ScraperEvent>, Long> map : usedScrapers.values()) {
+        for (final SynchronizedMap<Class<? extends ScraperEvent>, Long> map : this.usedScrapers.values()) {
             minimum = Math.min(minimum, map.size());
         }
         return minimum;
     }
 
-    @SuppressWarnings("FinalMethod")
-    public final synchronized boolean sufficientScrapers() {
+    synchronized boolean sufficientScrapers() {
         return leastUsedScrapers() >= Statics.MIN_MATCHED;
     }
 
@@ -232,9 +159,9 @@ public class SafeRunner
         // sets lenghty ignore on self if safeRunner is young and some associated scraper is ignored, although enough associated scrapers left; safety feature
         int modified = 0;
 
-        for (SynchronizedMap<Class<? extends ScraperEvent>, Long> map : usedScrapers.values()) {
+        for (final SynchronizedMap<Class<? extends ScraperEvent>, Long> map : this.usedScrapers.values()) {
             final Set<Entry<Class<? extends ScraperEvent>, Long>> entrySetCopy = map.entrySetCopy();
-            for (Entry<Class<? extends ScraperEvent>, Long> entry : entrySetCopy) {
+            for (final Entry<Class<? extends ScraperEvent>, Long> entry : entrySetCopy) {
                 final Class<? extends ScraperEvent> key = entry.getKey();
                 final Long value = entry.getValue();
                 if (BlackList.notExistOrIgnored(key, value)) {
@@ -252,9 +179,7 @@ public class SafeRunner
             } // end for
         } // end for
         if (modified > 0) {
-            if (!sufficientScrapers()) {
-                MaintenanceThread.removeSafeRunner(marketId, this);
-            } else {
+            if (sufficientScrapers()) {
                 // this default ignore was mostly moved to ScraperEvent.setIgnore and affects the whole Event
 //                final long currentTime = System.currentTimeMillis();
 //                final long safeRunnerAge = currentTime - this.addedStamp;
@@ -263,12 +188,15 @@ public class SafeRunner
 //                    logger.error("ignoring young {}ms safeRunner due to scraperEvent ignore: {}", safeRunnerAge, Generic.objectToString(this));
 //                    this.setIgnored(300_000L, currentTime); // 5 minutes ignore
 //                }
+            } else {
+                MaintenanceThread.removeSafeRunner(this.marketId, this);
             }
         }
 
         return modified;
     }
 
+    @SuppressWarnings("OverlyNestedMethod")
     public synchronized int updateUsedScrapers(final SafeRunner safeRunner) {
         int modified;
         if (this == safeRunner) {
@@ -277,32 +205,25 @@ public class SafeRunner
         } else if (!Objects.equals(this.selectionId, safeRunner.getSelectionId())) {
             logger.error("mismatch selectionId in SafeRunner.update: {} {}", Generic.objectToString(this), Generic.objectToString(safeRunner));
             modified = 0;
-        } else if (!Objects.equals(this.side, safeRunner.getSide())) {
+        } else if (this.side != safeRunner.getSide()) {
             logger.error("mismatch side in SafeRunner.update: {} {}", Generic.objectToString(this), Generic.objectToString(safeRunner));
             modified = 0;
         } else {
-            final HashMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> otherUsedScrapers = safeRunner.getUsedScrapers();
-            if (this.usedScrapers == null || otherUsedScrapers == null) {
-                logger.error("usedScrapers or otherUsedScrapers null in SafeRunner.update: {} {}", Generic.objectToString(this), Generic.objectToString(safeRunner));
+            final EnumMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> otherUsedScrapers = safeRunner.getUsedScrapers();
+            if (otherUsedScrapers == null) {
+                logger.error("otherUsedScrapers null in SafeRunner.update: {} {}", Generic.objectToString(this), Generic.objectToString(safeRunner));
                 modified = 0;
             } else {
                 final int usedScrapersSize = this.usedScrapers.size();
                 final int otherUsedScrapersSize = otherUsedScrapers.size();
-                if (usedScrapersSize != otherUsedScrapersSize) {
-                    logger.error("usedScrapersSize {} != otherUsedScrapersSize {} in SafeRunner.update: {} {}", usedScrapersSize, otherUsedScrapersSize,
-                                 Generic.objectToString(this), Generic.objectToString(safeRunner));
-                    modified = 0;
-                } else {
+                if (usedScrapersSize == otherUsedScrapersSize) {
                     final Set<ScrapedField> usedScrapersKeys = this.usedScrapers.keySet();
                     final Set<ScrapedField> otherUsedScrapersKeys = otherUsedScrapers.keySet();
-                    if (!Objects.equals(usedScrapersKeys, otherUsedScrapersKeys)) {
-                        logger.error("usedScrapersKeys {} != otherUsedScrapersKeys {} in SafeRunner.update: {} {}", Generic.objectToString(usedScrapersKeys),
-                                     Generic.objectToString(otherUsedScrapersKeys), Generic.objectToString(this), Generic.objectToString(safeRunner));
-                        modified = 0;
-                    } else {
+                    if (Objects.equals(usedScrapersKeys, otherUsedScrapersKeys)) {
                         modified = 0; // initialized
-                        for (ScrapedField scrapedField : usedScrapersKeys) {
-                            final SynchronizedMap<Class<? extends ScraperEvent>, Long> map = this.usedScrapers.get(scrapedField);
+                        for (final Entry<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> entry : this.usedScrapers.entrySet()) {
+                            final ScrapedField scrapedField = entry.getKey();
+                            final SynchronizedMap<Class<? extends ScraperEvent>, Long> map = entry.getValue();
                             final SynchronizedMap<Class<? extends ScraperEvent>, Long> otherMap = otherUsedScrapers.get(scrapedField);
                             if (Objects.equals(map, otherMap)) { // equal, nothing to be done
                             } else {
@@ -310,7 +231,14 @@ public class SafeRunner
                                 this.usedScrapers.put(scrapedField, otherMap);
                             }
                         } // end for
+                    } else {
+                        logger.error("usedScrapersKeys {} != otherUsedScrapersKeys {} in SafeRunner.update: {} {}", Generic.objectToString(usedScrapersKeys), Generic.objectToString(otherUsedScrapersKeys), Generic.objectToString(this),
+                                     Generic.objectToString(safeRunner));
+                        modified = 0;
                     }
+                } else {
+                    logger.error("usedScrapersSize {} != otherUsedScrapersSize {} in SafeRunner.update: {} {}", usedScrapersSize, otherUsedScrapersSize, Generic.objectToString(this), Generic.objectToString(safeRunner));
+                    modified = 0;
                 }
             }
         }
@@ -321,49 +249,46 @@ public class SafeRunner
         return modified;
     }
 
+    @SuppressWarnings("MethodWithMultipleReturnPoints")
     @Override
-    @SuppressWarnings(value = "AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(final SafeRunner other) {
-        if (other == null) {
+    public synchronized int compareTo(@NotNull final SafeRunner o) {
+        //noinspection ConstantConditions
+        if (o == null) {
             return AFTER;
         }
-        if (this == other) {
+        if (this == o) {
             return EQUAL;
         }
 
-        if (this.getClass() != other.getClass()) {
-            if (this.getClass().hashCode() < other.getClass().hashCode()) {
-                return BEFORE;
-            } else {
-                return AFTER;
-            }
+        if (this.getClass() != o.getClass()) {
+            return this.getClass().hashCode() < o.getClass().hashCode() ? BEFORE : AFTER;
         }
-        if (!Objects.equals(this.marketId, other.marketId)) {
+        if (!Objects.equals(this.marketId, o.marketId)) {
             if (this.marketId == null) {
                 return BEFORE;
             }
-            if (other.marketId == null) {
+            if (o.marketId == null) {
                 return AFTER;
             }
-            return this.marketId.compareTo(other.marketId);
+            return this.marketId.compareTo(o.marketId);
         }
-        if (!Objects.equals(this.selectionId, other.selectionId)) {
+        if (!Objects.equals(this.selectionId, o.selectionId)) {
             if (this.selectionId == null) {
                 return BEFORE;
             }
-            if (other.selectionId == null) {
+            if (o.selectionId == null) {
                 return AFTER;
             }
-            return this.selectionId.compareTo(other.selectionId);
+            return this.selectionId.compareTo(o.selectionId);
         }
-        if (!Objects.equals(this.side, other.side)) {
+        if (this.side != o.side) {
             if (this.side == null) {
                 return BEFORE;
             }
-            if (other.side == null) {
+            if (o.side == null) {
                 return AFTER;
             }
-            return this.side.compareTo(other.side);
+            return this.side.compareTo(o.side);
         }
 
         return EQUAL;
@@ -378,8 +303,8 @@ public class SafeRunner
         return hash;
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
@@ -391,6 +316,6 @@ public class SafeRunner
             return false;
         }
         final SafeRunner other = (SafeRunner) obj;
-        return Objects.equals(this.marketId, other.marketId) && Objects.equals(this.selectionId, other.selectionId) && Objects.equals(this.side, other.side);
+        return Objects.equals(this.marketId, other.marketId) && Objects.equals(this.selectionId, other.selectionId) && this.side == other.side;
     }
 }

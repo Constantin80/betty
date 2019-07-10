@@ -6,9 +6,12 @@ import info.fmro.betty.enums.ExecutionReportStatus;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.objects.TemporaryOrder;
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CancelOrdersThread
@@ -18,18 +21,19 @@ public class CancelOrdersThread
     private final List<CancelInstruction> cancelInstructionsList;
     private final TemporaryOrder temporaryOrder;
 
-    public CancelOrdersThread(final String marketId, final List<CancelInstruction> cancelInstructionsList, final TemporaryOrder temporaryOrder) {
+    @Contract(pure = true)
+    CancelOrdersThread(final String marketId, @NotNull final List<CancelInstruction> cancelInstructionsList, final TemporaryOrder temporaryOrder) {
         this.marketId = marketId;
-        this.cancelInstructionsList = cancelInstructionsList;
+        this.cancelInstructionsList = new ArrayList<>(cancelInstructionsList);
         this.temporaryOrder = temporaryOrder;
     }
 
     @Override
     public void run() {
         final boolean success;
-        if (marketId != null && cancelInstructionsList != null && !cancelInstructionsList.isEmpty() && cancelInstructionsList.size() <= 60) {
+        if (this.marketId != null && !this.cancelInstructionsList.isEmpty() && this.cancelInstructionsList.size() <= 60) {
             final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
-            final CancelExecutionReport cancelExecutionReport = ApiNgRescriptOperations.cancelOrders(marketId, cancelInstructionsList, null, Statics.appKey.get(), rescriptResponseHandler);
+            final CancelExecutionReport cancelExecutionReport = ApiNgRescriptOperations.cancelOrders(this.marketId, this.cancelInstructionsList, null, Statics.appKey.get(), rescriptResponseHandler);
 
             if (cancelExecutionReport != null) {
                 final ExecutionReportStatus executionReportStatus = cancelExecutionReport.getStatus();
@@ -40,21 +44,21 @@ public class CancelOrdersThread
 
                     success = true;
                 } else {
-                    logger.error("!!!no success in cancelOrders: {} {} {}", Generic.objectToString(cancelExecutionReport), marketId, Generic.objectToString(cancelInstructionsList));
+                    logger.error("!!!no success in cancelOrders: {} {} {}", Generic.objectToString(cancelExecutionReport), this.marketId, Generic.objectToString(this.cancelInstructionsList));
                     success = false;
                 }
             } else {
-                logger.error("!!!failed to cancelOrders: {} {}", marketId, Generic.objectToString(cancelInstructionsList));
+                logger.error("!!!failed to cancelOrders: {} {}", this.marketId, Generic.objectToString(this.cancelInstructionsList));
                 success = false;
             }
         } else {
-            logger.error("STRANGE null or empty variables in CancelOrdersThread: {} {}", marketId, Generic.objectToString(cancelInstructionsList));
+            logger.error("STRANGE null or empty variables in CancelOrdersThread: {} {}", this.marketId, Generic.objectToString(this.cancelInstructionsList));
             success = false;
         }
 
         if (success) { // nothing to be done, I just act in case of failure
         } else {
-            temporaryOrder.setExpirationTime(System.currentTimeMillis() + Generic.MINUTE_LENGTH_MILLISECONDS);
+            this.temporaryOrder.setExpirationTime(System.currentTimeMillis() + Generic.MINUTE_LENGTH_MILLISECONDS);
         }
     }
 }

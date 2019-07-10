@@ -4,15 +4,12 @@ public class EventResult {
     private Event event;
     private Integer marketCount;
 
-    public EventResult() {
-    }
-
     public synchronized Event getEvent() {
-        event.timeStamp();
-        event.setMarketCount(marketCount);
-        event.initializeCollections();
-        event.parseName();
-        return event;
+        this.event.timeStamp();
+        this.event.setMarketCount(this.marketCount);
+        this.event.initializeCollections();
+        this.event.parseName();
+        return this.event;
     }
 
     public synchronized void setEvent(final Event event) {
@@ -20,7 +17,7 @@ public class EventResult {
     }
 
     public synchronized Integer getMarketCount() {
-        return marketCount;
+        return this.marketCount;
     }
 
     public synchronized void setMarketCount(final Integer marketCount) {

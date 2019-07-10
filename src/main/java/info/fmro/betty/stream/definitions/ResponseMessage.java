@@ -9,11 +9,8 @@ public class ResponseMessage
     private Integer id; // Client generated unique id to link request with response (like json rpc)
     private ResponseOperationType op; // The operation type
 
-    public ResponseMessage() {
-    }
-
     public synchronized Integer getId() {
-        return id;
+        return this.id;
     }
 
     public synchronized void setId(final Integer id) {
@@ -21,7 +18,7 @@ public class ResponseMessage
     }
 
     public synchronized ResponseOperationType getOp() {
-        return op;
+        return this.op;
     }
 
     public synchronized void setOp(final ResponseOperationType op) {

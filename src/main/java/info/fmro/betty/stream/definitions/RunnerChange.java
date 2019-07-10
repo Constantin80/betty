@@ -1,11 +1,13 @@
 package info.fmro.betty.stream.definitions;
 
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 // objects of this class are read from the stream
@@ -13,27 +15,33 @@ public class RunnerChange
         implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(RunnerChange.class);
     private static final long serialVersionUID = -3034311716396095048L;
+    @Nullable
     private List<List<Double>> atb; // Available To Back - PriceVol tuple delta of price changes (0 vol is remove)
+    @Nullable
     private List<List<Double>> atl; // Available To Lay - PriceVol tuple delta of price changes (0 vol is remove)
+    @Nullable
     private List<List<Double>> batb; // Best Available To Back - LevelPriceVol triple delta of price changes, keyed by level (0 vol is remove)
+    @Nullable
     private List<List<Double>> batl; // Best Available To Lay - LevelPriceVol triple delta of price changes, keyed by level (0 vol is remove)
+    @Nullable
     private List<List<Double>> bdatb; // Best Display Available To Back (includes virtual prices)- LevelPriceVol triple delta of price changes, keyed by level (0 vol is remove)
+    @Nullable
     private List<List<Double>> bdatl; // Best Display Available To Lay (includes virtual prices)- LevelPriceVol triple delta of price changes, keyed by level (0 vol is remove)
     private Double hc; // Handicap - the handicap of the runner (selection) (null if not applicable)
     private Long id; // Selection Id - the id of the runner (selection)
     private Double ltp; // Last Traded Price - The last traded price (or null if un-changed)
+    @Nullable
     private List<List<Double>> spb; // Starting Price Back - PriceVol tuple delta of price changes (0 vol is remove)
     private Double spf; // Starting Price Far - The far starting price (or null if un-changed)
+    @Nullable
     private List<List<Double>> spl; // Starting Price Lay - PriceVol tuple delta of price changes (0 vol is remove)
     private Double spn; // Starting Price Near - The far starting price (or null if un-changed)
+    @Nullable
     private List<List<Double>> trd; // Traded - PriceVol tuple delta of price changes (0 vol is remove)
     private Double tv; // The total amount matched. This value is truncated at 2dp.
 
-    public RunnerChange() {
-    }
-
     public synchronized List<List<Double>> getAtb() {
-        final List<List<Double>> result;
+        @Nullable final List<List<Double>> result;
 
         if (this.atb == null) {
             result = null;
@@ -52,7 +60,7 @@ public class RunnerChange
         return result;
     }
 
-    public synchronized void setAtb(final List<List<Double>> atb) {
+    public synchronized void setAtb(final Collection<? extends List<Double>> atb) {
         if (atb == null) {
             this.atb = null;
         } else {
@@ -69,7 +77,7 @@ public class RunnerChange
     }
 
     public synchronized List<List<Double>> getAtl() {
-        final List<List<Double>> result;
+        @Nullable final List<List<Double>> result;
 
         if (this.atl == null) {
             result = null;
@@ -88,7 +96,7 @@ public class RunnerChange
         return result;
     }
 
-    public synchronized void setAtl(final List<List<Double>> atl) {
+    public synchronized void setAtl(final Collection<? extends List<Double>> atl) {
         if (atl == null) {
             this.atl = null;
         } else {
@@ -105,7 +113,7 @@ public class RunnerChange
     }
 
     public synchronized List<List<Double>> getBatb() {
-        final List<List<Double>> result;
+        @Nullable final List<List<Double>> result;
 
         if (this.batb == null) {
             result = null;
@@ -124,7 +132,7 @@ public class RunnerChange
         return result;
     }
 
-    public synchronized void setBatb(final List<List<Double>> batb) {
+    public synchronized void setBatb(final Collection<? extends List<Double>> batb) {
         if (batb == null) {
             this.batb = null;
         } else {
@@ -141,7 +149,7 @@ public class RunnerChange
     }
 
     public synchronized List<List<Double>> getBatl() {
-        final List<List<Double>> result;
+        @Nullable final List<List<Double>> result;
 
         if (this.batl == null) {
             result = null;
@@ -160,7 +168,7 @@ public class RunnerChange
         return result;
     }
 
-    public synchronized void setBatl(final List<List<Double>> batl) {
+    public synchronized void setBatl(final Collection<? extends List<Double>> batl) {
         if (batl == null) {
             this.batl = null;
         } else {
@@ -177,7 +185,7 @@ public class RunnerChange
     }
 
     public synchronized List<List<Double>> getBdatb() {
-        final List<List<Double>> result;
+        @Nullable final List<List<Double>> result;
 
         if (this.bdatb == null) {
             result = null;
@@ -196,7 +204,7 @@ public class RunnerChange
         return result;
     }
 
-    public synchronized void setBdatb(final List<List<Double>> bdatb) {
+    public synchronized void setBdatb(final Collection<? extends List<Double>> bdatb) {
         if (bdatb == null) {
             this.bdatb = null;
         } else {
@@ -213,7 +221,7 @@ public class RunnerChange
     }
 
     public synchronized List<List<Double>> getBdatl() {
-        final List<List<Double>> result;
+        @Nullable final List<List<Double>> result;
 
         if (this.bdatl == null) {
             result = null;
@@ -232,7 +240,7 @@ public class RunnerChange
         return result;
     }
 
-    public synchronized void setBdatl(final List<List<Double>> bdatl) {
+    public synchronized void setBdatl(final Collection<? extends List<Double>> bdatl) {
         if (bdatl == null) {
             this.bdatl = null;
         } else {
@@ -249,7 +257,7 @@ public class RunnerChange
     }
 
     public synchronized Double getHc() {
-        return hc;
+        return this.hc;
     }
 
     public synchronized void setHc(final Double hc) {
@@ -257,7 +265,7 @@ public class RunnerChange
     }
 
     public synchronized Long getId() {
-        return id;
+        return this.id;
     }
 
     public synchronized void setId(final Long id) {
@@ -265,7 +273,7 @@ public class RunnerChange
     }
 
     public synchronized Double getLtp() {
-        return ltp;
+        return this.ltp;
     }
 
     public synchronized void setLtp(final Double ltp) {
@@ -273,7 +281,7 @@ public class RunnerChange
     }
 
     public synchronized List<List<Double>> getSpb() {
-        final List<List<Double>> result;
+        @Nullable final List<List<Double>> result;
 
         if (this.spb == null) {
             result = null;
@@ -292,7 +300,7 @@ public class RunnerChange
         return result;
     }
 
-    public synchronized void setSpb(final List<List<Double>> spb) {
+    public synchronized void setSpb(final Collection<? extends List<Double>> spb) {
         if (spb == null) {
             this.spb = null;
         } else {
@@ -309,7 +317,7 @@ public class RunnerChange
     }
 
     public synchronized Double getSpf() {
-        return spf;
+        return this.spf;
     }
 
     public synchronized void setSpf(final Double spf) {
@@ -317,7 +325,7 @@ public class RunnerChange
     }
 
     public synchronized List<List<Double>> getSpl() {
-        final List<List<Double>> result;
+        @Nullable final List<List<Double>> result;
 
         if (this.spl == null) {
             result = null;
@@ -336,7 +344,7 @@ public class RunnerChange
         return result;
     }
 
-    public synchronized void setSpl(final List<List<Double>> spl) {
+    public synchronized void setSpl(final Collection<? extends List<Double>> spl) {
         if (spl == null) {
             this.spl = null;
         } else {
@@ -353,7 +361,7 @@ public class RunnerChange
     }
 
     public synchronized Double getSpn() {
-        return spn;
+        return this.spn;
     }
 
     public synchronized void setSpn(final Double spn) {
@@ -361,7 +369,7 @@ public class RunnerChange
     }
 
     public synchronized List<List<Double>> getTrd() {
-        final List<List<Double>> result;
+        @Nullable final List<List<Double>> result;
 
         if (this.trd == null) {
             result = null;
@@ -380,7 +388,7 @@ public class RunnerChange
         return result;
     }
 
-    public synchronized void setTrd(final List<List<Double>> trd) {
+    public synchronized void setTrd(final Collection<? extends List<Double>> trd) {
         if (trd == null) {
             this.trd = null;
         } else {
@@ -397,7 +405,7 @@ public class RunnerChange
     }
 
     public synchronized Double getTv() {
-        return tv;
+        return this.tv;
     }
 
     public synchronized void setTv(final Double tv) {

@@ -2,6 +2,9 @@ package info.fmro.betty.objects;
 
 import info.fmro.betty.enums.MatchStatus;
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,11 +12,13 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
 
+@SuppressWarnings({"ClassTooDeepInInheritanceTree", "OverlyComplexClass"})
 public class BetradarEvent
         extends ScraperEvent
         implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(BetradarEvent.class);
     private static final long serialVersionUID = -6590032889145745147L;
+    @Nullable
     private Date startTime;
     private String classModifiers;
     // private ScraperMatchFacts matchFacts; // removed support for now; might be added later
@@ -25,13 +30,14 @@ public class BetradarEvent
         super("betradar", eventId, timeStamp);
     }
 
+    @Nullable
     public synchronized Date getStartTime() {
-        return startTime == null ? null : (Date) startTime.clone();
+        return this.startTime == null ? null : (Date) this.startTime.clone();
     }
 
-    public synchronized int setStartTime(final Date startTime) {
+    public synchronized int setStartTime(final Date newStartTime) {
         final int modified;
-        if (startTime == null) {
+        if (newStartTime == null) {
             if (this.startTime == null) {
                 modified = 0;
             } else {
@@ -39,29 +45,29 @@ public class BetradarEvent
                 logger.error("reset startTime {} to null in betradarEvent: {}", this.startTime, Generic.objectToString(this));
 //                modified = -10000; // blackListed
 
-                this.startTime = (Date) startTime.clone();
+                this.startTime = null;
                 modified = 1;
             }
         } else if (this.startTime == null) {
-            this.startTime = (Date) startTime.clone();
+            this.startTime = (Date) newStartTime.clone();
             modified = 1;
-        } else if (this.startTime.equals(startTime)) {
+        } else if (this.startTime.equals(newStartTime)) {
             modified = 0;
         } else {
-            final long timeDifference = Math.abs(this.startTime.getTime() - startTime.getTime());
-            if (timeDifference == Generic.HOUR_LENGTH_MILLISECONDS * 2L) { // 2 hour difference happens, likely due to some server related issue(happens in regular browser too)
-                this.startTime = (Date) startTime.clone();
+            final long timeDifference = Math.abs(this.startTime.getTime() - newStartTime.getTime());
+            if (timeDifference == Generic.HOUR_LENGTH_MILLISECONDS << 1) { // 2 hour difference happens, likely due to some server related issue(happens in regular browser too)
+                this.startTime = (Date) newStartTime.clone();
                 modified = 1;
             } else if (timeDifference == Generic.DAY_LENGTH_MILLISECONDS || timeDifference == Generic.HOUR_LENGTH_MILLISECONDS * 22L) { // happens sometimes, when the day changes
-                logger.warn("changing startTime {} to {} in betradarEvent: {}/{}", this.startTime, startTime, this.getHomeTeam(), this.getAwayTeam());
-                this.startTime = (Date) startTime.clone();
+                logger.warn("changing startTime {} to {} in betradarEvent: {}/{}", this.startTime, newStartTime, this.getHomeTeam(), this.getAwayTeam());
+                this.startTime = (Date) newStartTime.clone();
                 modified = 1;
             } else {
                 this.setIgnored(minimalBlackListPeriod); // avoid filling logs
-                logger.error("change startTime {} to {} in betradarEvent: {}", this.startTime, startTime, Generic.objectToString(this));
+                logger.error("change startTime {} to {} in betradarEvent: {}", this.startTime, newStartTime, Generic.objectToString(this));
 //                modified = -10000; // blackListed
 
-                this.startTime = (Date) startTime.clone();
+                this.startTime = (Date) newStartTime.clone();
                 modified = 1;
             }
         }
@@ -70,13 +76,14 @@ public class BetradarEvent
         return modified;
     }
 
-    public synchronized String getClassModifiers() {
-        return classModifiers;
+    @Contract(pure = true)
+    private synchronized String getClassModifiers() {
+        return this.classModifiers;
     }
 
-    public synchronized int setClassModifiers(final String classModifiers) {
+    public synchronized int setClassModifiers(final String newClassModifiers) {
         final int modified;
-        if (classModifiers == null) {
+        if (newClassModifiers == null) {
             if (this.classModifiers == null) {
                 modified = 0;
             } else {
@@ -84,13 +91,13 @@ public class BetradarEvent
                 logger.error("reset classModifiers {} to null in betradarEvent: {}", this.classModifiers, Generic.objectToString(this));
 //                modified = -10000; // blackListed
 
-                this.classModifiers = classModifiers;
+                this.classModifiers = newClassModifiers;
                 modified = 1;
             }
-        } else if (classModifiers.equals(this.classModifiers)) {
+        } else if (newClassModifiers.equals(this.classModifiers)) {
             modified = 0;
         } else {
-            this.classModifiers = classModifiers;
+            this.classModifiers = newClassModifiers;
             modified = 1;
         }
 
@@ -99,13 +106,13 @@ public class BetradarEvent
     }
 
     @Override
-    public synchronized int setHomeHtScore(final int homeHtScore) {
-        return super.setHomeHtScore(homeHtScore, true);
+    public synchronized int setHomeHtScore(final int newHomeHtScore) {
+        return setHomeHtScore(newHomeHtScore, true);
     }
 
     @Override
-    public synchronized int setAwayHtScore(final int awayHtScore) {
-        return super.setAwayHtScore(awayHtScore, true);
+    public synchronized int setAwayHtScore(final int newAwayHtScore) {
+        return setAwayHtScore(newAwayHtScore, true);
     }
 
     // public synchronized ScraperMatchFacts getMatchFacts() {
@@ -116,26 +123,28 @@ public class BetradarEvent
     // }
     public synchronized int adjustStartTimeMatchPlayed() { // for events that started in the previous day and continue this day
         final int modified;
-        final long currentTime = System.currentTimeMillis(), startTimeMillis = this.startTime.getTime();
+        final long currentTime = System.currentTimeMillis(), startTimeMillis = this.startTime != null ? this.startTime.getTime() : 0L;
 
-        if (startTimeMillis - currentTime >= Generic.HOUR_LENGTH_MILLISECONDS * 4) {
+        if (startTimeMillis - currentTime >= Generic.HOUR_LENGTH_MILLISECONDS << 2) {
+            //noinspection ConstantConditions
             this.startTime.setTime(startTimeMillis - Generic.DAY_LENGTH_MILLISECONDS);
             modified = 1;
-        } else {
+        } else { // includes startTimeMillis == 0L
             modified = 0;
         }
 
         return modified;
     }
 
-    public synchronized boolean recentChange() {
+    @Contract(pure = true)
+    private synchronized boolean recentChange() {
         return this.classModifiers.contains("status_recentChange");
     }
 
     @Override
-    public synchronized int innerUpdate(final ScraperEvent scraperEvent) {
+    public synchronized int innerUpdate(@NotNull final ScraperEvent scraperEvent) {
         int modified = super.innerUpdate(scraperEvent);
-        BetradarEvent betradarEvent = (BetradarEvent) scraperEvent;
+        final BetradarEvent betradarEvent = (BetradarEvent) scraperEvent;
 
         modified += this.setStartTime(betradarEvent.getStartTime());
         modified += this.setClassModifiers(betradarEvent.getClassModifiers());
@@ -148,11 +157,17 @@ public class BetradarEvent
         return modified;
     }
 
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod"})
     @Override
     public synchronized long innerErrors(final AtomicLong blackListPeriod) {
         long errors = super.innerErrors(blackListPeriod);
-        int minutesPlayed = this.getMinutesPlayed(), homeScore = this.getHomeScore(), awayScore = this.getAwayScore(), homeHtScore = this.getHomeHtScore(),
-                awayHtScore = this.getAwayHtScore(), homeRedCards = this.getHomeRedCards(), awayRedCards = this.getAwayRedCards();
+        final int minutesPlayed = this.getMinutesPlayed();
+        final int homeScore = this.getHomeScore();
+        final int awayScore = this.getAwayScore();
+        final int homeHtScore = this.getHomeHtScore();
+        final int awayHtScore = this.getAwayHtScore();
+        final int homeRedCards = this.getHomeRedCards();
+        final int awayRedCards = this.getAwayRedCards();
         if (minutesPlayed > 120) {
             errors += 102400L;
             blackListPeriod.set(Math.max(blackListPeriod.get(), shortBlackListPeriod));
@@ -169,10 +184,11 @@ public class BetradarEvent
         if (this.classModifiers == null) {
             errors += 1638400L;
         }
-        MatchStatus matchStatus = this.getMatchStatus();
+        final MatchStatus matchStatus = this.getMatchStatus();
         if (matchStatus == null) {
             errors += 3276800L;
         } else {
+            //noinspection SwitchStatementDensity
             switch (matchStatus) {
                 case NOT_STARTED:
                 case START_DELAYED:

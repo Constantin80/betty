@@ -59,7 +59,7 @@ public class ChangeMessageFactory {
     }
 
     public static ChangeMessage<OrderMarketChange> ToChangeMessage(final int clientId, final OrderChangeMessage message) {
-        ChangeMessage<OrderMarketChange> change = new ChangeMessage<>(clientId);
+        final ChangeMessage<OrderMarketChange> change = new ChangeMessage<>(clientId);
         change.setId(message.getId());
         change.setPublishTime(message.getPt());
         change.setClk(message.getClk());

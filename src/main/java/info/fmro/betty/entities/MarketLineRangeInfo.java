@@ -10,11 +10,8 @@ public class MarketLineRangeInfo
     private Double interval;
     private String marketUnit;
 
-    public MarketLineRangeInfo() {
-    }
-
     public synchronized Double getMaxUnitValue() {
-        return maxUnitValue;
+        return this.maxUnitValue;
     }
 
     public synchronized void setMaxUnitValue(final Double maxUnitValue) {
@@ -22,7 +19,7 @@ public class MarketLineRangeInfo
     }
 
     public synchronized Double getMinUnitValue() {
-        return minUnitValue;
+        return this.minUnitValue;
     }
 
     public synchronized void setMinUnitValue(final Double minUnitValue) {
@@ -30,7 +27,7 @@ public class MarketLineRangeInfo
     }
 
     public synchronized Double getInterval() {
-        return interval;
+        return this.interval;
     }
 
     public synchronized void setInterval(final Double interval) {
@@ -38,7 +35,7 @@ public class MarketLineRangeInfo
     }
 
     public synchronized String getMarketUnit() {
-        return marketUnit;
+        return this.marketUnit;
     }
 
     public synchronized void setMarketUnit(final String marketUnit) {

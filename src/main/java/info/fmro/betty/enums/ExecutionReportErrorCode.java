@@ -1,5 +1,7 @@
 package info.fmro.betty.enums;
 
+import org.jetbrains.annotations.Contract;
+
 public enum ExecutionReportErrorCode {
     ERROR_IN_MATCHER("The matcher's not healthy"),
     PROCESSED_WITH_ERRORS("The order itself has been accepted, but at least one (possibly all) actions have generated errors"),
@@ -10,7 +12,7 @@ public enum ExecutionReportErrorCode {
     LOSS_LIMIT_EXCEEDED("The account has exceed the self imposed loss limit"),
     MARKET_SUSPENDED("Market is suspended"),
     MARKET_NOT_OPEN_FOR_BETTING("Market is not open for betting, either inactive, suspended or closed"),
-    DUPLICATE_TRANSACTION("duplicate customer referece data submitted"),
+    DUPLICATE_TRANSACTION("duplicate customer reference data submitted"),
     INVALID_ORDER("Order cannot be accepted by the matcher due to the combination of actions. For example, bets being edited are not on the same market, or order includes both edits and placement"),
     INVALID_MARKET_ID("Market doesn't exist"),
     PERMISSION_DENIED("Business rules do not allow order to be placed"),
@@ -25,11 +27,13 @@ public enum ExecutionReportErrorCode {
 
     private final String message;
 
-    private ExecutionReportErrorCode(final String message) {
+    @Contract(pure = true)
+    ExecutionReportErrorCode(final String message) {
         this.message = message;
     }
 
+    @Contract(pure = true)
     public synchronized String getMessage() {
-        return message;
+        return this.message;
     }
 }

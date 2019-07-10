@@ -6,6 +6,9 @@ import info.fmro.betty.enums.PersistenceType;
 import info.fmro.betty.enums.Side;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +16,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
+@SuppressWarnings("ClassWithTooManyFields")
 public class CurrentOrderSummary
         implements Serializable, Comparable<CurrentOrderSummary> {
     private static final Logger logger = LoggerFactory.getLogger(CurrentOrderSummary.class);
@@ -28,7 +32,9 @@ public class CurrentOrderSummary
     private OrderStatus status;
     private PersistenceType persistenceType;
     private OrderType orderType;
+    @Nullable
     private Date placedDate;
+    @Nullable
     private Date matchedDate;
     private Double averagePriceMatched;
     private Double sizeMatched;
@@ -42,6 +48,7 @@ public class CurrentOrderSummary
     private String customerStrategyRef; // The strategy reference defined by the customer for this bet
     private String eventId; // created using the marketId
 
+    @Contract(pure = true)
     public CurrentOrderSummary(final String betId, final String marketId, final Long selectionId) {
         this.betId = betId;
         this.marketId = marketId;
@@ -92,7 +99,7 @@ public class CurrentOrderSummary
         this.eventId = eventId;
     }
 
-    public synchronized void createEventId() {
+    private synchronized void createEventId() {
         this.setEventId(Formulas.getEventIdOfMarketId(this.marketId));
         if (this.eventId == null) {
             logger.info("null eventId after creation in CurrentOrderSummary: {}", Generic.objectToString(this));
@@ -100,19 +107,19 @@ public class CurrentOrderSummary
     }
 
     public synchronized String getBetId() {
-        return betId;
+        return this.betId;
     }
 
     public synchronized String getMarketId() {
-        return marketId;
+        return this.marketId;
     }
 
     public synchronized Long getSelectionId() {
-        return selectionId;
+        return this.selectionId;
     }
 
     public synchronized Double getHandicap() {
-        return handicap;
+        return this.handicap;
     }
 
     public synchronized void setHandicap(final Double handicap) {
@@ -120,7 +127,7 @@ public class CurrentOrderSummary
     }
 
     public synchronized PriceSize getPriceSize() {
-        return priceSize;
+        return this.priceSize;
     }
 
     public synchronized void setPriceSize(final PriceSize priceSize) {
@@ -128,7 +135,7 @@ public class CurrentOrderSummary
     }
 
     public synchronized Double getBspLiability() {
-        return bspLiability;
+        return this.bspLiability;
     }
 
     public synchronized void setBspLiability(final Double bspLiability) {
@@ -136,7 +143,7 @@ public class CurrentOrderSummary
     }
 
     public synchronized Side getSide() {
-        return side;
+        return this.side;
     }
 
     public synchronized void setSide(final Side side) {
@@ -144,7 +151,7 @@ public class CurrentOrderSummary
     }
 
     public synchronized OrderStatus getStatus() {
-        return status;
+        return this.status;
     }
 
     public synchronized void setStatus(final OrderStatus status) {
@@ -152,7 +159,7 @@ public class CurrentOrderSummary
     }
 
     public synchronized PersistenceType getPersistenceType() {
-        return persistenceType;
+        return this.persistenceType;
     }
 
     public synchronized void setPersistenceType(final PersistenceType persistenceType) {
@@ -160,23 +167,25 @@ public class CurrentOrderSummary
     }
 
     public synchronized OrderType getOrderType() {
-        return orderType;
+        return this.orderType;
     }
 
     public synchronized void setOrderType(final OrderType orderType) {
         this.orderType = orderType;
     }
 
+    @Nullable
     public synchronized Date getPlacedDate() {
-        return placedDate == null ? null : (Date) placedDate.clone();
+        return this.placedDate == null ? null : (Date) this.placedDate.clone();
     }
 
     public synchronized void setPlacedDate(final Date placedDate) {
         this.placedDate = placedDate == null ? null : (Date) placedDate.clone();
     }
 
+    @Nullable
     public synchronized Date getMatchedDate() {
-        return matchedDate == null ? null : (Date) matchedDate.clone();
+        return this.matchedDate == null ? null : (Date) this.matchedDate.clone();
     }
 
     public synchronized void setMatchedDate(final Date matchedDate) {
@@ -184,7 +193,7 @@ public class CurrentOrderSummary
     }
 
     public synchronized Double getAveragePriceMatched() {
-        return averagePriceMatched;
+        return this.averagePriceMatched;
     }
 
     public synchronized void setAveragePriceMatched(final Double averagePriceMatched) {
@@ -192,7 +201,7 @@ public class CurrentOrderSummary
     }
 
     public synchronized Double getSizeMatched() {
-        return sizeMatched;
+        return this.sizeMatched;
     }
 
     public synchronized void setSizeMatched(final Double sizeMatched) {
@@ -200,7 +209,7 @@ public class CurrentOrderSummary
     }
 
     public synchronized Double getSizeRemaining() {
-        return sizeRemaining;
+        return this.sizeRemaining;
     }
 
     public synchronized void setSizeRemaining(final Double sizeRemaining) {
@@ -208,7 +217,7 @@ public class CurrentOrderSummary
     }
 
     public synchronized Double getSizeLapsed() {
-        return sizeLapsed;
+        return this.sizeLapsed;
     }
 
     public synchronized void setSizeLapsed(final Double sizeLapsed) {
@@ -216,7 +225,7 @@ public class CurrentOrderSummary
     }
 
     public synchronized Double getSizeCancelled() {
-        return sizeCancelled;
+        return this.sizeCancelled;
     }
 
     public synchronized void setSizeCancelled(final Double sizeCancelled) {
@@ -224,7 +233,7 @@ public class CurrentOrderSummary
     }
 
     public synchronized Double getSizeVoided() {
-        return sizeVoided;
+        return this.sizeVoided;
     }
 
     public synchronized void setSizeVoided(final Double sizeVoided) {
@@ -232,7 +241,7 @@ public class CurrentOrderSummary
     }
 
     public synchronized String getRegulatorAuthCode() {
-        return regulatorAuthCode;
+        return this.regulatorAuthCode;
     }
 
     public synchronized void setRegulatorAuthCode(final String regulatorAuthCode) {
@@ -240,56 +249,69 @@ public class CurrentOrderSummary
     }
 
     public synchronized String getRegulatorCode() {
-        return regulatorCode;
+        return this.regulatorCode;
     }
 
     public synchronized void setRegulatorCode(final String regulatorCode) {
         this.regulatorCode = regulatorCode;
     }
 
+    public synchronized String getCustomerOrderRef() {
+        return this.customerOrderRef;
+    }
+
+    public synchronized void setCustomerOrderRef(final String customerOrderRef) {
+        this.customerOrderRef = customerOrderRef;
+    }
+
+    public synchronized String getCustomerStrategyRef() {
+        return this.customerStrategyRef;
+    }
+
+    public synchronized void setCustomerStrategyRef(final String customerStrategyRef) {
+        this.customerStrategyRef = customerStrategyRef;
+    }
+
+    @SuppressWarnings("MethodWithMultipleReturnPoints")
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(final CurrentOrderSummary other) {
-        if (other == null) {
+    public synchronized int compareTo(@NotNull final CurrentOrderSummary o) {
+        //noinspection ConstantConditions
+        if (o == null) {
             return AFTER;
         }
-        if (this == other) {
+        if (this == o) {
             return EQUAL;
         }
 
-        if (this.getClass() != other.getClass()) {
-            if (this.getClass().hashCode() < other.getClass().hashCode()) {
-                return BEFORE;
-            } else {
-                return AFTER;
-            }
+        if (this.getClass() != o.getClass()) {
+            return this.getClass().hashCode() < o.getClass().hashCode() ? BEFORE : AFTER;
         }
-        if (!Objects.equals(this.betId, other.betId)) {
+        if (!Objects.equals(this.betId, o.betId)) {
             if (this.betId == null) {
                 return BEFORE;
             }
-            if (other.betId == null) {
+            if (o.betId == null) {
                 return AFTER;
             }
-            return this.betId.compareTo(other.betId);
+            return this.betId.compareTo(o.betId);
         }
-        if (!Objects.equals(this.marketId, other.marketId)) {
+        if (!Objects.equals(this.marketId, o.marketId)) {
             if (this.marketId == null) {
                 return BEFORE;
             }
-            if (other.marketId == null) {
+            if (o.marketId == null) {
                 return AFTER;
             }
-            return this.marketId.compareTo(other.marketId);
+            return this.marketId.compareTo(o.marketId);
         }
-        if (!Objects.equals(this.selectionId, other.selectionId)) {
+        if (!Objects.equals(this.selectionId, o.selectionId)) {
             if (this.selectionId == null) {
                 return BEFORE;
             }
-            if (other.selectionId == null) {
+            if (o.selectionId == null) {
                 return AFTER;
             }
-            return this.selectionId.compareTo(other.selectionId);
+            return this.selectionId.compareTo(o.selectionId);
         }
 
         return EQUAL;
@@ -304,8 +326,8 @@ public class CurrentOrderSummary
         return hash;
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;

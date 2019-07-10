@@ -1,15 +1,12 @@
 package info.fmro.betty.entities;
 
+@SuppressWarnings({"NonExceptionNameEndsWithException", "SpellCheckingInspection"})
 public class HttpErrorResponseException {
-
     private String exceptionname;
     private APINGException APINGException;
 
-    public HttpErrorResponseException() {
-    }
-
     public synchronized String getExceptionname() {
-        return exceptionname;
+        return this.exceptionname;
     }
 
     public synchronized void setExceptionname(final String exceptionname) {
@@ -17,7 +14,7 @@ public class HttpErrorResponseException {
     }
 
     public synchronized APINGException getAPINGException() {
-        return APINGException;
+        return this.APINGException;
     }
 
     public synchronized void setAPINGException(final APINGException APINGException) {

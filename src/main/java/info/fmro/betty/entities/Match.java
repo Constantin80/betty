@@ -1,6 +1,9 @@
 package info.fmro.betty.entities;
 
 import info.fmro.betty.enums.Side;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -16,62 +19,50 @@ public class Match
     private Double size;
     private Date matchDate;
 
-    public Match() {
+    @SuppressWarnings("unused")
+    @Contract(pure = true)
+    private Match() {
     }
 
-    public Match(final String betId, final String matchId, final Side side, final Double price, final Double size, final Date matchDate) {
+    @SuppressWarnings("ConstructorWithTooManyParameters")
+    @Contract(pure = true)
+    public Match(final String betId, final String matchId, final Side side, final Double price, final Double size, @NotNull final Date matchDate) {
         this.betId = betId;
         this.matchId = matchId;
         this.side = side;
         this.price = price;
         this.size = size;
-        this.matchDate = matchDate;
+        this.matchDate = (Date) matchDate.clone();
     }
 
     public synchronized String getBetId() {
-        return betId;
+        return this.betId;
     }
 
-    //    public synchronized void setBetId(String betId) {
-//        this.betId = betId;
-//    }
     public synchronized String getMatchId() {
-        return matchId;
+        return this.matchId;
     }
 
-    //    public synchronized void setMatchId(String matchId) {
-//        this.matchId = matchId;
-//    }
     public synchronized Side getSide() {
-        return side;
+        return this.side;
     }
 
-    //    public synchronized void setSide(Side side) {
-//        this.side = side;
-//    }
     public synchronized Double getPrice() {
-        return price;
+        return this.price;
     }
 
-    //    public synchronized void setPrice(Double price) {
-//        this.price = price;
-//    }
     public synchronized Double getSize() {
-        return size;
+        return this.size;
     }
 
-    //    public synchronized void setSize(Double size) {
-//        this.size = size;
-//    }
+    @Nullable
     public synchronized Date getMatchDate() {
-        return matchDate == null ? null : (Date) matchDate.clone();
+        return this.matchDate == null ? null : (Date) this.matchDate.clone();
     }
 
-    //    public synchronized void setMatchDate(Date matchDate) {
-//        this.matchDate = matchDate == null ? null : (Date) matchDate.clone();
-//    }
+    @SuppressWarnings("NonFinalFieldReferenceInEquals")
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
@@ -101,6 +92,7 @@ public class Match
         return Objects.equals(this.matchDate, other.matchDate);
     }
 
+    @SuppressWarnings("NonFinalFieldReferencedInHashCode")
     @Override
     public synchronized int hashCode() {
         int hash = 5;

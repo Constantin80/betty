@@ -8,11 +8,8 @@ public class LimitOnCloseOrder
     private Double liability;
     private Double price;
 
-    public LimitOnCloseOrder() {
-    }
-
-    public synchronized Double getLiability() {
-        return liability;
+    synchronized Double getLiability() {
+        return this.liability;
     }
 
     public synchronized void setLiability(final Double liability) {
@@ -20,7 +17,7 @@ public class LimitOnCloseOrder
     }
 
     public synchronized Double getPrice() {
-        return price;
+        return this.price;
     }
 
     public synchronized void setPrice(final Double price) {

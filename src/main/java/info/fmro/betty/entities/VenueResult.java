@@ -1,14 +1,12 @@
 package info.fmro.betty.entities;
 
+@SuppressWarnings("unused")
 public class VenueResult {
     private String venue;
     private Integer marketCount;
 
-    public VenueResult() {
-    }
-
     public synchronized String getVenue() {
-        return venue;
+        return this.venue;
     }
 
     public synchronized void setVenue(final String venue) {
@@ -16,7 +14,7 @@ public class VenueResult {
     }
 
     public synchronized Integer getMarketCount() {
-        return marketCount;
+        return this.marketCount;
     }
 
     public synchronized void setMarketCount(final Integer marketCount) {

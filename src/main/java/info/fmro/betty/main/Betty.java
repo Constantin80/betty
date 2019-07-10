@@ -5,13 +5,14 @@ import info.fmro.betty.entities.SessionToken;
 import info.fmro.betty.objects.SessionTokenObject;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.client.ClientHandler;
-import info.fmro.betty.utility.UncaughtExceptionHandler;
+import info.fmro.betty.utility.BettyUncaughtExceptionHandler;
 import info.fmro.shared.utility.Generic;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -19,6 +20,9 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,19 +53,24 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class Betty {
+@SuppressWarnings("UtilityClass")
+public final class Betty {
     private static final Logger logger = LoggerFactory.getLogger(Betty.class);
 
+    @Contract(pure = true)
     private Betty() {
     }
 
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "MethodWithMultipleReturnPoints"})
     public static void main(final String[] args) {
+//        System.out.println("fhadkflcnruw 12121 dsdasdase");
+//        System.exit(0);
         Statics.standardStreamsList = Generic.replaceStandardStreams(Statics.STDOUT_FILE_NAME, Statics.STDERR_FILE_NAME, Statics.LOGS_FOLDER_NAME, !Statics.closeStandardStreamsNotInitialized);
 
         FileOutputStream outFileOutputStream = null, errFileOutputStream = null;
         PrintStream outPrintStream = null, errPrintStream = null;
 
-        Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler());
+        Thread.setDefaultUncaughtExceptionHandler(new BettyUncaughtExceptionHandler());
         Generic.changeDefaultCharset(Generic.UTF8_CHARSET);
 
         try {
@@ -73,19 +82,22 @@ public class Betty {
             errPrintStream = (PrintStream) Statics.standardStreamsList.get(3);
 
             if (Statics.safeBetModuleActivated) {
-                new File(Statics.betradarScraperThread.SAVE_FOLDER).mkdirs();
-                new File(Statics.coralScraperThread.SAVE_FOLDER).mkdirs();
+                //noinspection ResultOfMethodCallIgnored
+                new File(Statics.betradarScraperThread.saveFolder).mkdirs();
+                //noinspection ResultOfMethodCallIgnored
+                new File(Statics.coralScraperThread.saveFolder).mkdirs();
             }
+            //noinspection ResultOfMethodCallIgnored
             new File(Statics.DATA_FOLDER_NAME).mkdirs();
 
             int debugLevel = 0;
             for (final String arg : args) {
-                if (arg.equals("-help")) {
+                if ("-help".equals(arg)) {
                     logger.info("Available options:\n  -help             prints this help screen\n" +
                                 "  -debug=[0|1|2|3]  writes debug info to disk (0 is default and writes nothing, 3 writes all)\n" +
                                 "  -denyBetting      denies placing of bets");
                     return;
-                } else if (arg.equals("-denyBetting")) {
+                } else if ("-denyBetting".equals(arg)) {
                     Statics.denyBetting.set(true);
                     logger.warn("betting denied");
                 } else if (arg.startsWith("-debug=")) {
@@ -98,10 +110,10 @@ public class Betty {
 
             Generic.backupFiles(Statics.LOGS_FOLDER_NAME, Statics.SETTINGS_FILE_NAME); // backup before read, as read can, in some cases, overwrite the file
 
-            if (!VarsIO.readSettings()) {
+            if (VarsIO.readSettings()) { // settings have been read fine, program will run
+            } else {
                 logger.error("error reading settings, program will exit");
                 return;
-            } else { // settings have been read fine, program will run
             }
 
             // if (Statics.debugger.getDebugLevel() >= 2) {
@@ -124,8 +136,8 @@ public class Betty {
             VarsIO.readObjectsFromFiles();
 
             Statics.matcherSynchronizedWriter.initialize(Statics.MATCHER_FILE_NAME, true);
-            Statics.safebetsSynchronizedWriter.initialize(Statics.SAFEBETS_FILE_NAME, true);
-            Statics.newMarketSynchronizedWriter.initialize(Statics.NEWMARKET_FILE_NAME, true);
+            Statics.safeBetsSynchronizedWriter.initialize(Statics.SAFE_BETS_FILE_NAME, true);
+            Statics.newMarketSynchronizedWriter.initialize(Statics.NEW_MARKET_FILE_NAME, true);
 
             if (Statics.programIsRunningMultiThreaded.getAndSet(true)) {
                 logger.error("initial programMultithreaded state is true");
@@ -148,6 +160,7 @@ public class Betty {
                 betradarThread = new Thread(Statics.betradarScraperThread);
                 betradarThread.start();
             } else {
+                //noinspection InstantiatingAThreadWithDefaultRunMethod
                 betradarThread = new Thread();
             }
             final Thread coralThread;
@@ -155,6 +168,7 @@ public class Betty {
                 coralThread = new Thread(Statics.coralScraperThread);
                 coralThread.start();
             } else {
+                //noinspection InstantiatingAThreadWithDefaultRunMethod
                 coralThread = new Thread();
             }
             Statics.quickCheckThread.start();
@@ -166,7 +180,8 @@ public class Betty {
             timeJumpDetectorThread.start();
             final Thread idleConnectionMonitorThread = new Thread(new IdleConnectionMonitorThread(Statics.connManager));
             idleConnectionMonitorThread.start();
-            for (int i = 0; i < ClientHandler.streamClients.length; i++) {
+            final int streamClientsLength = ClientHandler.streamClients.length;
+            for (int i = 0; i < streamClientsLength; i++) {
                 ClientHandler.streamClients[i].start();
             }
             Statics.rulesManager.start();
@@ -182,6 +197,7 @@ public class Betty {
 //            ClientCommands.traceMarkets();
 
             while (!Statics.mustStop.get()) {
+                //noinspection NestedTryStatement
                 try {
                     if (Statics.mustSleep.get()) {
                         programSleeps(Statics.mustSleep, Statics.mustStop, "betty main");
@@ -215,7 +231,7 @@ public class Betty {
             synchronized (Statics.inputConnectionThreadsSet) {
                 inputConnectionThreadsSetCopy = new HashSet<>(Statics.inputConnectionThreadsSet);
             } // end synchronized
-            for (InputConnectionThread inputConnectionThread : inputConnectionThreadsSetCopy) {
+            for (final InputConnectionThread inputConnectionThread : inputConnectionThreadsSetCopy) {
                 if (inputConnectionThread.isAlive()) {
                     logger.info("joining inputConnection");
                     inputConnectionThread.join();
@@ -270,7 +286,7 @@ public class Betty {
                 logger.info("joining logger thread");
                 loggerThread.join();
             }
-            for (int i = 0; i < ClientHandler.streamClients.length; i++) {
+            for (int i = 0; i < streamClientsLength; i++) {
                 if (ClientHandler.streamClients[i].isAlive()) {
                     logger.info("joining streamClient {}", i);
                     ClientHandler.streamClients[i].join();
@@ -321,41 +337,44 @@ public class Betty {
             Generic.alreadyPrintedMap.clear(); // also prints the important properties
         } catch (FileNotFoundException | NumberFormatException | InterruptedException exception) {
             logger.error("STRANGE ERROR inside Betty", exception);
-        } catch (Throwable throwable) { // attempts to catch fatal errors
+        } catch (@SuppressWarnings("OverlyBroadCatchBlock") Throwable throwable) { // attempts to catch fatal errors
             logger.error("EVEN STRANGER ERROR inside Betty", throwable);
         } finally {
             logger.info("Program ends"); // after this point, streams are getting closed, so logging might no longer work
 
             Generic.closeStandardStreams();
 
-            Generic.closeObjects(outPrintStream, outFileOutputStream, errPrintStream, errFileOutputStream, Statics.matcherSynchronizedWriter, Statics.safebetsSynchronizedWriter, Statics.newMarketSynchronizedWriter);
+            Generic.closeObjects(outPrintStream, outFileOutputStream, errPrintStream, errFileOutputStream, Statics.matcherSynchronizedWriter, Statics.safeBetsSynchronizedWriter, Statics.newMarketSynchronizedWriter);
         }
     }
 
-    public static boolean authenticate(final String authURL, final AtomicReference<String> bu, final AtomicReference<String> bp, final SessionTokenObject sessionTokenObject, final String keyStoreFileName, final String keyStorePassword,
-                                       final String keyStoreType, final AtomicReference<String> appKey) {
+    @SuppressWarnings({"OverlyLongMethod", "UnusedReturnValue", "SameParameterValue"})
+    static boolean authenticate(final String authURL, @NotNull final AtomicReference<String> bu, @NotNull final AtomicReference<String> bp, final SessionTokenObject sessionTokenObject, final String keyStoreFileName, final String keyStorePassword,
+                                final String keyStoreType, @NotNull final AtomicReference<String> appKey) {
         boolean success = false;
-        long beginTime = System.currentTimeMillis();
-        HttpClientBuilder httpClientBuilder = HttpClients.custom();
+        final long beginTime = System.currentTimeMillis();
+        final HttpClientBuilder httpClientBuilder = HttpClients.custom();
         CloseableHttpClient closeableHttpClient = null;
 
         try {
-            SSLContext sSLContext = SSLContext.getInstance("TLS");
-            KeyManager[] keyManagers = getKeyManagers(keyStoreFileName, keyStorePassword, keyStoreType);
+            final SSLContext sSLContext = SSLContext.getInstance("TLS");
+            final KeyManager[] keyManagers = getKeyManagers(keyStoreFileName, keyStorePassword, keyStoreType);
 
             sSLContext.init(keyManagers, null, new SecureRandom());
-            SSLConnectionSocketFactory sSLConnectionSocketFactory = new SSLConnectionSocketFactory(sSLContext, new DefaultHostnameVerifier());
+            final LayeredConnectionSocketFactory sSLConnectionSocketFactory = new SSLConnectionSocketFactory(sSLContext, new DefaultHostnameVerifier());
 
             httpClientBuilder.setSSLSocketFactory(sSLConnectionSocketFactory);
+            //noinspection resource
             closeableHttpClient = httpClientBuilder.build();
-            HttpPost httpPost = new HttpPost(authURL);
-            ArrayList<NameValuePair> nameValuePairArrayList = new ArrayList<>(2);
+            final HttpPost httpPost = new HttpPost(authURL);
+            final ArrayList<NameValuePair> nameValuePairArrayList = new ArrayList<>(2);
 
-            BasicNameValuePair usernameBasicNameValuePair = new BasicNameValuePair("username", bu.get()), passwordBasicNameValuePair = new BasicNameValuePair("password", bp.get());
+            final NameValuePair usernameBasicNameValuePair = new BasicNameValuePair("username", bu.get());
+            final NameValuePair passwordBasicNameValuePair = new BasicNameValuePair("password", bp.get());
             nameValuePairArrayList.add(usernameBasicNameValuePair);
             nameValuePairArrayList.add(passwordBasicNameValuePair);
 
-            UrlEncodedFormEntity urlEncodedFormEntity = new UrlEncodedFormEntity(nameValuePairArrayList);
+            final HttpEntity urlEncodedFormEntity = new UrlEncodedFormEntity(nameValuePairArrayList);
             httpPost.setEntity(urlEncodedFormEntity);
             httpPost.setHeader("X-Application", appKey.get());
 
@@ -366,16 +385,18 @@ public class Betty {
                 whileCounter++;
                 CloseableHttpResponse closeableHttpResponse = null;
 
+                //noinspection NestedTryStatement
                 try {
+                    //noinspection resource
                     closeableHttpResponse = closeableHttpClient.execute(httpPost);
                     final HttpEntity httpEntity = closeableHttpResponse.getEntity();
 
                     logger.info("authenticate response status line: {}", closeableHttpResponse.getStatusLine());
                     if (httpEntity != null) {
-                        String responseString = EntityUtils.toString(httpEntity, Generic.UTF8_CHARSET);
+                        final String responseString = EntityUtils.toString(httpEntity, Generic.UTF8_CHARSET);
                         logger.info("authenticate responseString: {}", responseString);
 
-                        SessionToken sessionToken;
+                        @Nullable final SessionToken sessionToken;
                         if (responseString.contains("Internal error")) {
                             logger.error("Internal error string detected during authentication");
                             sessionToken = null;
@@ -396,7 +417,7 @@ public class Betty {
                     } else {
                         logger.error("authentication failed, httpEntity null, status line: {} timeStamp={}", closeableHttpResponse.getStatusLine(), System.currentTimeMillis());
                     }
-                } catch (IOException iOException) {
+                } catch (@SuppressWarnings("OverlyBroadCatchBlock") IOException iOException) {
                     logger.error("iOException in authenticate", iOException);
                 } finally {
                     Generic.closeObject(closeableHttpResponse);
@@ -459,19 +480,20 @@ public class Betty {
         return success;
     }
 
-    public static KeyManager[] getKeyManagers(final String keyStoreFileName, final String keyStorePassword, final String keyStoreType) {
-        File keyFile = new File(keyStoreFileName);
+    @Nullable
+    private static KeyManager[] getKeyManagers(final String keyStoreFileName, @NotNull final String keyStorePassword, final String keyStoreType) {
+        final File keyFile = new File(keyStoreFileName);
         FileInputStream keyStoreFileInputStream = null;
         KeyManagerFactory keyManagerFactory = null;
 
         try {
             keyStoreFileInputStream = new FileInputStream(keyFile);
 
-            KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+            final KeyStore keyStore = KeyStore.getInstance(keyStoreType);
             keyStore.load(keyStoreFileInputStream, keyStorePassword.toCharArray());
             keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
             keyManagerFactory.init(keyStore, keyStorePassword.toCharArray());
-        } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | UnrecoverableKeyException exception) {
+        } catch (@SuppressWarnings("OverlyBroadCatchBlock") KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | UnrecoverableKeyException exception) {
             logger.error("STRANGE ERROR inside getKeyManagers", exception);
         } finally {
             Generic.closeObject(keyStoreFileInputStream);
@@ -480,7 +502,7 @@ public class Betty {
         return keyManagerFactory == null ? null : keyManagerFactory.getKeyManagers();
     }
 
-    public static void programSleeps(final AtomicBoolean mustSleep, final AtomicBoolean mustStop, final String id) {
+    public static void programSleeps(@NotNull final AtomicBoolean mustSleep, final AtomicBoolean mustStop, final String id) {
         if (mustSleep.get()) {
             logger.info("{} sleeping ...", id);
             while (mustSleep.get() && !mustStop.get()) {

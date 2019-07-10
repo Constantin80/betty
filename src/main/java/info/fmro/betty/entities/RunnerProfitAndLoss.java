@@ -4,13 +4,11 @@ public class RunnerProfitAndLoss {
     private Long selectionId; // SelectionId alias Long
     private Double ifWin;
     private Double ifLose;
+    @SuppressWarnings("unused")
     private Double ifPlace;
 
-    public RunnerProfitAndLoss() {
-    }
-
     public synchronized Long getSelectionId() {
-        return selectionId;
+        return this.selectionId;
     }
 
     public synchronized void setSelectionId(final Long selectionId) {
@@ -18,7 +16,7 @@ public class RunnerProfitAndLoss {
     }
 
     public synchronized Double getIfWin() {
-        return ifWin;
+        return this.ifWin;
     }
 
     public synchronized void setIfWin(final Double ifWin) {
@@ -26,7 +24,7 @@ public class RunnerProfitAndLoss {
     }
 
     public synchronized Double getIfLose() {
-        return ifLose;
+        return this.ifLose;
     }
 
     public synchronized void setIfLose(final Double ifLose) {

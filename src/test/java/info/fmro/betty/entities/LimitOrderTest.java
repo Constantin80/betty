@@ -4,26 +4,26 @@ import info.fmro.betty.main.ApiDefault;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class LimitOrderTest
         extends ApiDefault {
     @Test
     void getSize() {
-        LimitOrder instance = new LimitOrder();
-        double expResult;
-        double result;
-        assertTrue(null == instance.getSize(), "1");
+        final LimitOrder instance = new LimitOrder();
+        final double expResult;
+        final double result;
+        assertNull(instance.getSize(), "1");
 
         expResult = 123456.12d;
         instance.setSize(123456.1234556d);
         result = instance.getSize();
-        assertTrue(expResult == result, "1");
+        assertEquals(expResult, result, "1");
     }
 
     @Test
     void setSize() {
-        LimitOrder instance = new LimitOrder();
+        final LimitOrder instance = new LimitOrder();
 
         double size = 3.62378947368421d;
         instance.setSize(size);

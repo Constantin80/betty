@@ -6,15 +6,19 @@ import info.fmro.betty.stream.client.ClientHandler;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.SynchronizedMap;
 import info.fmro.shared.utility.SynchronizedSafeSet;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
+@SuppressWarnings({"ClassWithTooManyFields", "WeakerAccess"})
 public class RulesManager
         extends Thread
         implements Serializable {
@@ -38,9 +42,6 @@ public class RulesManager
     // todo test with 1 runner, no cross runner matching; amountLimit on back and lay, limit on market & event; time limit; min odds for back and max odds for lay, with bets depending on prices existing on that runner
     // todo code beautification and simple tests, to prepare for the far more complicated integration tests
 
-    public RulesManager() {
-    }
-
     public synchronized boolean copyFrom(final RulesManager other) {
         final boolean readSuccessful;
         if (!this.events.isEmpty() || !this.markets.isEmpty()) {
@@ -51,35 +52,30 @@ public class RulesManager
                 logger.error("null other in copyFrom for: {}", Generic.objectToString(this));
                 readSuccessful = false;
             } else {
-                if (other.events == null || other.markets == null) {
-                    logger.error("null eventsMap or marketsMap in RulesManager copyFrom: {}", Generic.objectToString(other));
-                    readSuccessful = false;
-                } else {
-                    this.events.copyFrom(other.events);
+                this.events.copyFrom(other.events);
 //                    this.events.clear();
 //                    this.events.putAll(other.events);
 
-                    this.markets.clear();
-                    this.markets.putAll(other.markets.copy());
+                this.markets.clear();
+                this.markets.putAll(other.markets.copy());
 
-                    this.setTestMarker(other.testMarker);
+                this.setTestMarker(other.testMarker);
 
-                    if (Statics.resetTestMarker) {
-                        logger.error("resetTestMarker {} , will still exit the program after reset", this.testMarker);
-                        final boolean objectModified = this.setTestMarker(Statics.TEST_MARKER);
-                        if (objectModified) {
-                            VarsIO.writeSettings();
-                        }
-                        readSuccessful = false; // in order to exit the program after reset
-                    } else {
-                        readSuccessful = testMarker != null && testMarker == Statics.TEST_MARKER; // testMarker needs to have a certain value
+                if (Statics.resetTestMarker) {
+                    logger.error("resetTestMarker {} , will still exit the program after reset", this.testMarker);
+                    final boolean objectModified = this.setTestMarker(Statics.TEST_MARKER);
+                    if (objectModified) {
+                        VarsIO.writeSettings();
                     }
+                    readSuccessful = false; // in order to exit the program after reset
+                } else {
+                    readSuccessful = this.testMarker != null && this.testMarker == Statics.TEST_MARKER; // testMarker needs to have a certain value
+                }
 
-                    if (!this.markets.isEmpty()) {
-                        rulesHaveChanged.set(true);
-                        this.marketsMapModified.set(true);
-                    } else { // map still empty, no modification was made
-                    }
+                if (this.markets.isEmpty()) { // map still empty, no modification was made
+                } else {
+                    this.rulesHaveChanged.set(true);
+                    this.marketsMapModified.set(true);
                 }
             }
         }
@@ -89,14 +85,14 @@ public class RulesManager
     }
 
     public synchronized void associateMarketsWithEvents() {
-        for (ManagedMarket managedMarket : markets.valuesCopy()) {
+        for (final ManagedMarket managedMarket : this.markets.valuesCopy()) {
             managedMarket.getParentEvent(); // this does the reciprocal association as well, by adding the markets in the managedEvent objects
         }
     }
 
     public synchronized boolean checkMarketsAreAssociatedWithEvents() {
         boolean foundError = false;
-        for (ManagedMarket managedMarket : markets.valuesCopy()) {
+        for (final ManagedMarket managedMarket : this.markets.valuesCopy()) {
             if (!managedMarket.parentEventIsSet() || !managedMarket.parentEventHasTheMarketAdded() || !managedMarket.parentEventHasTheMarketIdAdded()) { // error messages are printed inside the methods
                 managedMarket.getParentEvent(); // this should solve the problem
                 foundError = true;
@@ -136,11 +132,12 @@ public class RulesManager
         } else {
             managedEvent = new ManagedEvent(eventId);
             this.events.put(eventId, managedEvent);
-            rulesHaveChanged.set(true);
+            this.rulesHaveChanged.set(true);
         }
         return managedEvent;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     private synchronized ManagedMarket addManagedMarket(final String marketId) {
         final ManagedMarket managedMarket;
         if (this.markets.containsKey(marketId)) {
@@ -149,17 +146,18 @@ public class RulesManager
             managedMarket = new ManagedMarket(marketId);
             this.markets.put(marketId, managedMarket);
             checkMarketsAreAssociatedWithEvents();
-            rulesHaveChanged.set(true);
+            this.rulesHaveChanged.set(true);
             this.marketsMapModified.set(true);
         }
         return managedMarket;
     }
 
+    @SuppressWarnings("unused")
     private synchronized ManagedMarket removeManagedMarket(final String marketId) {
-        final ManagedMarket managedMarket;
+        @Nullable final ManagedMarket managedMarket;
         if (this.markets.containsKey(marketId)) {
             managedMarket = this.markets.remove(marketId);
-            rulesHaveChanged.set(true);
+            this.rulesHaveChanged.set(true);
             this.marketsMapModified.set(true);
         } else {
             managedMarket = null;
@@ -167,15 +165,15 @@ public class RulesManager
         return managedMarket;
     }
 
-    public synchronized void executeCommand(final String commandString) {
+    public synchronized void executeCommand(@NotNull final String commandString) {
         if (commandString.startsWith("event ")) {
             final String eventString = commandString.substring("event ".length()).trim();
             if (eventString.contains(" ")) {
-                final String eventId = eventString.substring(0, eventString.indexOf(" "));
-                final String eventCommand = eventString.substring(eventString.indexOf(" ") + " ".length()).trim();
+                final String eventId = eventString.substring(0, eventString.indexOf(' '));
+                final String eventCommand = eventString.substring(eventString.indexOf(' ') + " ".length()).trim();
                 if (eventCommand.startsWith("amountLimit")) {
                     String amountLimit = eventCommand.substring("amountLimit".length()).trim();
-                    if (amountLimit.startsWith("=")) {
+                    if (!amountLimit.isEmpty() && amountLimit.charAt(0) == '=') {
                         amountLimit = amountLimit.substring("=".length()).trim();
                     } else { // nothing to do on this branch
                     }
@@ -186,10 +184,10 @@ public class RulesManager
                         logger.error("NumberFormatException while getting doubleValue for amountLimit in executeCommand: {} {}", commandString, amountLimit, e);
                         doubleValue = Double.NaN;
                     }
-                    if (!Double.isNaN(doubleValue)) {
+                    if (Double.isNaN(doubleValue)) { // error message was already printed
+                    } else {
                         final ManagedEvent managedEvent = addManagedEvent(eventId);
                         managedEvent.setAmountLimit(doubleValue);
-                    } else { // error message was already printed
                     }
                 } else {
                     logger.error("unknown eventCommand in executeCommand: {} {}", eventCommand, commandString);
@@ -206,21 +204,19 @@ public class RulesManager
         return isMarketsToCheckStampRecent(500L); // default period
     }
 
-    private synchronized boolean isMarketsToCheckStampRecent(final long recentPeriod) {
+    private synchronized boolean isMarketsToCheckStampRecent(@SuppressWarnings("SameParameterValue") final long recentPeriod) {
         return timeSinceMarketsToCheckStamp() <= recentPeriod;
     }
 
     private synchronized long timeSinceMarketsToCheckStamp() {
         final long currentTime = System.currentTimeMillis();
-        final long stampTime = marketsToCheckStamp.get();
-        final long timeSinceStamp = currentTime - stampTime;
-        return timeSinceStamp;
+        final long stampTime = this.marketsToCheckStamp.get();
+        return currentTime - stampTime;
     }
 
     private synchronized long timeSinceFullRun() {
         final long currentTime = System.currentTimeMillis();
-        final long timeSinceStamp = currentTime - this.timeLastFullCheck;
-        return timeSinceStamp;
+        return currentTime - this.timeLastFullCheck;
     }
 
     private synchronized long timeTillNextFullRun() {
@@ -234,11 +230,11 @@ public class RulesManager
     }
 
     private synchronized void calculateMarketLimits() {
-        marketsMapModified.set(false);
+        this.marketsMapModified.set(false);
         final double totalLimit = Statics.safetyLimits.getTotalLimit();
-        Utils.calculateMarketLimits(totalLimit, markets.valuesCopy(), true, true);
+        Utils.calculateMarketLimits(totalLimit, this.markets.valuesCopy(), true, true);
 
-        for (ManagedEvent managedEvent : this.events.valuesCopy()) {
+        for (final ManagedEvent managedEvent : this.events.valuesCopy()) {
             managedEvent.calculateMarketLimits();
         }
     }
@@ -277,27 +273,27 @@ public class RulesManager
 
     private synchronized void addManagedMarketsForExistingOrders() {
         final long currentTime = System.currentTimeMillis();
-        final long stampTime = addManagedMarketsForExistingOrdersStamp.get();
+        final long stampTime = this.addManagedMarketsForExistingOrdersStamp.get();
         final long timeSinceStamp = currentTime - stampTime;
         if (this.newOrderMarketCreated.getAndSet(false) || timeSinceStamp > Generic.MINUTE_LENGTH_MILLISECONDS * 5L) {
-            addManagedMarketsForExistingOrdersStamp.set(currentTime);
+            this.addManagedMarketsForExistingOrdersStamp.set(currentTime);
             final HashSet<String> orderMarkets = Statics.orderCache.getOrderMarketKeys();
             final Set<String> managedMarkets = this.markets.keySetCopy();
             orderMarkets.removeAll(managedMarkets);
-            if (!orderMarkets.isEmpty()) {
-                for (String marketId : orderMarkets) {
+            if (orderMarkets.isEmpty()) { // no new markets; nothing to be done, this should be the taken branch almost all the time
+            } else {
+                for (final String marketId : orderMarkets) {
                     logger.warn("adding new managed market in addManagedMarketsForExistingOrders: {}", marketId);
                     addManagedMarket(marketId);
                 }
-            } else { // no new markets; nothing to be done, this should be the taken branch almost all the time
             }
         } else { // I won't run this method too often; nothing to be done
         }
     }
 
     private synchronized void resetOrderCacheObjects() {
-        orderCacheHasReset.set(false);
-        for (ManagedMarket managedMarket : markets.valuesCopy()) {
+        this.orderCacheHasReset.set(false);
+        for (final ManagedMarket managedMarket : this.markets.valuesCopy()) {
             managedMarket.resetOrderCacheObjects();
         }
     }
@@ -331,38 +327,38 @@ public class RulesManager
             }
         }
 
-        if (!Statics.mustStop.get()) {
-            if (!cachesAreLive) {
+        if (Statics.mustStop.get()) { // program is stopping, nothing to be done
+        } else {
+            if (cachesAreLive) {
+                Generic.threadSleepSegmented(2_000L, 10L, Statics.mustStop); // a small sleep to allow for cache update
+            } else {
                 logger.error("rulesManager continues without live caches: {} {} {} {}", whileCounter, ClientHandler.threadsWithOcmCommandReceived.get(), ClientHandler.threadsWithMcmCommandReceived.get(), ClientHandler.nMcmCommandsNeeded.get());
 //            Generic.threadSleepSegmented(180_000L, 10L, Statics.mustStop); // a long sleep, after which the program will continue
-            } else {
-                Generic.threadSleepSegmented(2_000L, 10L, Statics.mustStop); // a small sleep to allow for cache update
             }
-        } else { // program is stopping, nothing to be done
         }
 
         boolean hasReachedEndOfSleep = true; // full run first time
         while (!Statics.mustStop.get()) {
             try {
-                if (orderCacheHasReset.get()) {
+                if (this.orderCacheHasReset.get()) {
                     resetOrderCacheObjects(); // the method resets the AtomicBoolean
                 }
-                if (rulesHaveChanged.get()) {
+                if (this.rulesHaveChanged.get()) {
                     Generic.threadSleepSegmented(500L, 50L, Statics.mustStop); // small sleep against multiple quick modifications that lead to writes
                     VarsIO.writeSettings(); // this method sets the AtomicBoolean to false
                 }
-                if (newOrderMarketCreated.get()) {
+                if (this.newOrderMarketCreated.get()) {
                     addManagedMarketsForExistingOrders();
                 }
-                if (marketsMapModified.get()) {
+                if (this.marketsMapModified.get()) {
                     calculateMarketLimits();
                 }
-                if (marketsToCheckExist.get()) { // run just on the marketsToCheck
+                if (this.marketsToCheckExist.get()) { // run just on the marketsToCheck
                     final HashSet<RulesManagerStringObject> objectsSet = this.marketsToCheck.copy();
                     this.marketsToCheck.removeAll(objectsSet); // the atomicBoolean marker will get reset if marketsToCheck becomes empty
 
-                    final HashSet<String> marketIds = new HashSet<>();
-                    for (RulesManagerStringObject stringObject : objectsSet) {
+                    final Collection<String> marketIds = new HashSet<>(2);
+                    for (final RulesManagerStringObject stringObject : objectsSet) {
                         final String marketId = stringObject.getMarketId();
                         marketIds.add(marketId);
                     }
@@ -370,11 +366,11 @@ public class RulesManager
                     checkMarketsAreAssociatedWithEvents();
                     addManagedMarketsForExistingOrders(); // this can modify the marketsMapModified AtomicBoolean marker
                     //calculateMarketLimits(marketIds);
-                    if (marketsMapModified.get()) {
+                    if (this.marketsMapModified.get()) {
                         calculateMarketLimits(); // this method resets the AtomicBoolean
                     } else { // nothing to be done, will only calculated limits if marketsMapModified
                     }
-                    for (String marketId : marketIds) {
+                    for (final String marketId : marketIds) {
                         final ManagedMarket managedMarket = this.markets.get(marketId);
                         manageMarket(managedMarket);
                     }
@@ -385,12 +381,12 @@ public class RulesManager
                     checkMarketsAreAssociatedWithEvents();
                     addManagedMarketsForExistingOrders();
                     calculateMarketLimits(); // this method resets the marketsMapModified AtomicBoolean
-                    for (ManagedMarket managedMarket : this.markets.valuesCopy()) {
+                    for (final ManagedMarket managedMarket : this.markets.valuesCopy()) {
                         manageMarket(managedMarket);
                     }
                 }
 
-                hasReachedEndOfSleep = Generic.threadSleepSegmented(timeTillNextFullRun(), 10L, marketsToCheckExist, marketsMapModified, rulesHaveChanged, orderCacheHasReset, newOrderMarketCreated, Statics.mustStop);
+                hasReachedEndOfSleep = Generic.threadSleepSegmented(timeTillNextFullRun(), 10L, this.marketsToCheckExist, this.marketsMapModified, this.rulesHaveChanged, this.orderCacheHasReset, this.newOrderMarketCreated, Statics.mustStop);
             } catch (Throwable throwable) {
                 logger.error("STRANGE ERROR inside rulesManager loop", throwable);
             }

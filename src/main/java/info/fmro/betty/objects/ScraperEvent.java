@@ -6,6 +6,8 @@ import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
 import info.fmro.shared.utility.LogLevel;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
@@ -13,39 +15,44 @@ import org.slf4j.helpers.MessageFormatter;
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicLong;
 
+@SuppressWarnings({"ClassWithTooManyFields", "ClassWithTooManyMethods", "OverlyComplexClass"})
 public class ScraperEvent
         extends Ignorable
         implements Serializable, Comparable<ScraperEvent> {
     private static final Logger logger = LoggerFactory.getLogger(ScraperEvent.class);
     private static final long serialVersionUID = 5045581708147478634L;
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
-    public static final long standardBlackListPeriod = Generic.MINUTE_LENGTH_MILLISECONDS * 5L, shortBlackListPeriod = Generic.MINUTE_LENGTH_MILLISECONDS * 2L, minimalBlackListPeriod = 10_000L;
+    public static final long standardBlackListPeriod = Generic.MINUTE_LENGTH_MILLISECONDS * 5L, shortBlackListPeriod = Generic.MINUTE_LENGTH_MILLISECONDS << 1, minimalBlackListPeriod = 10_000L;
     public final String objectId;
     private final long eventId;
-    private long timeStamp, homeScoreTimeStamp, awayScoreTimeStamp, matchedTimeStamp; // score stamps for last time a valid & >=0 score was seen
+    @SuppressWarnings("RedundantFieldInitialization")
+    private long timeStamp = 0L;
+    private long homeScoreTimeStamp, awayScoreTimeStamp, matchedTimeStamp; // score stamps for last time a valid & >=0 score was seen
     private String homeTeam, awayTeam, matchedEventId;
     private int homeScore = -1, awayScore = -1, homeHtScore = -1, awayHtScore = -1, minutesPlayed = -1, stoppageTime = -1, homeRedCards = -1, awayRedCards = -1;
     private MatchStatus matchStatus;
     private boolean htIgnored;
 
     public ScraperEvent(final String objectId, final long eventId) {
+        super();
         this.objectId = objectId;
         this.eventId = eventId;
         this.timeStamp();
     }
 
     public ScraperEvent(final String objectId, final long eventId, final long timeStamp) {
+        super();
         this.objectId = objectId;
         this.eventId = eventId;
         this.setTimeStamp(timeStamp);
     }
 
     public synchronized String getObjectId() {
-        return objectId;
+        return this.objectId;
     }
 
     public synchronized long getEventId() {
-        return eventId;
+        return this.eventId;
     }
 
     //    public synchronized int setEventId(long eventId) {
@@ -69,23 +76,24 @@ public class ScraperEvent
 //        }
 //        return modified;
 //    }
-    public synchronized boolean isHtIgnored() {
-        return htIgnored;
+    synchronized boolean isHtIgnored() {
+        return this.htIgnored;
     }
 
-    public synchronized int ignoreHt() {
+    @SuppressWarnings("UnusedReturnValue")
+    private synchronized int ignoreHt() {
         return setHtIgnored(true);
     }
 
-    public synchronized int setHtIgnored(final boolean htIgnored) {
+    public synchronized int setHtIgnored(final boolean newHtIgnored) {
         final int modified;
-        if (this.htIgnored == htIgnored) {
+        if (this.htIgnored == newHtIgnored) {
             modified = 0;
         } else if (!this.htIgnored) {
-            this.htIgnored = htIgnored;
+            this.htIgnored = newHtIgnored;
             modified = 1;
         } else { // this.htIgnored true and htIgnored false
-            logger.error("{} attempted to reset htIgnored in setHtIgnored for: {}", objectId, Generic.objectToString(this));
+            logger.error("{} attempted to reset htIgnored in setHtIgnored for: {}", this.objectId, Generic.objectToString(this));
             modified = 0;
         }
 
@@ -93,178 +101,168 @@ public class ScraperEvent
     }
 
     public synchronized int resetHtIgnored() {
-        final int modified;
-        if (this.htIgnored) {
-            modified = 1;
-        } else {
-            modified = 0;
-        }
+        final int modified = this.htIgnored ? 1 : 0;
         this.htIgnored = false;
 
         return modified;
     }
 
     public synchronized String getHomeTeam() {
-        return homeTeam;
+        return this.homeTeam;
     }
 
-    public synchronized int setHomeTeam(final String homeTeam) {
+    public synchronized int setHomeTeam(final String newHomeTeam) {
         final int modified;
         if (this.homeTeam == null) {
-            if (homeTeam == null) {
+            if (newHomeTeam == null) {
                 modified = 0;
             } else {
-                this.homeTeam = homeTeam;
+                this.homeTeam = newHomeTeam;
                 modified = 1;
             }
-        } else if (this.homeTeam.equals(homeTeam)) {
+        } else if (this.homeTeam.equals(newHomeTeam)) {
             modified = 0;
         } else {
-            if (Formulas.matchTeams(this.homeTeam, homeTeam) > Statics.highThreshold) {
+            if (Formulas.matchTeams(this.homeTeam, newHomeTeam) > Statics.highThreshold) {
                 this.setIgnored(shortBlackListPeriod);
 //                modified = -10000; // blackListed
             } else {
                 this.setIgnored(standardBlackListPeriod);
 //                modified = -10000; // blackListed
             }
-            logger.error("{} change homeTeam {} to {} in scraperEvent: {}", objectId, this.homeTeam, homeTeam, Generic.objectToString(this));
+            logger.error("{} change homeTeam {} to {} in scraperEvent: {}", this.objectId, this.homeTeam, newHomeTeam, Generic.objectToString(this));
 
-            this.homeTeam = homeTeam; // modification goes ahead
+            this.homeTeam = newHomeTeam; // modification goes ahead
             modified = 1;
         }
         return modified;
     }
 
     public synchronized String getAwayTeam() {
-        return awayTeam;
+        return this.awayTeam;
     }
 
-    public synchronized int setAwayTeam(final String awayTeam) {
+    public synchronized int setAwayTeam(final String newAwayTeam) {
         final int modified;
         if (this.awayTeam == null) {
-            if (awayTeam == null) {
+            if (newAwayTeam == null) {
                 modified = 0;
             } else {
-                this.awayTeam = awayTeam;
+                this.awayTeam = newAwayTeam;
                 modified = 1;
             }
-        } else if (this.awayTeam.equals(awayTeam)) {
+        } else if (this.awayTeam.equals(newAwayTeam)) {
             modified = 0;
         } else {
-            if (Formulas.matchTeams(this.awayTeam, awayTeam) > Statics.highThreshold) {
+            if (Formulas.matchTeams(this.awayTeam, newAwayTeam) > Statics.highThreshold) {
                 this.setIgnored(shortBlackListPeriod);
 //                modified = -10000; // blackListed
             } else {
                 this.setIgnored(standardBlackListPeriod);
 //                modified = -10000; // blackListed
             }
-            logger.error("{} change awayTeam {} to {} in scraperEvent: {}", objectId, this.awayTeam, awayTeam, Generic.objectToString(this));
+            logger.error("{} change awayTeam {} to {} in scraperEvent: {}", this.objectId, this.awayTeam, newAwayTeam, Generic.objectToString(this));
 
-            this.awayTeam = awayTeam; // modification goes ahead
+            this.awayTeam = newAwayTeam; // modification goes ahead
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized int getHomeRedCards() {
-        return homeRedCards;
+    synchronized int getHomeRedCards() {
+        return this.homeRedCards;
     }
 
-    public synchronized int setHomeRedCards(final int homeRedCards) {
+    public synchronized int setHomeRedCards(final int newHomeRedCards) {
         final int modified;
-        if (this.homeRedCards == homeRedCards) {
+        if (this.homeRedCards == newHomeRedCards) {
             modified = 0;
-        } else if (this.homeRedCards < homeRedCards) {
-            this.homeRedCards = homeRedCards;
+        } else if (this.homeRedCards < newHomeRedCards) {
+            this.homeRedCards = newHomeRedCards;
             modified = 1;
         } else {
             this.setIgnored(standardBlackListPeriod);
-            logger.error("{} change homeRedCards {} to {} in scraperEvent: {}", objectId, this.homeRedCards, homeRedCards, Generic.objectToString(this));
+            logger.error("{} change homeRedCards {} to {} in scraperEvent: {}", this.objectId, this.homeRedCards, newHomeRedCards, Generic.objectToString(this));
 //            modified = -10000; // blackListed
 
-            this.homeRedCards = homeRedCards; // modification goes ahead
+            this.homeRedCards = newHomeRedCards; // modification goes ahead
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized int getAwayRedCards() {
-        return awayRedCards;
+    synchronized int getAwayRedCards() {
+        return this.awayRedCards;
     }
 
-    public synchronized int setAwayRedCards(final int awayRedCards) {
+    public synchronized int setAwayRedCards(final int newAwayRedCards) {
         final int modified;
-        if (this.awayRedCards == awayRedCards) {
+        if (this.awayRedCards == newAwayRedCards) {
             modified = 0;
-        } else if (this.awayRedCards < awayRedCards) {
-            this.awayRedCards = awayRedCards;
+        } else if (this.awayRedCards < newAwayRedCards) {
+            this.awayRedCards = newAwayRedCards;
             modified = 1;
         } else {
             this.setIgnored(standardBlackListPeriod);
-            logger.error("{} change awayRedCards {} to {} in scraperEvent: {}", objectId, this.awayRedCards, awayRedCards, Generic.objectToString(this));
+            logger.error("{} change awayRedCards {} to {} in scraperEvent: {}", this.objectId, this.awayRedCards, newAwayRedCards, Generic.objectToString(this));
 //            modified = -10000; // blackListed
 
-            this.awayRedCards = awayRedCards; // modification goes ahead
+            this.awayRedCards = newAwayRedCards; // modification goes ahead
             modified = 1;
         }
         return modified;
     }
 
     public synchronized int getHomeScore() {
-        return homeScore;
+        return this.homeScore;
     }
 
-    public synchronized int setHomeScore(final int homeScore) {
-        return setHomeScore(homeScore, isPenalties());
+    public synchronized int setHomeScore(final int newHomeScore) {
+        return setHomeScore(newHomeScore, isPenalties());
     }
 
-    public synchronized int setHomeScore(final int homeScore, final boolean isPenalties) {
+    private synchronized int setHomeScore(final int newHomeScore, final boolean isPenalties) {
         final int modified;
         final long currentTime = System.currentTimeMillis();
         final long timeLapsed = currentTime - this.getHomeScoreTimeStamp();
 
-        if (this.homeScore == homeScore) {
-            if (homeScore >= 0) {
+        if (this.homeScore == newHomeScore) {
+            if (newHomeScore >= 0) {
                 this.setHomeScoreTimeStamp(currentTime);
             } else { // default score, won't stamp
             }
             modified = 0;
-        } else if (homeScore == -1) {
-            logger.error("{} attempted to reset homeScore {} in scraperEvent: {}", objectId, this.homeScore, Generic.objectToString(this));
+        } else if (newHomeScore == -1) {
+            logger.error("{} attempted to reset homeScore {} in scraperEvent: {}", this.objectId, this.homeScore, Generic.objectToString(this));
             modified = 0; // ignored reset
         } else {
-            final int addedGoals = homeScore - this.homeScore;
+            final int addedGoals = newHomeScore - this.homeScore;
             if (addedGoals > 0) {
                 if (addedGoals > 1) {
                     if (timeLapsed < 15_000L * addedGoals && !isPenalties) {
                         // more than 1 goal per 15 seconds; this error does happen fairly often, as scores are sometimes not updated immediately
                         this.setIgnored(standardBlackListPeriod, currentTime);
-                        logger.error("{} change homeScore {} to {} after {} ms in scraperEvent: {}", objectId, this.homeScore, homeScore, timeLapsed, Generic.objectToString(this));
+                        logger.error("{} change homeScore {} to {} after {} ms in scraperEvent: {}", this.objectId, this.homeScore, newHomeScore, timeLapsed, Generic.objectToString(this));
 //                        modified = -10000; // blackListed
 
-                        this.homeScore = homeScore;
-                        modified = 1;
-                    } else {
-                        this.homeScore = homeScore;
-                        modified = 1;
                     }
                 } else { // addedGoals == 1
-                    this.homeScore = homeScore;
-                    modified = 1;
                 }
-            } else if (homeScore >= 0 && addedGoals == -1) { // score taken back by 1 goal; happens rarely due to scrapeSite score errors
+                this.homeScore = newHomeScore;
+                modified = 1;
+            } else if (newHomeScore >= 0 && addedGoals == -1) { // score taken back by 1 goal; happens rarely due to scrapeSite score errors
                 this.setIgnored(shortBlackListPeriod, currentTime);
-                logger.error("REVIEW {} homeScore {} reduced to {} in scraperEvent: {}", objectId, this.homeScore, homeScore, Generic.objectToString(this));
+                logger.error("REVIEW {} homeScore {} reduced to {} in scraperEvent: {}", this.objectId, this.homeScore, newHomeScore, Generic.objectToString(this));
 //                modified = -10000; // blackListed
 
-                this.homeScore = homeScore;
+                this.homeScore = newHomeScore;
                 modified = 1;
             } else {
                 this.setIgnored(standardBlackListPeriod, currentTime);
-                logger.error("{} change homeScore {} to {} in scraperEvent: {}", objectId, this.homeScore, homeScore, Generic.objectToString(this));
+                logger.error("{} change homeScore {} to {} in scraperEvent: {}", this.objectId, this.homeScore, newHomeScore, Generic.objectToString(this));
 //                modified = -10000; // blackListed
 
-                this.homeScore = homeScore;
+                this.homeScore = newHomeScore;
                 modified = 1;
             }
         } // end else
@@ -275,8 +273,9 @@ public class ScraperEvent
         return modified;
     }
 
-    public synchronized long getHomeScoreTimeStamp() {
-        return homeScoreTimeStamp;
+    @Contract(pure = true)
+    private synchronized long getHomeScoreTimeStamp() {
+        return this.homeScoreTimeStamp;
     }
 
     public synchronized void setHomeScoreTimeStamp(final long homeScoreTimeStamp) {
@@ -284,60 +283,55 @@ public class ScraperEvent
     }
 
     public synchronized int getAwayScore() {
-        return awayScore;
+        return this.awayScore;
     }
 
-    public synchronized int setAwayScore(final int awayScore) {
-        return setAwayScore(awayScore, isPenalties());
+    public synchronized int setAwayScore(final int newAwayScore) {
+        return setAwayScore(newAwayScore, isPenalties());
     }
 
-    public synchronized int setAwayScore(final int awayScore, final boolean isPenalties) {
+    private synchronized int setAwayScore(final int newAwayScore, final boolean isPenalties) {
         final int modified;
         final long currentTime = System.currentTimeMillis();
         final long timeLapsed = currentTime - this.getAwayScoreTimeStamp();
 
-        if (this.awayScore == awayScore) {
-            if (awayScore >= 0) {
+        if (this.awayScore == newAwayScore) {
+            if (newAwayScore >= 0) {
                 this.setAwayScoreTimeStamp(currentTime);
             } else { // default score, won't stamp
             }
             modified = 0;
-        } else if (awayScore == -1) {
-            logger.error("{} attempted to reset awayScore {} in scraperEvent: {}", objectId, this.awayScore, Generic.objectToString(this));
+        } else if (newAwayScore == -1) {
+            logger.error("{} attempted to reset awayScore {} in scraperEvent: {}", this.objectId, this.awayScore, Generic.objectToString(this));
             modified = 0; // ignored reset
         } else {
-            final int addedGoals = awayScore - this.awayScore;
+            final int addedGoals = newAwayScore - this.awayScore;
             if (addedGoals > 0) {
                 if (addedGoals > 1) {
-                    if (timeLapsed < 15000L * addedGoals && !isPenalties) {
+                    if (timeLapsed < 15_000L * addedGoals && !isPenalties) {
                         // more than 1 goal per 15 seconds; this error does happen fairly often, as scores are sometimes not updated immediately
                         this.setIgnored(standardBlackListPeriod, currentTime);
-                        logger.error("{} change awayScore {} to {} after {} ms in scraperEvent: {}", objectId, this.awayScore, awayScore, timeLapsed, Generic.objectToString(this));
+                        logger.error("{} change awayScore {} to {} after {} ms in scraperEvent: {}", this.objectId, this.awayScore, newAwayScore, timeLapsed, Generic.objectToString(this));
 //                        modified = -10000; // blackListed
 
-                        this.awayScore = awayScore;
-                        modified = 1;
-                    } else {
-                        this.awayScore = awayScore;
-                        modified = 1;
                     }
                 } else { // addedGoals == 1
-                    this.awayScore = awayScore;
-                    modified = 1;
                 }
-            } else if (awayScore >= 0 && addedGoals == -1) { // score taken back by 1 goal; happens rarely due to scrapeSite score errors
+                this.awayScore = newAwayScore;
+                modified = 1;
+            } else if (newAwayScore >= 0 && addedGoals == -1) { // score taken back by 1 goal; happens rarely due to scrapeSite score errors
                 this.setIgnored(shortBlackListPeriod, currentTime);
-                logger.error("REVIEW {} awayScore {} reduced to {} in scraperEvent: {}", objectId, this.awayScore, awayScore, Generic.objectToString(this));
+                logger.error("REVIEW {} awayScore {} reduced to {} in scraperEvent: {}", this.objectId, this.awayScore, newAwayScore, Generic.objectToString(this));
 //                modified = -10000; // blackListed
 
-                this.awayScore = awayScore;
+                this.awayScore = newAwayScore;
                 modified = 1;
             } else {
                 this.setIgnored(standardBlackListPeriod, currentTime);
-                logger.error("{} attempted to change awayScore {} to {} in scraperEvent: {}", objectId, this.awayScore, awayScore, Generic.objectToString(this));
+                logger.error("{} attempted to change awayScore {} to {} in scraperEvent: {}", this.objectId, this.awayScore, newAwayScore, Generic.objectToString(this));
 //                modified = -10000; // blackListed
 
-                this.awayScore = awayScore;
+                this.awayScore = newAwayScore;
                 modified = 1;
             }
         } // end else
@@ -348,8 +342,9 @@ public class ScraperEvent
         return modified;
     }
 
-    public synchronized long getAwayScoreTimeStamp() {
-        return awayScoreTimeStamp;
+    @Contract(pure = true)
+    private synchronized long getAwayScoreTimeStamp() {
+        return this.awayScoreTimeStamp;
     }
 
     public synchronized void setAwayScoreTimeStamp(final long awayScoreTimeStamp) {
@@ -357,27 +352,21 @@ public class ScraperEvent
     }
 
     public synchronized int getHomeHtScore() {
-        final int result;
-        if (isHtIgnored()) {
-            result = -1;
-        } else {
-            result = this.homeHtScore;
-        }
-        return result;
+        return isHtIgnored() ? -1 : this.homeHtScore;
     }
 
-    public synchronized int setHomeHtScore(final int homeHtScore) {
-        return setHomeHtScore(homeHtScore, false);
+    public synchronized int setHomeHtScore(final int newHomeHtScore) {
+        return setHomeHtScore(newHomeHtScore, false);
     }
 
-    public synchronized int setHomeHtScore(final int homeHtScore, final boolean allowedReset) {
+    synchronized int setHomeHtScore(final int newHomeHtScore, @SuppressWarnings("unused") final boolean allowedReset) {
         final int modified;
-        if (this.homeHtScore == homeHtScore) {
+        if (this.homeHtScore == newHomeHtScore) {
             modified = 0;
         } else if (this.homeHtScore == -1) {
-            this.homeHtScore = homeHtScore;
+            this.homeHtScore = newHomeHtScore;
             modified = 1;
-        } else if (homeHtScore == -1) {
+        } else if (newHomeHtScore == -1) {
 //            if (allowedReset) { // reset of ht score is allowed for betradar in case of AFTER_ET & AFTER_PEN
 //                this.homeHtScore = homeHtScore;
 //                modified = 1;
@@ -389,8 +378,8 @@ public class ScraperEvent
         } else {
             this.setIgnored(standardBlackListPeriod);
             this.ignoreHt();
-            logger.error("{} change homeHtScore {} to {} in scraperEvent, will ignoredHt: {}", objectId, this.homeHtScore, homeHtScore, Generic.objectToString(this));
-            this.homeHtScore = homeHtScore; // after logging the error message
+            logger.error("{} change homeHtScore {} to {} in scraperEvent, will ignoredHt: {}", this.objectId, this.homeHtScore, newHomeHtScore, Generic.objectToString(this));
+            this.homeHtScore = newHomeHtScore; // after logging the error message
             modified = 1;
 //            modified = -10000; // blackListed
         }
@@ -398,27 +387,21 @@ public class ScraperEvent
     }
 
     public synchronized int getAwayHtScore() {
-        final int result;
-        if (isHtIgnored()) {
-            result = -1;
-        } else {
-            result = this.awayHtScore;
-        }
-        return result;
+        return isHtIgnored() ? -1 : this.awayHtScore;
     }
 
-    public synchronized int setAwayHtScore(final int awayHtScore) {
-        return setAwayHtScore(awayHtScore, false);
+    public synchronized int setAwayHtScore(final int newAwayHtScore) {
+        return setAwayHtScore(newAwayHtScore, false);
     }
 
-    public synchronized int setAwayHtScore(final int awayHtScore, final boolean allowedReset) {
+    synchronized int setAwayHtScore(final int newAwayHtScore, @SuppressWarnings("unused") final boolean allowedReset) {
         final int modified;
-        if (this.awayHtScore == awayHtScore) {
+        if (this.awayHtScore == newAwayHtScore) {
             modified = 0;
         } else if (this.awayHtScore == -1) {
-            this.awayHtScore = awayHtScore;
+            this.awayHtScore = newAwayHtScore;
             modified = 1;
-        } else if (awayHtScore == -1) {
+        } else if (newAwayHtScore == -1) {
 //            if (allowedReset) { // reset of ht score is allowed for betradar in case of AFTER_ET & AFTER_PEN
 //                this.awayHtScore = awayHtScore;
 //                modified = 1;
@@ -430,8 +413,8 @@ public class ScraperEvent
         } else {
             this.setIgnored(standardBlackListPeriod);
             this.ignoreHt();
-            logger.error("{} change awayHtScore {} to {} in scraperEvent, will ignoredHt: {}", objectId, this.awayHtScore, awayHtScore, Generic.objectToString(this));
-            this.awayHtScore = awayHtScore; // after logging the error message
+            logger.error("{} change awayHtScore {} to {} in scraperEvent, will ignoredHt: {}", this.objectId, this.awayHtScore, newAwayHtScore, Generic.objectToString(this));
+            this.awayHtScore = newAwayHtScore; // after logging the error message
             modified = 1;
 //            modified = -10000; // blackListed
         }
@@ -439,30 +422,29 @@ public class ScraperEvent
     }
 
     public synchronized MatchStatus getMatchStatus() {
-        return matchStatus;
+        return this.matchStatus;
     }
 
-    public synchronized int setMatchStatus(final MatchStatus matchStatus) {
-        return setMatchStatus(matchStatus, false);
+    public synchronized int setMatchStatus(final MatchStatus newMatchStatus) {
+        return setMatchStatus(newMatchStatus, false);
     }
 
-    public synchronized int setMatchStatus(final MatchStatus matchStatus, final boolean resetToNullIgnored) {
+    synchronized int setMatchStatus(final MatchStatus newMatchStatus, final boolean resetToNullIgnored) {
         final int modified;
         if (this.matchStatus == null) {
-            if (matchStatus == null) {
+            if (newMatchStatus == null) {
                 modified = 0;
             } else {
-                this.matchStatus = matchStatus;
+                this.matchStatus = newMatchStatus;
                 modified = 1;
             }
-        } else if (this.matchStatus.equals(matchStatus)) {
+        } else if (this.matchStatus == newMatchStatus) {
             modified = 0;
-        } else if (matchStatus == null) {
+        } else if (newMatchStatus == null) {
             if (resetToNullIgnored) { // this seems to happen in case of coral just before the match disappears, but not only then
-                final String printedString = MessageFormatter.arrayFormat("{} reset attempt matchStatus to {} from {} for: {} {}/{}",
-                                                                          new Object[]{objectId, matchStatus, this.matchStatus, this.eventId, this.homeTeam, this.awayTeam}).getMessage();
+                final String printedString = MessageFormatter.arrayFormat("{} reset attempt matchStatus to {} from {} for: {} {}/{}", new Object[]{this.objectId, newMatchStatus, this.matchStatus, this.eventId, this.homeTeam, this.awayTeam}).getMessage();
 
-                if ("coral".equals(objectId)) {
+                if ("coral".equals(this.objectId)) {
                     Generic.alreadyPrintedMap.logOnce(Statics.debugLevel.check(2, 210), Generic.MINUTE_LENGTH_MILLISECONDS * 5L, logger, LogLevel.INFO, printedString);
                 } else {
                     logger.error(printedString);
@@ -472,125 +454,120 @@ public class ScraperEvent
                 modified = 0;
             } else {
                 this.setIgnored(shortBlackListPeriod);
-                logger.error("{} reset matchStatus {} to {} in scraperEvent: {}", objectId, this.matchStatus, matchStatus, Generic.objectToString(this));
+                logger.error("{} reset matchStatus {} to {} in scraperEvent: {}", this.objectId, this.matchStatus, newMatchStatus, Generic.objectToString(this));
 //                modified = -10000; // blackListed
 
-                this.matchStatus = matchStatus;
+                this.matchStatus = newMatchStatus;
                 modified = 1;
             }
-        } else if (matchStatus == MatchStatus.NOT_STARTED || matchStatus == MatchStatus.POSTPONED) {
+        } else if (newMatchStatus == MatchStatus.NOT_STARTED || newMatchStatus == MatchStatus.POSTPONED) {
             this.setIgnored(shortBlackListPeriod);
-            logger.error("{} reset matchStatus {} to {} in scraperEvent: {}", objectId, this.matchStatus, matchStatus, Generic.objectToString(this));
+            logger.error("{} reset matchStatus {} to {} in scraperEvent: {}", this.objectId, this.matchStatus, newMatchStatus, Generic.objectToString(this));
 //            modified = -10000; // blackListed
 
-            this.matchStatus = matchStatus;
+            this.matchStatus = newMatchStatus;
             modified = 1;
         } else if (this.matchStatus.ordinal() < MatchStatus.FIRST_HALF.ordinal() || this.matchStatus.ordinal() > MatchStatus.ENDED.ordinal() ||
-                   this.matchStatus.ordinal() < matchStatus.ordinal()) {
-            this.matchStatus = matchStatus;
+                   this.matchStatus.ordinal() < newMatchStatus.ordinal()) {
+            this.matchStatus = newMatchStatus;
             modified = 1;
-        } else if (this.matchStatus.ordinal() - matchStatus.ordinal() == 1) {
+        } else if (this.matchStatus.ordinal() - newMatchStatus.ordinal() == 1) {
             this.setIgnored(shortBlackListPeriod);
-            logger.error("REVIEW {} matchStatus {} reduced to {} in scraperEvent: {}", objectId, this.matchStatus, matchStatus, Generic.objectToString(this));
+            logger.error("REVIEW {} matchStatus {} reduced to {} in scraperEvent: {}", this.objectId, this.matchStatus, newMatchStatus, Generic.objectToString(this));
 //            this.matchStatus = matchStatus; // matchStatus taken back by 1 setting; does happen rarely
 //            modified = 1;
 //            modified = -10000; // blackListed
 
-            this.matchStatus = matchStatus;
+            this.matchStatus = newMatchStatus;
             modified = 1;
         } else {
             this.setIgnored(standardBlackListPeriod);
-            logger.error("{} change matchStatus {} to {} in scraperEvent: {}", objectId, this.matchStatus, matchStatus, Generic.objectToString(this));
+            logger.error("{} change matchStatus {} to {} in scraperEvent: {}", this.objectId, this.matchStatus, newMatchStatus, Generic.objectToString(this));
 //            modified = -10000; // blackListed
 
-            this.matchStatus = matchStatus;
+            this.matchStatus = newMatchStatus;
             modified = 1;
         }
 
         return modified;
     }
 
-    public synchronized int getMinutesPlayed() {
-        return minutesPlayed;
+    synchronized int getMinutesPlayed() {
+        return this.minutesPlayed;
     }
 
-    public synchronized int setMinutesPlayedUnckeched(final int minutesPlayed) {
+    synchronized int setMinutesPlayedUnckeched(final int newMinutesPlayed) {
         final int modified;
-        if (this.minutesPlayed == minutesPlayed) {
+        if (this.minutesPlayed == newMinutesPlayed) {
             modified = 0;
         } else {
-            this.minutesPlayed = minutesPlayed;
+            this.minutesPlayed = newMinutesPlayed;
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized int setMinutesPlayed(final int minutesPlayed) {
+    public synchronized int setMinutesPlayed(final int newMinutesPlayed) {
         final int modified;
-        if (this.minutesPlayed == minutesPlayed) {
+        if (this.minutesPlayed == newMinutesPlayed) {
             modified = 0;
-        } else if (this.minutesPlayed < minutesPlayed || minutesPlayed == -1) { // minutesPlayed can reset when match is over
-            this.minutesPlayed = minutesPlayed;
+        } else if (this.minutesPlayed < newMinutesPlayed || newMinutesPlayed == -1) { // minutesPlayed can reset when match is over
+            this.minutesPlayed = newMinutesPlayed;
             modified = 1;
         } else if (this.minutesPlayed <= 1) { // this.minutesPlayed > minutesPlayed && minutesPlayed != -1
             this.setIgnored(minimalBlackListPeriod);
-            logger.error("{} outOfRange change minutesPlayed {} to {} in scraperEvent: {}", objectId, this.minutesPlayed, minutesPlayed, Generic.objectToString(this));
+            logger.error("{} outOfRange change minutesPlayed {} to {} in scraperEvent: {}", this.objectId, this.minutesPlayed, newMinutesPlayed, Generic.objectToString(this));
 //            modified = -10000; // blackListed
 
-            this.minutesPlayed = minutesPlayed;
+            this.minutesPlayed = newMinutesPlayed;
             modified = 1;
-        } else if (minutesPlayed > 0 && this.minutesPlayed - minutesPlayed == 1) {
-            this.minutesPlayed = minutesPlayed; // minutesPlayed taken back by 1; happens sometimes
+        } else if (newMinutesPlayed > 0 && this.minutesPlayed - newMinutesPlayed == 1) {
+            this.minutesPlayed = newMinutesPlayed; // minutesPlayed taken back by 1; happens sometimes
             modified = 1;
-        } else if ((this.minutesPlayed > 1 && this.minutesPlayed < 45 && minutesPlayed >= 1) ||
-                   (this.minutesPlayed > 46 && this.minutesPlayed < 90 && minutesPlayed >= 46) ||
-                   (this.minutesPlayed > 91 && this.minutesPlayed < 105 && minutesPlayed >= 91) ||
-                   (this.minutesPlayed > 106 && this.minutesPlayed < 120 && minutesPlayed >= 106)) {
-            logger.warn("REVIEW {} minutesPlayed {} reduced to {} in scraperEvent: {}", objectId, this.minutesPlayed, minutesPlayed, Generic.objectToString(this));
-            this.minutesPlayed = minutesPlayed; // minutesPlayed taken back by larger amount, but in the same period; happens sometimes
+        } else if ((this.minutesPlayed < 45 && newMinutesPlayed >= 1) || (this.minutesPlayed > 46 && this.minutesPlayed < 90 && newMinutesPlayed >= 46) ||
+                   (this.minutesPlayed > 91 && this.minutesPlayed < 105 && newMinutesPlayed >= 91) || (this.minutesPlayed > 106 && this.minutesPlayed < 120 && newMinutesPlayed >= 106)) { // this.minutesPlayed > 1
+            logger.warn("REVIEW {} minutesPlayed {} reduced to {} in scraperEvent: {}", this.objectId, this.minutesPlayed, newMinutesPlayed, Generic.objectToString(this));
+            this.minutesPlayed = newMinutesPlayed; // minutesPlayed taken back by larger amount, but in the same period; happens sometimes
             modified = 1;
-        } else if ((this.minutesPlayed == 45 && minutesPlayed >= 1) ||
-                   (this.minutesPlayed == 90 && minutesPlayed >= 46) ||
-                   (this.minutesPlayed == 105 && minutesPlayed >= 91) ||
-                   (this.minutesPlayed == 120 && minutesPlayed >= 106)) {
+        } else if ((this.minutesPlayed == 45 && newMinutesPlayed >= 1) || (this.minutesPlayed == 90 && newMinutesPlayed >= 46) || (this.minutesPlayed == 105 && newMinutesPlayed >= 91) || (this.minutesPlayed == 120 && newMinutesPlayed >= 106)) {
             this.setIgnored(minimalBlackListPeriod);
-            logger.error("{} change breakLike minutesPlayed {} to {} in scraperEvent: {}", objectId, this.minutesPlayed, minutesPlayed, Generic.objectToString(this));
+            logger.error("{} change breakLike minutesPlayed {} to {} in scraperEvent: {}", this.objectId, this.minutesPlayed, newMinutesPlayed, Generic.objectToString(this));
             // this.minutesPlayed = minutesPlayed; // minutesPlayed taken back by larger amount, but in the same period or during break
             // modified = 1;
 //            modified = -10000; // blackListed
 
-            this.minutesPlayed = minutesPlayed;
+            this.minutesPlayed = newMinutesPlayed;
             modified = 1;
         } else {
             this.setIgnored(minimalBlackListPeriod);
-            logger.error("{} change differentPeriod minutesPlayed {} to {} in scraperEvent: {}", objectId, this.minutesPlayed, minutesPlayed, Generic.objectToString(this));
+            logger.error("{} change differentPeriod minutesPlayed {} to {} in scraperEvent: {}", this.objectId, this.minutesPlayed, newMinutesPlayed, Generic.objectToString(this));
 //            modified = -10000; // blackListed
 
-            this.minutesPlayed = minutesPlayed;
+            this.minutesPlayed = newMinutesPlayed;
             modified = 1;
         }
         return modified;
     }
 
-    public synchronized int getStoppageTime() {
-        return stoppageTime;
+    synchronized int getStoppageTime() {
+        return this.stoppageTime;
     }
 
-    public synchronized int setStoppageTime(final int stoppageTime) {
+    public synchronized int setStoppageTime(final int newStoppageTime) {
         final int modified;
-        if (this.stoppageTime == stoppageTime) {
+        if (this.stoppageTime == newStoppageTime) {
             modified = 0;
-        } else if (this.stoppageTime < stoppageTime || stoppageTime == -1) { // stoppageTime will reset when periods or match are over
-            this.stoppageTime = stoppageTime;
+        } else if (this.stoppageTime < newStoppageTime || newStoppageTime == -1) { // stoppageTime will reset when periods or match are over
+            this.stoppageTime = newStoppageTime;
             modified = 1;
-        } else if (stoppageTime > 0 && this.stoppageTime - stoppageTime == 1) {
-            this.stoppageTime = stoppageTime; // stoppageTime taken back by 1; might happen sometimes
+        } else if (newStoppageTime > 0 && this.stoppageTime - newStoppageTime == 1) {
+            this.stoppageTime = newStoppageTime; // stoppageTime taken back by 1; might happen sometimes
             modified = 1;
         } else {
 //            BlackList.ignoreScraper(this, minimalBlackListPeriod);
 //            modified = -10000; // blackListed
-            logger.error("REVIEW {} stoppageTime {} reduced to {} in scraperEvent: {}", objectId, this.stoppageTime, stoppageTime, Generic.objectToString(this));
-            this.stoppageTime = stoppageTime; // stoppageTime taken back by larger amount; happens sometimes
+            logger.error("REVIEW {} stoppageTime {} reduced to {} in scraperEvent: {}", this.objectId, this.stoppageTime, newStoppageTime, Generic.objectToString(this));
+            this.stoppageTime = newStoppageTime; // stoppageTime taken back by larger amount; happens sometimes
             modified = 1;
         }
         return modified;
@@ -625,19 +602,18 @@ public class ScraperEvent
     }
 
     @Override
-    public synchronized int setIgnored(final long period, final long currentTime) {
-        final int modified = super.setIgnored(period, currentTime);
-
+    public synchronized int setIgnored(final long period, final long startTime) {
+        final int modified = super.setIgnored(period, startTime);
         if (modified > 0) {
             if (this.matchedEventId != null) {
                 final Event event = Statics.eventsMap.get(this.matchedEventId);
                 if (event != null) {
                     event.ignoredScrapersCheck();
-                    if (!event.isIgnored()) {
+                    if (event.isIgnored()) { // event got ignored, standard behavior, nothing to be done
+                    } else {
                         logger.info("event still not ignored after ScraperEvent ignored: {} {} {}", this.eventId, event.getId(), event.getNValidScraperEventIds());
                         final long eventIgnorePeriod = Math.min(period, Statics.MINIMUM_BAD_STUFF_HAPPENED_IGNORE); // if period is smaller than default minimum, it will be used
-                        event.setIgnored(eventIgnorePeriod, currentTime);
-                    } else { // event got ignored, standard behavior, nothing to be done
+                        event.setIgnored(eventIgnorePeriod, startTime);
                     }
 
                     // delayed starting of threads might no longer be necessary
@@ -661,14 +637,14 @@ public class ScraperEvent
     }
 
     public synchronized long getTimeStamp() {
-        return timeStamp;
+        return this.timeStamp;
     }
 
     @SuppressWarnings("FinalMethod")
-    public final synchronized int setTimeStamp(final long timeStamp) {
+    public final synchronized int setTimeStamp(final long newTimeStamp) {
         final int modified;
-        if (timeStamp > this.timeStamp) {
-            this.timeStamp = timeStamp;
+        if (newTimeStamp > this.timeStamp) {
+            this.timeStamp = newTimeStamp;
             modified = 1;
         } else {
             modified = 0;
@@ -690,13 +666,13 @@ public class ScraperEvent
     }
 
     public synchronized long getMatchedTimeStamp() {
-        return matchedTimeStamp;
+        return this.matchedTimeStamp;
     }
 
-    public synchronized int setMatchedTimeStamp(final long timeStamp) {
+    public synchronized int setMatchedTimeStamp(final long newTimeStamp) {
         final int modified;
-        if (timeStamp > this.matchedTimeStamp) {
-            this.matchedTimeStamp = timeStamp;
+        if (newTimeStamp > this.matchedTimeStamp) {
+            this.matchedTimeStamp = newTimeStamp;
             modified = 1;
         } else {
             modified = 0;
@@ -704,7 +680,8 @@ public class ScraperEvent
         return modified;
     }
 
-    public synchronized int matchedTimeStamp() {
+    @SuppressWarnings("UnusedReturnValue")
+    private synchronized int matchedTimeStamp() {
         final int modified;
         final long currentTime = System.currentTimeMillis();
         if (currentTime > this.matchedTimeStamp) {
@@ -717,24 +694,24 @@ public class ScraperEvent
     }
 
     public synchronized String getMatchedEventId() {
-        return matchedEventId;
+        return this.matchedEventId;
     }
 
-    public synchronized int setMatchedEventId(final String matchedEventId) {
+    public synchronized int setMatchedEventId(final String newMatchedEventId) {
         final int modified;
         if (this.matchedEventId == null) {
-            if (matchedEventId == null) {
+            if (newMatchedEventId == null) {
                 modified = 0; // values are both null
             } else {
-                this.matchedEventId = matchedEventId;
+                this.matchedEventId = newMatchedEventId;
                 modified = 1;
             }
-        } else if (this.matchedEventId.equals(matchedEventId)) {
+        } else if (this.matchedEventId.equals(newMatchedEventId)) {
             modified = 0; // values are equal
         } else {
             this.setIgnored(shortBlackListPeriod);
-            logger.error("REVIEW {} changing matched event from {} to {} for scraperEvent: {}", objectId, this.matchedEventId, matchedEventId, Generic.objectToString(this));
-            modified = -10000; // blackListed; this won't pass
+            logger.error("REVIEW {} changing matched event from {} to {} for scraperEvent: {}", this.objectId, this.matchedEventId, newMatchedEventId, Generic.objectToString(this));
+            modified = -10_000; // blackListed; this won't pass
         }
 
         if (modified > 0) {
@@ -766,112 +743,116 @@ public class ScraperEvent
         return this.getMatchStatus() == MatchStatus.PENALTIES;
     }
 
-    public synchronized boolean homeScoreExists() {
+    private synchronized boolean homeScoreExists() {
         return this.getHomeScore() >= 0;
     }
 
-    public synchronized boolean awayScoreExists() {
+    private synchronized boolean awayScoreExists() {
         return this.getAwayScore() >= 0;
     }
 
-    public synchronized boolean homeScoreTimeStampExists() {
+    @Contract(pure = true)
+    private synchronized boolean homeScoreTimeStampExists() {
         return this.getHomeScoreTimeStamp() > 0;
     }
 
-    public synchronized boolean awayScoreTimeStampExists() {
+    @Contract(pure = true)
+    private synchronized boolean awayScoreTimeStampExists() {
         return this.getAwayScoreTimeStamp() > 0;
     }
 
-    public synchronized boolean timeStampExists() {
+    private synchronized boolean timeStampExists() {
         return this.getTimeStamp() > 0;
     }
 
-    public synchronized boolean homeHtScoreExists() {
+    private synchronized boolean homeHtScoreExists() {
         return this.getHomeHtScore() >= 0;
     }
 
-    public synchronized boolean awayHtScoreExists() {
+    private synchronized boolean awayHtScoreExists() {
         return this.getAwayHtScore() >= 0;
     }
 
-    public synchronized boolean minutesPlayedExists() {
+    synchronized boolean minutesPlayedExists() {
         return this.getMinutesPlayed() >= 0;
     }
 
-    public synchronized boolean stoppageTimeExists() {
+    synchronized boolean stoppageTimeExists() {
         return this.getStoppageTime() >= 0;
     }
 
-    public synchronized boolean onlyOneScoreExists() {
+    private synchronized boolean onlyOneScoreExists() {
         return (homeScoreExists() && !awayScoreExists()) || (!homeScoreExists() && awayScoreExists());
     }
 
-    public synchronized boolean onlyOneHtScoreExists() {
+    private synchronized boolean onlyOneHtScoreExists() {
         return (homeHtScoreExists() && !awayHtScoreExists()) || (!homeHtScoreExists() && awayHtScoreExists());
     }
 
-    public synchronized boolean bothScoreExists() {
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    synchronized boolean bothScoreExists() {
         return homeScoreExists() && awayScoreExists();
     }
 
-    public synchronized boolean bothHtScoreExists() {
+    synchronized boolean bothHtScoreExists() {
         return homeHtScoreExists() && awayHtScoreExists();
     }
 
-    public synchronized boolean bothHtScoreExistsAndNotHtIgnored() {
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    synchronized boolean bothHtScoreExistsAndNotHtIgnored() {
         return bothHtScoreExists() && !isHtIgnored();
     }
 
-    public synchronized boolean anyScoreExists() {
+    synchronized boolean anyScoreExists() {
         return homeScoreExists() || awayScoreExists();
     }
 
-    public synchronized boolean anyHtScoreExists() {
+    synchronized boolean anyHtScoreExists() {
         return homeHtScoreExists() || awayHtScoreExists();
     }
 
-    public synchronized boolean minutesExistsAndNot(final int minute) {
+    synchronized boolean minutesExistsAndNot(final int minute) {
         return minutesPlayedExists() && minutesNot(minute);
     }
 
-    public synchronized boolean minutesExistsAndNot(final int... minutes) {
+    synchronized boolean minutesExistsAndNot(final int... minutes) {
         return minutesPlayedExists() && minutesNot(minutes);
     }
 
-    public synchronized boolean minutesNot(final int minute) {
+    private synchronized boolean minutesNot(final int minute) {
         return this.getMinutesPlayed() != minute;
     }
 
-    public synchronized boolean minutesNot(final int... minutes) {
+    private synchronized boolean minutesNot(final int... minutes) {
         boolean returnVar = true;
         if (minutes != null && minutes.length > 0) {
-            int length = minutes.length;
-            for (int i = 0; i < length && returnVar; i++) {
-                returnVar = returnVar && minutesNot(minutes[i]);
+            final int length = minutes.length;
+            for (int i = 0; i < length && returnVar; i++) { // returnVar == true
+                returnVar = minutesNot(minutes[i]);
             }
         } else { // nothing to be done, will return initial value
         }
         return returnVar;
     }
 
-    public synchronized boolean minutesExistsAndNotInterval(final int minuteBegin, final int minuteEnd) {
+    synchronized boolean minutesExistsAndNotInterval(final int minuteBegin, final int minuteEnd) {
         return minutesPlayedExists() && !minutesInInterval(minuteBegin, minuteEnd);
     }
 
-    public synchronized boolean minutesInInterval(final int minuteBegin, final int minuteEnd) {
+    private synchronized boolean minutesInInterval(final int minuteBegin, final int minuteEnd) {
         final int localMinutesPlayed = this.getMinutesPlayed();
         return localMinutesPlayed >= minuteBegin && localMinutesPlayed <= minuteEnd;
     }
 
-    public synchronized boolean minutesOrStoppageExists() {
+    synchronized boolean minutesOrStoppageExists() {
         return minutesPlayedExists() || stoppageTimeExists();
     }
 
-    public synchronized boolean stoppageExistsOrMinutesAre(final int minute) {
+    synchronized boolean stoppageExistsOrMinutesAre(final int minute) {
         return stoppageTimeExists() || minutesAre(minute);
     }
 
-    public synchronized boolean stoppageExistsOrMinutesAre(final int... minutes) {
+    synchronized boolean stoppageExistsOrMinutesAre(final int... minutes) {
         return stoppageTimeExists() || minutesAre(minutes);
     }
 
@@ -879,52 +860,49 @@ public class ScraperEvent
         return this.getMinutesPlayed() == minute;
     }
 
-    public synchronized boolean minutesAre(final int... minutes) {
+    private synchronized boolean minutesAre(final int... minutes) {
         boolean returnVar = false;
         if (minutes != null && minutes.length > 0) {
-            int length = minutes.length;
-            for (int i = 0; i < length && !returnVar; i++) {
-                returnVar = returnVar || minutesAre(minutes[i]);
+            final int length = minutes.length;
+            for (int i = 0; i < length && !returnVar; i++) { // returnVar == false
+                returnVar = minutesAre(minutes[i]);
             }
         } else { // nothing to be done, will return initial value
         }
         return returnVar;
     }
 
-    public synchronized int update(final ScraperEvent scraperEvent) {
+    public synchronized int update(@NotNull final ScraperEvent scraperEvent) {
         int modified;
         if (this == scraperEvent) {
-            logger.error("{} update from same object in ScraperEvent.update: {}", objectId, Generic.objectToString(this));
+            logger.error("{} update from same object in ScraperEvent.update: {}", this.objectId, Generic.objectToString(this));
             modified = 0;
         } else if (this.getEventId() != scraperEvent.getEventId()) {
-            logger.error("{} mismatch eventId in ScraperEvent.update: {} {}", objectId, Generic.objectToString(this), Generic.objectToString(scraperEvent));
+            logger.error("{} mismatch eventId in ScraperEvent.update: {} {}", this.objectId, Generic.objectToString(this), Generic.objectToString(scraperEvent));
             modified = 0;
         } else {
-            long thatTimeStamp = scraperEvent.getTimeStamp();
-            long thatHomeScoreTimeStamp = scraperEvent.getHomeScoreTimeStamp();
-            long thatAwayScoreTimeStamp = scraperEvent.getAwayScoreTimeStamp();
+            final long thatTimeStamp = scraperEvent.getTimeStamp();
+            final long thatHomeScoreTimeStamp = scraperEvent.getHomeScoreTimeStamp();
+            final long thatAwayScoreTimeStamp = scraperEvent.getAwayScoreTimeStamp();
 
             if (this.timeStamp > thatTimeStamp || this.homeScoreTimeStamp > thatHomeScoreTimeStamp || this.awayScoreTimeStamp > thatAwayScoreTimeStamp) {
                 final long currentTime = System.currentTimeMillis();
                 if (this.timeStamp > currentTime || this.homeScoreTimeStamp > currentTime || this.awayScoreTimeStamp > currentTime) { // clock jump
-                    logger.error("{} scraper clock jump in the past of at least {} {} {} ms detected", objectId, this.timeStamp - currentTime,
-                                 this.homeScoreTimeStamp - currentTime, this.awayScoreTimeStamp - currentTime);
+                    logger.error("{} scraper clock jump in the past of at least {} {} {} ms detected", this.objectId, this.timeStamp - currentTime, this.homeScoreTimeStamp - currentTime, this.awayScoreTimeStamp - currentTime);
                     this.setTimeStamp(currentTime); // to eliminate the timeJump error
                     this.setHomeScoreTimeStamp(currentTime); // to eliminate the timeJump error
                     this.setAwayScoreTimeStamp(currentTime); // to eliminate the timeJump error
                     // won't update the object further, as I have no guarantees on the time ordering
                     modified = 0;
                 } else {
-                    long maxDifference = Math.max(Math.max(this.homeScoreTimeStamp - thatHomeScoreTimeStamp, this.awayScoreTimeStamp - thatAwayScoreTimeStamp),
-                                                  this.timeStamp - thatTimeStamp);
+                    final long maxDifference = Math.max(Math.max(this.homeScoreTimeStamp - thatHomeScoreTimeStamp, this.awayScoreTimeStamp - thatAwayScoreTimeStamp), this.timeStamp - thatTimeStamp);
                     if (maxDifference > 1_000_000L) { // huge difference, likely a score was reset and the update time is 0 now
                         this.setIgnored(shortBlackListPeriod, currentTime);
-                        logger.error("{} score reset detected in ScraperEvent.update: {} {}", objectId, Generic.objectToString(this), Generic.objectToString(scraperEvent));
+                        logger.error("{} score reset detected in ScraperEvent.update: {} {}", this.objectId, Generic.objectToString(this), Generic.objectToString(scraperEvent));
                         modified = -10000; // blackListed
                     } else {
-                        logger.error("{} attempt to update from older object {} {} {} ScraperEvent.update: {} {}", objectId, this.timeStamp - thatTimeStamp,
-                                     this.homeScoreTimeStamp - thatHomeScoreTimeStamp, this.awayScoreTimeStamp - thatAwayScoreTimeStamp, Generic.objectToString(this),
-                                     Generic.objectToString(scraperEvent));
+                        logger.error("{} attempt to update from older object {} {} {} ScraperEvent.update: {} {}", this.objectId, this.timeStamp - thatTimeStamp, this.homeScoreTimeStamp - thatHomeScoreTimeStamp,
+                                     this.awayScoreTimeStamp - thatAwayScoreTimeStamp, Generic.objectToString(this), Generic.objectToString(scraperEvent));
                         modified = 0;
                     }
                 } // end else
@@ -942,9 +920,8 @@ public class ScraperEvent
         return modified;
     }
 
-    public synchronized int innerUpdate(final ScraperEvent scraperEvent) {
+    public synchronized int innerUpdate(@NotNull final ScraperEvent scraperEvent) {
         int modified = 0;
-
         modified += this.setHomeTeam(scraperEvent.getHomeTeam());
         modified += this.setAwayTeam(scraperEvent.getAwayTeam());
         modified += this.setHomeScore(scraperEvent.getHomeScore());
@@ -973,7 +950,7 @@ public class ScraperEvent
 
     public synchronized long errors() {
         long errors = 0L;
-        AtomicLong blackListPeriod = new AtomicLong();
+        final AtomicLong blackListPeriod = new AtomicLong();
 
         if (this.getEventId() < 0 || onlyOneScoreExists() || onlyOneHtScoreExists()) {
             errors += 100L;
@@ -987,30 +964,30 @@ public class ScraperEvent
         if (!awayScoreTimeStampExists() && awayScoreExists()) {
             errors += 800L;
         }
-        if (anyScoreExists() && Math.abs(homeScoreTimeStamp - awayScoreTimeStamp) > 1_000L) {
-            errors += 1600L;
+        if (anyScoreExists() && Math.abs(this.homeScoreTimeStamp - this.awayScoreTimeStamp) > 1_000L) {
+            errors += 1_600L;
             blackListPeriod.set(Math.max(blackListPeriod.get(), Generic.MINUTE_LENGTH_MILLISECONDS));
         }
-        if (homeTeam == null || homeTeam.isEmpty()) {
-            errors += 3200L;
+        if (this.homeTeam == null || this.homeTeam.isEmpty()) {
+            errors += 3_200L;
         }
-        if (awayTeam == null || awayTeam.isEmpty()) {
-            errors += 6400L;
+        if (this.awayTeam == null || this.awayTeam.isEmpty()) {
+            errors += 6_400L;
         }
         if (this.homeScore < this.homeHtScore) {
-            errors += 12800L;
+            errors += 12_800L;
         }
         if (this.awayScore < this.awayHtScore) {
-            errors += 25600L;
+            errors += 25_600L;
         }
         if (stoppageTimeExists() && minutesNot(45, 90, 105, 120)) {
-            errors += 51200L;
+            errors += 51_200L;
             blackListPeriod.set(Math.max(blackListPeriod.get(), shortBlackListPeriod));
         }
 
         errors += this.innerErrors(blackListPeriod);
 
-        if (blackListPeriod.get() > 0L && errors % 100 == 0 && Generic.isPowerOfTwo(errors / 100)) { // applied for single error only, else standardPeriod
+        if (blackListPeriod.get() > 0L && errors % 100L == 0L && Generic.isPowerOfTwo(errors / 100L)) { // applied for single error only, else standardPeriod
             this.setIgnored(blackListPeriod.get());
         } else if (errors >= 100L) {
             this.setIgnored(standardBlackListPeriod);
@@ -1025,75 +1002,62 @@ public class ScraperEvent
     }
 
     public synchronized boolean hasStarted() {
-        boolean hasStarted;
-
-        if (this.matchStatus == null) {
-            // in some cases matchStatus == null can be an acceptable value, when no matchstatus info exists
-            hasStarted = errors() < 100L && anyScoreExists();
-//            hasStarted = false;
-        } else {
-            hasStarted = this.matchStatus.hasStarted();
-
-//            switch (this.matchStatus) {
-//                case NOT_STARTED:
-//                case START_DELAYED:
-//                case POSTPONED:
-//                case ABANDONED:
-//                case CANCELLED:
-//                    hasStarted = false;
-//                    break;
-//                case FIRST_HALF:
-//                case HALF_TIME:
-//                case SECOND_HALF:
-//                case AWAITING_ET:
-//                case OVERTIME:
-//                case FIRST_ET:
-//                case ET_HALF_TIME:
-//                case SECOND_ET:
-//                case AWAITING_PEN:
-//                case PENALTIES:
-//                case AFTER_ET:
-//                case AFTER_PEN:
-//                case ENDED:
-//                case INTERRUPTED:
-//                    hasStarted = true;
-//                    break;
-//                case UNKNOWN:
-//                    hasStarted = false;
-//                    break;
-//                default:
-//                    logger.error("{} unsupported matchStatus {} in scraperEvent check for: {}", objectId, this.matchStatus, Generic.objectToString(this));
-//                    hasStarted = false;
-//                    break;
-//            } // end switch
-        } // end else
+        final boolean hasStarted;
+        //            switch (this.matchStatus) {
+        //                case NOT_STARTED:
+        //                case START_DELAYED:
+        //                case POSTPONED:
+        //                case ABANDONED:
+        //                case CANCELLED:
+        //                    hasStarted = false;
+        //                    break;
+        //                case FIRST_HALF:
+        //                case HALF_TIME:
+        //                case SECOND_HALF:
+        //                case AWAITING_ET:
+        //                case OVERTIME:
+        //                case FIRST_ET:
+        //                case ET_HALF_TIME:
+        //                case SECOND_ET:
+        //                case AWAITING_PEN:
+        //                case PENALTIES:
+        //                case AFTER_ET:
+        //                case AFTER_PEN:
+        //                case ENDED:
+        //                case INTERRUPTED:
+        //                    hasStarted = true;
+        //                    break;
+        //                case UNKNOWN:
+        //                    hasStarted = false;
+        //                    break;
+        //                default:
+        //                    logger.error("{} unsupported matchStatus {} in scraperEvent check for: {}", objectId, this.matchStatus, Generic.objectToString(this));
+        //                    hasStarted = false;
+        //                    break;
+        //            } // end switch
+        // end else
+        // in some cases matchStatus == null can be an acceptable value, when no matchstatus info exists
+        hasStarted = this.matchStatus == null ? errors() < 100L && anyScoreExists() : this.matchStatus.hasStarted();
 
         return hasStarted;
     }
 
+    @SuppressWarnings("MethodWithMultipleReturnPoints")
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
-    public synchronized int compareTo(final ScraperEvent other) {
-        if (other == null) {
+    public synchronized int compareTo(@NotNull final ScraperEvent o) {
+        //noinspection ConstantConditions
+        if (o == null) {
             return AFTER;
         }
-        if (this == other) {
+        if (this == o) {
             return EQUAL;
         }
 
-        if (this.getClass() != other.getClass()) {
-            if (this.getClass().hashCode() < other.getClass().hashCode()) {
-                return BEFORE;
-            } else {
-                return AFTER;
-            }
+        if (this.getClass() != o.getClass()) {
+            return this.getClass().hashCode() < o.getClass().hashCode() ? BEFORE : AFTER;
         }
-        if (this.eventId != other.eventId) {
-            if (this.eventId < other.eventId) {
-                return BEFORE;
-            } else {
-                return AFTER;
-            }
+        if (this.eventId != o.eventId) {
+            return this.eventId < o.eventId ? BEFORE : AFTER;
         }
 
         return EQUAL;
@@ -1106,8 +1070,8 @@ public class ScraperEvent
         return hash;
     }
 
+    @Contract(value = "null -> false", pure = true)
     @Override
-    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public synchronized boolean equals(final Object obj) {
         if (obj == null) {
             return false;
