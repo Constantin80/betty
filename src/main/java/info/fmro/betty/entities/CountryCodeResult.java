@@ -1,7 +1,7 @@
 package info.fmro.betty.entities;
 
 @SuppressWarnings("unused")
-public class CountryCodeResult {
+class CountryCodeResult {
     private String countryCode;
     private Integer marketCount;
 

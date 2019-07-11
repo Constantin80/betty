@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-public class RescriptAccountResponseHandler
+class RescriptAccountResponseHandler
         implements ResponseHandler<String> {
     private static final Logger logger = LoggerFactory.getLogger(RescriptAccountResponseHandler.class);
     public static final long defaultPrintExpiry = 10_000L;

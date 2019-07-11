@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @SuppressWarnings("unused")
-public class RunnerDescription {
+class RunnerDescription {
     private String runnerName;
     @Nullable
     private Map<String, String> metadata;

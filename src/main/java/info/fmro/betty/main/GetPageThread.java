@@ -4,7 +4,7 @@ import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import org.jetbrains.annotations.Contract;
 
-public class GetPageThread
+class GetPageThread
         implements Runnable {
     private final ScraperThread scraperThread;
     private final WebClient webClient;

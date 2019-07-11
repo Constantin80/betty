@@ -33,7 +33,7 @@ public class StampedDouble { // access to the value is stamped
         return this.stamp;
     }
 
-    public synchronized void setStamp(final long stamp) {
+    private synchronized void setStamp(final long stamp) {
         if (stamp > this.stamp) {
             this.stamp = stamp;
         } else {
@@ -45,7 +45,7 @@ public class StampedDouble { // access to the value is stamped
         }
     }
 
-    public synchronized void stamp() {
+    private synchronized void stamp() {
         this.setStamp(System.currentTimeMillis());
     }
 

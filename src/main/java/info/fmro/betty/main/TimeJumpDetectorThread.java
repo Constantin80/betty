@@ -5,7 +5,7 @@ import info.fmro.shared.utility.Generic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TimeJumpDetectorThread
+class TimeJumpDetectorThread
         implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(TimeJumpDetectorThread.class);
     public static final long SLEEP_INTERVAL = 200L;

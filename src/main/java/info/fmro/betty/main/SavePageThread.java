@@ -6,13 +6,13 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import info.fmro.betty.utility.WebScraperMethods;
 import org.jetbrains.annotations.Contract;
 
-public class SavePageThread
+class SavePageThread
         implements Runnable {
     private final ScraperThread scraperThread;
     private final String savePrefix;
     private final WebClient webClient;
     private final HtmlPage htmlPage;
-    public final Cache cache;
+    private final Cache cache;
     private boolean hasRun;
 
     @Contract(pure = true)

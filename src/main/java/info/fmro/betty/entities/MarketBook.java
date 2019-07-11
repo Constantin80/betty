@@ -15,7 +15,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
-@SuppressWarnings({"ClassWithTooManyFields", "ClassWithTooManyMethods", "OverlyComplexClass"})
+@SuppressWarnings({"ClassWithTooManyMethods", "OverlyComplexClass"})
 public class MarketBook
         implements Serializable, Comparable<MarketBook> {
     private static final Logger logger = LoggerFactory.getLogger(MarketBook.class);
@@ -80,7 +80,7 @@ public class MarketBook
         return this.status;
     }
 
-    public synchronized int setStatus(final MarketStatus newStatus) {
+    private synchronized int setStatus(final MarketStatus newStatus) {
         final int modified;
         if (this.status == null) {
             if (newStatus == null) {
@@ -375,7 +375,7 @@ public class MarketBook
         return modified;
     }
 
-    public synchronized Long getVersion() {
+    private synchronized Long getVersion() {
         return this.version;
     }
 

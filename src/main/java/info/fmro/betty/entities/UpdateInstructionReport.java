@@ -3,7 +3,7 @@ package info.fmro.betty.entities;
 import info.fmro.betty.enums.InstructionReportErrorCode;
 import info.fmro.betty.enums.InstructionReportStatus;
 
-public class UpdateInstructionReport {
+class UpdateInstructionReport {
     private InstructionReportStatus status;
     private InstructionReportErrorCode errorCode;
     private UpdateInstruction instruction;

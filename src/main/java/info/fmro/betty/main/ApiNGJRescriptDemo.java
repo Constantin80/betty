@@ -11,7 +11,6 @@ import java.util.List;
 
 @SuppressWarnings("UtilityClass")
 final class ApiNGJRescriptDemo {
-
     private static final Logger logger = LoggerFactory.getLogger(ApiNGJRescriptDemo.class);
     //    public final static HashSet<String> eventTypeIdsSet = new HashSet<>(2, 0.75f);
     public static final MarketFilter marketFilter = new MarketFilter();

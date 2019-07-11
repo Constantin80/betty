@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 
-@SuppressWarnings({"ClassWithTooManyFields", "ClassWithTooManyMethods"})
+@SuppressWarnings("ClassWithTooManyMethods")
 public class TimeStamps
         implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(TimeStamps.class);
@@ -219,7 +219,7 @@ public class TimeStamps
         return this.lastListCurrencyRates;
     }
 
-    synchronized void setLastListCurrencyRates(@SuppressWarnings("SameParameterValue") final long lastListCurrencyRates) {
+    synchronized void setLastListCurrencyRates(final long lastListCurrencyRates) {
         this.lastListCurrencyRates = lastListCurrencyRates;
     }
 

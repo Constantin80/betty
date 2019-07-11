@@ -1,7 +1,7 @@
 package info.fmro.betty.entities;
 
 @SuppressWarnings("unused")
-public class AccountDetailsResponse {
+class AccountDetailsResponse {
     private String currencyCode; // Default user currency Code.
     private String firstName; // First Name.
     private String lastName; // Last Name.

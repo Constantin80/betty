@@ -1,5 +1,6 @@
 package info.fmro.betty.stream.cache.util;
 
+import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,25 +31,16 @@ public class RunnerId
         return this.handicap;
     }
 
-//    public synchronized LongDoublePair toLongDoublePair() {
-//        final LongDoublePair result;
-//        if (selectionId != null && handicap != null) {
-//            result = new LongDoublePair(selectionId, handicap);
-//        } else {
-//            result = null;
-//        }
-//        return result;
-//    }
-
+    @Contract(value = "null -> false", pure = true)
     @Override
-    public synchronized boolean equals(final Object o) {
-        if (this == o) {
+    public synchronized boolean equals(final Object obj) {
+        if (this == obj) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final RunnerId runnerId = (RunnerId) o;
+        final RunnerId runnerId = (RunnerId) obj;
         return Objects.equals(this.selectionId, runnerId.selectionId) &&
                Objects.equals(this.handicap, runnerId.handicap);
     }

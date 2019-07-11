@@ -30,8 +30,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-@SuppressWarnings({"unused", "OverlyComplexClass", "UtilityClass"})
-public final class SafeBetModuleMethods {
+@SuppressWarnings({"OverlyComplexClass", "UtilityClass", "unused"})
+final class SafeBetModuleMethods {
     private static final Logger logger = LoggerFactory.getLogger(SafeBetModuleMethods.class);
 
     @Contract(pure = true)

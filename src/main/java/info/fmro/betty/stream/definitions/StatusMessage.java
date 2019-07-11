@@ -1,5 +1,8 @@
 package info.fmro.betty.stream.definitions;
 
+import info.fmro.betty.stream.enums.ErrorCode;
+import info.fmro.betty.stream.enums.StatusCode;
+
 import java.io.Serializable;
 
 // objects of this class are read from the stream

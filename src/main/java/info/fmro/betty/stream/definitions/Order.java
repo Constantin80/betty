@@ -2,6 +2,10 @@ package info.fmro.betty.stream.definitions;
 
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.cache.util.RunnerId;
+import info.fmro.betty.stream.enums.OrderStatus;
+import info.fmro.betty.stream.enums.OrderType;
+import info.fmro.betty.stream.enums.PersistenceType;
+import info.fmro.betty.stream.enums.Side;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Nullable;
@@ -10,9 +14,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.Objects;
 
 // objects of this class are read from the stream
+@SuppressWarnings("OverlyComplexClass")
 public class Order
         implements Serializable { // amounts are in account currency (EUR)
     private static final long serialVersionUID = 3021807768896649660L;
@@ -112,18 +116,10 @@ public class Order
             @Nullable final Double sizeReduction;
             if (excessExposure >= sizeRemaining) {
                 sizeReduction = null;
-                if (Statics.ordersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction)) {
-                    exposureReduction = sizeRemaining;
-                } else {
-                    exposureReduction = 0d;
-                }
+                exposureReduction = Statics.ordersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction) ? sizeRemaining : 0d;
             } else {
                 sizeReduction = excessExposure;
-                if (Statics.ordersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction)) {
-                    exposureReduction = excessExposure;
-                } else {
-                    exposureReduction = 0d;
-                }
+                exposureReduction = Statics.ordersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction) ? excessExposure : 0d;
             }
         } else {
             logger.error("wrong side in removeBackExposure for: {} {} {} {}", marketId, runnerId, excessExposure, Generic.objectToString(this));
@@ -142,18 +138,10 @@ public class Order
             @Nullable final Double sizeReduction;
             if (excessExposure >= Formulas.layExposure(this.p, sizeRemaining)) {
                 sizeReduction = null;
-                if (Statics.ordersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction)) {
-                    exposureReduction = Formulas.layExposure(this.p, sizeRemaining);
-                } else {
-                    exposureReduction = 0d;
-                }
+                exposureReduction = Statics.ordersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction) ? Formulas.layExposure(this.p, sizeRemaining) : 0d;
             } else {
                 sizeReduction = excessExposure / (this.p - 1d);
-                if (Statics.ordersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction)) {
-                    exposureReduction = excessExposure;
-                } else {
-                    exposureReduction = 0d;
-                }
+                exposureReduction = Statics.ordersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction) ? excessExposure : 0d;
             }
         } else {
             logger.error("wrong side in removeLayExposure for: {} {} {} {}", marketId, runnerId, excessExposure, Generic.objectToString(this));

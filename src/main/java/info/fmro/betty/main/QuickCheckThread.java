@@ -160,7 +160,6 @@ public class QuickCheckThread
         return expectedRuns;
     }
 
-    @SuppressWarnings("SameParameterValue")
     private void getMarketBooks(@SuppressWarnings("TypeMayBeWeakened") final Set<String> safeMarketsSet, final long timeStamp, final int marketsPerOperation) {
         if (timeStamp > 0) {
             Statics.timeStamps.lastGetMarketBooksStamp(timeStamp);
@@ -180,7 +179,6 @@ public class QuickCheckThread
         }
     }
 
-    @SuppressWarnings("SameParameterValue")
     void getMarketBooks(final List<String> marketIdsList, final long timeStamp, final int marketsPerOperation) {
         if (timeStamp > 0) {
             Statics.timeStamps.lastGetMarketBooksStamp(timeStamp);

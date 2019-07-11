@@ -1,6 +1,6 @@
 package info.fmro.betty.entities;
 
-public class RunnerProfitAndLoss {
+class RunnerProfitAndLoss {
     private Long selectionId; // SelectionId alias Long
     private Double ifWin;
     private Double ifLose;

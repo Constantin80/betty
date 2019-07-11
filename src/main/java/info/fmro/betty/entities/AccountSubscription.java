@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class AccountSubscription {
+class AccountSubscription {
     @Nullable
     private List<SubscriptionTokenInfo> subscriptionTokens; // List of subscription token details
     private String applicationName; // Application name

@@ -22,7 +22,7 @@ public final class BlackList {
         return setIgnored(clazz, key, BlackList.defaultSafetyPeriod);
     }
 
-    private static <T> int setIgnored(final Class<? extends Ignorable> clazz, final T key, @SuppressWarnings("SameParameterValue") final long safetyPeriod) {
+    private static <T> int setIgnored(final Class<? extends Ignorable> clazz, final T key, final long safetyPeriod) {
         final long currentTime = System.currentTimeMillis();
         return setIgnored(clazz, key, safetyPeriod, currentTime);
     }
@@ -38,7 +38,7 @@ public final class BlackList {
         return setIgnored(synchronizedMap, key, BlackList.defaultSafetyPeriod);
     }
 
-    private static <T> int setIgnored(final SynchronizedMap<T, ? extends Ignorable> synchronizedMap, final T key, @SuppressWarnings("SameParameterValue") final long safetyPeriod) {
+    private static <T> int setIgnored(final SynchronizedMap<T, ? extends Ignorable> synchronizedMap, final T key, final long safetyPeriod) {
         final long currentTime = System.currentTimeMillis();
         return setIgnored(synchronizedMap, key, safetyPeriod, currentTime);
     }

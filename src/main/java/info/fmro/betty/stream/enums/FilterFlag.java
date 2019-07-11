@@ -1,4 +1,4 @@
-package info.fmro.betty.stream.definitions;
+package info.fmro.betty.stream.enums;
 
 public enum FilterFlag {
     //    Filter name                Fields:           Type                  Description

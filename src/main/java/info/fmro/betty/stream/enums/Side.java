@@ -1,6 +1,5 @@
-package info.fmro.betty.stream.definitions;
+package info.fmro.betty.stream.enums;
 
-import info.fmro.betty.main.OrdersThread;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +8,7 @@ public enum Side { // BACK, LAY;
     B,
     L;
 
-    private static final Logger logger = LoggerFactory.getLogger(OrdersThread.class);
+    private static final Logger logger = LoggerFactory.getLogger(Side.class);
 
     public synchronized info.fmro.betty.enums.Side toStandardSide() {
         @Nullable final info.fmro.betty.enums.Side returnValue;

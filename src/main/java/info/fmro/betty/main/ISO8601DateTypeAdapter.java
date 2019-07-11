@@ -17,7 +17,7 @@ import java.util.Date;
 import java.util.TimeZone;
 
 // TypeAdaptor for the Date class which can be given to Gson. Betfair's API-NG requires all dates to be serialized in ISO8601 UTC.
-public class ISO8601DateTypeAdapter
+class ISO8601DateTypeAdapter
         implements JsonSerializer<Date>, JsonDeserializer<Date> {
     public static final String ISO_8601_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
     public static final String ISO_8601_TIMEZONE = "UTC";

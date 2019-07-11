@@ -7,7 +7,7 @@ import info.fmro.betty.stream.cache.order.OrderMarketRunner;
 import info.fmro.betty.stream.cache.util.RunnerId;
 import info.fmro.betty.stream.cache.util.Utils;
 import info.fmro.betty.stream.definitions.Order;
-import info.fmro.betty.stream.definitions.Side;
+import info.fmro.betty.stream.enums.Side;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Contract;
@@ -22,7 +22,7 @@ import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-@SuppressWarnings({"ClassWithTooManyFields", "ClassWithTooManyMethods", "OverlyComplexClass"})
+@SuppressWarnings({"ClassWithTooManyMethods", "OverlyComplexClass"})
 public class ManagedRunner
         extends Exposure
         implements Serializable {

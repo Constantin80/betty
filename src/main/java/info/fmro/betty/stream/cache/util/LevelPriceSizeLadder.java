@@ -8,6 +8,7 @@ import java.util.TreeMap;
 public class LevelPriceSizeLadder
         implements Serializable {
     private static final long serialVersionUID = 990070832400710390L;
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private final Map<Integer, LevelPriceSize> levelToPriceSize = new TreeMap<>();
 
     public synchronized void onPriceChange(final boolean isImage, final Iterable<? extends List<Double>> prices) {

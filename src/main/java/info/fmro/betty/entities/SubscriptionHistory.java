@@ -6,7 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Date;
 
 @SuppressWarnings("unused")
-public class SubscriptionHistory {
+class SubscriptionHistory {
     private String subscriptionToken; // Application key identifier
     @Nullable
     private Date expiryDateTime; // Subscription Expiry date

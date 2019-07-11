@@ -3,13 +3,17 @@ package info.fmro.betty.stream.definitions;
 import info.fmro.betty.entities.TimeRange;
 import info.fmro.betty.enums.MarketBettingType;
 import info.fmro.betty.enums.OrderStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
+@SuppressWarnings("ClassWithTooManyMethods")
 public class MarketFilter
         implements Serializable {
     private static final long serialVersionUID = 6993130569488828844L;
@@ -74,7 +78,7 @@ public class MarketFilter
         return this.eventTypeIds == null ? null : new HashSet<>(this.eventTypeIds);
     }
 
-    public synchronized void setEventTypeIds(final Set<String> eventTypeIds) {
+    private synchronized void setEventTypeIds(final Set<String> eventTypeIds) {
         this.eventTypeIds = eventTypeIds == null ? null : new HashSet<>(eventTypeIds);
     }
 
@@ -144,11 +148,11 @@ public class MarketFilter
 
     @Nullable
     public synchronized Set<MarketBettingType> getBettingTypes() {
-        return this.bettingTypes == null ? null : new HashSet<>(this.bettingTypes);
+        return this.bettingTypes == null ? null : EnumSet.copyOf(this.bettingTypes);
     }
 
-    public synchronized void setBettingTypes(final Set<MarketBettingType> bettingTypes) {
-        this.bettingTypes = bettingTypes == null ? null : new HashSet<>(bettingTypes);
+    public synchronized void setBettingTypes(@NotNull final Collection<MarketBettingType> bettingTypes) {
+        this.bettingTypes = EnumSet.copyOf(bettingTypes);
     }
 
     @Nullable
@@ -165,7 +169,7 @@ public class MarketFilter
         return this.marketTypes == null ? null : new HashSet<>(this.marketTypes);
     }
 
-    public synchronized void setMarketTypes(final Set<String> marketTypes) {
+    private synchronized void setMarketTypes(final Set<String> marketTypes) {
         this.marketTypes = marketTypes == null ? null : new HashSet<>(marketTypes);
     }
 
@@ -183,10 +187,10 @@ public class MarketFilter
 
     @Nullable
     public synchronized Set<OrderStatus> getWithOrders() {
-        return this.withOrders == null ? null : new HashSet<>(this.withOrders);
+        return this.withOrders == null ? null : EnumSet.copyOf(this.withOrders);
     }
 
-    public synchronized void setWithOrders(final Set<OrderStatus> withOrders) {
-        this.withOrders = withOrders == null ? null : new HashSet<>(withOrders);
+    public synchronized void setWithOrders(@NotNull final Collection<OrderStatus> withOrders) {
+        this.withOrders = EnumSet.copyOf(withOrders);
     }
 }

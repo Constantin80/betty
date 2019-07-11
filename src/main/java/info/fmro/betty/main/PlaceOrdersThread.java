@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PlaceOrdersThread
+class PlaceOrdersThread
         implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(PlaceOrdersThread.class);
     private final String marketId;

@@ -1,7 +1,7 @@
 package info.fmro.betty.entities;
 
 @SuppressWarnings("unused")
-public class ReplaceInstruction {
+class ReplaceInstruction {
     private String betId;
     private Double newPrice;
 

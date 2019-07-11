@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class AccountStatementReport {
+class AccountStatementReport {
     @Nullable
     private List<StatementItem> accountStatement; // The list of statement items returned by your request.
     private Boolean moreAvailable; // Indicates whether there are further result items beyond this page.

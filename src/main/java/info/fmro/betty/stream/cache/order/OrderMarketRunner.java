@@ -7,7 +7,7 @@ import info.fmro.betty.stream.cache.util.PriceSizeLadder;
 import info.fmro.betty.stream.cache.util.RunnerId;
 import info.fmro.betty.stream.definitions.Order;
 import info.fmro.betty.stream.definitions.OrderRunnerChange;
-import info.fmro.betty.stream.definitions.Side;
+import info.fmro.betty.stream.enums.Side;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.NotNull;
@@ -24,6 +24,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+@SuppressWarnings({"ClassWithTooManyMethods", "OverlyComplexClass"})
 public class OrderMarketRunner
         implements Serializable { // amounts are in account currency (EUR)
     private static final long serialVersionUID = 6359709424181107081L;
@@ -33,10 +34,10 @@ public class OrderMarketRunner
     private final RunnerId runnerId;
     private final PriceSizeLadder layMatches = PriceSizeLadder.newLay();
     private final PriceSizeLadder backMatches = PriceSizeLadder.newBack();
-    private final Map<String, Order> unmatchedOrders = new ConcurrentHashMap<>(); // only place where orders are permanently stored
+    private final Map<String, Order> unmatchedOrders = new ConcurrentHashMap<>(2); // only place where orders are permanently stored
     private double matchedBackExposure, matchedLayExposure, unmatchedBackExposure, unmatchedBackProfit, unmatchedLayExposure, unmatchedLayProfit, tempBackExposure, tempBackProfit, tempLayExposure, tempLayProfit, tempBackCancel, tempLayCancel;
 
-    public OrderMarketRunner(final String marketId, final RunnerId runnerId) {
+    OrderMarketRunner(final String marketId, final RunnerId runnerId) {
         if (marketId == null || runnerId == null) {
             logger.error("bad arguments when creating OrderMarketRunner: {} {}", marketId, Generic.objectToString(runnerId));
         } else { // no error message, constructor continues normally
@@ -45,7 +46,7 @@ public class OrderMarketRunner
         this.runnerId = runnerId;
     }
 
-    public synchronized void onOrderRunnerChange(final OrderRunnerChange orderRunnerChange) {
+    synchronized void onOrderRunnerChange(final OrderRunnerChange orderRunnerChange) {
         Statics.ordersThread.reportStreamChange(this, orderRunnerChange); // needs to happen at the start of the method, before I modify this object
 
         final boolean isImage = Boolean.TRUE.equals(orderRunnerChange.getFullImage());
@@ -67,11 +68,7 @@ public class OrderMarketRunner
         @Nullable final Order returnValue;
 
         if (betId != null) {
-            if (this.unmatchedOrders != null) {
-                returnValue = this.unmatchedOrders.get(betId);
-            } else {
-                returnValue = null;
-            }
+            returnValue = this.unmatchedOrders.get(betId);
         } else {
             logger.error("null betId in getUnmatchedOrder");
             returnValue = null;
@@ -160,20 +157,6 @@ public class OrderMarketRunner
         return this.tempLayCancel;
     }
 
-//    public synchronized Exposure getExposure() {
-//        final TwoDoubles matchedExposure = getMatchedExposure();
-//        final double matchedBackExposure = matchedExposure.getFirstDouble();
-//        final double matchedLayExposure = matchedExposure.getSecondDouble();
-//
-//        final TwoDoubles unmatchedExposure = getUnmatchedExposureAndProfit();
-//        final double unmatchedBackExposure = unmatchedExposure.getFirstDouble();
-//        final double unmatchedLayExposure = unmatchedExposure.getSecondDouble();
-//
-//        final Exposure result = new Exposure(matchedBackExposure, matchedLayExposure, matchedBackExposure + unmatchedBackExposure, matchedLayExposure + unmatchedLayExposure);
-//
-//        return result;
-//    }
-
     public synchronized void getExposure(final Exposure exposure) {
         if (exposure != null) {
             this.getMatchedExposure(); // updates matchedBackExposure and matchedLayExposure
@@ -194,33 +177,12 @@ public class OrderMarketRunner
         }
     }
 
-//    public synchronized TwoDoubles getTotalExposurePair() {
-//        final TwoDoubles matchedExposure = getMatchedExposure();
-//        final double matchedBackExposure = matchedExposure.getFirstDouble();
-//        final double matchedLayExposure = matchedExposure.getSecondDouble();
-//
-//        final TwoDoubles unmatchedExposure = getUnmatchedExposureAndProfit();
-//        final double unmatchedBackExposure = unmatchedExposure.getFirstDouble();
-//        final double unmatchedLayExposure = unmatchedExposure.getSecondDouble();
-//
-//        return new TwoDoubles(matchedBackExposure + unmatchedBackExposure, matchedLayExposure + unmatchedLayExposure);
-//    }
-
     private synchronized void resetUnmatchedExposureAndProfit() {
         this.unmatchedBackExposure = 0d;
         this.unmatchedLayExposure = 0d;
         this.unmatchedBackProfit = 0d;
         this.unmatchedLayProfit = 0d;
     }
-
-//    public synchronized void resetTemporaryAmounts() {
-//        this.tempBackExposure = 0d;
-//        this.tempLayExposure = 0d;
-//        this.tempBackProfit = 0d;
-//        this.tempLayProfit = 0d;
-//        this.tempBackCancel = 0d;
-//        this.tempLayCancel = 0d;
-//    }
 
     private synchronized void getUnmatchedExposureAndProfit() {
         resetUnmatchedExposureAndProfit();
@@ -443,13 +405,13 @@ public class OrderMarketRunner
                             shouldCancelOrder = true;
                         } else if (sideToCancel != side) { // not the right side
                             shouldCancelOrder = false;
-                        } else if (worstNotCanceledOdds == 0d) { // right side, and odds don't matter
-                            shouldCancelOrder = true;
-                        } else if (Formulas.oddsAreWorse(side, worstNotCanceledOdds, price)) { // odds matter and are worse
-                            shouldCancelOrder = true;
-                        } else { // odds matter but are not worse
-                            shouldCancelOrder = false;
-                        }
+                        } else // odds matter and are worse
+                            // odds matter but are not worse
+                            if (worstNotCanceledOdds == 0d) { // right side, and odds don't matter
+                                shouldCancelOrder = true;
+                            } else {
+                                shouldCancelOrder = Formulas.oddsAreWorse(side, worstNotCanceledOdds, price);
+                            }
 
                         if (shouldCancelOrder) {
                             modifications += Generic.booleanToInt(order.cancelOrder(this.marketId, this.runnerId));
@@ -478,15 +440,10 @@ public class OrderMarketRunner
                     if (side == null || price == null || size == null || betId == null) {
                         logger.error("null order attributes in cancelUnmatchedTooGoodOdds for: {} {} {} {} {}", side, price, size, betId, Generic.objectToString(order));
                     } else {
-                        final boolean shouldCancelOrder;
-                        if (sideToCancel != side) { // not the right side
-                            shouldCancelOrder = false;
-                        } else if (!Formulas.oddsAreWorse(side, worstOddsThatAreGettingCanceled, price)) { // odds matter and are same or better
-                            shouldCancelOrder = true;
-                        } else { // odds matter but are not worse
-                            shouldCancelOrder = false;
-                        }
-
+                        // odds matter and are same or better
+                        // odds matter but are not worse
+                        // not the right side
+                        final boolean shouldCancelOrder = sideToCancel == side && !Formulas.oddsAreWorse(side, worstOddsThatAreGettingCanceled, price);
                         if (shouldCancelOrder) {
                             modifications += Generic.booleanToInt(order.cancelOrder(this.marketId, this.runnerId));
                         } else { // won't cancel, nothing to be done

@@ -10,15 +10,18 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ReaderThread
+class ReaderThread
         extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(ReaderThread.class);
     private final Client client;
+    @SuppressWarnings("FieldHasSetterButNoGetter")
     private BufferedReader bufferedReader;
     private final LinkedList<String> linesList = new LinkedList<>();
-    public final AtomicBoolean bufferNotEmpty = new AtomicBoolean();
+    @SuppressWarnings("PackageVisibleField")
+    final AtomicBoolean bufferNotEmpty = new AtomicBoolean();
 
     ReaderThread(final Client client) {
+        super();
         this.client = client;
     }
 
@@ -39,7 +42,7 @@ public class ReaderThread
 //        logger.info("[{}]added line: {}", client.id, line);
     }
 
-    public synchronized String pollLine() {
+    synchronized String pollLine() {
         final String result = this.linesList.poll();
 
         if (this.linesList.isEmpty()) {
@@ -51,14 +54,21 @@ public class ReaderThread
         return result;
     }
 
+    private synchronized String readLine()
+            throws IOException {
+        return this.bufferedReader.readLine();
+    }
+
+    @SuppressWarnings("OverlyNestedMethod")
     @Override
     public void run() {
         String line;
         while (!Statics.mustStop.get()) {
             try {
                 if (this.client.socketIsConnected.get() && !this.client.streamError.get()) {
+                    //noinspection NestedTryStatement
                     try {
-                        line = this.bufferedReader.readLine();
+                        line = this.readLine();
                         if (line == null) {
 //                        throw new IOException("Socket closed - EOF");
                             if (!Statics.mustStop.get()) {

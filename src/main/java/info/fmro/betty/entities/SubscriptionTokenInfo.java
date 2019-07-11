@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
 
-public class SubscriptionTokenInfo {
+class SubscriptionTokenInfo {
     private String subscriptionToken; // Application key identifier
     @Nullable
     private Date activatedDateTime; // Subscription Activated date

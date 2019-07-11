@@ -1,4 +1,4 @@
-package info.fmro.betty.stream.definitions;
+package info.fmro.betty.stream.enums;
 
 public enum ErrorCode {
     NO_APP_KEY,

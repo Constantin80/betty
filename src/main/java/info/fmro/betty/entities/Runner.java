@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-@SuppressWarnings("ClassWithTooManyFields")
 public class Runner
         implements Serializable {
     private static final long serialVersionUID = -8538359656490442656L;

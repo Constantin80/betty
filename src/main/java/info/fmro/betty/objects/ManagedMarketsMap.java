@@ -24,12 +24,12 @@ public class ManagedMarketsMap
         this.eventId = eventId; // the exact object reference
     }
 
-    public ManagedMarketsMap(final int initialSize, final String eventId) {
+    private ManagedMarketsMap(final int initialSize, final String eventId) {
         super(initialSize);
         this.eventId = eventId; // the exact object reference
     }
 
-    public ManagedMarketsMap(final int initialSize, final float loadFactor, final String eventId) {
+    private ManagedMarketsMap(final int initialSize, final float loadFactor, final String eventId) {
         super(initialSize, loadFactor);
         this.eventId = eventId; // the exact object reference
     }

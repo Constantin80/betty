@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class DeveloperApp {
+class DeveloperApp {
     private String appName; // The unique name of the application
     private Long appId; // A unique id of this application
     @Nullable

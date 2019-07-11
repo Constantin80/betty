@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
 
-@SuppressWarnings({"ClassWithTooManyFields", "OverlyComplexClass"})
+@SuppressWarnings("OverlyComplexClass")
 public class MarketCatalogue
         extends Ignorable
         implements Serializable, Comparable<MarketCatalogue> {

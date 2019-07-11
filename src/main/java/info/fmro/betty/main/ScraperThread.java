@@ -34,7 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-@SuppressWarnings({"ClassWithTooManyFields", "PackageVisibleField", "unused"})
+@SuppressWarnings("PackageVisibleField")
 public class ScraperThread
         implements Runnable, AverageLoggerInterface {
     private static final Logger logger = LoggerFactory.getLogger(ScraperThread.class);
@@ -104,7 +104,7 @@ public class ScraperThread
         return (int) (Statics.DELAY_PRINT_AVERAGES / Statics.betradarScraperThread.delayGetScraperEvents * factor);
     }
 
-    public void getScraperEventsInner(final long startTime, final boolean fullRun, final boolean checkAll, final AutoPilot autoPilot, final VTDNav vtdNav, final AtomicInteger listSize, final AtomicInteger scrapedEventsCounter)
+    void getScraperEventsInner(final long startTime, final boolean fullRun, final boolean checkAll, final AutoPilot autoPilot, final VTDNav vtdNav, final AtomicInteger listSize, final AtomicInteger scrapedEventsCounter)
             throws XPathParseException, XPathEvalException, NavException { // should be overriden
     }
 
@@ -229,11 +229,11 @@ public class ScraperThread
         return null;
     }
 
-    public void pageManipulation(final WebClient webClient, final HtmlPage htmlPage)
+    void pageManipulation(final WebClient webClient, final HtmlPage htmlPage)
             throws IOException { // should be overriden if used; should contain condional checks for running it
     }
 
-    public String endSavePrefix() { // can be overriden to change the prefix
+    String endSavePrefix() { // can be overriden to change the prefix
         return this.saveFolder + "/end";
     }
 

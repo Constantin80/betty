@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StatementItem {
+class StatementItem {
     private String refId; // An external reference, eg. equivalent to betId in the case of an exchange bet statement item.
     @Nullable
     private Date itemDate; // The date and time of the statement item, eg. equivalent to settledData for an exchange bet statement item. (in ISO-8601 format, not translated)

@@ -5,7 +5,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
 
-public class ApplicationSubscription {
+@SuppressWarnings("unused")
+class ApplicationSubscription {
     private String subscriptionToken; // Application key identifier
     @Nullable
     private Date expiryDateTime; // Subscription Expiry date

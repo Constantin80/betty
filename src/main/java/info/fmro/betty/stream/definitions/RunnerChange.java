@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 // objects of this class are read from the stream
+@SuppressWarnings("OverlyComplexClass")
 public class RunnerChange
         implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(RunnerChange.class);

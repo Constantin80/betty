@@ -18,7 +18,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-@SuppressWarnings({"ClassWithTooManyFields", "WeakerAccess"})
+@SuppressWarnings("WeakerAccess")
 public class RulesManager
         extends Thread
         implements Serializable {
@@ -204,7 +204,7 @@ public class RulesManager
         return isMarketsToCheckStampRecent(500L); // default period
     }
 
-    private synchronized boolean isMarketsToCheckStampRecent(@SuppressWarnings("SameParameterValue") final long recentPeriod) {
+    private synchronized boolean isMarketsToCheckStampRecent(final long recentPeriod) {
         return timeSinceMarketsToCheckStamp() <= recentPeriod;
     }
 

@@ -4,7 +4,7 @@ import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
 import org.junit.jupiter.api.BeforeAll;
 
-public class BettyApiTesting
+class BettyApiTesting
         extends ApiDefault {
     @SuppressWarnings("ThrowsRuntimeException")
     @BeforeAll

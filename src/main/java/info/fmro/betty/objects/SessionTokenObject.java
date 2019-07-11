@@ -31,7 +31,7 @@ public class SessionTokenObject
         this.timeStamp = timeStamp;
     }
 
-    public synchronized void timeStamp() {
+    private synchronized void timeStamp() {
         this.timeStamp = System.currentTimeMillis();
     }
 
@@ -39,7 +39,7 @@ public class SessionTokenObject
         return isRecent(defaultRecentPeriod);
     }
 
-    private synchronized boolean isRecent(@SuppressWarnings("SameParameterValue") final long recentPeriod) {
+    private synchronized boolean isRecent(final long recentPeriod) {
         final long currentTime = System.currentTimeMillis();
         return currentTime - this.timeStamp <= recentPeriod;
     }

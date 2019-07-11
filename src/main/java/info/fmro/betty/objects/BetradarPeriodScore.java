@@ -5,13 +5,14 @@ import org.jetbrains.annotations.Contract;
 import java.io.Serializable;
 import java.util.Objects;
 
-public class BetradarPeriodScore
+class BetradarPeriodScore
         implements Serializable {
     private static final long serialVersionUID = 9030682989422139021L;
     private final String periodName;
     private final int homeScore, awayScore;
 
-    public BetradarPeriodScore(final String periodName, final int homeScore, final int awayScore) {
+    @SuppressWarnings("unused")
+    BetradarPeriodScore(final String periodName, final int homeScore, final int awayScore) {
         this.periodName = periodName;
         this.homeScore = homeScore;
         this.awayScore = awayScore;
@@ -21,23 +22,14 @@ public class BetradarPeriodScore
         return this.periodName;
     }
 
-    //    public synchronized void setPeriodName(String periodName) {
-//        this.periodName = periodName;
-//    }
     public synchronized int getHomeScore() {
         return this.homeScore;
     }
 
-    //    public synchronized void setHomeScore(int homeScore) {
-//        this.homeScore = homeScore;
-//    }
     public synchronized int getAwayScore() {
         return this.awayScore;
     }
 
-    //    public synchronized void setAwayScore(int awayScore) {
-//        this.awayScore = awayScore;
-//    }
     @Contract(value = "null -> false", pure = true)
     @Override
     public synchronized boolean equals(final Object obj) {

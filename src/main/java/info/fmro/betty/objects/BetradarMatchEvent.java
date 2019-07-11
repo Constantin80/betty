@@ -5,13 +5,14 @@ import org.jetbrains.annotations.Contract;
 import java.io.Serializable;
 import java.util.Objects;
 
-public class BetradarMatchEvent
+class BetradarMatchEvent
         implements Serializable {
     private static final long serialVersionUID = 4657650910312201744L;
     private final int minute;
     private final String player, playerIn; // playerIn for substitutions
 
-    public BetradarMatchEvent(final int minute, final String player, final String playerIn) {
+    @SuppressWarnings("unused")
+    BetradarMatchEvent(final int minute, final String player, final String playerIn) {
         this.minute = minute;
         this.player = player;
         this.playerIn = playerIn;

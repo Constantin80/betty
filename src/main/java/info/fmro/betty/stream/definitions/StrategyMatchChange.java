@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.List;
 
 // objects of this class are read from the stream
-public class StrategyMatchChange
+class StrategyMatchChange
         implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(StrategyMatchChange.class);
     private static final long serialVersionUID = -3731593485034448217L;

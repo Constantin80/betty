@@ -1,7 +1,7 @@
 package info.fmro.betty.entities;
 
 @SuppressWarnings("unused")
-public class MarketRates {
+class MarketRates {
     private Double marketBaseRate;
     private Boolean discountAllowed;
 

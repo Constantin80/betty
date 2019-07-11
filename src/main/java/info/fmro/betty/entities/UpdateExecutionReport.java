@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class UpdateExecutionReport {
+class UpdateExecutionReport {
     private String customerRef;
     private ExecutionReportStatus status;
     private ExecutionReportErrorCode errorCode;

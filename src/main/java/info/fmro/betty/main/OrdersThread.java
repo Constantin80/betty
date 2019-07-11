@@ -12,7 +12,7 @@ import info.fmro.betty.stream.cache.order.OrderMarketRunner;
 import info.fmro.betty.stream.cache.util.RunnerId;
 import info.fmro.betty.stream.definitions.Order;
 import info.fmro.betty.stream.definitions.OrderRunnerChange;
-import info.fmro.betty.stream.definitions.Side;
+import info.fmro.betty.stream.enums.Side;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;

@@ -1,5 +1,6 @@
 package info.fmro.betty.stream.definitions;
 
+import info.fmro.betty.stream.enums.Side;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -29,6 +30,7 @@ public class OrderRunnerChange
     @Nullable
     private List<Order> uo; // Unmatched Orders - orders on this runner (selection) that are not fully matched
 
+    @SuppressWarnings("OverlyNestedMethod")
     public synchronized double getMatchedSize(final Side side, final double price) {
         double matchedSize = 0d;
         @Nullable final List<List<Double>> chosenList;
@@ -47,6 +49,7 @@ public class OrderRunnerChange
                     final int listSize = priceSizeList.size();
                     if (listSize == 2) {
                         final Double foundPrice = priceSizeList.get(0);
+                        //noinspection FloatingPointEquality
                         if (foundPrice != null && foundPrice == price) {
                             final Double foundSize = priceSizeList.get(0);
                             if (foundSize != null) {
@@ -76,7 +79,6 @@ public class OrderRunnerChange
 
     public synchronized Order getUnmatchedOrder(final String betId) {
         Order returnValue = null;
-
         if (betId != null) {
             if (this.uo != null) {
                 for (final Order order : this.uo) {

@@ -22,7 +22,7 @@ import java.net.UnknownHostException;
 import java.util.concurrent.atomic.AtomicLong;
 
 @SuppressWarnings({"OverlyComplexClass", "UtilityClass"})
-public final class HttpUtil {
+final class HttpUtil {
     private static final Logger logger = LoggerFactory.getLogger(HttpUtil.class);
     public static final AtomicLong lastErrorLogged = new AtomicLong();
     public static final long intervalBetweenLoggedErrors = Generic.MINUTE_LENGTH_MILLISECONDS << 1;

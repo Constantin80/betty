@@ -30,7 +30,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
 
-@SuppressWarnings({"ClassWithTooManyConstructors", "ClassWithTooManyFields", "OverlyComplexClass"})
+@SuppressWarnings({"ClassWithTooManyConstructors", "OverlyComplexClass"})
 public class LaunchCommandThread
         implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(LaunchCommandThread.class);
@@ -101,7 +101,7 @@ public class LaunchCommandThread
         mapEventsToScraperEvents(clazz, false, null, null);
     }
 
-    private static void mapEventsToScraperEvents(final Class<? extends ScraperEvent> clazz, @SuppressWarnings("SameParameterValue") final boolean checkAll) {
+    private static void mapEventsToScraperEvents(final Class<? extends ScraperEvent> clazz, final boolean checkAll) {
         mapEventsToScraperEvents(clazz, checkAll, null, null);
     }
 
@@ -528,7 +528,6 @@ public class LaunchCommandThread
         }
     }
 
-    @SuppressWarnings("unused")
     public static void cleanRecentlyUsed() {
         cleanRecentlyUsed(System.currentTimeMillis());
     }

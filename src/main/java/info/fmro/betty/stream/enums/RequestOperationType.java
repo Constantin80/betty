@@ -1,4 +1,4 @@
-package info.fmro.betty.stream.definitions;
+package info.fmro.betty.stream.enums;
 
 public enum RequestOperationType {
     // The AuthenticationMessage - authenticates your connection.

@@ -16,15 +16,15 @@ public class OrderMarket
         implements Serializable {
     private static final long serialVersionUID = 6849187708144779801L;
     private final String marketId;
-    private final @NotNull Map<RunnerId, OrderMarketRunner> marketRunners = new ConcurrentHashMap<>(); // only place where orderMarketRunners are stored
+    private final @NotNull Map<RunnerId, OrderMarketRunner> marketRunners = new ConcurrentHashMap<>(4); // only place where orderMarketRunners are stored
     private boolean isClosed;
 
-    public OrderMarket(final String marketId) {
+    OrderMarket(final String marketId) {
         this.marketId = marketId;
         Statics.rulesManager.newOrderMarketCreated.set(true);
     }
 
-    public synchronized void onOrderMarketChange(final OrderMarketChange orderMarketChange) {
+    synchronized void onOrderMarketChange(@NotNull final OrderMarketChange orderMarketChange) {
         // update runners
         if (orderMarketChange.getOrc() != null) {
             for (final OrderRunnerChange orderRunnerChange : orderMarketChange.getOrc()) {
@@ -35,7 +35,7 @@ public class OrderMarket
         this.isClosed = Boolean.TRUE.equals(orderMarketChange.getClosed());
     }
 
-    private synchronized void onOrderRunnerChange(final OrderRunnerChange orderRunnerChange) {
+    private synchronized void onOrderRunnerChange(@NotNull final OrderRunnerChange orderRunnerChange) {
         final RunnerId runnerId = new RunnerId(orderRunnerChange.getId(), orderRunnerChange.getHc());
         final OrderMarketRunner orderMarketRunner = this.marketRunners.computeIfAbsent(runnerId, r -> new OrderMarketRunner(getMarketId(), r));
 
@@ -43,6 +43,7 @@ public class OrderMarket
         orderMarketRunner.onOrderRunnerChange(orderRunnerChange);
     }
 
+    @SuppressWarnings("SuspiciousGetterSetter")
     public synchronized boolean isClosed() {
         return this.isClosed;
     }
@@ -61,15 +62,5 @@ public class OrderMarket
 
     public synchronized OrderMarketRunner getOrderMarketRunner(final RunnerId runnerId) {
         return this.marketRunners.get(runnerId);
-    }
-
-    @Override
-    public synchronized String toString() {
-        final StringBuilder runnersSb = new StringBuilder(" ");
-        for (final OrderMarketRunner runner : this.marketRunners.values()) {
-            runnersSb.append(runner).append(" ");
-        }
-
-        return "OrderMarket{" + "marketRunners=" + runnersSb + ", marketId='" + this.marketId + '\'' + '}';
     }
 }

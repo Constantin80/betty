@@ -3,12 +3,11 @@ package info.fmro.betty.stream.client;
 import info.fmro.betty.stream.definitions.MarketFilter;
 import info.fmro.betty.stream.definitions.MarketSubscriptionMessage;
 import info.fmro.betty.stream.definitions.OrderSubscriptionMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.shell.core.CommandMarker;
 import org.springframework.shell.core.annotation.CliCommand;
-import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.shell.plugin.support.DefaultPromptProvider;
 import org.springframework.stereotype.Component;
 
@@ -18,16 +17,16 @@ import java.util.Set;
 
 @Component
 @Configuration
-public class ClientCommands
+final class ClientCommands
         extends DefaultPromptProvider
         implements CommandMarker {
-    private static final Logger logger = LoggerFactory.getLogger(ClientCommands.class);
-
     private ClientCommands() {
+        super();
     }
 
-    @CliCommand(value = "marketFirehose", help = "subscribes to all markets")
-    public static MarketSubscriptionMessage marketFirehose(final Client client) {
+    @SuppressWarnings("unused")
+    @CliCommand(value = "marketFireHose", help = "subscribes to all markets")
+    public static MarketSubscriptionMessage marketFireHose(final Client client) {
 //        1=Soccer  10k markets
 //        2=Tennis  6k markets
 //        3=Golf    everything else has very few markets
@@ -55,62 +54,45 @@ public class ClientCommands
         return createMarketSubscriptionMessage(client);
     }
 
-    /**
-     * Subscribe to the specified market ids. (starting the client if needed).
-     */
-    public static MarketSubscriptionMessage createMarketSubscriptionMessage(final Client client, final String... markets) {
+    // Subscribe to the specified market ids. (starting the client if needed).
+    private static MarketSubscriptionMessage createMarketSubscriptionMessage(final Client client, final String... markets) {
         final MarketFilter marketFilter = new MarketFilter();
         marketFilter.setMarketIds(new HashSet<>(Arrays.asList(markets)));
         return createMarketSubscriptionMessage(client, marketFilter);
     }
 
-    public static MarketSubscriptionMessage createMarketSubscriptionMessage(final Client client, final Set<String> markets) {
+    static MarketSubscriptionMessage createMarketSubscriptionMessage(final Client client, final Set<String> markets) {
         final MarketFilter marketFilter = new MarketFilter();
         marketFilter.setMarketIds(markets);
         return createMarketSubscriptionMessage(client, marketFilter);
     }
 
-    /**
-     * Subscribe to the specified markets (matching your filter). (starting the client if needed).
-     */
-    public static MarketSubscriptionMessage createMarketSubscriptionMessage(final Client client, final MarketFilter marketFilter) {
+    // Subscribe to the specified markets (matching your filter). (starting the client if needed).
+    private static MarketSubscriptionMessage createMarketSubscriptionMessage(final Client client, final MarketFilter marketFilter) {
         final MarketSubscriptionMessage marketSubscriptionMessage = new MarketSubscriptionMessage();
         marketSubscriptionMessage.setMarketFilter(marketFilter);
         return createMarketSubscriptionMessage(client, marketSubscriptionMessage);
     }
 
     // Explicit order subscription.
-    public static MarketSubscriptionMessage createMarketSubscriptionMessage(final Client client, final MarketSubscriptionMessage message) {
+    @Contract("_, _ -> param2")
+    private static MarketSubscriptionMessage createMarketSubscriptionMessage(@NotNull final Client client, @NotNull final MarketSubscriptionMessage message) {
         message.setConflateMs(client.conflateMs.get());
         message.setHeartbeatMs(client.heartbeatMs.get());
         message.setMarketDataFilter(client.marketDataFilter);
         return message;
-//        final FutureResponse<StatusMessage> futureResponse = client.processor.marketSubscription(message);
-//        waitFor(client, futureResponse);
-        //        client.processor.marketSubscription(message);
     }
 
-    /**
-     * Subscribe to all orders.
-     */
-    public static OrderSubscriptionMessage createOrderSubscriptionMessage(final Client client) {
+    // Subscribe to all orders.
+    static OrderSubscriptionMessage createOrderSubscriptionMessage(final Client client) {
         return createOrderSubscriptionMessage(client, new OrderSubscriptionMessage());
     }
 
-    /**
-     * Explict order subscription.
-     */
-    public static OrderSubscriptionMessage createOrderSubscriptionMessage(final Client client, final OrderSubscriptionMessage message) {
+    // Explict order subscription.
+    @Contract("_, _ -> param2")
+    private static OrderSubscriptionMessage createOrderSubscriptionMessage(@NotNull final Client client, @NotNull final OrderSubscriptionMessage message) {
         message.setConflateMs(client.conflateMs.get());
         message.setHeartbeatMs(client.heartbeatMs.get());
         return message;
-//        final FutureResponse<StatusMessage> futureResponse = client.processor.orderSubscription(message);
-//        waitFor(client, futureResponse);
-//        client.processor.orderSubscription(message);
-    }
-
-    @CliCommand(value = "traceMessages", help = "trace Messages (Markets and Orders)")
-    public static void traceMessages(@CliOption(key = {""}, mandatory = false, help = "truncate", unspecifiedDefaultValue = "200", specifiedDefaultValue = "200") final Client client, final int truncate) {
-        client.processor.setTraceChangeTruncation(truncate);
     }
 }

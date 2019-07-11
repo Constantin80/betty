@@ -255,7 +255,7 @@ public final class DebuggingMethods {
     }
 
     @SuppressWarnings("OverlyLongMethod")
-    private static void weightTest(@SuppressWarnings("SameParameterValue") final String argMarketId) {
+    private static void weightTest(final String argMarketId) {
         // test ex all offers for weight 17/16 -> 11/12 ids; wieght 17 as expected
         // test EX_BEST_OFFERS 10 for weight 11/12/14/15 -> 18/16/14/13; weight 11
         // test EX_BEST_OFFERS 1 for weight 2/3/4/5 -> 100/66/50/40; weight 2

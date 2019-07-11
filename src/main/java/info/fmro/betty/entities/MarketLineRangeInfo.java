@@ -2,7 +2,8 @@ package info.fmro.betty.entities;
 
 import java.io.Serializable;
 
-public class MarketLineRangeInfo
+@SuppressWarnings("unused")
+class MarketLineRangeInfo
         implements Serializable {
     private static final long serialVersionUID = -4018323838006232985L;
     private Double maxUnitValue;

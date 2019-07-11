@@ -15,7 +15,7 @@ import org.slf4j.helpers.MessageFormatter;
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicLong;
 
-@SuppressWarnings({"ClassWithTooManyFields", "ClassWithTooManyMethods", "OverlyComplexClass"})
+@SuppressWarnings({"ClassWithTooManyMethods", "OverlyComplexClass"})
 public class ScraperEvent
         extends Ignorable
         implements Serializable, Comparable<ScraperEvent> {
@@ -739,7 +739,7 @@ public class ScraperEvent
 //        return modified;
 //    }
 
-    public synchronized boolean isPenalties() {
+    private synchronized boolean isPenalties() {
         return this.getMatchStatus() == MatchStatus.PENALTIES;
     }
 
@@ -920,7 +920,7 @@ public class ScraperEvent
         return modified;
     }
 
-    public synchronized int innerUpdate(@NotNull final ScraperEvent scraperEvent) {
+    synchronized int innerUpdate(@NotNull final ScraperEvent scraperEvent) {
         int modified = 0;
         modified += this.setHomeTeam(scraperEvent.getHomeTeam());
         modified += this.setAwayTeam(scraperEvent.getAwayTeam());
@@ -997,7 +997,7 @@ public class ScraperEvent
         return errors;
     }
 
-    public synchronized long innerErrors(final AtomicLong blackListPeriod) {
+    synchronized long innerErrors(final AtomicLong blackListPeriod) {
         return 0L; // dummy method, normally overriden
     }
 

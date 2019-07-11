@@ -8,7 +8,7 @@ import info.fmro.betty.stream.cache.util.RunnerId;
 import info.fmro.betty.stream.cache.util.Utils;
 import info.fmro.betty.stream.definitions.MarketDefinition;
 import info.fmro.betty.stream.definitions.Order;
-import info.fmro.betty.stream.definitions.Side;
+import info.fmro.betty.stream.enums.Side;
 import info.fmro.betty.utility.ComparatorMarketPrices;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@SuppressWarnings({"ClassWithTooManyFields", "ClassWithTooManyMethods", "OverlyComplexClass", "WeakerAccess"})
+@SuppressWarnings({"ClassWithTooManyMethods", "OverlyComplexClass", "WeakerAccess"})
 public class ManagedMarket
         implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(ManagedMarket.class);

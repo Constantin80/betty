@@ -5,7 +5,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;
 
-@SuppressWarnings("ClassWithTooManyFields")
 public class StatementLegacyData {
     private Double avgPrice;
     private Double betSize;

@@ -1,8 +1,6 @@
 package info.fmro.betty.main;
 
 import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 
 // Junit 5 doesn't have test suite support now; I can use the Junit 4 test suite if needed, or wait for Junit 5 support
 //@ExtendWith(JUnitPlatform.class)
@@ -13,8 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 ////    info.fmro.betty.main.BettyIT.class,
 //    info.fmro.betty.main.QuickCheckThreadTest.class
 //})
-@SuppressWarnings("JUnitTestCaseWithNoTests")
-public class BettyMainTestSuite
+class BettyMainTestSuite
         extends ApiDefault {
     // no longer needed after extending ApiDefault
 //    @BeforeAll
@@ -30,13 +27,5 @@ public class BettyMainTestSuite
 //    }
     @AfterAll
     public static void tearDownClass() {
-    }
-
-    @BeforeEach
-    public void setUp() {
-    }
-
-    @AfterEach
-    public void tearDown() {
     }
 }

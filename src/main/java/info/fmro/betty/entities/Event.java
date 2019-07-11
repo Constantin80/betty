@@ -28,7 +28,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 
-@SuppressWarnings({"ClassWithTooManyFields", "ClassWithTooManyMethods", "OverlyComplexClass"})
+@SuppressWarnings({"ClassWithTooManyMethods", "OverlyComplexClass"})
 public class Event
         extends Ignorable
         implements Serializable, Comparable<Event> {

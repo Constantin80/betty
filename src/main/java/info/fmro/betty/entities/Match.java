@@ -9,7 +9,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
-public class Match
+class Match
         implements Serializable {
     private static final long serialVersionUID = 5267424955233956792L;
     private String betId;
@@ -24,9 +24,9 @@ public class Match
     private Match() {
     }
 
-    @SuppressWarnings("ConstructorWithTooManyParameters")
+    @SuppressWarnings({"ConstructorWithTooManyParameters", "unused"})
     @Contract(pure = true)
-    public Match(final String betId, final String matchId, final Side side, final Double price, final Double size, @NotNull final Date matchDate) {
+    Match(final String betId, final String matchId, final Side side, final Double price, final Double size, @NotNull final Date matchDate) {
         this.betId = betId;
         this.matchId = matchId;
         this.side = side;

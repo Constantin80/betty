@@ -19,7 +19,7 @@ public class CurrentOrderSummaryReport {
         return this.currentOrders == null ? null : new ArrayList<>(this.currentOrders);
     }
 
-    public synchronized void setCurrentOrders(final List<? extends CurrentOrderSummary> currentOrders) {
+    public synchronized void setCurrentOrders(final List<CurrentOrderSummary> currentOrders) {
         this.currentOrders = currentOrders == null ? null : new ArrayList<>(currentOrders);
     }
 

@@ -3,7 +3,7 @@ package info.fmro.betty.entities;
 import info.fmro.betty.enums.TokenType;
 
 @SuppressWarnings("unused")
-public class VendorAccessTokenInfo {
+class VendorAccessTokenInfo {
     private String access_token; // Session token used by web vendors
     private TokenType token_type; // Type of the token
     private Long expires_in; // How long until the token expires

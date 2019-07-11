@@ -39,7 +39,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
-@SuppressWarnings({"ClassWithTooManyFields", "ClassWithTooManyMethods", "OverlyComplexClass", "OverlyCoupledClass"})
+@SuppressWarnings({"ClassWithTooManyMethods", "OverlyComplexClass", "OverlyCoupledClass"})
 public class SafetyLimits
         implements Serializable {
     private static final long specialLimitInitialPeriod = 120_000L;
@@ -725,7 +725,7 @@ public class SafetyLimits
         return addedAmount;
     }
 
-    public synchronized void addOrderSummaries(final Iterable<? extends CurrentOrderSummary> currentOrderSummaries, final Iterable<? extends ClearedOrderSummary> clearedOrderSummaries) {
+    public synchronized void addOrderSummaries(final Iterable<CurrentOrderSummary> currentOrderSummaries, final Iterable<? extends ClearedOrderSummary> clearedOrderSummaries) {
         this.eventAmounts.clear();
         this.marketAmounts.clear();
         this.runnerAmounts.clear();

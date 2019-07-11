@@ -14,7 +14,7 @@ import info.fmro.betty.objects.ScraperEvent;
 import info.fmro.betty.objects.StampedDouble;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.objects.TwoOrderedStrings;
-import info.fmro.betty.stream.definitions.Side;
+import info.fmro.betty.stream.enums.Side;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
 import info.fmro.shared.utility.LogLevel;

@@ -8,6 +8,8 @@ import info.fmro.betty.stream.definitions.MarketChange;
 import info.fmro.betty.stream.definitions.MarketDefinition;
 import info.fmro.betty.stream.definitions.RunnerChange;
 import info.fmro.betty.stream.definitions.RunnerDefinition;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -19,7 +21,7 @@ public class Market
         implements Serializable {
     private static final long serialVersionUID = -288902433432290477L;
     private final String marketId;
-    private final Map<RunnerId, MarketRunner> marketRunners = new ConcurrentHashMap<>(); // the only place where MarketRunners are permanently stored
+    private final Map<RunnerId, MarketRunner> marketRunners = new ConcurrentHashMap<>(4); // the only place where MarketRunners are permanently stored
     private MarketDefinition marketDefinition;
     private double tv; //total value traded
 
@@ -27,7 +29,7 @@ public class Market
         this.marketId = marketId;
     }
 
-    synchronized void onMarketChange(final MarketChange marketChange) {
+    synchronized void onMarketChange(@NotNull final MarketChange marketChange) {
         //initial image means we need to wipe our data
         final boolean isImage = Boolean.TRUE.equals(marketChange.getImg());
         //market definition changed
@@ -38,18 +40,18 @@ public class Market
         this.tv = Utils.selectPrice(isImage, this.tv, marketChange.getTv());
     }
 
-    private synchronized void onPriceChange(final boolean isImage, final RunnerChange runnerChange) {
+    private synchronized void onPriceChange(final boolean isImage, @NotNull final RunnerChange runnerChange) {
         final MarketRunner marketRunner = getOrAdd(new RunnerId(runnerChange.getId(), runnerChange.getHc()));
         //update runner
         marketRunner.onPriceChange(isImage, runnerChange);
     }
 
-    private synchronized void onMarketDefinitionChange(final MarketDefinition marketDefinition) {
-        this.marketDefinition = marketDefinition;
-        Optional.ofNullable(marketDefinition.getRunners()).ifPresent(rds -> rds.forEach(this::onRunnerDefinitionChange));
+    private synchronized void onMarketDefinitionChange(@NotNull final MarketDefinition newMarketDefinition) {
+        this.marketDefinition = newMarketDefinition;
+        Optional.ofNullable(newMarketDefinition.getRunners()).ifPresent(rds -> rds.forEach(this::onRunnerDefinitionChange));
     }
 
-    private synchronized void onRunnerDefinitionChange(final RunnerDefinition runnerDefinition) {
+    private synchronized void onRunnerDefinitionChange(@NotNull final RunnerDefinition runnerDefinition) {
         final MarketRunner marketRunner = getOrAdd(new RunnerId(runnerDefinition.getId(), runnerDefinition.getHc()));
         //update runner
         marketRunner.onRunnerDefinitionChange(runnerDefinition);
@@ -67,6 +69,7 @@ public class Market
         return new HashSet<>(this.marketRunners.keySet());
     }
 
+    @Contract(pure = true)
     private synchronized double getTv() {
         return this.tv;
     }
@@ -86,14 +89,5 @@ public class Market
 
     public synchronized MarketDefinition getMarketDefinition() {
         return this.marketDefinition;
-    }
-
-    @Override
-    public synchronized String toString() {
-        return "Market{" +
-               "marketId='" + this.marketId + '\'' +
-               ", marketRunners=" + this.marketRunners +
-               ", marketDefinition=" + this.marketDefinition +
-               '}';
     }
 }

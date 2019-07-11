@@ -7,9 +7,9 @@ import info.fmro.betty.stream.definitions.MarketChangeMessage;
 import info.fmro.betty.stream.definitions.OrderChangeMessage;
 import info.fmro.betty.stream.definitions.StatusMessage;
 
+@SuppressWarnings("MarkerInterface")
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
-        include = JsonTypeInfo.As.PROPERTY,
         property = "op",
         visible = true)
 @JsonSubTypes({

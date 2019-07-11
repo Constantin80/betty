@@ -54,7 +54,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("UtilityClass")
-public final class Betty {
+final class Betty {
     private static final Logger logger = LoggerFactory.getLogger(Betty.class);
 
     @Contract(pure = true)
@@ -348,7 +348,7 @@ public final class Betty {
         }
     }
 
-    @SuppressWarnings({"OverlyLongMethod", "UnusedReturnValue", "SameParameterValue"})
+    @SuppressWarnings({"OverlyLongMethod", "UnusedReturnValue"})
     static boolean authenticate(final String authURL, @NotNull final AtomicReference<String> bu, @NotNull final AtomicReference<String> bp, final SessionTokenObject sessionTokenObject, final String keyStoreFileName, final String keyStorePassword,
                                 final String keyStoreType, @NotNull final AtomicReference<String> appKey) {
         boolean success = false;

@@ -1,7 +1,7 @@
 package info.fmro.betty.entities;
 
 @SuppressWarnings("unused")
-public class MarketLicence {
+class MarketLicence {
     private String wallet;
     private String rules;
     private Boolean rulesHasDate;

@@ -9,7 +9,6 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
 
-@SuppressWarnings("ClassWithTooManyFields")
 public class MarketFilter {
     private String textQuery;
     @Nullable

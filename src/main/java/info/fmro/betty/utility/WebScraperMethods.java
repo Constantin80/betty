@@ -70,7 +70,7 @@ public final class WebScraperMethods {
         return savePage(htmlPage, mustSavePage, prefix, baseName, ".html", threadId);
     }
 
-    private static boolean savePage(final HtmlPage htmlPage, final AtomicBoolean mustSavePage, final String prefix, final String baseName, @SuppressWarnings("SameParameterValue") final String suffix, final String threadId) {
+    private static boolean savePage(final HtmlPage htmlPage, final AtomicBoolean mustSavePage, final String prefix, final String baseName, final String suffix, final String threadId) {
         boolean success;
         try {
             final long timeBegin = System.currentTimeMillis();
@@ -213,7 +213,7 @@ public final class WebScraperMethods {
         return clickElement(webClient, mustRefreshPage, htmlPage, defaultSecondaryWaitForScripts, expressionXPath, threadId, savePrefix, mustSavePage);
     }
 
-    private static HtmlPage clickElement(final WebClient webClient, final AtomicBoolean mustRefreshPage, final HtmlPage htmlPage, @SuppressWarnings("SameParameterValue") final long secondaryWaitForScripts, @NotNull final String expressionXPath,
+    private static HtmlPage clickElement(final WebClient webClient, final AtomicBoolean mustRefreshPage, final HtmlPage htmlPage, final long secondaryWaitForScripts, @NotNull final String expressionXPath,
                                          final String threadId, final String savePrefix, final AtomicBoolean mustSavePage) {
         // clicks only the first found element
         HtmlPage page = htmlPage;

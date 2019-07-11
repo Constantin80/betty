@@ -1,5 +1,7 @@
 package info.fmro.betty.stream.definitions;
 
+import info.fmro.betty.stream.enums.ResponseOperationType;
+
 import java.io.Serializable;
 
 // objects of this class are read from the stream

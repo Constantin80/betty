@@ -56,7 +56,7 @@ public class Exposure
         this.timeStamp = currentTime;
     }
 
-    public synchronized long getTimeStamp() {
+    private synchronized long getTimeStamp() {
         return this.timeStamp;
     }
 

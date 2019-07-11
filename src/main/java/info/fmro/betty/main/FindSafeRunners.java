@@ -36,7 +36,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 @SuppressWarnings({"OverlyComplexClass", "UtilityClass"})
-public final class FindSafeRunners {
+final class FindSafeRunners {
     private static final Logger logger = LoggerFactory.getLogger(FindSafeRunners.class);
     public static final Side LAY = Side.LAY, BACK = Side.BACK;
     private static final ScrapedField[] statusScoresHts = {ScrapedField.MATCH_STATUS, ScrapedField.HOME_SCORE, ScrapedField.AWAY_SCORE, ScrapedField.HOME_HT_SCORE, ScrapedField.AWAY_HT_SCORE},
@@ -169,7 +169,7 @@ public final class FindSafeRunners {
     }
 
     private static SynchronizedMap<Class<? extends ScraperEvent>, Long> putUsedScrapersMap(final @NotNull Map<? super ScrapedField, ? super SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapersMap, final ScrapedField scrapedField,
-                                                                                           @SuppressWarnings("SameParameterValue") final int initialSetSize) {
+                                                                                           final int initialSetSize) {
         final SynchronizedMap<Class<? extends ScraperEvent>, Long> map = new SynchronizedMap<>(initialSetSize);
         usedScrapersMap.put(scrapedField, map);
         return map;
@@ -188,7 +188,7 @@ public final class FindSafeRunners {
     }
 
     @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "OverlyNestedMethod", "NestedSwitchStatement", "SwitchStatementDensity", "ConstantConditions"})
-    public static void findSafeRunners(final Collection<Event> eventsSet, final Set<Entry<String, MarketCatalogue>> entrySet) {
+    private static void findSafeRunners(final Collection<Event> eventsSet, final Set<Entry<String, MarketCatalogue>> entrySet) {
         if (System.currentTimeMillis() - Statics.scraperEventMaps.getNTimeStamp() <= Generic.HOUR_LENGTH_MILLISECONDS * 3L) {
             final long startTime = System.currentTimeMillis();
             final boolean fullRun = eventsSet == null && entrySet == null;

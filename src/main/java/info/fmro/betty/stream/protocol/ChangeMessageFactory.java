@@ -1,18 +1,22 @@
 package info.fmro.betty.stream.protocol;
 
-import info.fmro.betty.stream.definitions.ChangeType;
+import info.fmro.betty.stream.enums.ChangeType;
 import info.fmro.betty.stream.definitions.MarketChange;
 import info.fmro.betty.stream.definitions.MarketChangeMessage;
 import info.fmro.betty.stream.definitions.OrderChangeMessage;
 import info.fmro.betty.stream.definitions.OrderMarketChange;
-import info.fmro.betty.stream.definitions.SegmentType;
+import info.fmro.betty.stream.enums.SegmentType;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * Adapts market or order changes to a common change message
- * Created by mulveyj on 07/07/2016.
- */
-public class ChangeMessageFactory {
-    public static ChangeMessage<MarketChange> ToChangeMessage(final int clientId, final MarketChangeMessage message) {
+// Adapts market or order changes to a common change message
+@SuppressWarnings("UtilityClass")
+public final class ChangeMessageFactory {
+    @Contract(pure = true)
+    private ChangeMessageFactory() {
+    }
+
+    public static ChangeMessage<MarketChange> ToChangeMessage(final int clientId, @NotNull final MarketChangeMessage message) {
         final ChangeMessage<MarketChange> change = new ChangeMessage<>(clientId);
         change.setId(message.getId());
         change.setPublishTime(message.getPt());
@@ -58,7 +62,7 @@ public class ChangeMessageFactory {
         return change;
     }
 
-    public static ChangeMessage<OrderMarketChange> ToChangeMessage(final int clientId, final OrderChangeMessage message) {
+    public static ChangeMessage<OrderMarketChange> ToChangeMessage(final int clientId, @NotNull final OrderChangeMessage message) {
         final ChangeMessage<OrderMarketChange> change = new ChangeMessage<>(clientId);
         change.setId(message.getId());
         change.setPublishTime(message.getPt());
@@ -66,7 +70,6 @@ public class ChangeMessageFactory {
         change.setInitialClk(message.getInitialClk());
         change.setConflateMs(message.getConflateMs());
         change.setHeartbeatMs(message.getHeartbeatMs());
-
         change.setItems(message.getOc());
 
         SegmentType segmentType = SegmentType.NONE;

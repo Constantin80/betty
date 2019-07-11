@@ -12,8 +12,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
-@SuppressWarnings("ClassWithTooManyFields")
-public class Order
+class Order
         implements Serializable {
     private static final long serialVersionUID = 3021807768896649660L;
     private String betId;
@@ -41,10 +40,10 @@ public class Order
     private Order() {
     }
 
-    @SuppressWarnings("ConstructorWithTooManyParameters")
+    @SuppressWarnings({"ConstructorWithTooManyParameters", "unused"})
     @Contract(pure = true)
-    public Order(final String betId, final OrderType orderType, final OrderStatus status, final PersistenceType persistenceType, final Side side, final Double price, final Double size, final Double bspLiability, @NotNull final Date placedDate,
-                 final Double avgPriceMatched, final Double sizeMatched, final Double sizeRemaining, final Double sizeLapsed, final Double sizeCancelled, final Double sizeVoided) {
+    Order(final String betId, final OrderType orderType, final OrderStatus status, final PersistenceType persistenceType, final Side side, final Double price, final Double size, final Double bspLiability, @NotNull final Date placedDate,
+          final Double avgPriceMatched, final Double sizeMatched, final Double sizeRemaining, final Double sizeLapsed, final Double sizeCancelled, final Double sizeVoided) {
         this.betId = betId;
         this.orderType = orderType;
         this.status = status;

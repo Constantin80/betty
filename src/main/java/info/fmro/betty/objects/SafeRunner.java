@@ -74,7 +74,7 @@ public class SafeRunner
         return this.hasBeenRemoved;
     }
 
-    private synchronized void setHasBeenRemoved(@SuppressWarnings("SameParameterValue") final boolean hasBeenRemoved) {
+    private synchronized void setHasBeenRemoved(final boolean hasBeenRemoved) {
         this.hasBeenRemoved = hasBeenRemoved;
     }
 

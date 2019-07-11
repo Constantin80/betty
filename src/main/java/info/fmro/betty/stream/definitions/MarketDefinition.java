@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 
 // objects of this class are read from the stream
+@SuppressWarnings("OverlyComplexClass")
 public class MarketDefinition
         implements Serializable {
     private static final long serialVersionUID = 5416387683049486627L;

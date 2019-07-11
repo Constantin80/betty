@@ -24,11 +24,11 @@ public class SafeBetsMap<K extends SafeBet>
         super();
     }
 
-    public SafeBetsMap(final int initialSize) {
+    private SafeBetsMap(final int initialSize) {
         super(initialSize);
     }
 
-    public SafeBetsMap(final int initialSize, final float loadFactor) {
+    private SafeBetsMap(final int initialSize, final float loadFactor) {
         super(initialSize, loadFactor);
     }
 //

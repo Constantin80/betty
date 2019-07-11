@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CancelOrdersThread
+class CancelOrdersThread
         implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(CancelOrdersThread.class);
     private final String marketId;

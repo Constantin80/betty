@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("unused")
-public class MarketProfitAndLoss {
+class MarketProfitAndLoss {
     private String marketId;
     private Double commissionApplied;
     @Nullable

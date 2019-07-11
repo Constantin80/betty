@@ -48,7 +48,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-@SuppressWarnings({"ClassWithTooManyFields", "OverlyCoupledClass", "UtilityClass"})
+@SuppressWarnings({"OverlyCoupledClass", "UtilityClass"})
 public final class Statics {
     private static final Logger logger = LoggerFactory.getLogger(Statics.class);
     public static final boolean notPlacingOrders = true; // hard stop for order placing; true for testing, false enables order placing
@@ -57,7 +57,6 @@ public final class Statics {
     @SuppressWarnings("unchecked")
     public static final Comparator<Object> nullComparator = new NullComparator(false);
     public static final double threshold = .8d, highThreshold = .9d;
-    @SuppressWarnings("unused")
     public static final int SOCKET_CONNECT_TIMEOUT = 30_000, SOCKET_READ_TIMEOUT = 30_000, PAGE_GET_TIMEOUT = 120_000;
     public static final int ENCRYPTION_KEY = 0, DECRYPTION_KEY = 2, N_BEST = 100, N_ALL = 11, N_MARKET_BOOK_THREADS_LIMIT = 50,
             MIN_MATCHED = safeBetModuleActivated ? 2 : 0, SSL_PORT = 443, TEST_MARKER = 346562;
@@ -80,7 +79,6 @@ public final class Statics {
     public static ArrayList<? extends OutputStream> standardStreamsList;
     //    public static final ArrayList<? extends OutputStream> standardStreamsList = Generic.replaceStandardStreams(STDOUT_FILE_NAME, STDERR_FILE_NAME, LOGS_FOLDER_NAME, !closeStandardStreamsNotInitialized); // negated boolean, as it's not initialized
     public static final Set<Class<? extends ScraperEvent>> scraperEventSubclassesSet = Set.copyOf(Generic.getSubclasses(PROJECT_PREFIX, ScraperEvent.class));
-    @SuppressWarnings("unused")
     public static final Set<Class<? extends ScraperThread>> scraperThreadSubclassesSet = Set.copyOf(Generic.getSubclasses(PROJECT_PREFIX, ScraperThread.class));
     public static final AtomicBoolean mustStop = new AtomicBoolean(), mustSleep = new AtomicBoolean(), needSessionToken = new AtomicBoolean(), mustWriteObjects = new AtomicBoolean(), fundsQuickRun = new AtomicBoolean(), denyBetting = new AtomicBoolean(),
             programIsRunningMultiThreaded = new AtomicBoolean();

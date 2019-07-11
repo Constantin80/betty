@@ -2,8 +2,7 @@ package info.fmro.betty.stream.cache.market;
 
 import info.fmro.betty.stream.definitions.MarketChange;
 import info.fmro.betty.stream.protocol.ChangeMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -11,9 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class MarketCache
         implements Serializable {
-    private static final Logger logger = LoggerFactory.getLogger(MarketCache.class);
     private static final long serialVersionUID = -6721530926161875702L;
-    private final Map<String, Market> markets = new ConcurrentHashMap<>(); // only place where markets are permanently stored
+    private final Map<String, Market> markets = new ConcurrentHashMap<>(32); // only place where markets are permanently stored
     private boolean isMarketRemovedOnClose = true; // default
 //    private long timeClean; // time for maintenance clean of marketCache
 
@@ -41,7 +39,7 @@ public class MarketCache
 //        copyFromStamp();
 //    }
 
-    public synchronized void onMarketChange(final ChangeMessage<? extends MarketChange> changeMessage) {
+    public synchronized void onMarketChange(@NotNull final ChangeMessage<? extends MarketChange> changeMessage) {
         if (changeMessage.isStartOfNewSubscription()) {
             // was it right to disable markets.clear() in isStartOfNewSubscription ?; maybe, it seems markets are properly updated, although some old no longer used markets are probably not removed, I'll see more with testing
             //clear cache ... no clear anymore, because of multiple clients
@@ -60,7 +58,7 @@ public class MarketCache
         }
     }
 
-    private synchronized Market onMarketChange(final MarketChange marketChange) {
+    private synchronized Market onMarketChange(@NotNull final MarketChange marketChange) {
         if (Boolean.TRUE.equals(marketChange.getCon())) {
             this.conflatedCount++;
         }
@@ -77,10 +75,12 @@ public class MarketCache
         this.conflatedCount = conflatedCount;
     }
 
+    @SuppressWarnings("SuspiciousGetterSetter")
     public synchronized boolean isMarketRemovedOnClose() {
         return this.isMarketRemovedOnClose;
     }
 
+    @SuppressWarnings("SuspiciousGetterSetter")
     public synchronized void setMarketRemovedOnClose(final boolean marketRemovedOnClose) {
         this.isMarketRemovedOnClose = marketRemovedOnClose;
     }

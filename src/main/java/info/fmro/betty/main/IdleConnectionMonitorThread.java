@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.TimeUnit;
 
-public class IdleConnectionMonitorThread
+class IdleConnectionMonitorThread
         implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(IdleConnectionMonitorThread.class);
     private final PoolingHttpClientConnectionManager connMgr;

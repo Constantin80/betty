@@ -6,9 +6,10 @@ import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.cache.market.Market;
 import info.fmro.betty.stream.cache.order.OrderMarket;
 import info.fmro.betty.stream.cache.order.OrderMarketRunner;
-import info.fmro.betty.stream.definitions.Side;
+import info.fmro.betty.stream.enums.Side;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,23 +17,31 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.TreeMap;
 
-public class Utils {
+@SuppressWarnings({"OverlyComplexClass", "UtilityClass"})
+public final class Utils {
     private static final Logger logger = LoggerFactory.getLogger(Utils.class);
 
-    public static double selectPrice(final boolean isImage, final double currentPrice, final Double newPrice) {
-        if (isImage) {
-            return newPrice == null ? 0.0 : newPrice;
-        } else {
-            return newPrice == null ? currentPrice : newPrice;
-        }
+    @Contract(pure = true)
+    private Utils() {
     }
 
-    public static void calculateMarketLimits(final double maxTotalLimit, final Iterable<? extends ManagedMarket> marketsSet, final boolean shouldCalculateExposure, final boolean marketLimitsCanBeIncreased) {
+    @Contract(value = "true, _, !null -> param3; false, _, null -> param2; false, _, !null -> param3", pure = true)
+    public static double selectPrice(final boolean isImage, final double currentPrice, final Double newPrice) {
+        final double returnValue;
+        if (isImage) {
+            returnValue = newPrice == null ? 0d : newPrice;
+        } else {
+            returnValue = newPrice == null ? currentPrice : newPrice;
+        }
+        return returnValue;
+    }
+
+    public static void calculateMarketLimits(final double maxTotalLimit, @NotNull final Iterable<? extends ManagedMarket> marketsSet, final boolean shouldCalculateExposure, final boolean marketLimitsCanBeIncreased) {
         double totalMatchedExposure = 0d, totalExposure = 0d, sumOfMaxMarketLimits = 0d;
-        final Collection<ManagedMarket> marketsWithErrorCalculatingExposure = new HashSet<>(), marketsWithExposureHigherThanTheirMaxLimit = new HashSet<>();
+        final Collection<ManagedMarket> marketsWithErrorCalculatingExposure = new HashSet<>(1), marketsWithExposureHigherThanTheirMaxLimit = new HashSet<>(1);
         for (final ManagedMarket managedMarket : marketsSet) {
             if (shouldCalculateExposure) {
                 managedMarket.calculateExposure();
@@ -59,7 +68,7 @@ public class Utils {
             }
         } // end for
 
-        final double availableTotalExposure = maxTotalLimit - totalExposure; // can be positive or negative, not used for now, as I use the ConsideringOnlyMatched variant
+        @SuppressWarnings("unused") final double availableTotalExposure = maxTotalLimit - totalExposure; // can be positive or negative, not used for now, as I use the ConsideringOnlyMatched variant
         final double availableExposureInTheMarkets = sumOfMaxMarketLimits - totalExposure; // should be positive, else this might be an error
         final double availableTotalExposureConsideringOnlyMatched = maxTotalLimit - totalMatchedExposure; // can be positive or negative
         final double availableExposureInTheMarketsConsideringOnlyMatched = sumOfMaxMarketLimits - totalMatchedExposure; // should always be positive, else this is an error
@@ -84,12 +93,8 @@ public class Utils {
             } else { // normal branch, nothing to do here
             }
 
-            final double proportionOfAvailableMarketExposureThatWillBeUsed;
-            if (availableExposureInTheMarketsConsideringOnlyMatched == 0d || availableTotalExposureConsideringOnlyMatched > availableExposureInTheMarketsConsideringOnlyMatched) {
-                proportionOfAvailableMarketExposureThatWillBeUsed = 1d;
-            } else {
-                proportionOfAvailableMarketExposureThatWillBeUsed = availableTotalExposureConsideringOnlyMatched / availableExposureInTheMarketsConsideringOnlyMatched;
-            }
+            final double proportionOfAvailableMarketExposureThatWillBeUsed = availableExposureInTheMarketsConsideringOnlyMatched == 0d || availableTotalExposureConsideringOnlyMatched > availableExposureInTheMarketsConsideringOnlyMatched ? 1d :
+                                                                             availableTotalExposureConsideringOnlyMatched / availableExposureInTheMarketsConsideringOnlyMatched;
             for (final ManagedMarket managedMarket : marketsSet) {
                 if (marketsWithErrorCalculatingExposure.contains(managedMarket)) { // nothing to do, all unmatched bets on this market were previously been canceled
                 } else { // calculatedLimit = (maxMarketLimit - matchedExposure) / proportionOfAvailableMarketExposureThatWillBeUsed
@@ -212,11 +217,7 @@ public class Utils {
     private static List<Double> getExposureToBePlacedForTwoWayMarket(@NotNull final List<Double> nonMatchedExposureLimitList, @NotNull final List<Side> sideList, @NotNull final List<Double> toBeUsedOdds, final double excessMatchedExposure) {
         // I apply the limits
         final List<Double> resultList;
-        if (nonMatchedExposureLimitList.size() != 2) {
-            logger.error("bogus nonMatchedExposureLimitList for getExposureToBePlacedForTwoWayMarket: {} {} {} {}", Generic.objectToString(nonMatchedExposureLimitList), Generic.objectToString(sideList), Generic.objectToString(toBeUsedOdds),
-                         excessMatchedExposure);
-            resultList = List.of(0d, 0d);
-        } else {
+        if (nonMatchedExposureLimitList.size() == 2) {
             final List<Double> exposureWithoutLimits = getExposureToBePlacedForTwoWayMarket(sideList, toBeUsedOdds, excessMatchedExposure);
             final double firstExposureWithoutLimit = exposureWithoutLimits.get(0), secondExposureWithoutLimit = exposureWithoutLimits.get(1);
             if (firstExposureWithoutLimit == 0d && secondExposureWithoutLimit == 0d) {
@@ -236,6 +237,10 @@ public class Utils {
                     }
                 }
             }
+        } else {
+            logger.error("bogus nonMatchedExposureLimitList for getExposureToBePlacedForTwoWayMarket: {} {} {} {}", Generic.objectToString(nonMatchedExposureLimitList), Generic.objectToString(sideList), Generic.objectToString(toBeUsedOdds),
+                         excessMatchedExposure);
+            resultList = List.of(0d, 0d);
         }
         return resultList;
     }
@@ -262,11 +267,12 @@ public class Utils {
                 final double firstAmountProfitabilityBonus;
                 if (firstAmountProfitability > secondAmountProfitability) {
                     firstAmountProfitabilityBonus = 2d;
-                } else if (firstAmountProfitability == secondAmountProfitability) {
-                    firstAmountProfitabilityBonus = 1d;
-                } else {
-                    firstAmountProfitabilityBonus = .5d;
-                }
+                } else //noinspection FloatingPointEquality
+                    if (firstAmountProfitability == secondAmountProfitability) {
+                        firstAmountProfitabilityBonus = 1d;
+                    } else {
+                        firstAmountProfitabilityBonus = .5d;
+                    }
 
                 final double firstOverSecondFinalProportion = firstSmallerOddsBonus * firstAmountLayBonus * firstAmountProfitabilityBonus;
                 final double secondExposure = excessMatchedExposure / (firstOverSecondFinalProportion + 1d);
@@ -314,10 +320,7 @@ public class Utils {
                                                                     @NotNull final List<Side> sideList, @NotNull final List<Double> toBeUsedOdds, final double availableLimit) {
         // I apply the limits
         final List<Double> resultList;
-        if (availableLimitList.size() != 2) {
-            logger.error("bogus availableLimitList for getAmountsToBePlacedForTwoWayMarket: {} {} {} {}", Generic.objectToString(availableLimitList), Generic.objectToString(sideList), Generic.objectToString(toBeUsedOdds), availableLimit);
-            resultList = List.of(0d, 0d);
-        } else {
+        if (availableLimitList.size() == 2) {
             final List<Double> exposureWithoutLimits = getAmountsToBePlacedForTwoWayMarket(existingUnmatchedExposures, existingNonMatchedExposures, sideList, toBeUsedOdds, availableLimit);
             final double firstExposureWithoutLimit = exposureWithoutLimits.get(0), secondExposureWithoutLimit = exposureWithoutLimits.get(1);
             if (firstExposureWithoutLimit <= 0d && secondExposureWithoutLimit <= 0d) { // negative or zero, so won't break limits
@@ -337,6 +340,9 @@ public class Utils {
                     }
                 }
             }
+        } else {
+            logger.error("bogus availableLimitList for getAmountsToBePlacedForTwoWayMarket: {} {} {} {}", Generic.objectToString(availableLimitList), Generic.objectToString(sideList), Generic.objectToString(toBeUsedOdds), availableLimit);
+            resultList = List.of(0d, 0d);
         }
         return resultList;
     }
@@ -365,11 +371,12 @@ public class Utils {
                 final double firstAmountProfitabilityBonus;
                 if (firstAmountProfitability > secondAmountProfitability) {
                     firstAmountProfitabilityBonus = 2d;
-                } else if (firstAmountProfitability == secondAmountProfitability) {
-                    firstAmountProfitabilityBonus = 1d;
-                } else {
-                    firstAmountProfitabilityBonus = .5d;
-                }
+                } else //noinspection FloatingPointEquality
+                    if (firstAmountProfitability == secondAmountProfitability) {
+                        firstAmountProfitabilityBonus = 1d;
+                    } else {
+                        firstAmountProfitabilityBonus = .5d;
+                    }
 
                 final double firstOverSecondFinalProportion = firstSmallerOddsBonus * firstAmountLayBonus * firstAmountProfitabilityBonus;
                 final double firstUnmatchedExposure = existingUnmatchedExposures.get(0), secondUnmatchedExposure = existingUnmatchedExposures.get(1), totalUnmatchedExposure = firstUnmatchedExposure + secondUnmatchedExposure,
@@ -399,11 +406,12 @@ public class Utils {
     }
 
     public static void removeOwnAmountsFromAvailableTreeMap(@NotNull final TreeMap<Double, Double> availableAmounts, @NotNull final TreeMap<Double, Double> amountsFromMyUnmatchedOrders) {
-        for (final Double price : availableAmounts.keySet()) {
+        for (final Map.Entry<Double, Double> entry : availableAmounts.entrySet()) {
+            final Double price = entry.getKey();
             if (price == null) {
                 logger.error("null price in removeOwnAmountsFromAvailableTreeMap for: {} {}", Generic.objectToString(availableAmounts), Generic.objectToString(amountsFromMyUnmatchedOrders));
             } else {
-                final Double availableAmount = availableAmounts.get(price);
+                final Double availableAmount = entry.getValue();
                 final double availableAmountPrimitive = availableAmount == null ? 0d : availableAmount;
                 final Double myAmount = amountsFromMyUnmatchedOrders.get(price);
                 final double myAmountPrimitive = myAmount == null ? 0d : myAmount;

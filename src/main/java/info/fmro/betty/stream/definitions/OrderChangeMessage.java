@@ -1,5 +1,7 @@
 package info.fmro.betty.stream.definitions;
 
+import info.fmro.betty.stream.enums.ChangeType;
+import info.fmro.betty.stream.enums.SegmentType;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;

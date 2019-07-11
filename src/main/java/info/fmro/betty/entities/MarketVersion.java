@@ -1,6 +1,6 @@
 package info.fmro.betty.entities;
 
 @SuppressWarnings("unused")
-public class MarketVersion {
+class MarketVersion {
     private Long version;
 }

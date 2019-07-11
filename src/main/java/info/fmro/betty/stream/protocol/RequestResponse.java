@@ -1,25 +1,23 @@
 package info.fmro.betty.stream.protocol;
 
 import info.fmro.betty.stream.definitions.RequestMessage;
-import info.fmro.betty.stream.definitions.RequestOperationType;
-import info.fmro.betty.stream.definitions.StatusCode;
 import info.fmro.betty.stream.definitions.StatusMessage;
+import info.fmro.betty.stream.enums.RequestOperationType;
+import info.fmro.betty.stream.enums.StatusCode;
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.function.Consumer;
 
-/**
- * Created by mulveyj on 07/07/2016.
- */
 public class RequestResponse {
-    //    private final FutureResponse<StatusMessage> future = new FutureResponse<>();
     private static final Logger logger = LoggerFactory.getLogger(RequestResponse.class);
     public static final long defaultExpirationPeriod = 30_000L;
     private final RequestMessage request;
     private final Consumer<RequestResponse> onSuccess;
     //    private final int id;
+    @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized") // I couldn't find where it is accessed in unsynchronized context; it might be an IntelliJ inspection bug
     private StatusMessage statusMessage;
     private final long creationTime;
 
@@ -30,29 +28,23 @@ public class RequestResponse {
         this.onSuccess = onSuccess;
     }
 
-    public RequestResponse(final RequestResponse other) {
-        this.creationTime = System.currentTimeMillis();
-//        this.id = other.getId();
-        this.request = other.getRequest();
-        this.onSuccess = other.getOnSuccess();
-    }
-
-    public synchronized void processStatusMessage(final StatusMessage statusMessage) {
-        if (statusMessage == null) {
+    public synchronized void processStatusMessage(final StatusMessage newStatusMessage) {
+        if (newStatusMessage == null) {
             logger.error("null statusMessage for task: {}", Generic.objectToString(this));
         } else {
-            if (statusMessage.getStatusCode() == StatusCode.SUCCESS) {
+            if (newStatusMessage.getStatusCode() == StatusCode.SUCCESS) {
                 if (this.onSuccess != null) {
                     this.onSuccess.accept(this);
                 } else { // onSuccess can be null, which means nothing should be done
                 }
             }
-            this.statusMessage = statusMessage;
+            this.statusMessage = newStatusMessage;
             //        future.setResponse(statusMessage);
         }
     }
 
-    public synchronized Consumer<RequestResponse> getOnSuccess() {
+    @Contract(pure = true)
+    private synchronized Consumer<RequestResponse> getOnSuccess() {
         return this.onSuccess;
     }
 
@@ -84,7 +76,7 @@ public class RequestResponse {
         return isExpired(defaultExpirationPeriod);
     }
 
-    public synchronized boolean isExpired(final long expirationPeriod) {
+    private synchronized boolean isExpired(final long expirationPeriod) {
         final boolean isExpired;
         final long currentTime = System.currentTimeMillis();
         final long timeSinceCreation = currentTime - this.creationTime;
@@ -92,10 +84,6 @@ public class RequestResponse {
 
         return isExpired;
     }
-
-//    public synchronized FutureResponse<StatusMessage> getFuture() {
-//        return future;
-//    }
 
     public synchronized RequestMessage getRequest() {
         return this.request;
@@ -108,8 +96,4 @@ public class RequestResponse {
     public synchronized RequestOperationType getRequestOperationType() {
         return this.request.getOp();
     }
-
-//    public synchronized void setException(Exception e) {
-//        future.setException(e);
-//    }
 }

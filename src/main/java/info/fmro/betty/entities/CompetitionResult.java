@@ -1,7 +1,7 @@
 package info.fmro.betty.entities;
 
 @SuppressWarnings("unused")
-public class CompetitionResult {
+class CompetitionResult {
     private Competition competition;
     private Integer marketCount;
     private String competitionRegion;

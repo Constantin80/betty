@@ -12,7 +12,6 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
-@SuppressWarnings("ClassWithTooManyFields")
 public class ClearedOrderSummary
         implements Serializable, Comparable<ClearedOrderSummary> {
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;

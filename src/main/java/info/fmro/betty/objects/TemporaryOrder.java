@@ -2,7 +2,7 @@ package info.fmro.betty.objects;
 
 import info.fmro.betty.enums.TemporaryOrderType;
 import info.fmro.betty.stream.cache.util.RunnerId;
-import info.fmro.betty.stream.definitions.Side;
+import info.fmro.betty.stream.enums.Side;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;

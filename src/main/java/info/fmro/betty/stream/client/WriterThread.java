@@ -2,6 +2,8 @@ package info.fmro.betty.stream.client;
 
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,19 +13,22 @@ import java.io.IOException;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class WriterThread
+class WriterThread
         extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(WriterThread.class);
     public static final String CRLF = "\r\n";
     private final Client client;
+    @SuppressWarnings("FieldHasSetterButNoGetter")
     private BufferedWriter bufferedWriter;
     @Nullable
     private String authLine;
     private long lastAuthSentStamp;
     private final LinkedList<String> linesList = new LinkedList<>();
-    public final AtomicBoolean bufferNotEmpty = new AtomicBoolean();
+    @SuppressWarnings("PackageVisibleField")
+    final AtomicBoolean bufferNotEmpty = new AtomicBoolean();
 
     WriterThread(final Client client) {
+        super();
         this.client = client;
     }
 
@@ -38,7 +43,7 @@ public class WriterThread
         this.bufferedWriter = bufferedWriter;
     }
 
-    public synchronized void setAuthLine(final String line) {
+    synchronized void setAuthLine(final String line) {
         if (this.authLine != null) {
             logger.error("[{}]previous authLine not null in setAuthLine: {} {}", this.client.id, this.authLine, line);
         } else if (line != null) {
@@ -87,11 +92,11 @@ public class WriterThread
         return System.currentTimeMillis() - this.lastAuthSentStamp;
     }
 
-    public synchronized void addLine(final String line) {
+    synchronized void addLine(final String line) {
         addLine(line, false);
     }
 
-    public synchronized void addLine(final String line, final boolean addFirst) {
+    private synchronized void addLine(final String line, final boolean addFirst) {
         if (addFirst) {
             this.linesList.addFirst(line);
         } else {
@@ -119,8 +124,8 @@ public class WriterThread
 //                    logger.info("[{}]client is not auth and I have don't have authLine in writerThread: {} {} {} {} {}", client.id, client.isStopped.get(), client.socketIsConnected.get(), client.streamIsConnected.get(), client.isAuth.get(),
 //                                timeSinceLastAuth());
                 } else {
-                    logger.error("[{}]client is not auth and I have don't have authLine in writerThread: {} {} {} {} {}", this.client.id, this.client.isStopped.get(), this.client.socketIsConnected.get(), this.client.streamIsConnected.get(), this.client.isAuth.get(),
-                                 timeSinceLastAuth());
+                    logger.error("[{}]client is not auth and I have don't have authLine in writerThread: {} {} {} {} {}", this.client.id, this.client.isStopped.get(), this.client.socketIsConnected.get(), this.client.streamIsConnected.get(),
+                                 this.client.isAuth.get(), timeSinceLastAuth());
                 }
             }
         }
@@ -157,7 +162,8 @@ public class WriterThread
         }
     }
 
-    private synchronized boolean isAuthLine(final String line) {
+    @Contract(pure = true)
+    private synchronized boolean isAuthLine(@NotNull final String line) {
         // ,"op":"authentication","appKey":
         return line.contains(",\"op\":\"authentication\",\"appKey\":");
     }

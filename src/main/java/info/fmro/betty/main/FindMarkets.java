@@ -92,6 +92,7 @@ final class FindMarkets {
 //        return false;
 //    }
 
+    @SuppressWarnings("SameReturnValue")
     private static boolean unknownParsedMarketTypeError(final String marketName, final StringBuilder eventHomeName, final StringBuilder eventAwayName, final String marketId, final MarketCatalogue marketCatalogue) {
         Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "parsedMarketType null for {} {}/{} in: {} for: {}", marketName, eventHomeName, eventAwayName, marketId,
                                           Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
@@ -225,7 +226,7 @@ final class FindMarkets {
         findMarkets(null, false);
     }
 
-    static void findMarkets(@SuppressWarnings("SameParameterValue") final boolean checkAll) {
+    static void findMarkets(final boolean checkAll) {
         findMarkets(null, checkAll);
     }
 
@@ -669,7 +670,7 @@ final class FindMarkets {
         return interesting;
     }
 
-    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "OverlyNestedMethod", "NestedSwitchStatement", "BooleanVariableAlwaysNegated", "SpellCheckingInspection"})
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "OverlyNestedMethod", "NestedSwitchStatement", "BooleanVariableAlwaysNegated"})
     static boolean parseSupportedMarket(final String eventHomeNameString, final String eventAwayNameString, final MarketCatalogue marketCatalogue, final String marketId, final String marketName, final MarketDescription marketDescription,
                                         final List<? extends RunnerCatalog> runnerCatalogsList) {
         final boolean interestingMarket;

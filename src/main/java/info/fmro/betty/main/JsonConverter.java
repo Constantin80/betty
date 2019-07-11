@@ -15,7 +15,7 @@ import java.lang.reflect.Type;
 import java.util.Date;
 
 @SuppressWarnings("UtilityClass")
-public final class JsonConverter {
+final class JsonConverter {
     private static final Logger logger = LoggerFactory.getLogger(JsonConverter.class);
 
     /**

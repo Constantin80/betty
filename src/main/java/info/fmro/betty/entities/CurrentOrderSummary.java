@@ -16,8 +16,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
-@SuppressWarnings("ClassWithTooManyFields")
-public class CurrentOrderSummary
+public final class CurrentOrderSummary
         implements Serializable, Comparable<CurrentOrderSummary> {
     private static final Logger logger = LoggerFactory.getLogger(CurrentOrderSummary.class);
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
@@ -49,7 +48,7 @@ public class CurrentOrderSummary
     private String eventId; // created using the marketId
 
     @Contract(pure = true)
-    public CurrentOrderSummary(final String betId, final String marketId, final Long selectionId) {
+    private CurrentOrderSummary(final String betId, final String marketId, final Long selectionId) {
         this.betId = betId;
         this.marketId = marketId;
         this.selectionId = selectionId;

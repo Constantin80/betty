@@ -53,16 +53,9 @@ public class OrderCache
                     // remove on close
                     this.markets.remove(orderMarket.getMarketId());
                 }
-//                dispatchOrderMarketChanged(orderMarket, change);
             } // end for
         }
     }
-
-//    private synchronized void dispatchOrderMarketChanged(OrderMarket orderMarket, OrderMarketChange change) {
-//        final OrderMarketChangeEvent orderMarketChangeEvent = new OrderMarketChangeEvent(this);
-//        orderMarketChangeEvent.setChange(change);
-//        orderMarketChangeEvent.setOrderMarket(orderMarket);
-//    }
 
     private synchronized OrderMarket onOrderMarketChange(@NotNull final OrderMarketChange orderMarketChange) {
         final OrderMarket orderMarket = this.markets.computeIfAbsent(orderMarketChange.getId(), OrderMarket::new);

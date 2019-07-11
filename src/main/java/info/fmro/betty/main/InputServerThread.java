@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class InputServerThread
+class InputServerThread
         extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(InputServerThread.class);
 

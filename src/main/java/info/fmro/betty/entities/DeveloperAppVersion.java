@@ -1,6 +1,6 @@
 package info.fmro.betty.entities;
 
-public class DeveloperAppVersion {
+class DeveloperAppVersion {
     private String owner; // The sportex user who owns the specific version of the application
     private Long versionId; // The unique Id of the application version
     private String version; // The version identifier string such as 1.0, 2.0. Unique for a given application.

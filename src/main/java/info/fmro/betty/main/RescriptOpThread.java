@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@SuppressWarnings({"ClassWithTooManyConstructors", "ClassWithTooManyFields"})
+@SuppressWarnings("ClassWithTooManyConstructors")
 public class RescriptOpThread<T>
         implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(RescriptOpThread.class);

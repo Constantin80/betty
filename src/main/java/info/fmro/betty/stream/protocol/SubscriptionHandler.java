@@ -1,8 +1,9 @@
 package info.fmro.betty.stream.protocol;
 
-import info.fmro.betty.stream.definitions.ChangeType;
+import info.fmro.betty.stream.enums.ChangeType;
 import info.fmro.betty.stream.definitions.RequestMessage;
-import info.fmro.betty.stream.definitions.SegmentType;
+import info.fmro.betty.stream.enums.SegmentType;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +41,7 @@ public class SubscriptionHandler<S extends RequestMessage, C extends ChangeMessa
     private Long heartbeatMs;
     private Long conflationMs;
 
-    public SubscriptionHandler(final S subscriptionMessage, final boolean isMergeSegments) {
+    public SubscriptionHandler(@NotNull final S subscriptionMessage, final boolean isMergeSegments) {
         this.subscriptionMessage = subscriptionMessage;
         this.isMergeSegments = isMergeSegments;
         this.isSubscribed = false;
@@ -57,6 +58,7 @@ public class SubscriptionHandler<S extends RequestMessage, C extends ChangeMessa
         return this.subscriptionMessage;
     }
 
+    @SuppressWarnings("SuspiciousGetterSetter")
     public synchronized boolean isSubscribed() {
         return this.isSubscribed;
     }
@@ -93,86 +95,88 @@ public class SubscriptionHandler<S extends RequestMessage, C extends ChangeMessa
     }
 
     @Nullable
-    public synchronized C processChangeMessage(C changeMessage) {
-        if (this.subscriptionId != changeMessage.getId()) {
-            //previous subscription id - ignore
-            return null;
-        }
-
-        //Every message store timings
-        this.lastPublishTime = changeMessage.getPublishTime();
-        this.lastArrivalTime = changeMessage.getArrivalTime();
-
-        if (changeMessage.isStartOfRecovery()) {
-            //Start of recovery
-            this.ttfm.stop();
-            logger.info("{}: Start of image", this.subscriptionMessage.getOp());
-        }
-
-        if (changeMessage.getChangeType() == ChangeType.HEARTBEAT) {
-            //Swallow heartbeats
-            changeMessage = null;
-        } else if (changeMessage.getSegmentType() != SegmentType.NONE && this.isMergeSegments) {
-            //Segmented message and we're instructed to merge (which makes segments look atomic).
-            changeMessage = MergeMessage(changeMessage);
-        }
-
-        if (changeMessage != null) {
-            //store clocks
-            if (changeMessage.getInitialClk() != null) {
-                this.initialClk = changeMessage.getInitialClk();
-            }
-            if (changeMessage.getClk() != null) {
-                this.clk = changeMessage.getClk();
+    public synchronized C processChangeMessage(@NotNull final C changeMessage) {
+        @Nullable C message = changeMessage;
+        if (this.subscriptionId == message.getId()) {
+            //Every message store timings
+            this.lastPublishTime = message.getPublishTime();
+            this.lastArrivalTime = message.getArrivalTime();
+            if (message.isStartOfRecovery()) {
+                //Start of recovery
+                this.ttfm.stop();
+                logger.info("{}: Start of image", this.subscriptionMessage.getOp());
             }
 
-            if (!this.isSubscribed) {
-                //During recovery
-                if (changeMessage.getItems() != null) {
-                    this.itemCount += changeMessage.getItems().size();
+            if (message.getChangeType() == ChangeType.HEARTBEAT) {
+                //Swallow heartbeats
+                message = null;
+            } else if (message.getSegmentType() != SegmentType.NONE && this.isMergeSegments) {
+                //Segmented message and we're instructed to merge (which makes segments look atomic).
+                message = MergeMessage(message);
+
+                if (message != null) {
+                    //store clocks
+                    if (message.getInitialClk() != null) {
+                        this.initialClk = message.getInitialClk();
+                    }
+                    if (message.getClk() != null) {
+                        this.clk = message.getClk();
+                    }
+
+                    if (!this.isSubscribed) {
+                        //During recovery
+                        if (message.getItems() != null) {
+                            this.itemCount += message.getItems().size();
+                        }
+                    }
+
+                    if (message.isEndOfRecovery()) {
+                        //End of recovery
+                        this.isSubscribed = true;
+                        this.heartbeatMs = message.getHeartbeatMs();
+                        this.conflationMs = message.getConflateMs();
+                        this.ttlm.stop();
+                        logger.info("{}: End of image: type:{}, ttfm:{}, ttlm:{}, conflation:{}, heartbeat:{}, change.items:{}", this.subscriptionMessage.getOp(), message.getChangeType(), this.ttfm, this.ttlm, this.conflationMs, this.heartbeatMs,
+                                    this.itemCount);
+
+                        //unwind future
+                        this.subscriptionComplete.countDown();
+                    }
                 }
             }
-
-            if (changeMessage.isEndOfRecovery()) {
-                //End of recovery
-                this.isSubscribed = true;
-                this.heartbeatMs = changeMessage.getHeartbeatMs();
-                this.conflationMs = changeMessage.getConflateMs();
-                this.ttlm.stop();
-                logger.info("{}: End of image: type:{}, ttfm:{}, ttlm:{}, conflation:{}, heartbeat:{}, change.items:{}",
-                            this.subscriptionMessage.getOp(),
-                            changeMessage.getChangeType(),
-                            this.ttfm,
-                            this.ttlm,
-                            this.conflationMs,
-                            this.heartbeatMs,
-                            this.itemCount);
-
-                //unwind future
-                this.subscriptionComplete.countDown();
-            }
+        } else {
+            //previous subscription id - ignore
+            message = null;
         }
-        return changeMessage;
+        return message;
     }
 
-    private synchronized C MergeMessage(C changeMessage) {
+    private synchronized C MergeMessage(@NotNull final C changeMessage) {
         //merge segmented messages so client sees atomic view across segments
-        if (changeMessage.getSegmentType() == SegmentType.SEG_START) {
+        @Nullable C message = changeMessage;
+        if (message.getSegmentType() == SegmentType.SEG_START) {
             //start merging
-            this.mergedChanges = new ArrayList<>();
+            this.mergedChanges = new ArrayList<>(2);
         }
         //accumulate
-        this.mergedChanges.addAll(changeMessage.getItems());
+        if (this.mergedChanges != null) {
+            final List<I> messageItems = message.getItems();
+            if (messageItems != null) {
+                this.mergedChanges.addAll(messageItems);
+            } else { // no message items to add
+            }
+        } else { // can't accumulate
+        }
 
-        if (changeMessage.getSegmentType() == SegmentType.SEG_END) {
+        if (message.getSegmentType() == SegmentType.SEG_END) {
             //finish merging
-            changeMessage.setSegmentType(SegmentType.NONE);
-            changeMessage.setItems(this.mergedChanges);
+            message.setSegmentType(SegmentType.NONE);
+            message.setItems(this.mergedChanges);
             this.mergedChanges = null;
         } else {
             //swallow message as we're still merging
-            changeMessage = null;
+            message = null;
         }
-        return changeMessage;
+        return message;
     }
 }

@@ -2,6 +2,7 @@ package info.fmro.betty.stream.client;
 
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,27 +13,35 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ClientHandler {
+@SuppressWarnings("UtilityClass")
+public final class ClientHandler {
     private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
     // errorMessage=You have exceeded your max connection limit which is: 10 connection(s).You currently have: 11 active connection(s).
     // this errorMessage seem to trigger much later than 11 connections; triggers with 70, not with 68; started 23, sleep 3 min, start 5 more, didn't trigger
     public static final int nClients = 32;
+    @SuppressWarnings("PublicStaticArrayField")
     public static final Client[] streamClients = new Client[nClients];
     @SuppressWarnings("unchecked")
     private static final ArrayList<String>[] lists = (ArrayList<String>[]) new ArrayList<?>[nClients];
+    @SuppressWarnings("PublicStaticCollectionField")
     public static final Collection<Integer> modifiedLists = new ConcurrentSkipListSet<>();
     public static final AtomicInteger threadsWithOcmCommandReceived = new AtomicInteger();
     public static final AtomicInteger threadsWithMcmCommandReceived = new AtomicInteger();
     public static final AtomicInteger nMcmCommandsNeeded = new AtomicInteger();
 
     static {
-        for (int i = 0; i < streamClients.length; i++) {
+        final int length = streamClients.length;
+        for (int i = 0; i < length; i++) {
             streamClients[i] = new Client(i, Statics.STREAM_HOST, Statics.SSL_PORT);
         }
 
         for (int i = 0; i < nClients; i++) {
-            lists[i] = new ArrayList<>();
+            lists[i] = new ArrayList<>(1_000);
         }
+    }
+
+    @Contract(pure = true)
+    private ClientHandler() {
     }
 
     public static void streamAllMarkets() {
@@ -40,7 +49,7 @@ public class ClientHandler {
         streamMarkets(marketsSet);
     }
 
-    public static void streamMarkets(final Collection<String> marketIds) {
+    private static void streamMarkets(final Collection<String> marketIds) {
         if (!modifiedLists.isEmpty()) {
             logger.info("following clients have internally modified lists: {}", Generic.objectToString(modifiedLists));
             for (final Integer i : modifiedLists) {
@@ -69,13 +78,8 @@ public class ClientHandler {
 //                    modified[i] ||
                     sizes[i] <= 900) {
                 final ArrayList<String> list = lists[i];
-                final int sizeLeft = 1000 - sizes[i];
-                final List<String> subList;
-                if (marketsLeft.size() <= sizeLeft) {
-                    subList = marketsLeft;
-                } else {
-                    subList = marketsLeft.subList(0, sizeLeft - 1);
-                }
+                final int sizeLeft = 1_000 - sizes[i];
+                final List<String> subList = marketsLeft.size() <= sizeLeft ? marketsLeft : marketsLeft.subList(0, sizeLeft - 1);
                 list.addAll(subList);
                 subList.clear();
                 modified[i] = true;

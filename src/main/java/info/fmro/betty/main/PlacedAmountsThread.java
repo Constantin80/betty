@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class PlacedAmountsThread
+class PlacedAmountsThread
         implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(PlacedAmountsThread.class);
     public static final AtomicBoolean shouldCheckAmounts = new AtomicBoolean();

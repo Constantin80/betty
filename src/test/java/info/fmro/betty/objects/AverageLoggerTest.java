@@ -1,7 +1,7 @@
 package info.fmro.betty.objects;
 
 @SuppressWarnings("unused")
-public class AverageLoggerTest {
+class AverageLoggerTest {
 //    @Test
 //    public void testGetMarketBooksExpectedRuns()
 //            throws NoSuchMethodException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {

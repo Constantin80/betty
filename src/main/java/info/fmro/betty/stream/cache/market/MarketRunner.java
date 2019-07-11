@@ -8,8 +8,10 @@ import info.fmro.betty.stream.cache.util.Utils;
 import info.fmro.betty.stream.definitions.Order;
 import info.fmro.betty.stream.definitions.RunnerChange;
 import info.fmro.betty.stream.definitions.RunnerDefinition;
-import info.fmro.betty.stream.definitions.Side;
+import info.fmro.betty.stream.enums.Side;
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +24,7 @@ public class MarketRunner
     private static final Logger logger = LoggerFactory.getLogger(MarketRunner.class);
     private static final long serialVersionUID = -7071355306184374342L;
     //    private final Market market;
+    @SuppressWarnings({"FieldCanBeLocal", "unused"})
     private final String marketId;
     private final RunnerId runnerId;
 
@@ -44,14 +47,15 @@ public class MarketRunner
     private double spf; // starting price far
     private double ltp; // last traded price
     private double tv; //total value traded
+    @SuppressWarnings({"FieldCanBeLocal", "unused"})
     private RunnerDefinition runnerDefinition;
 
-    public MarketRunner(final String marketId, final RunnerId runnerId) {
+    MarketRunner(final String marketId, final RunnerId runnerId) {
         this.marketId = marketId;
         this.runnerId = runnerId;
     }
 
-    synchronized void onPriceChange(final boolean isImage, final RunnerChange runnerChange) {
+    synchronized void onPriceChange(final boolean isImage, @NotNull final RunnerChange runnerChange) {
         this.atlPrices.onPriceChange(isImage, runnerChange.getAtl());
         this.atbPrices.onPriceChange(isImage, runnerChange.getAtb());
         this.trdPrices.onPriceChange(isImage, runnerChange.getTrd());
@@ -69,8 +73,8 @@ public class MarketRunner
         this.setTv(Utils.selectPrice(isImage, this.getTv(), runnerChange.getTv()));
     }
 
-    synchronized void onRunnerDefinitionChange(final RunnerDefinition runnerDefinition) {
-        this.runnerDefinition = runnerDefinition;
+    synchronized void onRunnerDefinitionChange(final RunnerDefinition newRunnerDefinition) {
+        this.runnerDefinition = newRunnerDefinition;
     }
 
     public synchronized double getBestAvailableLayPrice(final Map<String, ? extends Order> unmatchedOrders, final double calculatedLimit) {
@@ -115,19 +119,21 @@ public class MarketRunner
         return this.runnerId;
     }
 
-    public synchronized double getSpn() {
+    @Contract(pure = true)
+    private synchronized double getSpn() {
         return this.spn;
     }
 
-    public synchronized void setSpn(final double spn) {
+    private synchronized void setSpn(final double spn) {
         this.spn = spn;
     }
 
-    public synchronized double getSpf() {
+    @Contract(pure = true)
+    private synchronized double getSpf() {
         return this.spf;
     }
 
-    public synchronized void setSpf(final double spf) {
+    private synchronized void setSpf(final double spf) {
         this.spf = spf;
     }
 
@@ -135,10 +141,11 @@ public class MarketRunner
         return this.ltp;
     }
 
-    public synchronized void setLtp(final double ltp) {
+    private synchronized void setLtp(final double ltp) {
         this.ltp = ltp;
     }
 
+    @Contract(pure = true)
     private synchronized double getTv() {
         return this.tv;
     }
@@ -147,7 +154,7 @@ public class MarketRunner
         return getTv() * Statics.safetyLimits.currencyRate.get();
     }
 
-    public synchronized void setTv(final double tv) {
+    private synchronized void setTv(final double tv) {
         this.tv = tv;
     }
 

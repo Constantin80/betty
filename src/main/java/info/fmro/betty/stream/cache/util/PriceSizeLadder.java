@@ -3,6 +3,8 @@ package info.fmro.betty.stream.cache.util;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.objects.TwoDoubles;
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,23 +14,27 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class PriceSizeLadder
+public final class PriceSizeLadder
         implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(PriceSizeLadder.class);
     private static final long serialVersionUID = -5267061740378308330L;
     private final TreeMap<Double, PriceSize> priceToSize;
 
-    private PriceSizeLadder(final Comparator<? super Double> comparator) {
+    private PriceSizeLadder(@NotNull final Comparator<? super Double> comparator) {
         if (!comparator.equals(Comparator.reverseOrder()) && !comparator.equals(Comparator.naturalOrder())) {
             logger.error("not supported comparator type in PriceSizeLadder; this check is included to make sure the used comparator is serializable: {}", comparator);
         }
         this.priceToSize = new TreeMap<>(comparator);
     }
 
+    @NotNull
+    @Contract(" -> new")
     public static PriceSizeLadder newBack() {
         return new PriceSizeLadder(Comparator.reverseOrder());
     }
 
+    @NotNull
+    @Contract(" -> new")
     public static PriceSizeLadder newLay() {
         return new PriceSizeLadder(Comparator.naturalOrder());
     }
@@ -68,13 +74,7 @@ public class PriceSizeLadder
             if (this.priceToSize.containsKey(price)) {
                 final PriceSize priceSize = this.priceToSize.get(price);
                 if (priceSize != null) {
-                    final Double foundSize = priceSize.getSizeEUR();
-                    if (foundSize != null) {
-                        matchedSize = foundSize;
-                    } else {
-                        logger.error("foundSize null in getMatchedSize for: {} {} {}", price, Generic.objectToString(priceSize), Generic.objectToString(this));
-                        matchedSize = 0d;
-                    }
+                    matchedSize = priceSize.getSizeEUR();
                 } else {
                     logger.error("priceSize null in getMatchedSize for: {} {}", price, Generic.objectToString(this));
                     matchedSize = 0d;
@@ -123,20 +123,19 @@ public class PriceSizeLadder
                 if (priceSize == null) {
                     logger.error("null priceSize in getBestPrice {} for: {}", calculatedLimit, Generic.objectToString(this));
                 } else {
-                    final Double size = priceSize.getSizeEUR();
-                    if (size != null && size >= minimumAmountConsideredSignificant) {
-                        final Double price = priceSize.getPrice();
-                        result = price == null ? 0d : price;
+                    final double size = priceSize.getSizeEUR();
+                    if (size >= minimumAmountConsideredSignificant) {
+                        result = priceSize.getPrice();
                         break;
                     }
                 }
             }
-//            final Double firstKey = priceToSize.firstKey();
-//            result = firstKey == null ? 0d : firstKey;
         }
         return result;
     }
 
+    @NotNull
+    @Contract(" -> new")
     public synchronized TwoDoubles getBackProfitExposurePair() { // this works for back; for lay profit and exposure are reversed
         double profit = 0d, exposure = 0d;
         for (final PriceSize priceSize : this.priceToSize.values()) {
@@ -166,6 +165,8 @@ public class PriceSizeLadder
         }
     }
 
+    @NotNull
+    @Contract(pure = true)
     @Override
     public synchronized String toString() {
         return "{" + this.priceToSize.values() + '}';

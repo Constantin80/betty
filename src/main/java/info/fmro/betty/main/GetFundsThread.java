@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class GetFundsThread
+class GetFundsThread
         extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(GetFundsThread.class);
     private static final AtomicInteger getAccountFundsThreadCounter = new AtomicInteger();

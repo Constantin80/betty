@@ -51,7 +51,6 @@ import java.util.Set;
 public final class ApiNgRescriptOperations {
     private static final Logger logger = LoggerFactory.getLogger(ApiNgRescriptOperations.class);
     public static final String FILTER = "filter";
-    @SuppressWarnings("unused")
     public static final String LOCALE = "locale";
     public static final String SORT = "sort";
     public static final String MAX_RESULTS = "maxResults";
@@ -78,7 +77,6 @@ public final class ApiNgRescriptOperations {
     public static final String GROUP_BY = "groupBy";
     public static final String INCLUDE_ITEM_DESCRIPTION = "includeItemDescription";
     public static final String CURRENCY_CODE = "currencyCode";
-    @SuppressWarnings("unused")
     public static final String localeString = Locale.getDefault().toString();
 
     @Contract(pure = true)
@@ -209,7 +207,6 @@ public final class ApiNgRescriptOperations {
         }.getType());
     }
 
-    @SuppressWarnings("unused")
     public static List<EventTypeResult> listEventTypes(final MarketFilter marketFilter, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
         final Map<String, Object> paramsHashMap = new HashMap<>(4, 0.75f);
         paramsHashMap.put(FILTER, marketFilter);
