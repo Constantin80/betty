@@ -1,6 +1,6 @@
 package info.fmro.betty.stream.cache.order;
 
-import info.fmro.betty.objects.Exposure;
+import info.fmro.betty.logic.Exposure;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.objects.TwoDoubles;
 import info.fmro.betty.stream.cache.util.PriceSizeLadder;
@@ -47,7 +47,7 @@ public class OrderMarketRunner
     }
 
     synchronized void onOrderRunnerChange(final OrderRunnerChange orderRunnerChange) {
-        Statics.ordersThread.reportStreamChange(this, orderRunnerChange); // needs to happen at the start of the method, before I modify this object
+        Statics.pendingOrdersThread.reportStreamChange(this, orderRunnerChange); // needs to happen at the start of the method, before I modify this object
 
         final boolean isImage = Boolean.TRUE.equals(orderRunnerChange.getFullImage());
 
@@ -161,7 +161,7 @@ public class OrderMarketRunner
         if (exposure != null) {
             this.getMatchedExposure(); // updates matchedBackExposure and matchedLayExposure
             this.getUnmatchedExposureAndProfit(); // updates unmatchedBackExposure/Profit and unmatchedLayExposure/Profit
-            Statics.ordersThread.checkTemporaryOrdersExposure(this.marketId, this.runnerId, this);
+            Statics.pendingOrdersThread.checkTemporaryOrdersExposure(this.marketId, this.runnerId, this);
 
             exposure.setBackMatchedExposure(this.matchedBackExposure);
             exposure.setLayMatchedExposure(this.matchedLayExposure);
@@ -309,7 +309,7 @@ public class OrderMarketRunner
             sizePlaced = 0d;
         }
 
-        return Statics.ordersThread.addPlaceOrder(this.marketId, this.runnerId, side, price, sizePlaced);
+        return Statics.pendingOrdersThread.addPlaceOrder(this.marketId, this.runnerId, side, price, sizePlaced);
     }
 
     public synchronized double cancelUnmatchedExceptExcessOnTheOtherSide(final Side side, final double excessOnTheOtherSide) {

@@ -1,7 +1,7 @@
 package info.fmro.betty.stream.cache.util;
 
-import info.fmro.betty.objects.ManagedMarket;
-import info.fmro.betty.objects.ManagedRunner;
+import info.fmro.betty.logic.ManagedMarket;
+import info.fmro.betty.logic.ManagedRunner;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.cache.market.Market;
 import info.fmro.betty.stream.cache.order.OrderMarket;

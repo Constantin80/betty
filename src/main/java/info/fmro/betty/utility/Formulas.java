@@ -5,12 +5,12 @@ import info.fmro.betty.entities.EventType;
 import info.fmro.betty.entities.MarketCatalogue;
 import info.fmro.betty.entities.MarketDescription;
 import info.fmro.betty.entities.PlaceInstruction;
-import info.fmro.betty.main.ScraperThread;
+import info.fmro.betty.safebet.ScraperPermanentThread;
 import info.fmro.betty.main.VarsIO;
-import info.fmro.betty.objects.BetradarEvent;
-import info.fmro.betty.objects.CoralEvent;
+import info.fmro.betty.safebet.BetradarEvent;
+import info.fmro.betty.safebet.CoralEvent;
 import info.fmro.betty.objects.OrderPrice;
-import info.fmro.betty.objects.ScraperEvent;
+import info.fmro.betty.safebet.ScraperEvent;
 import info.fmro.betty.objects.StampedDouble;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.objects.TwoOrderedStrings;
@@ -694,8 +694,8 @@ public final class Formulas {
         return returnValue;
     }
 
-    public static ScraperThread getScraperThread(final Class<? extends ScraperEvent> clazz) {
-        @Nullable final ScraperThread returnValue;
+    public static ScraperPermanentThread getScraperThread(final Class<? extends ScraperEvent> clazz) {
+        @Nullable final ScraperPermanentThread returnValue;
         if (clazz == null) {
             logger.error("null clazz value in getScraperThread");
             returnValue = null;

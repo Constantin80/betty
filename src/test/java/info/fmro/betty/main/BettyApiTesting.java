@@ -1,6 +1,7 @@
 package info.fmro.betty.main;
 
 import info.fmro.betty.objects.Statics;
+import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.shared.utility.Generic;
 import org.junit.jupiter.api.BeforeAll;
 

@@ -1,5 +1,7 @@
 package info.fmro.betty.objects;
 
+import info.fmro.betty.logic.ManagedEvent;
+import info.fmro.betty.logic.ManagedMarket;
 import info.fmro.shared.utility.SynchronizedMap;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
@@ -19,7 +21,7 @@ public class ManagedMarketsMap
     private final String eventId;
     private transient boolean isInitialized;
 
-    ManagedMarketsMap(final String eventId) {
+    public ManagedMarketsMap(final String eventId) {
         super();
         this.eventId = eventId; // the exact object reference
     }
@@ -77,9 +79,9 @@ public class ManagedMarketsMap
     }
 
     @Override
-    public synchronized void clear() {
+    public synchronized HashMap<String, ManagedMarket> clear() {
         initializeMap();
-        super.clear();
+        return super.clear();
     }
 
     @Override

@@ -1,9 +1,9 @@
 package info.fmro.betty.entities;
 
 import info.fmro.betty.enums.CommandType;
-import info.fmro.betty.main.LaunchCommandThread;
-import info.fmro.betty.main.MaintenanceThread;
-import info.fmro.betty.objects.ParsedMarket;
+import info.fmro.betty.threads.LaunchCommandThread;
+import info.fmro.betty.threads.permanent.MaintenanceThread;
+import info.fmro.betty.safebet.ParsedMarket;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;

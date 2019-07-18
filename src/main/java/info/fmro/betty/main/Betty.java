@@ -1,10 +1,19 @@
 package info.fmro.betty.main;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
+import info.fmro.betty.betapi.JsonConverter;
 import info.fmro.betty.entities.SessionToken;
 import info.fmro.betty.objects.SessionTokenObject;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.client.ClientHandler;
+import info.fmro.betty.threads.permanent.GetFundsThread;
+import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
+import info.fmro.betty.threads.permanent.IdleConnectionMonitorThread;
+import info.fmro.betty.threads.permanent.InputConnectionThread;
+import info.fmro.betty.threads.permanent.InputServerThread;
+import info.fmro.betty.threads.permanent.MaintenanceThread;
+import info.fmro.betty.threads.permanent.PlacedAmountsThread;
+import info.fmro.betty.threads.permanent.TimeJumpDetectorThread;
 import info.fmro.betty.utility.BettyUncaughtExceptionHandler;
 import info.fmro.shared.utility.Generic;
 import org.apache.http.HttpEntity;
@@ -54,7 +63,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 @SuppressWarnings("UtilityClass")
-final class Betty {
+public final class Betty {
     private static final Logger logger = LoggerFactory.getLogger(Betty.class);
 
     @Contract(pure = true)
@@ -172,8 +181,8 @@ final class Betty {
                 coralThread = new Thread();
             }
             Statics.quickCheckThread.start();
-            final Thread cancelOrdersThread = new Thread(Statics.ordersThread);
-            cancelOrdersThread.start();
+            final Thread pendingOrdersThread = new Thread(Statics.pendingOrdersThread);
+            pendingOrdersThread.start();
             final Thread placedAmountsThread = new Thread(new PlacedAmountsThread());
             placedAmountsThread.start();
             final Thread timeJumpDetectorThread = new Thread(new TimeJumpDetectorThread());
@@ -262,9 +271,9 @@ final class Betty {
                 logger.info("joining rulesManager thread");
                 Statics.rulesManager.join();
             }
-            if (cancelOrdersThread.isAlive()) {
-                logger.info("joining cancelOrdersThread");
-                cancelOrdersThread.join();
+            if (pendingOrdersThread.isAlive()) {
+                logger.info("joining pendingOrdersThread");
+                pendingOrdersThread.join();
             }
             if (placedAmountsThread.isAlive()) {
                 logger.info("joining placedAmountsThread");
@@ -349,7 +358,7 @@ final class Betty {
     }
 
     @SuppressWarnings({"OverlyLongMethod", "UnusedReturnValue"})
-    static boolean authenticate(final String authURL, @NotNull final AtomicReference<String> bu, @NotNull final AtomicReference<String> bp, final SessionTokenObject sessionTokenObject, final String keyStoreFileName, final String keyStorePassword,
+    public static boolean authenticate(final String authURL, @NotNull final AtomicReference<String> bu, @NotNull final AtomicReference<String> bp, final SessionTokenObject sessionTokenObject, final String keyStoreFileName, final String keyStorePassword,
                                 final String keyStoreType, @NotNull final AtomicReference<String> appKey) {
         boolean success = false;
         final long beginTime = System.currentTimeMillis();

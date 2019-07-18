@@ -1,6 +1,6 @@
 package info.fmro.betty.stream.client;
 
-import info.fmro.betty.main.GetLiveMarketsThread;
+import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.definitions.AuthenticationMessage;
 import info.fmro.betty.stream.enums.FilterFlag;

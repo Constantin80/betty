@@ -4,13 +4,21 @@ import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.MarketBook;
 import info.fmro.betty.entities.MarketCatalogue;
 import info.fmro.betty.enums.ParsedMarketType;
-import info.fmro.betty.main.BetradarScraperThread;
-import info.fmro.betty.main.CoralScraperThread;
-import info.fmro.betty.main.InputConnectionThread;
-import info.fmro.betty.main.LoggerThread;
-import info.fmro.betty.main.OrdersThread;
-import info.fmro.betty.main.QuickCheckThread;
-import info.fmro.betty.main.ScraperThread;
+import info.fmro.betty.logic.RulesManager;
+import info.fmro.betty.logic.SafetyLimits;
+import info.fmro.betty.safebet.BetradarEvent;
+import info.fmro.betty.safebet.CoralEvent;
+import info.fmro.betty.safebet.SafeBet;
+import info.fmro.betty.safebet.SafeBetsMap;
+import info.fmro.betty.safebet.SafeRunner;
+import info.fmro.betty.safebet.ScraperEvent;
+import info.fmro.betty.threads.permanent.PendingOrdersThread;
+import info.fmro.betty.safebet.BetradarScraperThread;
+import info.fmro.betty.safebet.CoralScraperThread;
+import info.fmro.betty.threads.permanent.InputConnectionThread;
+import info.fmro.betty.threads.permanent.LoggerThread;
+import info.fmro.betty.threads.permanent.QuickCheckThread;
+import info.fmro.betty.safebet.ScraperPermanentThread;
 import info.fmro.betty.stream.cache.market.MarketCache;
 import info.fmro.betty.stream.cache.order.OrderCache;
 import info.fmro.shared.utility.Generic;
@@ -79,7 +87,7 @@ public final class Statics {
     public static ArrayList<? extends OutputStream> standardStreamsList;
     //    public static final ArrayList<? extends OutputStream> standardStreamsList = Generic.replaceStandardStreams(STDOUT_FILE_NAME, STDERR_FILE_NAME, LOGS_FOLDER_NAME, !closeStandardStreamsNotInitialized); // negated boolean, as it's not initialized
     public static final Set<Class<? extends ScraperEvent>> scraperEventSubclassesSet = Set.copyOf(Generic.getSubclasses(PROJECT_PREFIX, ScraperEvent.class));
-    public static final Set<Class<? extends ScraperThread>> scraperThreadSubclassesSet = Set.copyOf(Generic.getSubclasses(PROJECT_PREFIX, ScraperThread.class));
+    public static final Set<Class<? extends ScraperPermanentThread>> scraperThreadSubclassesSet = Set.copyOf(Generic.getSubclasses(PROJECT_PREFIX, ScraperPermanentThread.class));
     public static final AtomicBoolean mustStop = new AtomicBoolean(), mustSleep = new AtomicBoolean(), needSessionToken = new AtomicBoolean(), mustWriteObjects = new AtomicBoolean(), fundsQuickRun = new AtomicBoolean(), denyBetting = new AtomicBoolean(),
             programIsRunningMultiThreaded = new AtomicBoolean();
     public static final AtomicInteger inputServerPort = new AtomicInteger();
@@ -124,7 +132,7 @@ public final class Statics {
     public static final LoggerThread loggerThread = new LoggerThread();
     public static final RulesManager rulesManager = new RulesManager();
     public static final QuickCheckThread quickCheckThread = new QuickCheckThread();
-    public static final OrdersThread ordersThread = new OrdersThread();
+    public static final PendingOrdersThread pendingOrdersThread = new PendingOrdersThread();
 
     public static final TimeStamps timeStamps = new TimeStamps();
     public static final DebugLevel debugLevel = new DebugLevel();

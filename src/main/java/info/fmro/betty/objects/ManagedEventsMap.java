@@ -1,5 +1,6 @@
 package info.fmro.betty.objects;
 
+import info.fmro.betty.logic.ManagedEvent;
 import info.fmro.shared.utility.SynchronizedMap;
 
 import java.io.Serializable;
@@ -9,7 +10,7 @@ public class ManagedEventsMap
         implements Serializable {
     private static final long serialVersionUID = 3165547218025993674L;
 
-    ManagedEventsMap() {
+    public ManagedEventsMap() {
         super();
     }
 

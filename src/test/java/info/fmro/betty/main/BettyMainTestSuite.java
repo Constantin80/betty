@@ -5,7 +5,7 @@ import org.junit.jupiter.api.AfterAll;
 // Junit 5 doesn't have test suite support now; I can use the Junit 4 test suite if needed, or wait for Junit 5 support
 //@ExtendWith(JUnitPlatform.class)
 //@Suite.SuiteClasses({
-//    info.fmro.betty.main.ScraperThreadTest.class,
+//    info.fmro.betty.main.ScraperPermanentThreadTest.class,
 //    info.fmro.betty.main.VarsIOTest.class,
 ////    info.fmro.betty.main.CoralScraperThreadIT.class,
 ////    info.fmro.betty.main.BettyIT.class,

@@ -103,7 +103,7 @@ public class Order
         }
 
         final double sizeRemaining = this.sr == null ? 0d : this.sr;
-        return Statics.ordersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction);
+        return Statics.pendingOrdersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction);
     }
 
     public synchronized double removeBackExposure(final String marketId, final RunnerId runnerId, final double excessExposure) {
@@ -116,10 +116,10 @@ public class Order
             @Nullable final Double sizeReduction;
             if (excessExposure >= sizeRemaining) {
                 sizeReduction = null;
-                exposureReduction = Statics.ordersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction) ? sizeRemaining : 0d;
+                exposureReduction = Statics.pendingOrdersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction) ? sizeRemaining : 0d;
             } else {
                 sizeReduction = excessExposure;
-                exposureReduction = Statics.ordersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction) ? excessExposure : 0d;
+                exposureReduction = Statics.pendingOrdersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction) ? excessExposure : 0d;
             }
         } else {
             logger.error("wrong side in removeBackExposure for: {} {} {} {}", marketId, runnerId, excessExposure, Generic.objectToString(this));
@@ -138,10 +138,10 @@ public class Order
             @Nullable final Double sizeReduction;
             if (excessExposure >= Formulas.layExposure(this.p, sizeRemaining)) {
                 sizeReduction = null;
-                exposureReduction = Statics.ordersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction) ? Formulas.layExposure(this.p, sizeRemaining) : 0d;
+                exposureReduction = Statics.pendingOrdersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction) ? Formulas.layExposure(this.p, sizeRemaining) : 0d;
             } else {
                 sizeReduction = excessExposure / (this.p - 1d);
-                exposureReduction = Statics.ordersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction) ? excessExposure : 0d;
+                exposureReduction = Statics.pendingOrdersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction) ? excessExposure : 0d;
             }
         } else {
             logger.error("wrong side in removeLayExposure for: {} {} {} {}", marketId, runnerId, excessExposure, Generic.objectToString(this));

@@ -3,15 +3,16 @@ package info.fmro.betty.main;
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.MarketBook;
 import info.fmro.betty.entities.MarketCatalogue;
-import info.fmro.betty.objects.BetradarEvent;
-import info.fmro.betty.objects.CoralEvent;
+import info.fmro.betty.safebet.BetradarEvent;
+import info.fmro.betty.safebet.CoralEvent;
 import info.fmro.betty.objects.DebugLevel;
-import info.fmro.betty.objects.RulesManager;
-import info.fmro.betty.objects.SafeRunner;
-import info.fmro.betty.objects.SafetyLimits;
+import info.fmro.betty.logic.RulesManager;
+import info.fmro.betty.safebet.SafeRunner;
+import info.fmro.betty.logic.SafetyLimits;
 import info.fmro.betty.objects.SessionTokenObject;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.objects.TimeStamps;
+import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.SynchronizedMap;
@@ -325,7 +326,7 @@ public final class VarsIO {
         logger.info("have read objects from files");
     }
 
-    static void writeObjectsToFiles() {
+    public static void writeObjectsToFiles() {
         Statics.timeStamps.lastObjectsSaveStamp(Generic.MINUTE_LENGTH_MILLISECONDS * 10L);
         Statics.timeLastSaveToDisk.set(System.currentTimeMillis());
         for (final Entry<String, String> entry : Statics.objectFileNamesMap.entrySet()) {

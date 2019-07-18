@@ -1,5 +1,7 @@
 package info.fmro.betty.objects;
 
+import info.fmro.betty.safebet.BetradarEvent;
+import info.fmro.betty.safebet.CoralEvent;
 import info.fmro.shared.utility.SynchronizedMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

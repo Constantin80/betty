@@ -1,10 +1,10 @@
 package info.fmro.betty.entities;
 
 import info.fmro.betty.enums.CommandType;
-import info.fmro.betty.main.LaunchCommandThread;
 import info.fmro.betty.objects.BlackList;
-import info.fmro.betty.objects.ScraperEvent;
 import info.fmro.betty.objects.Statics;
+import info.fmro.betty.safebet.ScraperEvent;
+import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
@@ -63,7 +63,7 @@ public class Event
 //
 //        this.scraperEvents = new LinkedHashSet<>(0);
 //    }
-    @SuppressWarnings({"FinalMethod", "UnusedReturnValue"})
+    @SuppressWarnings("UnusedReturnValue")
     final synchronized int initializeCollections() {
         int modified = 0;
 

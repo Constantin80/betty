@@ -1,6 +1,6 @@
 package info.fmro.betty.entities;
 
-import info.fmro.betty.objects.BetradarEvent;
+import info.fmro.betty.safebet.BetradarEvent;
 import info.fmro.shared.utility.Generic;
 import org.junit.jupiter.api.Test;
 

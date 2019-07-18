@@ -1,6 +1,6 @@
 package info.fmro.betty.entities;
 
-import info.fmro.betty.objects.CoralEvent;
+import info.fmro.betty.safebet.CoralEvent;
 import info.fmro.shared.utility.Generic;
 import org.junit.jupiter.api.Test;
 

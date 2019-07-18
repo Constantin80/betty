@@ -1,6 +1,6 @@
 package info.fmro.betty.entities;
 
-import info.fmro.betty.objects.ScraperEvent;
+import info.fmro.betty.safebet.ScraperEvent;
 import info.fmro.shared.utility.Generic;
 import org.junit.jupiter.api.Test;
 

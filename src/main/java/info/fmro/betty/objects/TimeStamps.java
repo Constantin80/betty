@@ -219,7 +219,7 @@ public class TimeStamps
         return this.lastListCurrencyRates;
     }
 
-    synchronized void setLastListCurrencyRates(final long lastListCurrencyRates) {
+    public synchronized void setLastListCurrencyRates(final long lastListCurrencyRates) {
         this.lastListCurrencyRates = lastListCurrencyRates;
     }
 

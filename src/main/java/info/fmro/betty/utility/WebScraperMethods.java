@@ -200,7 +200,7 @@ public final class WebScraperMethods {
             if (savePrefix != null) {
                 savePage(htmlPage, mustSavePage, savePrefix, threadId);
             }
-            // no longer necessary, as I now set this at beginning of outer while in ScraperThread
+            // no longer necessary, as I now set this at beginning of outer while in ScraperPermanentThread
 //            if (mustRefreshPage.get()) {
 //                mustRefreshPage.set(false);
 //            }
