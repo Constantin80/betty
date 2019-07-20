@@ -7,20 +7,21 @@ import info.fmro.betty.enums.ParsedMarketType;
 import info.fmro.betty.logic.RulesManager;
 import info.fmro.betty.logic.SafetyLimits;
 import info.fmro.betty.safebet.BetradarEvent;
+import info.fmro.betty.safebet.BetradarScraperThread;
 import info.fmro.betty.safebet.CoralEvent;
+import info.fmro.betty.safebet.CoralScraperThread;
 import info.fmro.betty.safebet.SafeBet;
 import info.fmro.betty.safebet.SafeBetsMap;
 import info.fmro.betty.safebet.SafeRunner;
 import info.fmro.betty.safebet.ScraperEvent;
-import info.fmro.betty.threads.permanent.PendingOrdersThread;
-import info.fmro.betty.safebet.BetradarScraperThread;
-import info.fmro.betty.safebet.CoralScraperThread;
-import info.fmro.betty.threads.permanent.InputConnectionThread;
-import info.fmro.betty.threads.permanent.LoggerThread;
-import info.fmro.betty.threads.permanent.QuickCheckThread;
 import info.fmro.betty.safebet.ScraperPermanentThread;
 import info.fmro.betty.stream.cache.market.MarketCache;
 import info.fmro.betty.stream.cache.order.OrderCache;
+import info.fmro.betty.threads.permanent.InputConnectionThread;
+import info.fmro.betty.threads.permanent.InterfaceConnectionThread;
+import info.fmro.betty.threads.permanent.LoggerThread;
+import info.fmro.betty.threads.permanent.PendingOrdersThread;
+import info.fmro.betty.threads.permanent.QuickCheckThread;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.SynchronizedMap;
 import info.fmro.shared.utility.SynchronizedSafeSet;
@@ -74,7 +75,7 @@ public final class Statics {
     public static final String VARS_FILE_NAME = "input/vars.txt", STDOUT_FILE_NAME = "out.txt", STDERR_FILE_NAME = "err.txt", MATCHER_FILE_NAME = "matcher.txt", SAFE_BETS_FILE_NAME = "bets.txt", NEW_MARKET_FILE_NAME = "newMarket.txt",
             KEY_STORE_FILE_NAME = "input/client-2048.p12", KEY_STORE_PASSWORD = "", APING_URL = "https://api.betfair.com/exchange/betting/", RESCRIPT_SUFFIX = "rest/v1.0/", APPLICATION_JSON = "application/json", ACCOUNT_APING_URL =
             "https://api.betfair.com/exchange/account/", ALIASES_FILE_NAME = "input/aliases.txt", FULL_ALIASES_FILE_NAME = "input/aliasesFull.txt", LOGS_FOLDER_NAME = "logs", DATA_FOLDER_NAME = "data", STREAM_HOST = "stream-api.betfair.com",
-            SETTINGS_FILE_NAME = Statics.DATA_FOLDER_NAME + "/rulesManager.txt";
+            SETTINGS_FILE_NAME = Statics.DATA_FOLDER_NAME + "/rulesManager.txt", INTERFACE_KEY_STORE_FILE_NAME = "input/keystore";
     //    public static final List<Double> pricesList = List.of(1.01, 1.02,1.03,1.04,1.05,1.06,1.07,1.08,1.09,1.1,1.11,1.12,1.13,1.14 ...);
     @SuppressWarnings("PublicStaticCollectionField")
     public static final List<Integer> pricesList; // odds prices, multiplied by 100, to have them stored as int
@@ -90,15 +91,22 @@ public final class Statics {
     public static final Set<Class<? extends ScraperPermanentThread>> scraperThreadSubclassesSet = Set.copyOf(Generic.getSubclasses(PROJECT_PREFIX, ScraperPermanentThread.class));
     public static final AtomicBoolean mustStop = new AtomicBoolean(), mustSleep = new AtomicBoolean(), needSessionToken = new AtomicBoolean(), mustWriteObjects = new AtomicBoolean(), fundsQuickRun = new AtomicBoolean(), denyBetting = new AtomicBoolean(),
             programIsRunningMultiThreaded = new AtomicBoolean();
-    public static final AtomicInteger inputServerPort = new AtomicInteger();
-    public static final AtomicReference<String> appKey = new AtomicReference<>(), delayedAppKey = new AtomicReference<>(), bu = new AtomicReference<>(), bp = new AtomicReference<>(), orderToPrint = new AtomicReference<>();
+    public static final AtomicInteger inputServerPort = new AtomicInteger(), interfaceServerPort = new AtomicInteger();
+    public static final AtomicReference<String> appKey = new AtomicReference<>(), delayedAppKey = new AtomicReference<>(), bu = new AtomicReference<>(), bp = new AtomicReference<>(), orderToPrint = new AtomicReference<>(),
+            interfaceKeyStorePassword = new AtomicReference<>();
     public static final AtomicLong timeLastFundsOp = new AtomicLong(), timeLastSaveToDisk = new AtomicLong(), aliasesTimeStamp = new AtomicLong(), fullAliasesTimeStamp = new AtomicLong();
     @SuppressWarnings("PublicStaticCollectionField")
     public static final Set<ServerSocket> inputServerSocketsSet = Collections.synchronizedSet(new HashSet<>(2));
     @SuppressWarnings("PublicStaticCollectionField")
+    public static final Set<ServerSocket> interfaceServerSocketsSet = Collections.synchronizedSet(new HashSet<>(2));
+    @SuppressWarnings("PublicStaticCollectionField")
     public static final Set<Socket> inputConnectionSocketsSet = Collections.synchronizedSet(new HashSet<>(2));
     @SuppressWarnings("PublicStaticCollectionField")
+    public static final Set<Socket> interfaceConnectionSocketsSet = Collections.synchronizedSet(new HashSet<>(2));
+    @SuppressWarnings("PublicStaticCollectionField")
     public static final Set<InputConnectionThread> inputConnectionThreadsSet = Collections.synchronizedSet(new HashSet<>(2));
+    @SuppressWarnings("PublicStaticCollectionField")
+    public static final Set<InterfaceConnectionThread> interfaceConnectionThreadsSet = Collections.synchronizedSet(new HashSet<>(2));
     @SuppressWarnings("PublicStaticCollectionField")
     public static final Map<OrderPrice, Double> executingOrdersMap = Collections.synchronizedMap(new HashMap<>(2));
     @SuppressWarnings("PublicStaticCollectionField")

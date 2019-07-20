@@ -4,12 +4,9 @@ apply plugin: 'idea'
 
 group = 'info.fmro'
 version = '0.1'
-description = """betty"""
+description = "betty"
 sourceCompatibility = 12
 targetCompatibility = 12
-//tasks.withType(JavaCompile) {
-//    options.encoding = 'UTF-8'
-//}
 
 allprojects {
     tasks.withType(JavaCompile) {
@@ -20,11 +17,9 @@ allprojects {
         systemProperty "file.encoding", "UTF-8"
     }
 }
-
 test {
     useJUnitPlatform()
 }
-
 repositories {
     mavenCentral()
 }
@@ -49,6 +44,6 @@ dependencies {
     compile group: 'org.jetbrains', name: 'annotations', version: '17.0.0'
     testCompile group: 'org.assertj', name: 'assertj-core', version: '3.12.2'
     testCompile group: 'com.jayway.awaitility', name: 'awaitility', version: '1.7.0'
-    testImplementation('org.junit.jupiter:junit-jupiter-api:5.4.2')
-    testRuntime "org.junit.jupiter:junit-jupiter-engine:5.4.2"
+    testImplementation('org.junit.jupiter:junit-jupiter-api:5.5.0')
+    testRuntime "org.junit.jupiter:junit-jupiter-engine:5.5.0"
 }

@@ -3,15 +3,15 @@ package info.fmro.betty.main;
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.MarketBook;
 import info.fmro.betty.entities.MarketCatalogue;
-import info.fmro.betty.safebet.BetradarEvent;
-import info.fmro.betty.safebet.CoralEvent;
-import info.fmro.betty.objects.DebugLevel;
 import info.fmro.betty.logic.RulesManager;
-import info.fmro.betty.safebet.SafeRunner;
 import info.fmro.betty.logic.SafetyLimits;
+import info.fmro.betty.objects.DebugLevel;
 import info.fmro.betty.objects.SessionTokenObject;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.objects.TimeStamps;
+import info.fmro.betty.safebet.BetradarEvent;
+import info.fmro.betty.safebet.CoralEvent;
+import info.fmro.betty.safebet.SafeRunner;
 import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
@@ -210,6 +210,15 @@ public final class VarsIO {
                         } catch (NumberFormatException numberFormatException) {
                             logger.error("NumberFormatException inside readVarsFromFile {}: {}", fileName, fileLine, numberFormatException);
                         }
+                    } else if (fileLine.startsWith("defaultInterfaceServerPort=")) {
+                        //noinspection NestedTryStatement
+                        try {
+                            Statics.interfaceServerPort.set(Integer.parseInt(fileLine.substring(fileLine.indexOf("defaultInterfaceServerPort=") + "defaultInterfaceServerPort=".length())));
+                        } catch (NumberFormatException numberFormatException) {
+                            logger.error("NumberFormatException2 inside readVarsFromFile {}: {}", fileName, fileLine, numberFormatException);
+                        }
+                    } else if (fileLine.startsWith("interfaceKeyPass=")) {
+                        Statics.interfaceKeyStorePassword.set(Generic.backwardString(fileLine.substring(fileLine.indexOf("interfaceKeyPass=") + "interfaceKeyPass=".length())));
                     } else {
                         logger.error("Bogus line in vars file {}: {}", fileName, fileLine);
                     }

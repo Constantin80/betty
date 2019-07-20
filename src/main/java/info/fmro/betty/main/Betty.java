@@ -11,6 +11,8 @@ import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
 import info.fmro.betty.threads.permanent.IdleConnectionMonitorThread;
 import info.fmro.betty.threads.permanent.InputConnectionThread;
 import info.fmro.betty.threads.permanent.InputServerThread;
+import info.fmro.betty.threads.permanent.InterfaceConnectionThread;
+import info.fmro.betty.threads.permanent.InterfaceServerThread;
 import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.betty.threads.permanent.PlacedAmountsThread;
 import info.fmro.betty.threads.permanent.TimeJumpDetectorThread;
@@ -158,6 +160,8 @@ public final class Betty {
             loggerThread.start();
             final InputServerThread inputServerThread = new InputServerThread();
             inputServerThread.start();
+            final InterfaceServerThread interfaceServerThread = new InterfaceServerThread();
+            interfaceServerThread.start();
             final MaintenanceThread maintenanceThread = new MaintenanceThread();
             maintenanceThread.start();
             final GetFundsThread getFundsThread = new GetFundsThread();
@@ -235,7 +239,6 @@ public final class Betty {
                 logger.info("joining inputServer thread");
                 inputServerThread.join();
             }
-
             final Set<InputConnectionThread> inputConnectionThreadsSetCopy;
             synchronized (Statics.inputConnectionThreadsSet) {
                 inputConnectionThreadsSetCopy = new HashSet<>(Statics.inputConnectionThreadsSet);
@@ -244,6 +247,31 @@ public final class Betty {
                 if (inputConnectionThread.isAlive()) {
                     logger.info("joining inputConnection");
                     inputConnectionThread.join();
+                }
+            } // end for
+
+            synchronized (Statics.interfaceConnectionSocketsSet) {
+                for (final Socket socket : Statics.interfaceConnectionSocketsSet) {
+                    Generic.closeObject(socket);
+                }
+            } // end synchronized
+            synchronized (Statics.interfaceServerSocketsSet) {
+                for (final ServerSocket serverSocket : Statics.interfaceServerSocketsSet) {
+                    Generic.closeObject(serverSocket);
+                }
+            } // end synchronized
+            if (interfaceServerThread.isAlive()) {
+                logger.info("joining interfaceServer thread");
+                interfaceServerThread.join();
+            }
+            final Set<InterfaceConnectionThread> interfaceConnectionThreadsSetCopy;
+            synchronized (Statics.interfaceConnectionThreadsSet) {
+                interfaceConnectionThreadsSetCopy = new HashSet<>(Statics.interfaceConnectionThreadsSet);
+            } // end synchronized
+            for (final InterfaceConnectionThread interfaceConnectionThread : interfaceConnectionThreadsSetCopy) {
+                if (interfaceConnectionThread.isAlive()) {
+                    logger.info("joining interfaceConnection");
+                    interfaceConnectionThread.join();
                 }
             } // end for
 
@@ -359,7 +387,7 @@ public final class Betty {
 
     @SuppressWarnings({"OverlyLongMethod", "UnusedReturnValue"})
     public static boolean authenticate(final String authURL, @NotNull final AtomicReference<String> bu, @NotNull final AtomicReference<String> bp, final SessionTokenObject sessionTokenObject, final String keyStoreFileName, final String keyStorePassword,
-                                final String keyStoreType, @NotNull final AtomicReference<String> appKey) {
+                                       final String keyStoreType, @NotNull final AtomicReference<String> appKey) {
         boolean success = false;
         final long beginTime = System.currentTimeMillis();
         final HttpClientBuilder httpClientBuilder = HttpClients.custom();
@@ -490,11 +518,10 @@ public final class Betty {
     }
 
     @Nullable
-    private static KeyManager[] getKeyManagers(final String keyStoreFileName, @NotNull final String keyStorePassword, final String keyStoreType) {
+    public static KeyManager[] getKeyManagers(final String keyStoreFileName, @NotNull final String keyStorePassword, final String keyStoreType) {
         final File keyFile = new File(keyStoreFileName);
         FileInputStream keyStoreFileInputStream = null;
         KeyManagerFactory keyManagerFactory = null;
-
         try {
             keyStoreFileInputStream = new FileInputStream(keyFile);
 
@@ -507,7 +534,6 @@ public final class Betty {
         } finally {
             Generic.closeObject(keyStoreFileInputStream);
         }
-
         return keyManagerFactory == null ? null : keyManagerFactory.getKeyManagers();
     }
 
