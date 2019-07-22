@@ -8,13 +8,13 @@ import info.fmro.betty.enums.ScrapedField;
 import info.fmro.betty.main.Betty;
 import info.fmro.betty.main.VarsIO;
 import info.fmro.betty.objects.BlackList;
+import info.fmro.betty.objects.StampedDouble;
+import info.fmro.betty.objects.Statics;
+import info.fmro.betty.objects.TwoOrderedStrings;
 import info.fmro.betty.safebet.SafeBet;
 import info.fmro.betty.safebet.SafeBetStats;
 import info.fmro.betty.safebet.SafeRunner;
 import info.fmro.betty.safebet.ScraperEvent;
-import info.fmro.betty.objects.StampedDouble;
-import info.fmro.betty.objects.Statics;
-import info.fmro.betty.objects.TwoOrderedStrings;
 import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.utility.DebuggingMethods;
 import info.fmro.betty.utility.Formulas;
@@ -167,7 +167,6 @@ public class MaintenanceThread
         }
         return timeTillNext;
     }
-
 
     private static long timedCleanScraperEventsMap() {
         long timeForNext = Statics.timeStamps.getLastCleanScraperEventsMap();

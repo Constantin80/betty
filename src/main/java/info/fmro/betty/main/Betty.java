@@ -72,7 +72,7 @@ public final class Betty {
     private Betty() {
     }
 
-    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "MethodWithMultipleReturnPoints"})
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "MethodWithMultipleReturnPoints", "OverlyCoupledMethod"})
     public static void main(final String[] args) {
 //        System.out.println("fhadkflcnruw 12121 dsdasdase");
 //        System.exit(0);

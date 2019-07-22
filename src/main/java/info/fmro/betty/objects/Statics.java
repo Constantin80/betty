@@ -67,8 +67,7 @@ public final class Statics {
     public static final Comparator<Object> nullComparator = new NullComparator(false);
     public static final double threshold = .8d, highThreshold = .9d;
     public static final int SOCKET_CONNECT_TIMEOUT = 30_000, SOCKET_READ_TIMEOUT = 30_000, PAGE_GET_TIMEOUT = 120_000;
-    public static final int ENCRYPTION_KEY = 0, DECRYPTION_KEY = 2, N_BEST = 100, N_ALL = 11, N_MARKET_BOOK_THREADS_LIMIT = 50,
-            MIN_MATCHED = safeBetModuleActivated ? 2 : 0, SSL_PORT = 443, TEST_MARKER = 346562;
+    public static final int ENCRYPTION_KEY = 0, DECRYPTION_KEY = 2, N_BEST = 100, N_ALL = 11, N_MARKET_BOOK_THREADS_LIMIT = 50, MIN_MATCHED = safeBetModuleActivated ? 2 : 0, SSL_PORT = 443, TEST_MARKER = 346562;
     public static final long DELAY_GET_MARKET_BOOKS = 200L, EXECUTOR_KEEP_ALIVE = 10_000L, DELAY_PRINT_AVERAGES = 20_000L, DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD = 1_000L, N_MARKET_BOOK_THREADS_INTERVAL = 2_000L,
             INITIAL_EVENT_SAFETY_PERIOD = Generic.MINUTE_LENGTH_MILLISECONDS, PROGRAM_START_TIME = System.currentTimeMillis(), MINIMUM_BAD_STUFF_HAPPENED_IGNORE = 2L * Generic.MINUTE_LENGTH_MILLISECONDS;
     public static final String SSO_HOST_RO = "identitysso-cert.betfair.ro", AUTH_URL = "https://" + SSO_HOST_RO + "/api/certlogin", KEY_STORE_TYPE = "pkcs12", PROJECT_PREFIX = "info.fmro";
