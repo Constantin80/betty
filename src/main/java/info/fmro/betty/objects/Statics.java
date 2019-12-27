@@ -36,6 +36,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.OutputStream;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -65,6 +67,7 @@ public final class Statics {
     public static final boolean resetTestMarker = false; // when true, resets rulesManager testMarker variable, and then exits the program
     @SuppressWarnings("unchecked")
     public static final Comparator<Object> nullComparator = new NullComparator(false);
+    public static final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
     public static final double threshold = .8d, highThreshold = .9d;
     public static final int SOCKET_CONNECT_TIMEOUT = 30_000, SOCKET_READ_TIMEOUT = 30_000, PAGE_GET_TIMEOUT = 120_000;
     public static final int ENCRYPTION_KEY = 0, DECRYPTION_KEY = 2, N_BEST = 100, N_ALL = 11, N_MARKET_BOOK_THREADS_LIMIT = 50, MIN_MATCHED = safeBetModuleActivated ? 2 : 0, SSL_PORT = 443, TEST_MARKER = 346562;

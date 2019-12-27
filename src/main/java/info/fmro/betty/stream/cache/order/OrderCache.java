@@ -17,6 +17,7 @@ public class OrderCache
         implements Serializable {
     private static final long serialVersionUID = -6023803756520072425L;
     private final Map<String, OrderMarket> markets = new ConcurrentHashMap<>(4); // only place where orderMarkets are permanently stored
+    @SuppressWarnings("FieldMayBeFinal")
     private boolean orderMarketRemovedOnClose = true; // default
 
     //    public synchronized void copyFrom(OrderCache orderCache) {
@@ -68,9 +69,9 @@ public class OrderCache
         return this.orderMarketRemovedOnClose;
     }
 
-    public synchronized void setOrderMarketRemovedOnClose(final boolean orderMarketRemovedOnClose) {
-        this.orderMarketRemovedOnClose = orderMarketRemovedOnClose;
-    }
+//    public synchronized void setOrderMarketRemovedOnClose(final boolean orderMarketRemovedOnClose) {
+//        this.orderMarketRemovedOnClose = orderMarketRemovedOnClose;
+//    }
 
     public synchronized Iterable<OrderMarket> getOrderMarkets() {
         return new ArrayList<>(this.markets.values());

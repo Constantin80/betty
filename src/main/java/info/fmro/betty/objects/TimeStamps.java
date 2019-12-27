@@ -12,7 +12,7 @@ public class TimeStamps
     private static final Logger logger = LoggerFactory.getLogger(TimeStamps.class);
     private static final long serialVersionUID = 2521253086493558605L;
     private long lastObjectsSave, lastSettingsSave, lastCleanScraperEventsMap, lastParseEventResultList, lastMapEventsToScraperEvents, lastGetMarketBooks, lastCleanSecondaryMaps, lastFindSafeRunners, lastStreamMarkets, lastGetAccountFunds,
-            lastListCurrencyRates, lastFindInterestingMarkets, lastPrintDebug, lastPrintAverages, lastCleanTimedMaps, lastCheckAliases;
+            lastListCurrencyRates, lastFindInterestingMarkets, lastPrintDebug, lastPrintAverages, lastCleanTimedMaps, lastCheckAliases, lastCheckDeadlock;
 
     public synchronized long getLastObjectsSave() {
         return this.lastObjectsSave;
@@ -332,6 +332,27 @@ public class TimeStamps
         }
     }
 
+    public synchronized long getLastCheckDeadlock() {
+        return this.lastCheckDeadlock;
+    }
+
+    public synchronized void setLastCheckDeadlock(final long lastCheckDeadlock) {
+        this.lastCheckDeadlock = lastCheckDeadlock;
+    }
+
+    public synchronized void lastCheckDeadlock() {
+        this.lastCheckDeadlock = System.currentTimeMillis();
+    }
+
+    public synchronized void lastCheckDeadlockStamp(final long timeStamp) {
+        final long currentTime = System.currentTimeMillis();
+        if (currentTime - this.lastCheckDeadlock >= timeStamp) {
+            this.lastCheckDeadlock = currentTime + timeStamp;
+        } else {
+            this.lastCheckDeadlock += timeStamp;
+        }
+    }
+
     public synchronized void copyFrom(final TimeStamps timeStamps) {
         if (timeStamps == null) {
             logger.error("null timeStamps in copyFrom for: {}", Generic.objectToString(this));
@@ -352,6 +373,7 @@ public class TimeStamps
             this.lastPrintAverages = timeStamps.lastPrintAverages;
             this.lastCleanTimedMaps = timeStamps.lastCleanTimedMaps;
             this.lastCheckAliases = timeStamps.lastCheckAliases;
+            this.lastCheckDeadlock = timeStamps.lastCheckDeadlock;
         }
     }
 }

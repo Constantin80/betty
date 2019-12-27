@@ -12,6 +12,7 @@ public class MarketCache
         implements Serializable {
     private static final long serialVersionUID = -6721530926161875702L;
     private final Map<String, Market> markets = new ConcurrentHashMap<>(32); // only place where markets are permanently stored
+    @SuppressWarnings("FieldMayBeFinal")
     private boolean isMarketRemovedOnClose = true; // default
 //    private long timeClean; // time for maintenance clean of marketCache
 
@@ -71,19 +72,19 @@ public class MarketCache
         return this.conflatedCount;
     }
 
-    public synchronized void setConflatedCount(final int conflatedCount) {
-        this.conflatedCount = conflatedCount;
-    }
+//    public synchronized void setConflatedCount(final int conflatedCount) {
+//        this.conflatedCount = conflatedCount;
+//    }
 
     @SuppressWarnings("SuspiciousGetterSetter")
     public synchronized boolean isMarketRemovedOnClose() {
         return this.isMarketRemovedOnClose;
     }
 
-    @SuppressWarnings("SuspiciousGetterSetter")
-    public synchronized void setMarketRemovedOnClose(final boolean marketRemovedOnClose) {
-        this.isMarketRemovedOnClose = marketRemovedOnClose;
-    }
+//    @SuppressWarnings("SuspiciousGetterSetter")
+//    public synchronized void setMarketRemovedOnClose(final boolean marketRemovedOnClose) {
+//        this.isMarketRemovedOnClose = marketRemovedOnClose;
+//    }
 
     public synchronized Market getMarket(final String marketId) {
         //queries by market id - the result is invariant for the lifetime of the market.

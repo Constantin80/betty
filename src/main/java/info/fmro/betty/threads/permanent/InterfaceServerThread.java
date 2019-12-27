@@ -1,8 +1,12 @@
 package info.fmro.betty.threads.permanent;
 
+import info.fmro.betty.enums.CommandType;
 import info.fmro.betty.main.Betty;
 import info.fmro.betty.objects.Statics;
+import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.shared.utility.Generic;
+import info.fmro.shared.utility.StreamObjectInterface;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,6 +23,14 @@ import java.security.SecureRandom;
 public class InterfaceServerThread
         extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(InterfaceServerThread.class);
+
+    public static void sendObject(@NotNull final StreamObjectInterface object) { // sends to all connections
+        synchronized (Statics.interfaceConnectionThreadsSet) {
+            for (@NotNull final InterfaceConnectionThread interfaceConnectionThread : Statics.interfaceConnectionThreadsSet) {
+                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.sendObject, interfaceConnectionThread, object));
+            }
+        }
+    }
 
     @Override
     public void run() {

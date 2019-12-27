@@ -90,13 +90,14 @@ public class RulesManager
         return readSuccessful;
     }
 
-    public synchronized void associateMarketsWithEvents() {
+    private synchronized void associateMarketsWithEvents() {
         for (final ManagedMarket managedMarket : this.markets.valuesCopy()) {
             managedMarket.getParentEvent(); // this does the reciprocal association as well, by adding the markets in the managedEvent objects
         }
     }
 
-    public synchronized boolean checkMarketsAreAssociatedWithEvents() {
+    @SuppressWarnings("UnusedReturnValue")
+    private synchronized boolean checkMarketsAreAssociatedWithEvents() {
         boolean foundError = false;
         for (final ManagedMarket managedMarket : this.markets.valuesCopy()) {
             if (!managedMarket.parentEventIsSet() || !managedMarket.parentEventHasTheMarketAdded() || !managedMarket.parentEventHasTheMarketIdAdded()) { // error messages are printed inside the methods
@@ -282,7 +283,7 @@ public class RulesManager
 //        }
 //    }
 
-    public synchronized void manageMarket(final ManagedMarket managedMarket) {
+    private synchronized void manageMarket(final ManagedMarket managedMarket) {
         if (managedMarket == null) {
             logger.error("null managedMarket to check in RulesManager");
             this.markets.removeValueAll(null);

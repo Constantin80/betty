@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.lang.management.ThreadInfo;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashSet;
@@ -56,7 +57,7 @@ public class MaintenanceThread
     private static long timedPrintAverages() {
         long timeForNext = Statics.timeStamps.getLastPrintAverages();
         long timeTillNext = timeForNext - System.currentTimeMillis();
-        if (timeTillNext <= 0) {
+        if (timeTillNext <= 0L) {
             Statics.timeStamps.lastPrintAveragesStamp(Statics.DELAY_PRINT_AVERAGES);
             if (Statics.safeBetModuleActivated) {
                 if (Statics.betradarScraperThread.averageLogger != null) {
@@ -92,7 +93,6 @@ public class MaintenanceThread
             }
 
             timeForNext = Statics.timeStamps.getLastPrintAverages();
-
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -102,14 +102,53 @@ public class MaintenanceThread
     private static long timedReadAliases() {
         long timeForNext = Statics.timeStamps.getLastCheckAliases();
         long timeTillNext = timeForNext - System.currentTimeMillis();
-        if (timeTillNext <= 0) {
+        if (timeTillNext <= 0L) {
             Statics.timeStamps.lastCheckAliasesStamp(Generic.MINUTE_LENGTH_MILLISECONDS);
 
             VarsIO.checkAliasesFile(Statics.ALIASES_FILE_NAME, Statics.aliasesTimeStamp, Formulas.aliasesMap);
             VarsIO.checkAliasesFile(Statics.FULL_ALIASES_FILE_NAME, Statics.fullAliasesTimeStamp, Formulas.fullAliasesMap);
 
             timeForNext = Statics.timeStamps.getLastCheckAliases();
+            timeTillNext = timeForNext - System.currentTimeMillis();
+        } else { // nothing to be done
+        }
+        return timeTillNext;
+    }
 
+    @SuppressWarnings("OverlyNestedMethod")
+    private static long timedCheckDeadlock() {
+        long timeForNext = Statics.timeStamps.getLastCheckDeadlock();
+        long timeTillNext = timeForNext - System.currentTimeMillis();
+        if (timeTillNext <= 0L) {
+            Statics.timeStamps.lastCheckDeadlockStamp(Generic.HOUR_LENGTH_MILLISECONDS);
+
+            final long[] deadlockedThreadIds = Statics.threadMXBean.findDeadlockedThreads();
+            if (deadlockedThreadIds != null) {
+                logger.error("Deadlock detected!");
+                final ThreadInfo[] deadlockedThreadsInfo = Statics.threadMXBean.getThreadInfo(deadlockedThreadIds);
+                final Map<Thread, StackTraceElement[]> stackTraceMap = Thread.getAllStackTraces();
+                for (final ThreadInfo threadInfo : deadlockedThreadsInfo) {
+                    if (threadInfo != null) {
+                        for (final Thread thread : stackTraceMap.keySet()) {
+                            if (thread == null) {
+                                logger.error("null thread in timedCheckDeadlock in: {}", Generic.objectToString(stackTraceMap.keySet()));
+                            } else if (thread.getId() == threadInfo.getThreadId()) {
+                                logger.error(threadInfo.toString().trim());
+                                for (final StackTraceElement stackTraceElement : thread.getStackTrace()) {
+                                    logger.error("\t{}", stackTraceElement.toString().trim());
+                                }
+                                break;
+                            } else { // not the element I'm searching, loop will continue
+                            }
+                        }
+                    } else {
+                        logger.error("null threadInfo in timedCheckDeadlock in: {}", Generic.objectToString(deadlockedThreadsInfo));
+                    }
+                }
+            } else { // no deadlocked threads, nothing to be done
+            }
+
+            timeForNext = Statics.timeStamps.getLastCheckDeadlock();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -119,7 +158,7 @@ public class MaintenanceThread
     private static long timedPrintDebug() {
         long timeForNext = Statics.timeStamps.getLastPrintDebug();
         long timeTillNext = timeForNext - System.currentTimeMillis();
-        if (timeTillNext <= 0) {
+        if (timeTillNext <= 0L) {
             Statics.timeStamps.lastPrintDebugStamp(Generic.MINUTE_LENGTH_MILLISECONDS << 1);
             logger.info("maxMemory: {} totalMemory: {} freeMemory: {}", Generic.addCommas(Runtime.getRuntime().maxMemory()), Generic.addCommas(Runtime.getRuntime().totalMemory()), Generic.addCommas(Runtime.getRuntime().freeMemory()));
             logger.info("threadPools active/mostEver marketBooks: {}/{} important: {}/{} general: {}/{}", Statics.threadPoolExecutorMarketBooks.getActiveCount(), Statics.threadPoolExecutorMarketBooks.getLargestPoolSize(),
@@ -135,7 +174,6 @@ public class MaintenanceThread
                         Generic.addCommas(Statics.safetyLimits.speedLimit.getNOrdersSinceReset()));
 
             timeForNext = Statics.timeStamps.getLastPrintDebug();
-
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -145,10 +183,10 @@ public class MaintenanceThread
     private static long timedSaveObjects() {
         long timeForNext = Statics.timeStamps.getLastObjectsSave();
         long timeTillNext = timeForNext - System.currentTimeMillis();
-        if (timeTillNext <= 0) {
+        if (timeTillNext <= 0L) {
             VarsIO.writeObjectsToFiles();
-            timeForNext = Statics.timeStamps.getLastObjectsSave();
 
+            timeForNext = Statics.timeStamps.getLastObjectsSave();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -158,10 +196,10 @@ public class MaintenanceThread
     private static long timedSaveSettings() {
         long timeForNext = Statics.timeStamps.getLastSettingsSave();
         long timeTillNext = timeForNext - System.currentTimeMillis();
-        if (timeTillNext <= 0) {
+        if (timeTillNext <= 0L) {
             VarsIO.writeSettings();
-            timeForNext = Statics.timeStamps.getLastSettingsSave();
 
+            timeForNext = Statics.timeStamps.getLastSettingsSave();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -171,13 +209,13 @@ public class MaintenanceThread
     private static long timedCleanScraperEventsMap() {
         long timeForNext = Statics.timeStamps.getLastCleanScraperEventsMap();
         long timeTillNext = timeForNext - System.currentTimeMillis();
-        if (timeTillNext <= 0) {
+        if (timeTillNext <= 0L) {
             Statics.timeStamps.lastCleanScraperEventsMapStamp(Generic.MINUTE_LENGTH_MILLISECONDS * 10L);
             for (final Class<? extends ScraperEvent> classFromSet : Statics.scraperEventSubclassesSet) {
                 cleanScraperEventsMap(classFromSet);
             }
-            timeForNext = Statics.timeStamps.getLastCleanScraperEventsMap();
 
+            timeForNext = Statics.timeStamps.getLastCleanScraperEventsMap();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -200,10 +238,10 @@ public class MaintenanceThread
     private static long timedCleanEventsMap() {
         long timeForNext = Statics.eventsMap.getTimeClean();
         long timeTillNext = timeForNext - System.currentTimeMillis();
-        if (timeTillNext <= 0) {
+        if (timeTillNext <= 0L) {
             cleanEventsMap();
-            timeForNext = Statics.eventsMap.getTimeClean();
 
+            timeForNext = Statics.eventsMap.getTimeClean();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -213,10 +251,10 @@ public class MaintenanceThread
     private static long timedCleanMarketCataloguesMap() {
         long timeForNext = Statics.marketCataloguesMap.getTimeClean();
         long timeTillNext = timeForNext - System.currentTimeMillis();
-        if (timeTillNext <= 0) {
+        if (timeTillNext <= 0L) {
             cleanMarketCataloguesMap();
-            timeForNext = Statics.marketCataloguesMap.getTimeClean();
 
+            timeForNext = Statics.marketCataloguesMap.getTimeClean();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -226,10 +264,10 @@ public class MaintenanceThread
     private static long timedCleanSecondaryMaps() {
         long timeForNext = Statics.timeStamps.getLastCleanSecondaryMaps();
         long timeTillNext = timeForNext - System.currentTimeMillis();
-        if (timeTillNext <= 0) {
+        if (timeTillNext <= 0L) {
             cleanSecondaryMaps();
-            timeForNext = Statics.timeStamps.getLastCleanSecondaryMaps();
 
+            timeForNext = Statics.timeStamps.getLastCleanSecondaryMaps();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -239,10 +277,10 @@ public class MaintenanceThread
     private static long timedCleanSafeMarketsImportantMap() {
         long timeForNext = Statics.safeMarketsImportantMap.getTimeClean();
         long timeTillNext = timeForNext - System.currentTimeMillis();
-        if (timeTillNext <= 0) {
+        if (timeTillNext <= 0L) {
             cleanSafeMarketsImportantMap();
-            timeForNext = Statics.safeMarketsImportantMap.getTimeClean();
 
+            timeForNext = Statics.safeMarketsImportantMap.getTimeClean();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -252,10 +290,10 @@ public class MaintenanceThread
     private static long timedCleanTimedMaps() {
         long timeForNext = Statics.timeStamps.getLastCleanTimedMaps();
         long timeTillNext = timeForNext - System.currentTimeMillis();
-        if (timeTillNext <= 0) {
+        if (timeTillNext <= 0L) {
             cleanTimedMaps();
-            timeForNext = Statics.timeStamps.getLastCleanTimedMaps();
 
+            timeForNext = Statics.timeStamps.getLastCleanTimedMaps();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -265,10 +303,10 @@ public class MaintenanceThread
     private static long timedCleanSafeBetsMap() {
         long timeForNext = Statics.safeBetsMap.getTimeClean();
         long timeTillNext = timeForNext - System.currentTimeMillis();
-        if (timeTillNext <= 0) {
+        if (timeTillNext <= 0L) {
             cleanSafeBetsMap();
-            timeForNext = Statics.safeBetsMap.getTimeClean();
 
+            timeForNext = Statics.safeBetsMap.getTimeClean();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -1299,6 +1337,7 @@ public class MaintenanceThread
                 timeToSleep = Math.min(timeToSleep, timedPrintAverages());
                 // timeToSleep = Math.min(timeToSleep, BlackList.timedCheckExpired());
                 timeToSleep = Math.min(timeToSleep, timedReadAliases());
+                timeToSleep = Math.min(timeToSleep, timedCheckDeadlock());
 
                 Generic.threadSleepSegmented(timeToSleep, 100L, Statics.mustStop, Statics.mustWriteObjects, Statics.needSessionToken, Statics.orderToPrint);
             } catch (Throwable throwable) {
@@ -1311,6 +1350,7 @@ public class MaintenanceThread
         logger.info("maintenance thread ends");
         if (Statics.orderToPrint.get() != null) {
             logger.info("order not executed due to program stop: {}", Statics.orderToPrint.get());
+        } else { // no error, nothing to be done, thread finishes cleanly
         }
     }
 }

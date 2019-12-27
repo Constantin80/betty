@@ -26,7 +26,7 @@ public class InterfaceConnectionThread
         this.socket = socket;
     }
 
-    public synchronized void sendObject(@NotNull final StreamObjectInterface object) {
+    public synchronized void sendObject(@NotNull final StreamObjectInterface object, long counter) { // todo I need to order the objects being sent, else I can get erratic out of order behaviour
         object.runBeforeSend();
         while (!Statics.mustStop.get() && !this.outputStreamIsInitialized.get()) {
             logger.error("waiting for outputStream to be initialized in InterfaceConnectionThread");
@@ -45,6 +45,8 @@ public class InterfaceConnectionThread
         ObjectInputStream objectInputStream = null;
         try {
             this.objectOutputStream = new ObjectOutputStream(this.socket.getOutputStream());
+            this.objectOutputStream.writeObject(initialImage); // todo initialImage will send a counter for objects send, that is unique for the entire program, and each sendObject command will increment the counter
+            this.objectOutputStream.flush();
             this.outputStreamIsInitialized.set(true);
             //noinspection resource,IOResourceOpenedButNotSafelyClosed
             objectInputStream = new ObjectInputStream(this.socket.getInputStream());
