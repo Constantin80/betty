@@ -1,7 +1,8 @@
 package info.fmro.betty.entities;
 
-import info.fmro.betty.enums.InstructionReportErrorCode;
-import info.fmro.betty.enums.InstructionReportStatus;
+import info.fmro.shared.entities.CancelInstructionReport;
+import info.fmro.shared.enums.InstructionReportErrorCode;
+import info.fmro.shared.enums.InstructionReportStatus;
 
 class ReplaceInstructionReport {
     private InstructionReportStatus status;

@@ -1,13 +1,13 @@
 package info.fmro.betty.stream.cache.market;
 
-import info.fmro.betty.enums.MarketStatus;
+import info.fmro.shared.enums.MarketStatus;
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.stream.cache.util.RunnerId;
-import info.fmro.betty.stream.cache.util.Utils;
-import info.fmro.betty.stream.definitions.MarketChange;
-import info.fmro.betty.stream.definitions.MarketDefinition;
-import info.fmro.betty.stream.definitions.RunnerChange;
-import info.fmro.betty.stream.definitions.RunnerDefinition;
+import info.fmro.shared.stream.objects.RunnerId;
+import info.fmro.shared.stream.definitions.MarketChange;
+import info.fmro.shared.stream.definitions.MarketDefinition;
+import info.fmro.shared.stream.definitions.RunnerChange;
+import info.fmro.shared.stream.definitions.RunnerDefinition;
+import info.fmro.shared.utility.Formulas;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,7 +37,7 @@ public class Market
         //runners changed
         Optional.ofNullable(marketChange.getRc()).ifPresent(l -> l.forEach(p -> onPriceChange(isImage, p)));
 
-        this.tv = Utils.selectPrice(isImage, this.tv, marketChange.getTv());
+        this.tv = Formulas.selectPrice(isImage, this.tv, marketChange.getTv());
     }
 
     private synchronized void onPriceChange(final boolean isImage, @NotNull final RunnerChange runnerChange) {

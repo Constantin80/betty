@@ -6,8 +6,8 @@ import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.cache.market.Market;
 import info.fmro.betty.stream.cache.order.OrderMarket;
 import info.fmro.betty.stream.cache.order.OrderMarketRunner;
-import info.fmro.betty.stream.enums.Side;
-import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.stream.enums.Side;
+import info.fmro.shared.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -17,8 +17,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 @SuppressWarnings({"OverlyComplexClass", "UtilityClass"})
 public final class Utils {
@@ -26,17 +24,6 @@ public final class Utils {
 
     @Contract(pure = true)
     private Utils() {
-    }
-
-    @Contract(value = "true, _, !null -> param3; false, _, null -> param2; false, _, !null -> param3", pure = true)
-    public static double selectPrice(final boolean isImage, final double currentPrice, final Double newPrice) {
-        final double returnValue;
-        if (isImage) {
-            returnValue = newPrice == null ? 0d : newPrice;
-        } else {
-            returnValue = newPrice == null ? currentPrice : newPrice;
-        }
-        return returnValue;
     }
 
     public static void calculateMarketLimits(final double maxTotalLimit, @NotNull final Iterable<? extends ManagedMarket> marketsSet, final boolean shouldCalculateExposure, final boolean marketLimitsCanBeIncreased) {
@@ -255,7 +242,7 @@ public final class Utils {
         } else {
             final double firstToBeUsedOdds = toBeUsedOdds.get(0), secondToBeUsedOdds = toBeUsedOdds.get(1);
             final Side firstSide = sideList.get(0), secondSide = sideList.get(1);
-            if (!Formulas.oddsAreUsable(firstToBeUsedOdds) || !Formulas.oddsAreUsable(secondToBeUsedOdds) || firstSide == secondSide) {
+            if (!info.fmro.shared.utility.Formulas.oddsAreUsable(firstToBeUsedOdds) || !info.fmro.shared.utility.Formulas.oddsAreUsable(secondToBeUsedOdds) || firstSide == secondSide) {
                 logger.error("bogus internal arguments for getExposureToBePlacedForTwoWayMarket: {} {} {}", Generic.objectToString(sideList), Generic.objectToString(toBeUsedOdds), excessMatchedExposure);
                 resultList = List.of(0d, 0d);
             } else {
@@ -359,7 +346,7 @@ public final class Utils {
         } else {
             final double firstToBeUsedOdds = toBeUsedOdds.get(0), secondToBeUsedOdds = toBeUsedOdds.get(1);
             final Side firstSide = sideList.get(0), secondSide = sideList.get(1);
-            if (!Formulas.oddsAreUsable(firstToBeUsedOdds) || !Formulas.oddsAreUsable(secondToBeUsedOdds) || firstSide == secondSide) {
+            if (!info.fmro.shared.utility.Formulas.oddsAreUsable(firstToBeUsedOdds) || !Formulas.oddsAreUsable(secondToBeUsedOdds) || firstSide == secondSide) {
                 logger.error("bogus internal arguments for getAmountsToBePlacedForTwoWayMarket: {} {} {}", Generic.objectToString(sideList), Generic.objectToString(toBeUsedOdds), availableLimit);
                 resultList = List.of(0d, 0d);
             } else {
@@ -405,23 +392,4 @@ public final class Utils {
         return resultList;
     }
 
-    public static void removeOwnAmountsFromAvailableTreeMap(@NotNull final TreeMap<Double, Double> availableAmounts, @NotNull final TreeMap<Double, Double> amountsFromMyUnmatchedOrders) {
-        for (final Map.Entry<Double, Double> entry : availableAmounts.entrySet()) {
-            final Double price = entry.getKey();
-            if (price == null) {
-                logger.error("null price in removeOwnAmountsFromAvailableTreeMap for: {} {}", Generic.objectToString(availableAmounts), Generic.objectToString(amountsFromMyUnmatchedOrders));
-            } else {
-                final Double availableAmount = entry.getValue();
-                final double availableAmountPrimitive = availableAmount == null ? 0d : availableAmount;
-                final Double myAmount = amountsFromMyUnmatchedOrders.get(price);
-                final double myAmountPrimitive = myAmount == null ? 0d : myAmount;
-                final double amountFromOthers = availableAmountPrimitive - myAmountPrimitive;
-                if (amountFromOthers < 0.01d) {
-                    availableAmounts.replace(price, 0d);
-                } else {
-                    availableAmounts.replace(price, amountFromOthers);
-                }
-            }
-        }
-    }
 }

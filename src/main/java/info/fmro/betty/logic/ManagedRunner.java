@@ -1,15 +1,17 @@
 package info.fmro.betty.logic;
 
+import info.fmro.shared.enums.RulesManagerModificationCommand;
+import info.fmro.shared.stream.objects.RulesManagerModification;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.cache.market.Market;
 import info.fmro.betty.stream.cache.market.MarketRunner;
 import info.fmro.betty.stream.cache.order.OrderMarket;
 import info.fmro.betty.stream.cache.order.OrderMarketRunner;
-import info.fmro.betty.stream.cache.util.RunnerId;
+import info.fmro.shared.stream.objects.RunnerId;
 import info.fmro.betty.stream.cache.util.Utils;
 import info.fmro.betty.stream.definitions.Order;
-import info.fmro.betty.stream.enums.Side;
-import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.stream.enums.Side;
+import info.fmro.shared.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
@@ -234,8 +236,8 @@ public class ManagedRunner
             final double existingBackOdds = this.marketRunner.getBestAvailableBackPrice(unmatchedOrders, this.getBackAmountLimit(marketCalculatedLimit));
             final double existingLayOdds = this.marketRunner.getBestAvailableLayPrice(unmatchedOrders, this.getLayAmountLimit(marketCalculatedLimit));
 
-            final double layNStepDifferentOdds = existingLayOdds == 0 ? 1_000d : Formulas.getNStepDifferentOdds(existingLayOdds, -1);
-            final double backNStepDifferentOdds = existingBackOdds == 0 ? 1.01d : Formulas.getNStepDifferentOdds(existingBackOdds, 1);
+            final double layNStepDifferentOdds = existingLayOdds == 0 ? 1_000d : info.fmro.shared.utility.Formulas.getNStepDifferentOdds(existingLayOdds, -1);
+            final double backNStepDifferentOdds = existingBackOdds == 0 ? 1.01d : info.fmro.shared.utility.Formulas.getNStepDifferentOdds(existingBackOdds, 1);
 
             this.toBeUsedBackOdds = Math.max(this.getMinBackOdds(), layNStepDifferentOdds);
             this.toBeUsedLayOdds = Math.min(this.getMaxLayOdds(), backNStepDifferentOdds);
@@ -246,10 +248,10 @@ public class ManagedRunner
         }
         if (this.orderMarketRunner != null) {
             // send order to cancel all back bets at worse odds than to be used ones / send order to cancel all back bets
-            exposureHasBeenModified += Formulas.oddsAreUsable(this.toBeUsedBackOdds) ? this.orderMarketRunner.cancelUnmatched(Side.B, this.toBeUsedBackOdds) : this.orderMarketRunner.cancelUnmatched(Side.B);
+            exposureHasBeenModified += info.fmro.shared.utility.Formulas.oddsAreUsable(this.toBeUsedBackOdds) ? this.orderMarketRunner.cancelUnmatched(Side.B, this.toBeUsedBackOdds) : this.orderMarketRunner.cancelUnmatched(Side.B);
 
             // send order to cancel all lay bets at worse odds than to be used ones / send order to cancel all lay bets
-            exposureHasBeenModified += Formulas.oddsAreUsable(this.toBeUsedLayOdds) ? this.orderMarketRunner.cancelUnmatched(Side.L, this.toBeUsedLayOdds) : this.orderMarketRunner.cancelUnmatched(Side.L);
+            exposureHasBeenModified += info.fmro.shared.utility.Formulas.oddsAreUsable(this.toBeUsedLayOdds) ? this.orderMarketRunner.cancelUnmatched(Side.L, this.toBeUsedLayOdds) : this.orderMarketRunner.cancelUnmatched(Side.L);
         } else {
             logger.error("null orderMarketRunner in calculateOdds: {}", Generic.objectToString(this));
         }
@@ -273,7 +275,7 @@ public class ManagedRunner
         } else {
             // back
             final TreeMap<Double, Double> unmatchedBackAmounts = this.orderMarketRunner.getUnmatchedBackAmounts(), availableLayAmounts = this.marketRunner.getAvailableToLay();
-            Utils.removeOwnAmountsFromAvailableTreeMap(availableLayAmounts, unmatchedBackAmounts);
+            Formulas.removeOwnAmountsFromAvailableTreeMap(availableLayAmounts, unmatchedBackAmounts);
             final NavigableSet<Double> unmatchedBackPrices = unmatchedBackAmounts.descendingKeySet();
             double worstOddsThatAreGettingCanceledBack = 0d;
             for (final Double unmatchedPrice : unmatchedBackPrices) {
@@ -304,7 +306,7 @@ public class ManagedRunner
 
             // lay
             final TreeMap<Double, Double> unmatchedLayAmounts = this.orderMarketRunner.getUnmatchedLayAmounts(), availableBackAmounts = this.marketRunner.getAvailableToBack();
-            Utils.removeOwnAmountsFromAvailableTreeMap(availableBackAmounts, unmatchedLayAmounts);
+            Formulas.removeOwnAmountsFromAvailableTreeMap(availableBackAmounts, unmatchedLayAmounts);
             final NavigableSet<Double> unmatchedLayPrices = unmatchedLayAmounts.descendingKeySet();
             double worstOddsThatAreGettingCanceledLay = 0d;
             for (final Double unmatchedPrice : unmatchedLayPrices) {
@@ -477,6 +479,7 @@ public class ManagedRunner
             }
 
         if (modified) {
+            Statics.rulesManager.listOfQueues.send(new RulesManagerModification(RulesManagerModificationCommand.setBackAmountLimit, this.backAmountLimit));
             Statics.rulesManager.rulesHaveChanged.set(true);
         }
         return modified;
@@ -495,6 +498,7 @@ public class ManagedRunner
             }
 
         if (modified) {
+            Statics.rulesManager.listOfQueues.send(new RulesManagerModification(RulesManagerModificationCommand.setLayAmountLimit, this.layAmountLimit));
             Statics.rulesManager.rulesHaveChanged.set(true);
         }
         return modified;
@@ -513,6 +517,7 @@ public class ManagedRunner
             }
 
         if (modified) {
+            Statics.rulesManager.listOfQueues.send(new RulesManagerModification(RulesManagerModificationCommand.setMinBackOdds, this.minBackOdds));
             Statics.rulesManager.rulesHaveChanged.set(true);
         }
         return modified;
@@ -531,6 +536,7 @@ public class ManagedRunner
             }
 
         if (modified) {
+            Statics.rulesManager.listOfQueues.send(new RulesManagerModification(RulesManagerModificationCommand.setMaxLayOdds, this.maxLayOdds));
             Statics.rulesManager.rulesHaveChanged.set(true);
         }
         return modified;

@@ -1,7 +1,7 @@
 package info.fmro.betty.safebet;
 
 import info.fmro.betty.entities.Event;
-import info.fmro.betty.enums.MatchStatus;
+import info.fmro.shared.enums.MatchStatus;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;

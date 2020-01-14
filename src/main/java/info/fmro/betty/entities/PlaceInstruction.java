@@ -1,7 +1,9 @@
 package info.fmro.betty.entities;
 
-import info.fmro.betty.enums.OrderType;
-import info.fmro.betty.enums.Side;
+import info.fmro.shared.entities.LimitOnCloseOrder;
+import info.fmro.shared.entities.MarketOnCloseOrder;
+import info.fmro.shared.enums.OrderType;
+import info.fmro.shared.enums.Side;
 import info.fmro.shared.utility.Generic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

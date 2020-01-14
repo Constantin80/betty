@@ -1,8 +1,8 @@
 package info.fmro.betty.entities;
 
-import info.fmro.betty.enums.InstructionReportErrorCode;
-import info.fmro.betty.enums.InstructionReportStatus;
-import info.fmro.betty.enums.OrderStatus;
+import info.fmro.shared.enums.InstructionReportErrorCode;
+import info.fmro.shared.enums.InstructionReportStatus;
+import info.fmro.shared.enums.OrderStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Date;

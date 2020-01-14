@@ -1,29 +1,29 @@
 package info.fmro.betty.logic;
 
 import com.google.common.util.concurrent.AtomicDouble;
-import info.fmro.betty.entities.ClearedOrderSummary;
-import info.fmro.betty.entities.CurrencyRate;
+import info.fmro.betty.betapi.RescriptOpThread;
+import info.fmro.shared.entities.ClearedOrderSummary;
+import info.fmro.shared.entities.CurrencyRate;
 import info.fmro.betty.entities.CurrentOrderSummary;
-import info.fmro.betty.entities.ExchangePrices;
+import info.fmro.shared.entities.ExchangePrices;
 import info.fmro.betty.entities.LimitOrder;
 import info.fmro.betty.entities.MarketBook;
 import info.fmro.betty.entities.PlaceInstruction;
-import info.fmro.betty.entities.PriceSize;
-import info.fmro.betty.entities.Runner;
-import info.fmro.betty.enums.CommandType;
-import info.fmro.betty.enums.MarketStatus;
-import info.fmro.betty.enums.OrderType;
-import info.fmro.betty.enums.PersistenceType;
-import info.fmro.betty.enums.RunnerStatus;
-import info.fmro.betty.enums.Side;
+import info.fmro.shared.entities.PriceSize;
+import info.fmro.shared.entities.Runner;
+import info.fmro.shared.enums.CommandType;
+import info.fmro.shared.enums.MarketStatus;
+import info.fmro.shared.enums.OrderType;
+import info.fmro.shared.enums.PersistenceType;
+import info.fmro.shared.enums.RunnerStatus;
+import info.fmro.shared.enums.Side;
 import info.fmro.betty.objects.BlackList;
-import info.fmro.betty.objects.OrderPrice;
+import info.fmro.shared.objects.OrderPrice;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.safebet.SafeBet;
 import info.fmro.betty.safebet.SafeRunner;
 import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.threads.permanent.MaintenanceThread;
-import info.fmro.betty.betapi.RescriptOpThread;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
@@ -71,7 +71,6 @@ public class SafetyLimits
     private final HashMap<String, HashMap<String, List<PlaceInstruction>>> tempInstructionsListMap = new HashMap<>(2, 0.75F);
     public final BetFrequencyLimit speedLimit = new BetFrequencyLimit();
     private boolean startedGettingOrders;
-
 
     public synchronized void copyFrom(final SafetyLimits safetyLimits) {
 //        if (!this.tempReserveMap.isEmpty()) {
@@ -361,7 +360,7 @@ public class SafetyLimits
                         // if (localUsedBalance == 0d) {
                         //     Statics.safetyLimits.addLocalUsedBalance(localUsedBalance);
                         // }
-                        localUsedBalance += Formulas.layExposure(price, orderSize);
+                        localUsedBalance += info.fmro.shared.utility.Formulas.layExposure(price, orderSize);
                         break;
                     default:
                         logger.error("STRANGE unknown side in switch: {}", side);

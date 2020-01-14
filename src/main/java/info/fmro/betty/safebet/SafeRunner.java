@@ -1,12 +1,12 @@
 package info.fmro.betty.safebet;
 
-import info.fmro.betty.enums.ScrapedField;
-import info.fmro.betty.enums.Side;
+import info.fmro.shared.enums.ScrapedField;
+import info.fmro.shared.enums.Side;
 import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.shared.utility.Generic;
-import info.fmro.shared.utility.SafeObjectInterface;
+import info.fmro.shared.objects.SafeObjectInterface;
 import info.fmro.shared.utility.SynchronizedMap;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;

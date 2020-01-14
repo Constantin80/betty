@@ -2,8 +2,8 @@ package info.fmro.betty.threads;
 
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.MarketCatalogue;
-import info.fmro.betty.enums.CommandType;
-import info.fmro.betty.enums.MatchStatus;
+import info.fmro.shared.enums.CommandType;
+import info.fmro.shared.enums.MatchStatus;
 import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.safebet.FindMarkets;
@@ -12,11 +12,9 @@ import info.fmro.betty.safebet.ScraperEvent;
 import info.fmro.betty.safebet.ScraperPermanentThread;
 import info.fmro.betty.stream.client.ClientHandler;
 import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
-import info.fmro.betty.threads.permanent.InterfaceConnectionThread;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
-import info.fmro.shared.utility.StreamObjectInterface;
 import info.fmro.shared.utility.SynchronizedMap;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -52,20 +50,20 @@ public class LaunchCommandThread
     private Set<?> scraperEventsSet;
     private LinkedHashSet<Entry<String, MarketCatalogue>> entrySet;
     private Class<? extends ScraperEvent> clazz;
-    private InterfaceConnectionThread interfaceConnectionThread;
-    private StreamObjectInterface streamObjectInterface;
+//    private InterfaceConnectionThread interfaceConnectionThread;
+//    private StreamObjectInterface streamObjectInterface;
 
     @Contract(pure = true)
     public LaunchCommandThread(final CommandType command) {
         this.command = command;
     }
 
-    @Contract(pure = true)
-    public LaunchCommandThread(final CommandType command, @NotNull final InterfaceConnectionThread interfaceConnectionThread, final StreamObjectInterface streamObjectInterface) {
-        this.command = command;
-        this.interfaceConnectionThread = interfaceConnectionThread;
-        this.streamObjectInterface = streamObjectInterface;
-    }
+//    @Contract(pure = true)
+//    public LaunchCommandThread(final CommandType command, @NotNull final InterfaceConnectionThread interfaceConnectionThread, final StreamObjectInterface streamObjectInterface) {
+//        this.command = command;
+//        this.interfaceConnectionThread = interfaceConnectionThread;
+//        this.streamObjectInterface = streamObjectInterface;
+//    }
 
     @Contract(pure = true)
     public LaunchCommandThread(final CommandType command, final boolean checkAll) {
@@ -631,14 +629,12 @@ public class LaunchCommandThread
             case streamMarkets:
                 ClientHandler.streamAllMarkets();
                 break;
-            case sendObject:
-                this.interfaceConnectionThread.sendObject(this.streamObjectInterface);
-                break;
+//            case sendObject:
+//                this.interfaceConnectionThread.sendObject(this.streamObjectInterface);
+//                break;
             default:
                 logger.error("unknown operation in LaunchCommandThread: {}", this.command);
                 break;
         } // end switch
     }
 }
-// todo I need InterfaceConnection Reader and Writer threads, so 2 threads instead of 1; this will simplify the situation and I probably don't need LaunchCommandThread usage anymore
-// todo keep the created socket/inputStream/outputStreams inside InterfaceServerThread in local collections, rather than in Statics class, and use a method to close them when program stops; the method might be private and run when the InterfaceServerThread finishes execution; this means it needs to be closed in Betty.main before the created threads

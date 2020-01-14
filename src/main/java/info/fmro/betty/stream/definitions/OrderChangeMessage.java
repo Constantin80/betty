@@ -1,7 +1,10 @@
 package info.fmro.betty.stream.definitions;
 
-import info.fmro.betty.stream.enums.ChangeType;
-import info.fmro.betty.stream.enums.SegmentType;
+import info.fmro.shared.stream.objects.StreamObjectInterface;
+import info.fmro.shared.stream.definitions.ResponseMessage;
+import info.fmro.shared.stream.enums.ChangeType;
+import info.fmro.shared.stream.enums.SegmentType;
+import org.apache.commons.lang3.SerializationUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
@@ -12,7 +15,7 @@ import java.util.List;
 // objects of this class are read from the stream
 public class OrderChangeMessage
         extends ResponseMessage
-        implements Serializable {
+        implements Serializable, StreamObjectInterface {
     private static final long serialVersionUID = 5357844283995226019L;
     private String clk; // Token value (non-null) should be stored and passed in a MarketSubscriptionMessage to resume subscription (in case of disconnect)
     private Long conflateMs; // Conflate Milliseconds - the conflation rate (may differ from that requested if subscription is delayed)
@@ -25,6 +28,17 @@ public class OrderChangeMessage
     private Date pt; // Publish Time (in millis since epoch) that the changes were generated
     private SegmentType segmentType; // Segment Type - if the change is split into multiple segments, this denotes the beginning and end of a change, and segments in between. Will be null if data is not segmented
     private Integer status; // Stream status: set to null if the exchange stream data is up to date and 503 if the downstream services are experiencing latencies
+
+    public synchronized OrderChangeMessage getCopy() {
+        return SerializationUtils.clone(this);
+    }
+
+    public synchronized int runAfterReceive() {
+        return 0;
+    }
+
+    public synchronized void runBeforeSend() {
+    }
 
     public synchronized String getClk() {
         return this.clk;

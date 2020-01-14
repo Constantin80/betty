@@ -1,31 +1,22 @@
 package info.fmro.betty.stream.client;
 
-import info.fmro.betty.stream.definitions.MarketFilter;
-import info.fmro.betty.stream.definitions.MarketSubscriptionMessage;
-import info.fmro.betty.stream.definitions.OrderSubscriptionMessage;
+import info.fmro.shared.stream.definitions.MarketFilter;
+import info.fmro.shared.stream.definitions.MarketSubscriptionMessage;
+import info.fmro.shared.stream.definitions.OrderSubscriptionMessage;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.shell.core.CommandMarker;
-import org.springframework.shell.core.annotation.CliCommand;
-import org.springframework.shell.plugin.support.DefaultPromptProvider;
-import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-@Component
-@Configuration
-final class ClientCommands
-        extends DefaultPromptProvider
-        implements CommandMarker {
+final class ClientCommands {
     private ClientCommands() {
         super();
     }
 
+    @NotNull
     @SuppressWarnings("unused")
-    @CliCommand(value = "marketFireHose", help = "subscribes to all markets")
     public static MarketSubscriptionMessage marketFireHose(final Client client) {
 //        1=Soccer  10k markets
 //        2=Tennis  6k markets
@@ -55,12 +46,14 @@ final class ClientCommands
     }
 
     // Subscribe to the specified market ids. (starting the client if needed).
+    @NotNull
     private static MarketSubscriptionMessage createMarketSubscriptionMessage(final Client client, final String... markets) {
         final MarketFilter marketFilter = new MarketFilter();
         marketFilter.setMarketIds(new HashSet<>(Arrays.asList(markets)));
         return createMarketSubscriptionMessage(client, marketFilter);
     }
 
+    @NotNull
     static MarketSubscriptionMessage createMarketSubscriptionMessage(final Client client, final Set<String> markets) {
         final MarketFilter marketFilter = new MarketFilter();
         marketFilter.setMarketIds(markets);
@@ -68,6 +61,7 @@ final class ClientCommands
     }
 
     // Subscribe to the specified markets (matching your filter). (starting the client if needed).
+    @NotNull
     private static MarketSubscriptionMessage createMarketSubscriptionMessage(final Client client, final MarketFilter marketFilter) {
         final MarketSubscriptionMessage marketSubscriptionMessage = new MarketSubscriptionMessage();
         marketSubscriptionMessage.setMarketFilter(marketFilter);
@@ -75,6 +69,7 @@ final class ClientCommands
     }
 
     // Explicit order subscription.
+    @NotNull
     @Contract("_, _ -> param2")
     private static MarketSubscriptionMessage createMarketSubscriptionMessage(@NotNull final Client client, @NotNull final MarketSubscriptionMessage message) {
         message.setConflateMs(client.conflateMs.get());
@@ -84,11 +79,13 @@ final class ClientCommands
     }
 
     // Subscribe to all orders.
+    @NotNull
     static OrderSubscriptionMessage createOrderSubscriptionMessage(final Client client) {
         return createOrderSubscriptionMessage(client, new OrderSubscriptionMessage());
     }
 
     // Explict order subscription.
+    @NotNull
     @Contract("_, _ -> param2")
     private static OrderSubscriptionMessage createOrderSubscriptionMessage(@NotNull final Client client, @NotNull final OrderSubscriptionMessage message) {
         message.setConflateMs(client.conflateMs.get());

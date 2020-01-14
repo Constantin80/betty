@@ -1,6 +1,8 @@
 package info.fmro.betty.logic;
 
+import info.fmro.shared.enums.RulesManagerModificationCommand;
 import info.fmro.betty.objects.ManagedMarketsMap;
+import info.fmro.shared.stream.objects.RulesManagerModification;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.cache.util.Utils;
 import info.fmro.shared.utility.SynchronizedSet;
@@ -58,6 +60,7 @@ public class ManagedEvent
             }
 
         if (modified) {
+            Statics.rulesManager.listOfQueues.send(new RulesManagerModification(RulesManagerModificationCommand.setEventAmountLimit, this.amountLimit));
             Statics.rulesManager.rulesHaveChanged.set(true);
         }
         return modified;

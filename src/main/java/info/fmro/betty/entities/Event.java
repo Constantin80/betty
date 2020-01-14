@@ -1,6 +1,6 @@
 package info.fmro.betty.entities;
 
-import info.fmro.betty.enums.CommandType;
+import info.fmro.shared.enums.CommandType;
 import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.safebet.ScraperEvent;

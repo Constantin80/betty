@@ -1,7 +1,7 @@
 package info.fmro.betty.stream.cache.order;
 
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.stream.cache.util.RunnerId;
+import info.fmro.shared.stream.objects.RunnerId;
 import info.fmro.betty.stream.definitions.OrderMarketChange;
 import info.fmro.betty.stream.definitions.OrderRunnerChange;
 import org.jetbrains.annotations.NotNull;

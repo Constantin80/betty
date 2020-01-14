@@ -1,44 +1,44 @@
 package info.fmro.betty.stream.cache.market;
 
-import info.fmro.betty.stream.definitions.MarketChange;
-import info.fmro.betty.stream.protocol.ChangeMessage;
+import info.fmro.shared.stream.objects.ListOfQueues;
+import info.fmro.shared.stream.definitions.MarketChange;
+import info.fmro.shared.stream.protocol.ChangeMessage;
+import info.fmro.shared.stream.objects.StreamObjectInterface;
+import org.apache.commons.lang3.SerializationUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MarketCache
-        implements Serializable {
+        implements Serializable, StreamObjectInterface {
     private static final long serialVersionUID = -6721530926161875702L;
+    public transient ListOfQueues listOfQueues = new ListOfQueues();
     private final Map<String, Market> markets = new ConcurrentHashMap<>(32); // only place where markets are permanently stored
     @SuppressWarnings("FieldMayBeFinal")
     private boolean isMarketRemovedOnClose = true; // default
-//    private long timeClean; // time for maintenance clean of marketCache
 
     //conflation indicates slow consumption
     private int conflatedCount;
 
-    //    public synchronized void copyFrom(MarketCache marketCache) {
-//        if (!this.markets.isEmpty()) {
-//            logger.error("not empty map in MarketCache copyFrom: {}", Generic.objectToString(this));
-//        }
-//
-//        if (marketCache == null) {
-//            logger.error("null marketCache in copyFrom for: {}", Generic.objectToString(this));
-//        } else {
-//            this.markets.clear();
-//            if (marketCache.markets != null) {
-//                this.markets.putAll(marketCache.markets);
-//            } else {
-//                logger.error("null markets in MarketCache copyFrom: {}", Generic.objectToString(marketCache));
-//            }
-//
-//            this.isMarketRemovedOnClose = marketCache.isMarketRemovedOnClose;
-//            this.conflatedCount = marketCache.conflatedCount;
-//        }
-//        copyFromStamp();
-//    }
+    private void readObject(@NotNull final java.io.ObjectInputStream in)
+            throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        this.listOfQueues = new ListOfQueues();
+    }
+
+    public synchronized MarketCache getCopy() {
+        return SerializationUtils.clone(this);
+    }
+
+    public synchronized int runAfterReceive() {
+        return 0;
+    }
+
+    public synchronized void runBeforeSend() {
+    }
 
     public synchronized void onMarketChange(@NotNull final ChangeMessage<? extends MarketChange> changeMessage) {
         if (changeMessage.isStartOfNewSubscription()) {
@@ -59,6 +59,7 @@ public class MarketCache
         }
     }
 
+    @NotNull
     private synchronized Market onMarketChange(@NotNull final MarketChange marketChange) {
         if (Boolean.TRUE.equals(marketChange.getCon())) {
             this.conflatedCount++;

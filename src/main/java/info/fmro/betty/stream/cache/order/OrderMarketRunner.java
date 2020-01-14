@@ -2,13 +2,13 @@ package info.fmro.betty.stream.cache.order;
 
 import info.fmro.betty.logic.Exposure;
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.objects.TwoDoubles;
+import info.fmro.shared.objects.TwoDoubles;
 import info.fmro.betty.stream.cache.util.PriceSizeLadder;
-import info.fmro.betty.stream.cache.util.RunnerId;
+import info.fmro.shared.stream.objects.RunnerId;
 import info.fmro.betty.stream.definitions.Order;
 import info.fmro.betty.stream.definitions.OrderRunnerChange;
-import info.fmro.betty.stream.enums.Side;
-import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.stream.enums.Side;
+import info.fmro.shared.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -410,7 +410,7 @@ public class OrderMarketRunner
                             if (worstNotCanceledOdds == 0d) { // right side, and odds don't matter
                                 shouldCancelOrder = true;
                             } else {
-                                shouldCancelOrder = Formulas.oddsAreWorse(side, worstNotCanceledOdds, price);
+                                shouldCancelOrder = info.fmro.shared.utility.Formulas.oddsAreWorse(side, worstNotCanceledOdds, price);
                             }
 
                         if (shouldCancelOrder) {

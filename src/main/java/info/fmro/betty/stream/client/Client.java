@@ -2,9 +2,9 @@ package info.fmro.betty.stream.client;
 
 import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.stream.definitions.AuthenticationMessage;
-import info.fmro.betty.stream.enums.FilterFlag;
-import info.fmro.betty.stream.definitions.MarketDataFilter;
+import info.fmro.shared.stream.definitions.AuthenticationMessage;
+import info.fmro.shared.stream.enums.FilterFlag;
+import info.fmro.shared.stream.definitions.MarketDataFilter;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;

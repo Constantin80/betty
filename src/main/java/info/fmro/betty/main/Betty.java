@@ -2,16 +2,14 @@ package info.fmro.betty.main;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import info.fmro.betty.betapi.JsonConverter;
-import info.fmro.betty.entities.SessionToken;
-import info.fmro.betty.objects.SessionTokenObject;
+import info.fmro.shared.entities.SessionToken;
+import info.fmro.shared.objects.SessionTokenObject;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.client.ClientHandler;
 import info.fmro.betty.threads.permanent.GetFundsThread;
 import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
 import info.fmro.betty.threads.permanent.IdleConnectionMonitorThread;
-import info.fmro.betty.threads.permanent.InputConnectionThread;
 import info.fmro.betty.threads.permanent.InputServerThread;
-import info.fmro.betty.threads.permanent.InterfaceConnectionThread;
 import info.fmro.betty.threads.permanent.InterfaceServerThread;
 import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.betty.threads.permanent.PlacedAmountsThread;
@@ -38,28 +36,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -200,7 +188,7 @@ public final class Betty {
             Statics.rulesManager.start();
 
             if (Statics.safeBetModuleActivated) {
-                if (!BrowserVersion.BEST_SUPPORTED.equals(BrowserVersion.FIREFOX_52)) {
+                if (!BrowserVersion.BEST_SUPPORTED.equals(BrowserVersion.FIREFOX_60)) {
                     // sometimes this changes if I use a new version of HtmlUnit
                     logger.error("HtmlUnit BrowserVersion.BEST_SUPPORTED has changed, a review of BrowserVersion usage is necessary");
                 }
@@ -225,55 +213,16 @@ public final class Betty {
                 }
             } // end while
 
-            synchronized (Statics.inputConnectionSocketsSet) {
-                for (final Socket socket : Statics.inputConnectionSocketsSet) {
-                    Generic.closeObject(socket);
-                }
-            } // end synchronized
-            synchronized (Statics.inputServerSocketsSet) {
-                for (final ServerSocket serverSocket : Statics.inputServerSocketsSet) {
-                    Generic.closeObject(serverSocket);
-                }
-            } // end synchronized
             if (inputServerThread.isAlive()) {
+                inputServerThread.closeSocket();
                 logger.info("joining inputServer thread");
                 inputServerThread.join();
             }
-            final Set<InputConnectionThread> inputConnectionThreadsSetCopy;
-            synchronized (Statics.inputConnectionThreadsSet) {
-                inputConnectionThreadsSetCopy = new HashSet<>(Statics.inputConnectionThreadsSet);
-            } // end synchronized
-            for (final InputConnectionThread inputConnectionThread : inputConnectionThreadsSetCopy) {
-                if (inputConnectionThread.isAlive()) {
-                    logger.info("joining inputConnection");
-                    inputConnectionThread.join();
-                }
-            } // end for
-
-            synchronized (Statics.interfaceConnectionSocketsSet) {
-                for (final Socket socket : Statics.interfaceConnectionSocketsSet) {
-                    Generic.closeObject(socket);
-                }
-            } // end synchronized
-            synchronized (Statics.interfaceServerSocketsSet) {
-                for (final ServerSocket serverSocket : Statics.interfaceServerSocketsSet) {
-                    Generic.closeObject(serverSocket);
-                }
-            } // end synchronized
             if (interfaceServerThread.isAlive()) {
+                interfaceServerThread.closeSocket();
                 logger.info("joining interfaceServer thread");
                 interfaceServerThread.join();
             }
-            final Set<InterfaceConnectionThread> interfaceConnectionThreadsSetCopy;
-            synchronized (Statics.interfaceConnectionThreadsSet) {
-                interfaceConnectionThreadsSetCopy = new HashSet<>(Statics.interfaceConnectionThreadsSet);
-            } // end synchronized
-            for (final InterfaceConnectionThread interfaceConnectionThread : interfaceConnectionThreadsSetCopy) {
-                if (interfaceConnectionThread.isAlive()) {
-                    logger.info("joining interfaceConnection");
-                    interfaceConnectionThread.join();
-                }
-            } // end for
 
             if (getFundsThread.isAlive()) {
                 logger.info("joining getFunds thread");
@@ -395,7 +344,7 @@ public final class Betty {
 
         try {
             final SSLContext sSLContext = SSLContext.getInstance("TLS");
-            final KeyManager[] keyManagers = getKeyManagers(keyStoreFileName, keyStorePassword, keyStoreType);
+            final KeyManager[] keyManagers = Generic.getKeyManagers(keyStoreFileName, keyStorePassword, keyStoreType);
 
             sSLContext.init(keyManagers, null, new SecureRandom());
             final LayeredConnectionSocketFactory sSLConnectionSocketFactory = new SSLConnectionSocketFactory(sSLContext, new DefaultHostnameVerifier());
@@ -515,26 +464,6 @@ public final class Betty {
         logger.info("authentication took {} ms", System.currentTimeMillis() - beginTime);
 
         return success;
-    }
-
-    @Nullable
-    public static KeyManager[] getKeyManagers(final String keyStoreFileName, @NotNull final String keyStorePassword, final String keyStoreType) {
-        final File keyFile = new File(keyStoreFileName);
-        FileInputStream keyStoreFileInputStream = null;
-        KeyManagerFactory keyManagerFactory = null;
-        try {
-            keyStoreFileInputStream = new FileInputStream(keyFile);
-
-            final KeyStore keyStore = KeyStore.getInstance(keyStoreType);
-            keyStore.load(keyStoreFileInputStream, keyStorePassword.toCharArray());
-            keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            keyManagerFactory.init(keyStore, keyStorePassword.toCharArray());
-        } catch (@SuppressWarnings("OverlyBroadCatchBlock") KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException | UnrecoverableKeyException exception) {
-            logger.error("STRANGE ERROR inside getKeyManagers", exception);
-        } finally {
-            Generic.closeObject(keyStoreFileInputStream);
-        }
-        return keyManagerFactory == null ? null : keyManagerFactory.getKeyManagers();
     }
 
     public static void programSleeps(@NotNull final AtomicBoolean mustSleep, final AtomicBoolean mustStop, final String id) {

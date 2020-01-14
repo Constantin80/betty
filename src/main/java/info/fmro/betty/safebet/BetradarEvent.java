@@ -1,6 +1,6 @@
 package info.fmro.betty.safebet;
 
-import info.fmro.betty.enums.MatchStatus;
+import info.fmro.shared.enums.MatchStatus;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;

@@ -4,27 +4,27 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.stream.definitions.AuthenticationMessage;
-import info.fmro.betty.stream.definitions.ConnectionMessage;
-import info.fmro.betty.stream.enums.ErrorCode;
-import info.fmro.betty.stream.definitions.HeartbeatMessage;
-import info.fmro.betty.stream.definitions.MarketChange;
-import info.fmro.betty.stream.definitions.MarketChangeMessage;
-import info.fmro.betty.stream.definitions.MarketSubscriptionMessage;
+import info.fmro.shared.stream.definitions.AuthenticationMessage;
+import info.fmro.shared.stream.definitions.ConnectionMessage;
+import info.fmro.shared.stream.definitions.HeartbeatMessage;
+import info.fmro.shared.stream.definitions.MarketChange;
+import info.fmro.shared.stream.definitions.MarketChangeMessage;
+import info.fmro.shared.stream.definitions.MarketSubscriptionMessage;
 import info.fmro.betty.stream.definitions.OrderChangeMessage;
 import info.fmro.betty.stream.definitions.OrderMarketChange;
-import info.fmro.betty.stream.definitions.OrderSubscriptionMessage;
-import info.fmro.betty.stream.definitions.RequestMessage;
-import info.fmro.betty.stream.enums.RequestOperationType;
-import info.fmro.betty.stream.definitions.ResponseMessage;
-import info.fmro.betty.stream.enums.StatusCode;
-import info.fmro.betty.stream.definitions.StatusMessage;
-import info.fmro.betty.stream.protocol.ChangeMessage;
+import info.fmro.shared.stream.definitions.OrderSubscriptionMessage;
+import info.fmro.shared.stream.definitions.RequestMessage;
+import info.fmro.shared.stream.definitions.ResponseMessage;
+import info.fmro.shared.stream.definitions.StatusMessage;
+import info.fmro.shared.stream.enums.ErrorCode;
+import info.fmro.shared.stream.enums.RequestOperationType;
+import info.fmro.shared.stream.enums.StatusCode;
+import info.fmro.shared.stream.protocol.ChangeMessage;
 import info.fmro.betty.stream.protocol.ChangeMessageFactory;
-import info.fmro.betty.stream.protocol.ConnectionStatus;
+import info.fmro.shared.stream.protocol.ConnectionStatus;
 import info.fmro.betty.stream.protocol.MixInResponseMessage;
-import info.fmro.betty.stream.protocol.RequestResponse;
-import info.fmro.betty.stream.protocol.SubscriptionHandler;
+import info.fmro.shared.stream.protocol.RequestResponse;
+import info.fmro.shared.stream.protocol.SubscriptionHandler;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -441,6 +441,7 @@ class RequestResponseProcessor
         } else {
             change = this.orderSubscriptionHandler.processChangeMessage(change);
             if (change != null) {
+                Statics.orderCache.listOfQueues.send(message);
                 Statics.orderCache.onOrderChange(change);
             }
         }
@@ -466,6 +467,7 @@ class RequestResponseProcessor
                 change = this.marketSubscriptionHandler.processChangeMessage(change);
 
                 if (change != null) {
+                    Statics.marketCache.listOfQueues.send(message);
                     Statics.marketCache.onMarketChange(change);
                 }
             } else {

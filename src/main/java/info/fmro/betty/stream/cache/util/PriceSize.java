@@ -1,8 +1,8 @@
 package info.fmro.betty.stream.cache.util;
 
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.objects.TwoDoubles;
-import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.objects.TwoDoubles;
+import info.fmro.shared.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;

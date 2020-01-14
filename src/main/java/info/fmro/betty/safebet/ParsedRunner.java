@@ -1,6 +1,6 @@
 package info.fmro.betty.safebet;
 
-import info.fmro.betty.enums.ParsedRunnerType;
+import info.fmro.shared.enums.ParsedRunnerType;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 

@@ -1,7 +1,7 @@
 package info.fmro.betty.betapi;
 
 import info.fmro.betty.entities.EventResult;
-import info.fmro.betty.entities.MarketFilter;
+import info.fmro.shared.entities.MarketFilter;
 import info.fmro.betty.objects.Statics;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;

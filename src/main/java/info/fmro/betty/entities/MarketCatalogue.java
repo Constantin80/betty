@@ -1,6 +1,10 @@
 package info.fmro.betty.entities;
 
-import info.fmro.betty.enums.CommandType;
+import info.fmro.shared.entities.Competition;
+import info.fmro.shared.entities.EventType;
+import info.fmro.shared.entities.MarketDescription;
+import info.fmro.shared.entities.RunnerCatalog;
+import info.fmro.shared.enums.CommandType;
 import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.betty.safebet.ParsedMarket;

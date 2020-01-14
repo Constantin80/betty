@@ -3,12 +3,12 @@ package info.fmro.betty.stream.cache.market;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.cache.util.LevelPriceSizeLadder;
 import info.fmro.betty.stream.cache.util.PriceSizeLadder;
-import info.fmro.betty.stream.cache.util.RunnerId;
-import info.fmro.betty.stream.cache.util.Utils;
+import info.fmro.shared.stream.objects.RunnerId;
 import info.fmro.betty.stream.definitions.Order;
-import info.fmro.betty.stream.definitions.RunnerChange;
-import info.fmro.betty.stream.definitions.RunnerDefinition;
-import info.fmro.betty.stream.enums.Side;
+import info.fmro.shared.stream.definitions.RunnerChange;
+import info.fmro.shared.stream.definitions.RunnerDefinition;
+import info.fmro.shared.stream.enums.Side;
+import info.fmro.shared.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -67,10 +67,10 @@ public class MarketRunner
         this.bdatbPrices.onPriceChange(isImage, runnerChange.getBdatb());
         this.bdatlPrices.onPriceChange(isImage, runnerChange.getBdatl());
 
-        this.setSpn(Utils.selectPrice(isImage, this.getSpn(), runnerChange.getSpn()));
-        this.setSpf(Utils.selectPrice(isImage, this.getSpf(), runnerChange.getSpf()));
-        this.setLtp(Utils.selectPrice(isImage, this.getLtp(), runnerChange.getLtp()));
-        this.setTv(Utils.selectPrice(isImage, this.getTv(), runnerChange.getTv()));
+        this.setSpn(Formulas.selectPrice(isImage, this.getSpn(), runnerChange.getSpn()));
+        this.setSpf(Formulas.selectPrice(isImage, this.getSpf(), runnerChange.getSpf()));
+        this.setLtp(Formulas.selectPrice(isImage, this.getLtp(), runnerChange.getLtp()));
+        this.setTv(Formulas.selectPrice(isImage, this.getTv(), runnerChange.getTv()));
     }
 
     synchronized void onRunnerDefinitionChange(final RunnerDefinition newRunnerDefinition) {

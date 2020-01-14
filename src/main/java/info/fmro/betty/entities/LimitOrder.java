@@ -1,10 +1,10 @@
 package info.fmro.betty.entities;
 
-import info.fmro.betty.enums.BetTargetType;
-import info.fmro.betty.enums.PersistenceType;
-import info.fmro.betty.enums.Side;
-import info.fmro.betty.enums.TimeInForce;
-import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.enums.BetTargetType;
+import info.fmro.shared.enums.PersistenceType;
+import info.fmro.shared.enums.Side;
+import info.fmro.shared.enums.TimeInForce;
+import info.fmro.shared.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;

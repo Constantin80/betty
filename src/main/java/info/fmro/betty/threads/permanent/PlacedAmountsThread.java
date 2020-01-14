@@ -2,12 +2,12 @@ package info.fmro.betty.threads.permanent;
 
 import info.fmro.betty.betapi.ApiNgRescriptOperations;
 import info.fmro.betty.betapi.RescriptResponseHandler;
-import info.fmro.betty.entities.ClearedOrderSummary;
+import info.fmro.shared.entities.ClearedOrderSummary;
 import info.fmro.betty.entities.CurrentOrderSummary;
-import info.fmro.betty.enums.BetStatus;
-import info.fmro.betty.enums.OrderBy;
-import info.fmro.betty.enums.OrderProjection;
-import info.fmro.betty.enums.SortDir;
+import info.fmro.shared.enums.BetStatus;
+import info.fmro.shared.enums.OrderBy;
+import info.fmro.shared.enums.OrderProjection;
+import info.fmro.shared.enums.SortDir;
 import info.fmro.betty.main.Betty;
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;

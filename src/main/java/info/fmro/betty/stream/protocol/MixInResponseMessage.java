@@ -2,10 +2,10 @@ package info.fmro.betty.stream.protocol;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import info.fmro.betty.stream.definitions.ConnectionMessage;
-import info.fmro.betty.stream.definitions.MarketChangeMessage;
+import info.fmro.shared.stream.definitions.ConnectionMessage;
+import info.fmro.shared.stream.definitions.MarketChangeMessage;
 import info.fmro.betty.stream.definitions.OrderChangeMessage;
-import info.fmro.betty.stream.definitions.StatusMessage;
+import info.fmro.shared.stream.definitions.StatusMessage;
 
 @SuppressWarnings("MarkerInterface")
 @JsonTypeInfo(

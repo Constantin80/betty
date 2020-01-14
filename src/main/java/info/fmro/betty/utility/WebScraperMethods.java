@@ -369,7 +369,7 @@ public final class WebScraperMethods {
 
     public static WebClient getNewWebClient(final String threadId) {
         // return getNewWebClient(BrowserVersion.INTERNET_EXPLORER_8, threadId);
-        return getNewWebClient(BrowserVersion.FIREFOX_52, threadId);
+        return getNewWebClient(BrowserVersion.FIREFOX_60, threadId);
     }
 
     public static WebClient getNewWebClient(final BrowserVersion browserVersion, final String threadId) {

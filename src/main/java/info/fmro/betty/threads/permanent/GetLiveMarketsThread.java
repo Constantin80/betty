@@ -3,7 +3,7 @@ package info.fmro.betty.threads.permanent;
 import info.fmro.betty.betapi.ApiNGJRescriptDemo;
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.EventResult;
-import info.fmro.betty.enums.CommandType;
+import info.fmro.shared.enums.CommandType;
 import info.fmro.betty.main.Betty;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;

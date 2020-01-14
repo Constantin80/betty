@@ -1,11 +1,12 @@
 package info.fmro.betty.stream.protocol;
 
-import info.fmro.betty.stream.enums.ChangeType;
-import info.fmro.betty.stream.definitions.MarketChange;
-import info.fmro.betty.stream.definitions.MarketChangeMessage;
 import info.fmro.betty.stream.definitions.OrderChangeMessage;
 import info.fmro.betty.stream.definitions.OrderMarketChange;
-import info.fmro.betty.stream.enums.SegmentType;
+import info.fmro.shared.stream.definitions.MarketChange;
+import info.fmro.shared.stream.definitions.MarketChangeMessage;
+import info.fmro.shared.stream.enums.ChangeType;
+import info.fmro.shared.stream.enums.SegmentType;
+import info.fmro.shared.stream.protocol.ChangeMessage;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 

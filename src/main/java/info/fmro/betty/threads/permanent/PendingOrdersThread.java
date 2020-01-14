@@ -4,20 +4,20 @@ import info.fmro.betty.main.Betty;
 import info.fmro.betty.safebet.CancelOrdersThread;
 import info.fmro.betty.threads.PlaceOrdersThread;
 import info.fmro.betty.betapi.RescriptOpThread;
-import info.fmro.betty.entities.CancelInstruction;
+import info.fmro.shared.entities.CancelInstruction;
 import info.fmro.betty.entities.LimitOrder;
 import info.fmro.betty.entities.PlaceInstruction;
-import info.fmro.betty.enums.OrderType;
-import info.fmro.betty.enums.PersistenceType;
-import info.fmro.betty.enums.TemporaryOrderType;
+import info.fmro.shared.enums.OrderType;
+import info.fmro.shared.enums.PersistenceType;
+import info.fmro.shared.enums.TemporaryOrderType;
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.objects.TemporaryOrder;
+import info.fmro.shared.objects.TemporaryOrder;
 import info.fmro.betty.stream.cache.order.OrderMarketRunner;
-import info.fmro.betty.stream.cache.util.RunnerId;
+import info.fmro.shared.stream.objects.RunnerId;
 import info.fmro.betty.stream.definitions.Order;
 import info.fmro.betty.stream.definitions.OrderRunnerChange;
-import info.fmro.betty.stream.enums.Side;
-import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.stream.enums.Side;
+import info.fmro.shared.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import org.jetbrains.annotations.Contract;
@@ -146,9 +146,9 @@ public class PendingOrdersThread
                 if (orderType == TemporaryOrderType.PLACE) {
                     if (side == Side.B) {
                         tempBackExposure += size;
-                        tempBackProfit += Formulas.layExposure(price, size);
+                        tempBackProfit += info.fmro.shared.utility.Formulas.layExposure(price, size);
                     } else if (side == Side.L) {
-                        tempLayExposure += Formulas.layExposure(price, size);
+                        tempLayExposure += info.fmro.shared.utility.Formulas.layExposure(price, size);
                         tempLayProfit += size;
                     } else {
                         logger.error("unknown Side in checkTemporaryOrdersExposure place for: {} {}", side, price);
@@ -183,7 +183,7 @@ public class PendingOrdersThread
     public synchronized double addPlaceOrder(final String marketId, final RunnerId runnerId, final Side side, final double price, final double size) {
         // amounts, in general, will have 2 decimals rounded down (Generic.roundDoubleAmount)
         final double sizePlaced;
-        if (marketId != null && runnerId != null && side != null && price > 0d && size > 0d && Formulas.oddsAreUsable(price)) {
+        if (marketId != null && runnerId != null && side != null && price > 0d && size > 0d && info.fmro.shared.utility.Formulas.oddsAreUsable(price)) {
             final TemporaryOrder temporaryOrder = new TemporaryOrder(marketId, runnerId, side, price, size);
             if (this.temporaryOrders.contains(temporaryOrder)) {
                 logger.error("will not post duplicate placeOrder: {}", Generic.objectToString(temporaryOrder));
@@ -192,7 +192,7 @@ public class PendingOrdersThread
                 final double sizeToPlace = Generic.roundDoubleAmount(size);
 
                 if (sizeToPlace >= .01d) {
-                    if (sizeToPlace >= 2d || Formulas.exposure(side, price, size) >= 2d) {
+                    if (sizeToPlace >= 2d || info.fmro.shared.utility.Formulas.exposure(side, price, size) >= 2d) {
                         this.temporaryOrders.add(temporaryOrder);
                         this.newOrderAdded.set(true);
 

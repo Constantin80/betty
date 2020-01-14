@@ -2,11 +2,11 @@ package info.fmro.betty.safebet;
 
 import info.fmro.betty.betapi.ApiNgRescriptOperations;
 import info.fmro.betty.betapi.RescriptResponseHandler;
-import info.fmro.betty.entities.CancelExecutionReport;
-import info.fmro.betty.entities.CancelInstruction;
-import info.fmro.betty.enums.ExecutionReportStatus;
+import info.fmro.shared.entities.CancelExecutionReport;
+import info.fmro.shared.entities.CancelInstruction;
+import info.fmro.shared.enums.ExecutionReportStatus;
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.objects.TemporaryOrder;
+import info.fmro.shared.objects.TemporaryOrder;
 import info.fmro.betty.threads.permanent.PlacedAmountsThread;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Contract;

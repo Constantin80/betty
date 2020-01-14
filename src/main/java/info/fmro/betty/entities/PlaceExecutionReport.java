@@ -1,7 +1,7 @@
 package info.fmro.betty.entities;
 
-import info.fmro.betty.enums.ExecutionReportErrorCode;
-import info.fmro.betty.enums.ExecutionReportStatus;
+import info.fmro.shared.enums.ExecutionReportErrorCode;
+import info.fmro.shared.enums.ExecutionReportStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;

@@ -1,6 +1,7 @@
 package info.fmro.betty.stream.definitions;
 
-import info.fmro.betty.stream.enums.Side;
+import info.fmro.shared.stream.definitions.StrategyMatchChange;
+import info.fmro.shared.stream.enums.Side;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;

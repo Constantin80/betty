@@ -3,7 +3,6 @@ package info.fmro.betty.objects;
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.MarketBook;
 import info.fmro.betty.entities.MarketCatalogue;
-import info.fmro.betty.enums.ParsedMarketType;
 import info.fmro.betty.logic.RulesManager;
 import info.fmro.betty.logic.SafetyLimits;
 import info.fmro.betty.safebet.BetradarEvent;
@@ -17,11 +16,14 @@ import info.fmro.betty.safebet.ScraperEvent;
 import info.fmro.betty.safebet.ScraperPermanentThread;
 import info.fmro.betty.stream.cache.market.MarketCache;
 import info.fmro.betty.stream.cache.order.OrderCache;
-import info.fmro.betty.threads.permanent.InputConnectionThread;
-import info.fmro.betty.threads.permanent.InterfaceConnectionThread;
 import info.fmro.betty.threads.permanent.LoggerThread;
 import info.fmro.betty.threads.permanent.PendingOrdersThread;
 import info.fmro.betty.threads.permanent.QuickCheckThread;
+import info.fmro.shared.enums.ParsedMarketType;
+import info.fmro.shared.objects.OrderPrice;
+import info.fmro.shared.objects.SessionTokenObject;
+import info.fmro.shared.objects.TimeStamps;
+import info.fmro.shared.utility.DebugLevel;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.SynchronizedMap;
 import info.fmro.shared.utility.SynchronizedSafeSet;
@@ -38,10 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
@@ -78,9 +77,6 @@ public final class Statics {
             KEY_STORE_FILE_NAME = "input/client-2048.p12", KEY_STORE_PASSWORD = "", APING_URL = "https://api.betfair.com/exchange/betting/", RESCRIPT_SUFFIX = "rest/v1.0/", APPLICATION_JSON = "application/json", ACCOUNT_APING_URL =
             "https://api.betfair.com/exchange/account/", ALIASES_FILE_NAME = "input/aliases.txt", FULL_ALIASES_FILE_NAME = "input/aliasesFull.txt", LOGS_FOLDER_NAME = "logs", DATA_FOLDER_NAME = "data", STREAM_HOST = "stream-api.betfair.com",
             SETTINGS_FILE_NAME = Statics.DATA_FOLDER_NAME + "/rulesManager.txt", INTERFACE_KEY_STORE_FILE_NAME = "input/keystore";
-    //    public static final List<Double> pricesList = List.of(1.01, 1.02,1.03,1.04,1.05,1.06,1.07,1.08,1.09,1.1,1.11,1.12,1.13,1.14 ...);
-    @SuppressWarnings("PublicStaticCollectionField")
-    public static final List<Integer> pricesList; // odds prices, multiplied by 100, to have them stored as int
 
     public static final List<String> supportedEventTypes = List.of("1"); // "1" = soccer
 
@@ -97,18 +93,6 @@ public final class Statics {
     public static final AtomicReference<String> appKey = new AtomicReference<>(), delayedAppKey = new AtomicReference<>(), bu = new AtomicReference<>(), bp = new AtomicReference<>(), orderToPrint = new AtomicReference<>(),
             interfaceKeyStorePassword = new AtomicReference<>();
     public static final AtomicLong timeLastFundsOp = new AtomicLong(), timeLastSaveToDisk = new AtomicLong(), aliasesTimeStamp = new AtomicLong(), fullAliasesTimeStamp = new AtomicLong();
-    @SuppressWarnings("PublicStaticCollectionField")
-    public static final Set<ServerSocket> inputServerSocketsSet = Collections.synchronizedSet(new HashSet<>(2));
-    @SuppressWarnings("PublicStaticCollectionField")
-    public static final Set<ServerSocket> interfaceServerSocketsSet = Collections.synchronizedSet(new HashSet<>(2));
-    @SuppressWarnings("PublicStaticCollectionField")
-    public static final Set<Socket> inputConnectionSocketsSet = Collections.synchronizedSet(new HashSet<>(2));
-    @SuppressWarnings("PublicStaticCollectionField")
-    public static final Set<Socket> interfaceConnectionSocketsSet = Collections.synchronizedSet(new HashSet<>(2));
-    @SuppressWarnings("PublicStaticCollectionField")
-    public static final Set<InputConnectionThread> inputConnectionThreadsSet = Collections.synchronizedSet(new HashSet<>(2));
-    @SuppressWarnings("PublicStaticCollectionField")
-    public static final Set<InterfaceConnectionThread> interfaceConnectionThreadsSet = Collections.synchronizedSet(new HashSet<>(2));
     @SuppressWarnings("PublicStaticCollectionField")
     public static final Map<OrderPrice, Double> executingOrdersMap = Collections.synchronizedMap(new HashMap<>(2));
     @SuppressWarnings("PublicStaticCollectionField")
@@ -178,40 +162,6 @@ public final class Statics {
 //    public Statics(boolean dontCloseStandardStreams) {
 //        Statics.closeStandardStreamsNotInitialized = dontCloseStandardStreams;
 //    }
-
-    static { // initialize priceList
-        final Collection<Integer> localPricesList = new ArrayList<>(350);
-        int counter = 101;
-        do {
-            localPricesList.add(counter);
-            final int step;
-            if (counter < 200) {
-                step = 1;
-            } else if (counter < 300) {
-                step = 2;
-            } else if (counter < 400) {
-                step = 5;
-            } else if (counter < 600) {
-                step = 10;
-            } else if (counter < 1_000) {
-                step = 20;
-            } else if (counter < 2_000) {
-                step = 50;
-            } else if (counter < 3_000) {
-                step = 100;
-            } else if (counter < 5_000) {
-                step = 200;
-            } else if (counter < 10_000) {
-                step = 500;
-            } else {
-                step = 1_000;
-            }
-
-            counter += step;
-        } while (counter <= 100_000);
-
-        pricesList = List.copyOf(localPricesList);
-    }
 
     static {
         connManager.setMaxTotal(32768);

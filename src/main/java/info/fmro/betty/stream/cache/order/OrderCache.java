@@ -1,12 +1,16 @@
 package info.fmro.betty.stream.cache.order;
 
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.stream.cache.util.RunnerId;
 import info.fmro.betty.stream.definitions.OrderMarketChange;
-import info.fmro.betty.stream.protocol.ChangeMessage;
+import info.fmro.shared.stream.protocol.ChangeMessage;
+import info.fmro.shared.stream.objects.ListOfQueues;
+import info.fmro.shared.stream.objects.RunnerId;
+import info.fmro.shared.stream.objects.StreamObjectInterface;
+import org.apache.commons.lang3.SerializationUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -14,31 +18,29 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class OrderCache
-        implements Serializable {
+        implements Serializable, StreamObjectInterface {
     private static final long serialVersionUID = -6023803756520072425L;
+    public transient ListOfQueues listOfQueues = new ListOfQueues();
     private final Map<String, OrderMarket> markets = new ConcurrentHashMap<>(4); // only place where orderMarkets are permanently stored
     @SuppressWarnings("FieldMayBeFinal")
     private boolean orderMarketRemovedOnClose = true; // default
 
-    //    public synchronized void copyFrom(OrderCache orderCache) {
-//        if (!this.markets.isEmpty()) {
-//            logger.error("not empty map in OrderCache copyFrom: {}", Generic.objectToString(this));
-//        }
-//
-//        if (orderCache == null) {
-//            logger.error("null orderCache in copyFrom for: {}", Generic.objectToString(this));
-//        } else {
-//            this.markets.clear();
-//            if (orderCache.markets != null) {
-//                this.markets.putAll(orderCache.markets);
-//            } else {
-//                logger.error("null markets in OrderCache copyFrom: {}", Generic.objectToString(orderCache));
-//            }
-//
-//            this.isOrderMarketRemovedOnClose = orderCache.isOrderMarketRemovedOnClose;
-//        }
-//        copyFromStamp();
-//    }
+    private void readObject(@NotNull final java.io.ObjectInputStream in)
+            throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        this.listOfQueues = new ListOfQueues();
+    }
+
+    public synchronized OrderCache getCopy() {
+        return SerializationUtils.clone(this);
+    }
+
+    public synchronized int runAfterReceive() {
+        return 0;
+    }
+
+    public synchronized void runBeforeSend() {
+    }
 
     public synchronized void onOrderChange(@NotNull final ChangeMessage<? extends OrderMarketChange> changeMessage) {
         if (changeMessage.isStartOfNewSubscription()) {
@@ -58,6 +60,7 @@ public class OrderCache
         }
     }
 
+    @NotNull
     private synchronized OrderMarket onOrderMarketChange(@NotNull final OrderMarketChange orderMarketChange) {
         final OrderMarket orderMarket = this.markets.computeIfAbsent(orderMarketChange.getId(), OrderMarket::new);
 

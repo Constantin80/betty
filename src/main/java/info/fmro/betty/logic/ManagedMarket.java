@@ -1,16 +1,18 @@
 package info.fmro.betty.logic;
 
-import info.fmro.betty.enums.MarketBettingType;
+import info.fmro.shared.enums.MarketBettingType;
+import info.fmro.shared.enums.RulesManagerModificationCommand;
+import info.fmro.shared.stream.objects.RulesManagerModification;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.cache.market.Market;
 import info.fmro.betty.stream.cache.order.OrderMarket;
 import info.fmro.betty.stream.cache.order.OrderMarketRunner;
-import info.fmro.betty.stream.cache.util.RunnerId;
+import info.fmro.shared.stream.objects.RunnerId;
 import info.fmro.betty.stream.cache.util.Utils;
-import info.fmro.betty.stream.definitions.MarketDefinition;
+import info.fmro.shared.stream.definitions.MarketDefinition;
 import info.fmro.betty.stream.definitions.Order;
-import info.fmro.betty.stream.enums.Side;
-import info.fmro.betty.utility.ComparatorMarketPrices;
+import info.fmro.shared.stream.enums.Side;
+import info.fmro.shared.utility.ComparatorMarketPrices;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Contract;
@@ -269,6 +271,7 @@ public class ManagedMarket
             }
 
         if (modified) {
+            Statics.rulesManager.listOfQueues.send(new RulesManagerModification(RulesManagerModificationCommand.setMarketAmountLimit, this.amountLimit));
             Statics.rulesManager.rulesHaveChanged.set(true);
         }
         return modified;
@@ -280,6 +283,7 @@ public class ManagedMarket
             returnValue = this.runners.get(runnerId);
         } else { // managedRunner does not exist, I'll generate it; this is done initially, but also later if runners are added
             returnValue = new ManagedRunner(this.id, runnerId);
+            Statics.rulesManager.listOfQueues.send(new RulesManagerModification(RulesManagerModificationCommand.addManagedRunner, runnerId, returnValue));
             this.runners.put(runnerId, returnValue); // runners.put needs to be before runnersOrderedList.addAll
             returnValue.attachRunner(this.market);
 
@@ -418,12 +422,13 @@ public class ManagedMarket
                     isValid = false;
                 } else {
                     final double firstMinBackOdds = firstRunner.getMinBackOdds(), secondMinBackOdds = secondRunner.getMinBackOdds(), firstMaxLayOdds = firstRunner.getMaxLayOdds(), secondMaxLayOdds = secondRunner.getMaxLayOdds();
-                    if (Formulas.oddsAreUsable(firstMinBackOdds) != Formulas.oddsAreUsable(secondMaxLayOdds) || Formulas.oddsAreUsable(secondMinBackOdds) != Formulas.oddsAreUsable(firstMaxLayOdds)) {
+                    if (info.fmro.shared.utility.Formulas.oddsAreUsable(firstMinBackOdds) != info.fmro.shared.utility.Formulas.oddsAreUsable(secondMaxLayOdds) || info.fmro.shared.utility.Formulas.oddsAreUsable(secondMinBackOdds) != info.fmro.shared.utility.Formulas
+                            .oddsAreUsable(firstMaxLayOdds)) {
                         logger.error("not equal oddsAreUsable in checkTwoWayMarketLimitsValid for: {} {} {} {} {} {} {} {}", firstMinBackOdds, secondMinBackOdds, firstMaxLayOdds, secondMaxLayOdds, Generic.objectToString(firstRunner),
                                      Generic.objectToString(secondRunner), Generic.objectToString(this.runnersOrderedList), Generic.objectToString(this));
                         isValid = false;
                     } else {
-                        if (Formulas.oddsAreInverse(firstMinBackOdds, secondMaxLayOdds) && Formulas.oddsAreInverse(firstMaxLayOdds, secondMinBackOdds)) {
+                        if (info.fmro.shared.utility.Formulas.oddsAreInverse(firstMinBackOdds, secondMaxLayOdds) && info.fmro.shared.utility.Formulas.oddsAreInverse(firstMaxLayOdds, secondMinBackOdds)) {
                             isValid = true;
                         } else {
                             logger.error("odds are not inverse in checkTwoWayMarketLimitsValid for: {} {} {} {} {} {} {} {}", firstMinBackOdds, secondMinBackOdds, firstMaxLayOdds, secondMaxLayOdds, Generic.objectToString(firstRunner),
@@ -689,7 +694,7 @@ public class ManagedMarket
                     final double minimumAvailableLimit = Math.min(availableLayLimit, availableMarketLimit);
                     if (minimumAvailableLimit > .1d) {
                         final double toBeUsedLayOdds = managedRunner.getToBeUsedLayOdds();
-                        if (Formulas.oddsAreUsable(toBeUsedLayOdds)) {
+                        if (info.fmro.shared.utility.Formulas.oddsAreUsable(toBeUsedLayOdds)) {
                             final double amountToPlaceOnLay = minimumAvailableLimit / (toBeUsedLayOdds - 1d);
                             if (Statics.pendingOrdersThread.addPlaceOrder(this.id, managedRunner.getRunnerId(), Side.L, toBeUsedLayOdds, amountToPlaceOnLay) > 0d) {
                                 modifications++;
@@ -738,9 +743,9 @@ public class ManagedMarket
     }
 
     private synchronized void calculateProportionOfMarketLimitPerRunnerList() { // calculated proportions depend on the toBeUsedBackOdds
-        final double sumOfStandardAmounts = this.runnersOrderedList.stream().filter(x -> Formulas.oddsAreUsable(x.getToBeUsedBackOdds())).mapToDouble(x -> 1d / (x.getToBeUsedBackOdds() - 1d)).sum();
+        final double sumOfStandardAmounts = this.runnersOrderedList.stream().filter(x -> info.fmro.shared.utility.Formulas.oddsAreUsable(x.getToBeUsedBackOdds())).mapToDouble(x -> 1d / (x.getToBeUsedBackOdds() - 1d)).sum();
         for (final ManagedRunner managedRunner : this.runnersOrderedList) { // sumOfStandardAmounts should always be != 0d if at least one oddsAreUsable
-            final double proportion = Formulas.oddsAreUsable(managedRunner.getToBeUsedBackOdds()) ? 1d / (managedRunner.getToBeUsedBackOdds() - 1d) / sumOfStandardAmounts : 0d;
+            final double proportion = info.fmro.shared.utility.Formulas.oddsAreUsable(managedRunner.getToBeUsedBackOdds()) ? 1d / (managedRunner.getToBeUsedBackOdds() - 1d) / sumOfStandardAmounts : 0d;
             managedRunner.setProportionOfMarketLimitPerRunner(proportion);
         }
     }

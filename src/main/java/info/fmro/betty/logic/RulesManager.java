@@ -1,20 +1,26 @@
 package info.fmro.betty.logic;
 
+import info.fmro.shared.enums.RulesManagerModificationCommand;
 import info.fmro.betty.main.VarsIO;
+import info.fmro.shared.stream.objects.ListOfQueues;
 import info.fmro.betty.objects.ManagedEventsMap;
+import info.fmro.shared.stream.objects.RulesManagerModification;
 import info.fmro.betty.objects.RulesManagerStringObject;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.cache.util.Utils;
 import info.fmro.betty.stream.client.ClientHandler;
 import info.fmro.shared.utility.Generic;
+import info.fmro.shared.stream.objects.StreamObjectInterface;
 import info.fmro.shared.utility.SynchronizedMap;
 import info.fmro.shared.utility.SynchronizedSafeSet;
 import info.fmro.shared.utility.SynchronizedSet;
+import org.apache.commons.lang3.SerializationUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
@@ -22,13 +28,14 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-@SuppressWarnings({"WeakerAccess", "OverlyComplexClass"})
+@SuppressWarnings({"WeakerAccess", "OverlyComplexClass", "ClassWithTooManyMethods"})
 public class RulesManager
         extends Thread
-        implements Serializable {
+        implements Serializable, StreamObjectInterface {
     private static final Logger logger = LoggerFactory.getLogger(RulesManager.class);
     private static final long serialVersionUID = -3496383465286913313L;
     public static final long fullCheckPeriod = Generic.MINUTE_LENGTH_MILLISECONDS;
+    public transient ListOfQueues listOfQueues = new ListOfQueues();
     public final ManagedEventsMap events = new ManagedEventsMap(); // managedEvents are permanently stored only here
     public final SynchronizedMap<String, ManagedMarket> markets = new SynchronizedMap<>(); // managedMarkets are permanently stored only here
     public final SynchronizedSafeSet<RulesManagerStringObject> marketsToCheck = new SynchronizedSafeSet<>();
@@ -47,6 +54,23 @@ public class RulesManager
 
     // todo test with 1 runner, no cross runner matching; amountLimit on back and lay, limit on market & event; time limit; min odds for back and max odds for lay, with bets depending on prices existing on that runner
     // todo code beautification and simple tests, to prepare for the far more complicated integration tests
+
+    private void readObject(@NotNull final java.io.ObjectInputStream in)
+            throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        this.listOfQueues = new ListOfQueues();
+    }
+
+    public synchronized RulesManager getCopy() {
+        return SerializationUtils.clone(this);
+    }
+
+    public synchronized int runAfterReceive() {
+        return 0;
+    }
+
+    public synchronized void runBeforeSend() {
+    }
 
     public synchronized boolean copyFrom(final RulesManager other) {
         final boolean readSuccessful;
@@ -82,6 +106,13 @@ public class RulesManager
                 } else {
                     this.rulesHaveChanged.set(true);
                     this.marketsMapModified.set(true);
+                }
+
+                final int nQueues = this.listOfQueues.size();
+                if (nQueues == 0) { // normal case, nothing to be done
+                } else {
+                    logger.error("existing queues during RulesManager.copyFrom: {} {}", nQueues, Generic.objectToString(this));
+                    this.listOfQueues.send(this.getCopy());
                 }
             }
         }
@@ -138,6 +169,7 @@ public class RulesManager
             managedEvent = this.events.get(eventId);
         } else {
             managedEvent = new ManagedEvent(eventId);
+            this.listOfQueues.send(new RulesManagerModification(RulesManagerModificationCommand.addManagedEvent, eventId, managedEvent));
             this.events.put(eventId, managedEvent);
             this.rulesHaveChanged.set(true);
         }
@@ -150,6 +182,7 @@ public class RulesManager
             managedMarket = this.markets.get(marketId);
         } else {
             managedMarket = new ManagedMarket(marketId);
+            this.listOfQueues.send(new RulesManagerModification(RulesManagerModificationCommand.addManagedMarket, marketId, managedMarket));
             this.markets.put(marketId, managedMarket);
             checkMarketsAreAssociatedWithEvents();
             this.rulesHaveChanged.set(true);
@@ -178,6 +211,7 @@ public class RulesManager
     private synchronized ManagedMarket removeManagedMarket(final String marketId) {
         @Nullable final ManagedMarket managedMarket;
         if (this.markets.containsKey(marketId)) {
+            this.listOfQueues.send(new RulesManagerModification(RulesManagerModificationCommand.removeManagedMarket, marketId));
             managedMarket = this.markets.remove(marketId);
             this.rulesHaveChanged.set(true);
             this.marketsMapModified.set(true);
@@ -287,6 +321,7 @@ public class RulesManager
         if (managedMarket == null) {
             logger.error("null managedMarket to check in RulesManager");
             this.markets.removeValueAll(null);
+            this.listOfQueues.send(this.getCopy());
             Statics.rulesManager.rulesHaveChanged.set(true);
         } else {
             managedMarket.manage();

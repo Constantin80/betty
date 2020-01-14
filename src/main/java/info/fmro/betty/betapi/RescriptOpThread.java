@@ -1,18 +1,18 @@
 package info.fmro.betty.betapi;
 
-import info.fmro.betty.entities.AccountFundsResponse;
-import info.fmro.betty.entities.CancelExecutionReport;
-import info.fmro.betty.entities.CurrencyRate;
+import info.fmro.shared.entities.AccountFundsResponse;
+import info.fmro.shared.entities.CancelExecutionReport;
+import info.fmro.shared.entities.CurrencyRate;
 import info.fmro.betty.entities.LimitOrder;
 import info.fmro.betty.entities.MarketCatalogue;
-import info.fmro.betty.entities.MarketFilter;
+import info.fmro.shared.entities.MarketFilter;
 import info.fmro.betty.entities.PlaceExecutionReport;
 import info.fmro.betty.entities.PlaceInstruction;
-import info.fmro.betty.enums.ExecutionReportStatus;
-import info.fmro.betty.enums.MarketProjection;
-import info.fmro.betty.enums.OperationType;
-import info.fmro.betty.enums.Side;
-import info.fmro.betty.objects.OrderPrice;
+import info.fmro.shared.enums.ExecutionReportStatus;
+import info.fmro.shared.enums.MarketProjection;
+import info.fmro.shared.enums.OperationType;
+import info.fmro.shared.enums.Side;
+import info.fmro.shared.objects.OrderPrice;
 import info.fmro.betty.logic.SafetyLimits;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.permanent.PlacedAmountsThread;

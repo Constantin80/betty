@@ -1,6 +1,6 @@
 package info.fmro.betty.objects;
 
-import info.fmro.shared.utility.SafeObjectInterface;
+import info.fmro.shared.objects.SafeObjectInterface;
 import info.fmro.shared.utility.SynchronizedSafeSet;
 import org.jetbrains.annotations.Contract;
 

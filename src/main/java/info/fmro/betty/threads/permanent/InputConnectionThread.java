@@ -1,6 +1,6 @@
 package info.fmro.betty.threads.permanent;
 
-import info.fmro.betty.enums.CommandType;
+import info.fmro.shared.enums.CommandType;
 import info.fmro.betty.main.VarsIO;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
@@ -31,6 +31,11 @@ public class InputConnectionThread
     InputConnectionThread(final Socket socket) {
         super();
         this.socket = socket;
+    }
+
+    public synchronized void closeSocket() {
+        logger.info("closing InputConnectionThread socket");
+        Generic.closeObjects(this.socket);
     }
 
     @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "OverlyNestedMethod", "NestedTryStatement"})
@@ -429,12 +434,7 @@ public class InputConnectionThread
                 logger.error("IOException in InputConnection thread", iOException);
             }
         } finally {
-//            logger.info("closing input connection socket");
             Generic.closeObjects(printWriter, outputStream, bufferedReader, inputStreamReader, inputStream, this.socket);
-//            logger.info("input connection socket was closed");
-
-            Statics.inputConnectionSocketsSet.remove(this.socket);
-            Statics.inputConnectionThreadsSet.remove(this);
         }
         logger.info("reached the end of inputConnectionThread");
     }

@@ -16,9 +16,9 @@ import com.ximpleware.VTDNav;
 import com.ximpleware.XPathEvalException;
 import com.ximpleware.XPathParseException;
 import info.fmro.betty.main.Betty;
-import info.fmro.betty.objects.AverageLogger;
-import info.fmro.betty.objects.AverageLoggerInterface;
-import info.fmro.betty.objects.RecordedMaxValue;
+import info.fmro.shared.objects.AverageLogger;
+import info.fmro.shared.objects.AverageLoggerInterface;
+import info.fmro.shared.objects.RecordedMaxValue;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.SavePageThread;
 import info.fmro.betty.utility.Formulas;
@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class ScraperPermanentThread
         implements Runnable, AverageLoggerInterface {
     private static final Logger logger = LoggerFactory.getLogger(ScraperPermanentThread.class);
-    public static final BrowserVersion defaultBrowserVersion = BrowserVersion.FIREFOX_52;
+    public static final BrowserVersion defaultBrowserVersion = BrowserVersion.FIREFOX_60;
     public static final boolean defaultSingleLogger = true;
     public static final long DEFAULT_DELAY = 500L;
     public static final int defaultCacheMaxSize = 200;

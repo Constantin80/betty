@@ -11,8 +11,8 @@ import com.ximpleware.VTDNav;
 import com.ximpleware.XPathEvalException;
 import com.ximpleware.XPathParseException;
 import info.fmro.betty.entities.Event;
-import info.fmro.betty.enums.CommandType;
-import info.fmro.betty.enums.MatchStatus;
+import info.fmro.shared.enums.CommandType;
+import info.fmro.shared.enums.MatchStatus;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.utility.WebScraperMethods;
@@ -49,7 +49,7 @@ public class BetradarScraperThread
     private final AtomicLong timeLastPageManipulation = new AtomicLong();
 
     public BetradarScraperThread() {
-        super("betradar", 500L, BrowserVersion.FIREFOX_52, 50, false);
+        super("betradar", 500L, BrowserVersion.FIREFOX_60, 50, false);
     }
 
     @SuppressWarnings("NestedTryStatement")

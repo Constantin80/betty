@@ -2,11 +2,11 @@ package info.fmro.betty.safebet;
 
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.MarketCatalogue;
-import info.fmro.betty.enums.MatchStatus;
-import info.fmro.betty.enums.ParsedMarketType;
-import info.fmro.betty.enums.ParsedRunnerType;
-import info.fmro.betty.enums.ScrapedField;
-import info.fmro.betty.enums.Side;
+import info.fmro.shared.enums.MatchStatus;
+import info.fmro.shared.enums.ParsedMarketType;
+import info.fmro.shared.enums.ParsedRunnerType;
+import info.fmro.shared.enums.ScrapedField;
+import info.fmro.shared.enums.Side;
 import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.permanent.MaintenanceThread;

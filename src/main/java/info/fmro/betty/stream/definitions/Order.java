@@ -1,12 +1,12 @@
 package info.fmro.betty.stream.definitions;
 
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.stream.cache.util.RunnerId;
-import info.fmro.betty.stream.enums.OrderStatus;
-import info.fmro.betty.stream.enums.OrderType;
-import info.fmro.betty.stream.enums.PersistenceType;
-import info.fmro.betty.stream.enums.Side;
-import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.stream.objects.RunnerId;
+import info.fmro.shared.stream.enums.OrderStatus;
+import info.fmro.shared.stream.enums.OrderType;
+import info.fmro.shared.stream.enums.PersistenceType;
+import info.fmro.shared.stream.enums.Side;
+import info.fmro.shared.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -64,14 +64,14 @@ public class Order
             switch (this.side) {
                 case B:
                     this.backExposure = this.sr;
-                    this.backProfit = Formulas.layExposure(this.p, this.sr);
+                    this.backProfit = info.fmro.shared.utility.Formulas.layExposure(this.p, this.sr);
                     this.layExposure = 0d;
                     this.layProfit = 0d;
                     break;
                 case L:
                     this.backExposure = 0d;
                     this.backProfit = 0d;
-                    this.layExposure = Formulas.layExposure(this.p, this.sr);
+                    this.layExposure = info.fmro.shared.utility.Formulas.layExposure(this.p, this.sr);
                     this.layProfit = this.sr;
                     break;
                 default:
@@ -136,7 +136,7 @@ public class Order
         } else if (this.side == Side.L) {
             final double sizeRemaining = this.sr == null ? 0d : this.sr;
             @Nullable final Double sizeReduction;
-            if (excessExposure >= Formulas.layExposure(this.p, sizeRemaining)) {
+            if (excessExposure >= info.fmro.shared.utility.Formulas.layExposure(this.p, sizeRemaining)) {
                 sizeReduction = null;
                 exposureReduction = Statics.pendingOrdersThread.addCancelOrder(marketId, runnerId, this.side, this.p, sizeRemaining, this.id, sizeReduction) ? Formulas.layExposure(this.p, sizeRemaining) : 0d;
             } else {

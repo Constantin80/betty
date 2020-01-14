@@ -1,9 +1,10 @@
 package info.fmro.betty.entities;
 
-import info.fmro.betty.enums.OrderStatus;
-import info.fmro.betty.enums.OrderType;
-import info.fmro.betty.enums.PersistenceType;
-import info.fmro.betty.enums.Side;
+import info.fmro.shared.entities.PriceSize;
+import info.fmro.shared.enums.OrderStatus;
+import info.fmro.shared.enums.OrderType;
+import info.fmro.shared.enums.PersistenceType;
+import info.fmro.shared.enums.Side;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Contract;
@@ -67,18 +68,18 @@ public final class CurrentOrderSummary
 
             if (this.side == null) {
                 logger.error("null side in CurrentOrderSummary placedAmount: {}", Generic.objectToString(this));
-                amount = Math.max(size, Formulas.layExposure(price, size)); // assume the worst
+                amount = Math.max(size, info.fmro.shared.utility.Formulas.layExposure(price, size)); // assume the worst
             } else {
                 switch (this.side) {
                     case BACK:
                         amount = size;
                         break;
                     case LAY:
-                        amount = Formulas.layExposure(price, size);
+                        amount = info.fmro.shared.utility.Formulas.layExposure(price, size);
                         break;
                     default:
                         logger.error("unknown side {} in CurrentOrderSummary placedAmount: {}", this.side, Generic.objectToString(this));
-                        amount = Math.max(size, Formulas.layExposure(price, size)); // assume the worst
+                        amount = Math.max(size, info.fmro.shared.utility.Formulas.layExposure(price, size)); // assume the worst
                         break;
                 } // end switch
             }

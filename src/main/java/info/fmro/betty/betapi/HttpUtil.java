@@ -1,6 +1,6 @@
 package info.fmro.betty.betapi;
 
-import info.fmro.betty.enums.ApiNgOperation;
+import info.fmro.shared.enums.ApiNgOperation;
 import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;

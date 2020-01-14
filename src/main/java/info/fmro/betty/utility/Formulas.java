@@ -1,20 +1,19 @@
 package info.fmro.betty.utility;
 
 import info.fmro.betty.entities.Event;
-import info.fmro.betty.entities.EventType;
 import info.fmro.betty.entities.MarketCatalogue;
-import info.fmro.betty.entities.MarketDescription;
 import info.fmro.betty.entities.PlaceInstruction;
-import info.fmro.betty.safebet.ScraperPermanentThread;
 import info.fmro.betty.main.VarsIO;
+import info.fmro.shared.objects.OrderPrice;
+import info.fmro.shared.objects.StampedDouble;
+import info.fmro.betty.objects.Statics;
+import info.fmro.shared.objects.TwoOrderedStrings;
 import info.fmro.betty.safebet.BetradarEvent;
 import info.fmro.betty.safebet.CoralEvent;
-import info.fmro.betty.objects.OrderPrice;
 import info.fmro.betty.safebet.ScraperEvent;
-import info.fmro.betty.objects.StampedDouble;
-import info.fmro.betty.objects.Statics;
-import info.fmro.betty.objects.TwoOrderedStrings;
-import info.fmro.betty.stream.enums.Side;
+import info.fmro.betty.safebet.ScraperPermanentThread;
+import info.fmro.shared.entities.EventType;
+import info.fmro.shared.entities.MarketDescription;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
 import info.fmro.shared.utility.LogLevel;
@@ -33,15 +32,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 @SuppressWarnings({"ClassWithTooManyMethods", "OverlyComplexClass", "UtilityClass"})
 public final class Formulas {
     private static final Logger logger = LoggerFactory.getLogger(Formulas.class);
-    @SuppressWarnings("PublicStaticCollectionField")
-    public static final Map<String, String> charactersMap = Collections.synchronizedMap(new LinkedHashMap<>(128, 0.75f));
     @SuppressWarnings("PublicStaticCollectionField")
     public static final Map<String, String> aliasesMap = Collections.synchronizedMap(new LinkedHashMap<>(64, 0.75f));
     @SuppressWarnings("PublicStaticCollectionField")
@@ -53,115 +49,6 @@ public final class Formulas {
     }
 
     static {
-//        charactersMap.put("Ã¡", "a");
-//        charactersMap.put("Ã¼", "u");
-        charactersMap.put("µ", "u");
-        charactersMap.put("à", "a");
-        charactersMap.put("â", "a");
-        charactersMap.put("ã", "a");
-        charactersMap.put("ä", "a");
-        charactersMap.put("å", "a");
-        charactersMap.put("æ", "ae");
-        charactersMap.put("ç", "c");
-        charactersMap.put("è", "e");
-        charactersMap.put("é", "e");
-        charactersMap.put("ê", "e");
-        charactersMap.put("ë", "e");
-        charactersMap.put("ì", "i");
-        charactersMap.put("í", "i");
-        charactersMap.put("î", "i");
-        charactersMap.put("ï", "i");
-        charactersMap.put("ñ", "n");
-        charactersMap.put("ò", "o");
-        charactersMap.put("ó", "o");
-        charactersMap.put("ô", "o");
-        charactersMap.put("õ", "o");
-        charactersMap.put("ö", "o");
-        charactersMap.put("ø", "o");
-        charactersMap.put("ù", "u");
-        charactersMap.put("ú", "u");
-        charactersMap.put("û", "u");
-        charactersMap.put("ü", "u");
-        charactersMap.put("ý", "y");
-        charactersMap.put("ß", "b");
-        charactersMap.put("á", "a");
-        charactersMap.put("ā", "a");
-        charactersMap.put("ă", "a");
-        charactersMap.put("ą", "a");
-        charactersMap.put("ć", "c");
-        charactersMap.put("č", "c");
-        charactersMap.put("đ", "d");
-        charactersMap.put("ď", "d");
-        charactersMap.put("ē", "e");
-        charactersMap.put("ĕ", "e");
-        charactersMap.put("ė", "e");
-        charactersMap.put("ę", "e");
-        charactersMap.put("ě", "e");
-        charactersMap.put("ģ", "g");
-        charactersMap.put("ī", "i");
-        charactersMap.put("į", "i");
-        charactersMap.put(Generic.createStringFromCodes(305), "i");
-        charactersMap.put("ķ", "k");
-        charactersMap.put("ĺ", "l");
-        charactersMap.put("ļ", "l");
-        charactersMap.put("ľ", "l");
-        charactersMap.put("ł", "l");
-        charactersMap.put("ń", "n");
-        charactersMap.put("ņ", "n");
-        charactersMap.put("ň", "n");
-        charactersMap.put("ō", "o");
-        charactersMap.put("ő", "o");
-        charactersMap.put("œ", "oe");
-        charactersMap.put("ŕ", "r");
-        charactersMap.put("ŗ", "r");
-        charactersMap.put("ř", "r");
-        charactersMap.put("ş", "s");
-        charactersMap.put("ś", "s");
-        charactersMap.put("š", "s");
-        charactersMap.put("ţ", "t");
-        charactersMap.put("ť", "t");
-        charactersMap.put("ű", "u");
-        charactersMap.put("ų", "u");
-        charactersMap.put("ź", "z");
-        charactersMap.put("ż", "z");
-        charactersMap.put("ž", "z");
-
-        charactersMap.put("-", " ");
-        charactersMap.put("/", " ");
-        charactersMap.put("'", " ");
-        charactersMap.put("`", " ");
-        charactersMap.put("’", " ");
-        charactersMap.put("&", "and");
-        charactersMap.put(".", " ");
-        charactersMap.put("|||", "iii");
-        charactersMap.put("||", "ii");
-        charactersMap.put("[", "(");
-        charactersMap.put("]", ")");
-        charactersMap.put("{", "(");
-        charactersMap.put("}", ")");
-
-        final int mapCapacity = Generic.getCollectionCapacity(charactersMap.size(), 0.75f);
-        final Map<String, String> tempMap = new LinkedHashMap<>(mapCapacity, 0.75f);
-        synchronized (charactersMap) { // apply toLowerCase().trim() to all keys & values
-            for (final Map.Entry<String, String> entry : charactersMap.entrySet()) {
-                final String key = entry.getKey();
-                final String value = entry.getValue(), modifiedKey = key.toLowerCase(Locale.ENGLISH), modifiedValue = value.toLowerCase(Locale.ENGLISH);
-                if (!Objects.equals(key, modifiedKey)) {
-                    logger.error("key gets modified in charactersMap static parsing: {} - {}", key, modifiedKey);
-                }
-                if (!Objects.equals(value, modifiedValue)) {
-                    logger.error("value gets modified in charactersMap static parsing: {} - {}", value, modifiedValue);
-                }
-
-                tempMap.put(modifiedKey, modifiedValue);
-            }
-
-            charactersMap.clear();
-            charactersMap.putAll(tempMap);
-        } // end synchronized
-    }
-
-    static {
         VarsIO.checkAliasesFile(Statics.ALIASES_FILE_NAME, Statics.aliasesTimeStamp, Formulas.aliasesMap);
         VarsIO.checkAliasesFile(Statics.FULL_ALIASES_FILE_NAME, Statics.fullAliasesTimeStamp, Formulas.fullAliasesMap);
     }
@@ -170,8 +57,8 @@ public final class Formulas {
         String modifiedString = null;
         if (teamString != null) {
             modifiedString = teamString.toLowerCase(Locale.ENGLISH).trim();
-            synchronized (charactersMap) {
-                for (final Map.Entry<String, String> entry : charactersMap.entrySet()) {
+            synchronized (info.fmro.shared.utility.Formulas.charactersMap) {
+                for (final Map.Entry<String, String> entry : info.fmro.shared.utility.Formulas.charactersMap.entrySet()) {
                     final String key = entry.getKey();
                     while (modifiedString.contains(key)) {
                         modifiedString = Generic.quotedReplaceAll(modifiedString, key, entry.getValue());
@@ -188,8 +75,8 @@ public final class Formulas {
     public static boolean containsStrangeChars(final String teamString) {
         boolean result = false;
         if (teamString != null) {
-            synchronized (charactersMap) {
-                final Set<String> keys = charactersMap.keySet();
+            synchronized (info.fmro.shared.utility.Formulas.charactersMap) {
+                final Set<String> keys = info.fmro.shared.utility.Formulas.charactersMap.keySet();
                 for (final String key : keys) {
                     if (teamString.contains(key)) {
                         result = true;
@@ -834,138 +721,5 @@ public final class Formulas {
         }
 
         return isEachWay;
-    }
-
-    @SuppressWarnings("OverloadedMethodsWithSameNumberOfParameters")
-    public static double getNStepDifferentOdds(final double baseOdds, final int nSteps) {
-        //noinspection NumericCastThatLosesPrecision
-        final int intBaseOdds = (int) (baseOdds * 100d);
-
-        return getNStepDifferentOdds(intBaseOdds, nSteps);
-    }
-
-    @SuppressWarnings("OverloadedMethodsWithSameNumberOfParameters")
-    private static double getNStepDifferentOdds(final int baseOdds, final int nSteps) {
-        final double result;
-        final int baseOddsPosition = Statics.pricesList.indexOf(baseOdds);
-        if (baseOddsPosition < 0) {
-            logger.error("baseOdds {} not found in pricesList during getNStepDifferentOdds {}: {}", baseOdds, nSteps, baseOddsPosition);
-            result = nSteps <= 0 ? 1.01d : 1_000d;
-        } else {
-            final int listSize = Statics.pricesList.size();
-            final int resultPosition = Math.max(Math.min(baseOddsPosition + nSteps, listSize - 1), 0);
-            result = (double) (Statics.pricesList.get(resultPosition)) / 100d;
-        }
-
-        return result;
-    }
-
-    @Contract(pure = true)
-    public static boolean oddsAreUsable(final double odds) {
-        return odds <= 1_000d && odds >= 1.01d;
-    }
-
-    private static double inverseOdds(final double odds) {
-        final double returnValue;
-        if (oddsAreUsable(odds)) {
-            returnValue = 1d / (odds - 1d) + 1d;
-        } else {
-            logger.error("unusable odds in Formulas.inverseOdds for: {}", odds);
-            returnValue = 0d;
-        }
-        return returnValue;
-    }
-
-    private static int getOddsPosition(final double odds) {
-        @SuppressWarnings("NumericCastThatLosesPrecision") final int intOdds = (int) (odds * 100d);
-        return Statics.pricesList.indexOf(intOdds);
-    }
-
-    @SuppressWarnings("OverlyNestedMethod")
-    public static boolean oddsAreInverse(final double firstOdds, final double secondOdds) {
-        final boolean areInverse;
-        if (oddsAreUsable(firstOdds) && oddsAreUsable(secondOdds)) {
-            final int secondOddsPosition = getOddsPosition(secondOdds);
-            if (secondOddsPosition >= 0) {
-                final double inverseFirstOdds = inverseOdds(firstOdds);
-                @SuppressWarnings("NumericCastThatLosesPrecision") final int intInverseFirstOdds = (int) (inverseFirstOdds * 100d);
-                if (intInverseFirstOdds > 10_100 || intInverseFirstOdds < 100) {
-                    logger.error("bad value for intInverseFirstOdds in Formulas.oddsAreInverse for: {} {} {}", intInverseFirstOdds, firstOdds, secondOdds);
-                    areInverse = false;
-                } else {
-                    if (inverseFirstOdds <= 101) {
-                        areInverse = secondOddsPosition == 0;
-                    } else if (intInverseFirstOdds == 10_100) {
-                        areInverse = secondOdds >= inverseFirstOdds;
-                    } else {
-                        @SuppressWarnings("NumericCastThatLosesPrecision") final int intSecondOdds = (int) (secondOdds * 100d);
-                        if (intInverseFirstOdds == intSecondOdds) {
-                            areInverse = true;
-                        } else {
-                            if (intInverseFirstOdds > intSecondOdds) {
-                                final int intNextOdds = Statics.pricesList.get(secondOddsPosition + 1);
-                                areInverse = intInverseFirstOdds < intNextOdds;
-                            } else {
-                                final int intPreviousOdds = Statics.pricesList.get(secondOddsPosition - 1);
-                                areInverse = intInverseFirstOdds > intPreviousOdds;
-                            }
-                        }
-                    }
-                }
-            } else {
-                logger.error("secondOddsPosition negative in Formulas.oddsAreInverse for: {} {}", firstOdds, secondOdds);
-                areInverse = false;
-            }
-        } else {
-            logger.error("unusable odds in Formulas.oddsAreInverse for: {} {}", firstOdds, secondOdds);
-            areInverse = false;
-        }
-
-        return areInverse;
-    }
-
-    public static double exposure(final Side side, final double price, final double size) {
-        final double exposure;
-        if (side == null || size < 0d || !oddsAreUsable(price)) {
-            logger.error("bad arguments in Formulas.exposure for: {} {} {}", side, price, size);
-            exposure = 0d;
-        } else if (side == Side.B) {
-            exposure = size;
-        } else if (side == Side.L) {
-            exposure = size * (price - 1d);
-        } else {
-            logger.error("bogus side {} in Formulas.exposure for: {} {}", side, price, size);
-            exposure = 0d;
-        }
-
-        return exposure;
-    }
-
-    public static double layExposure(final double price, final double size) {
-        return exposure(Side.L, price, size);
-    }
-
-    public static boolean oddsAreWorse(final Side side, final double worstAcceptedOdds, final double price) {
-        final boolean areWorse;
-
-        if (side == null) {
-            logger.error("null side in oddsAreWorse for: {} {} {}", side, worstAcceptedOdds, price);
-            areWorse = false;
-        } else if (!oddsAreUsable(worstAcceptedOdds)) {
-            logger.error("unusable worstAcceptedOdds in oddsAreWorse for: {} {} {}", side, worstAcceptedOdds, price);
-            areWorse = false;
-        } else if (!oddsAreUsable(price)) {
-            logger.error("unusable price in oddsAreWorse for: {} {} {}", side, worstAcceptedOdds, price);
-            areWorse = true;
-        } else if (side == Side.B) {
-            areWorse = !(price >= worstAcceptedOdds);
-        } else if (side == Side.L) {
-            areWorse = !(price <= worstAcceptedOdds);
-        } else {
-            logger.error("strange unsupported side in oddsAreWorse for: {} {} {}", side, worstAcceptedOdds, price);
-            areWorse = false;
-        }
-
-        return areWorse;
     }
 }
