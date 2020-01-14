@@ -2,13 +2,20 @@ package info.fmro.betty.logic;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import info.fmro.betty.betapi.RescriptOpThread;
-import info.fmro.shared.entities.ClearedOrderSummary;
-import info.fmro.shared.entities.CurrencyRate;
 import info.fmro.betty.entities.CurrentOrderSummary;
-import info.fmro.shared.entities.ExchangePrices;
 import info.fmro.betty.entities.LimitOrder;
 import info.fmro.betty.entities.MarketBook;
 import info.fmro.betty.entities.PlaceInstruction;
+import info.fmro.betty.objects.BlackList;
+import info.fmro.betty.objects.Statics;
+import info.fmro.betty.safebet.SafeBet;
+import info.fmro.betty.safebet.SafeRunner;
+import info.fmro.betty.threads.LaunchCommandThread;
+import info.fmro.betty.threads.permanent.MaintenanceThread;
+import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.entities.ClearedOrderSummary;
+import info.fmro.shared.entities.CurrencyRate;
+import info.fmro.shared.entities.ExchangePrices;
 import info.fmro.shared.entities.PriceSize;
 import info.fmro.shared.entities.Runner;
 import info.fmro.shared.enums.CommandType;
@@ -16,23 +23,22 @@ import info.fmro.shared.enums.MarketStatus;
 import info.fmro.shared.enums.OrderType;
 import info.fmro.shared.enums.PersistenceType;
 import info.fmro.shared.enums.RunnerStatus;
+import info.fmro.shared.enums.SafetyLimitsModificationCommand;
 import info.fmro.shared.enums.Side;
-import info.fmro.betty.objects.BlackList;
 import info.fmro.shared.objects.OrderPrice;
-import info.fmro.betty.objects.Statics;
-import info.fmro.betty.safebet.SafeBet;
-import info.fmro.betty.safebet.SafeRunner;
-import info.fmro.betty.threads.LaunchCommandThread;
-import info.fmro.betty.threads.permanent.MaintenanceThread;
-import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.stream.objects.ListOfQueues;
+import info.fmro.shared.stream.objects.SerializableObjectModification;
+import info.fmro.shared.stream.objects.StreamObjectInterface;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import info.fmro.shared.utility.SynchronizedSet;
+import org.apache.commons.lang3.SerializationUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,10 +52,11 @@ import java.util.TreeSet;
 
 @SuppressWarnings({"ClassWithTooManyMethods", "OverlyComplexClass", "OverlyCoupledClass"})
 public class SafetyLimits
-        implements Serializable {
-    private static final long specialLimitInitialPeriod = 120_000L;
+        implements Serializable, StreamObjectInterface {
     private static final Logger logger = LoggerFactory.getLogger(SafetyLimits.class);
+    public transient ListOfQueues listOfQueues = new ListOfQueues();
     private static final long serialVersionUID = 9100257467817248236L;
+    private static final long specialLimitInitialPeriod = 120_000L;
     private static final PersistenceType persistenceType = PersistenceType.LAPSE; // sometimes PersistenceType.PERSIST causes an order placing error
     private static final OrderType orderType = OrderType.LIMIT;
     private static final double reserveFraction = .5d; // reserve is 50% of total (but starts at 500 and only increases)
@@ -64,13 +71,30 @@ public class SafetyLimits
     private double reserve = 5_000d; // default value; will always be truncated to int; can only increase
     private double availableFunds; // total amount available on the account; it includes the reserve
     private double exposure; // total exposure on the account; it's a negative number
-    private double totalFunds; // total funds on the account, including the exposure (= availableFunds - exposure)
+    private double totalFunds; // total funds on the account, including the exposure (= availableFunds - exposure); exposure is a negative number
     private final HashMap<String, Double> eventAmounts = new HashMap<>(16, 0.75F); // eventId, totalAmount
     private final HashMap<String, Double> marketAmounts = new HashMap<>(16, 0.75F); // marketId, totalAmount
     private final HashMap<SafeRunner, Double> runnerAmounts = new HashMap<>(16, 0.75F); // safeRunner, totalAmount
     private final HashMap<String, HashMap<String, List<PlaceInstruction>>> tempInstructionsListMap = new HashMap<>(2, 0.75F);
     public final BetFrequencyLimit speedLimit = new BetFrequencyLimit();
     private boolean startedGettingOrders;
+
+    private void readObject(@NotNull final java.io.ObjectInputStream in)
+            throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        this.listOfQueues = new ListOfQueues();
+    }
+
+    public synchronized SafetyLimits getCopy() {
+        return SerializationUtils.clone(this);
+    }
+
+    public synchronized int runAfterReceive() {
+        return 0;
+    }
+
+    public synchronized void runBeforeSend() {
+    }
 
     public synchronized void copyFrom(final SafetyLimits safetyLimits) {
 //        if (!this.tempReserveMap.isEmpty()) {
@@ -107,6 +131,13 @@ public class SafetyLimits
         //noinspection FloatingPointEquality
         if (this.currencyRate.get() == 1d || this.currencyRate.get() == 0d) { // likely default values
             Statics.timeStamps.setLastListCurrencyRates(0L); // get currencyRate as soon as possible
+        }
+
+        final int nQueues = this.listOfQueues.size();
+        if (nQueues == 0) { // normal case, nothing to be done
+        } else {
+            logger.error("existing queues during SafetyLimits.copyFrom: {} {}", nQueues, Generic.objectToString(this));
+            this.listOfQueues.send(this.getCopy());
         }
     }
 
@@ -653,6 +684,7 @@ public class SafetyLimits
         final double truncatedValue = Math.floor(newReserve);
         if (truncatedValue > this.reserve) {
             logger.info("modifying reserve value {} to {}", this.reserve, truncatedValue);
+            this.listOfQueues.send(new SerializableObjectModification<>(SafetyLimitsModificationCommand.setReserve, truncatedValue));
             this.reserve = truncatedValue;
             modified = true;
         } else {
@@ -662,6 +694,8 @@ public class SafetyLimits
     }
 
     public synchronized boolean processFunds(final double newAvailableFunds, final double newExposure) {
+        this.listOfQueues.send(new SerializableObjectModification<>(SafetyLimitsModificationCommand.setAvailableFunds, newAvailableFunds));
+        this.listOfQueues.send(new SerializableObjectModification<>(SafetyLimitsModificationCommand.setExposure, newExposure));
         this.availableFunds = newAvailableFunds;
         this.exposure = newExposure;
         this.totalFunds = newAvailableFunds - newExposure; // exposure is a negative number
@@ -904,6 +938,7 @@ public class SafetyLimits
                 if (Objects.equals(currencyCode, "EUR")) {
                     final Double rate = newCurrencyRate.getRate();
                     if (rate != null) {
+                        this.listOfQueues.send(new SerializableObjectModification<>(SafetyLimitsModificationCommand.setCurrencyRate, rate));
                         this.currencyRate.set(rate);
                     } else {
                         logger.error("null rate for: {}", Generic.objectToString(currencyRates));

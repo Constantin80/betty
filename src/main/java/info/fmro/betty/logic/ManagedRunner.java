@@ -1,7 +1,7 @@
 package info.fmro.betty.logic;
 
 import info.fmro.shared.enums.RulesManagerModificationCommand;
-import info.fmro.shared.stream.objects.RulesManagerModification;
+import info.fmro.shared.stream.objects.SerializableObjectModification;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.cache.market.Market;
 import info.fmro.betty.stream.cache.market.MarketRunner;
@@ -479,7 +479,7 @@ public class ManagedRunner
             }
 
         if (modified) {
-            Statics.rulesManager.listOfQueues.send(new RulesManagerModification(RulesManagerModificationCommand.setBackAmountLimit, this.backAmountLimit));
+            Statics.rulesManager.listOfQueues.send(new SerializableObjectModification<>(RulesManagerModificationCommand.setBackAmountLimit, this.backAmountLimit));
             Statics.rulesManager.rulesHaveChanged.set(true);
         }
         return modified;
@@ -498,7 +498,7 @@ public class ManagedRunner
             }
 
         if (modified) {
-            Statics.rulesManager.listOfQueues.send(new RulesManagerModification(RulesManagerModificationCommand.setLayAmountLimit, this.layAmountLimit));
+            Statics.rulesManager.listOfQueues.send(new SerializableObjectModification<>(RulesManagerModificationCommand.setLayAmountLimit, this.layAmountLimit));
             Statics.rulesManager.rulesHaveChanged.set(true);
         }
         return modified;
@@ -517,7 +517,7 @@ public class ManagedRunner
             }
 
         if (modified) {
-            Statics.rulesManager.listOfQueues.send(new RulesManagerModification(RulesManagerModificationCommand.setMinBackOdds, this.minBackOdds));
+            Statics.rulesManager.listOfQueues.send(new SerializableObjectModification<>(RulesManagerModificationCommand.setMinBackOdds, this.minBackOdds));
             Statics.rulesManager.rulesHaveChanged.set(true);
         }
         return modified;
@@ -536,7 +536,7 @@ public class ManagedRunner
             }
 
         if (modified) {
-            Statics.rulesManager.listOfQueues.send(new RulesManagerModification(RulesManagerModificationCommand.setMaxLayOdds, this.maxLayOdds));
+            Statics.rulesManager.listOfQueues.send(new SerializableObjectModification<>(RulesManagerModificationCommand.setMaxLayOdds, this.maxLayOdds));
             Statics.rulesManager.rulesHaveChanged.set(true);
         }
         return modified;

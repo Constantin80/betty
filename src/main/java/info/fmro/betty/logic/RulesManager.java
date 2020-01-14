@@ -1,16 +1,16 @@
 package info.fmro.betty.logic;
 
-import info.fmro.shared.enums.RulesManagerModificationCommand;
 import info.fmro.betty.main.VarsIO;
-import info.fmro.shared.stream.objects.ListOfQueues;
 import info.fmro.betty.objects.ManagedEventsMap;
-import info.fmro.shared.stream.objects.RulesManagerModification;
 import info.fmro.betty.objects.RulesManagerStringObject;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.cache.util.Utils;
 import info.fmro.betty.stream.client.ClientHandler;
-import info.fmro.shared.utility.Generic;
+import info.fmro.shared.enums.RulesManagerModificationCommand;
+import info.fmro.shared.stream.objects.ListOfQueues;
+import info.fmro.shared.stream.objects.SerializableObjectModification;
 import info.fmro.shared.stream.objects.StreamObjectInterface;
+import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.SynchronizedMap;
 import info.fmro.shared.utility.SynchronizedSafeSet;
 import info.fmro.shared.utility.SynchronizedSet;
@@ -107,16 +107,16 @@ public class RulesManager
                     this.rulesHaveChanged.set(true);
                     this.marketsMapModified.set(true);
                 }
-
-                final int nQueues = this.listOfQueues.size();
-                if (nQueues == 0) { // normal case, nothing to be done
-                } else {
-                    logger.error("existing queues during RulesManager.copyFrom: {} {}", nQueues, Generic.objectToString(this));
-                    this.listOfQueues.send(this.getCopy());
-                }
             }
         }
         associateMarketsWithEvents();
+
+        final int nQueues = this.listOfQueues.size();
+        if (nQueues == 0) { // normal case, nothing to be done
+        } else {
+            logger.error("existing queues during RulesManager.copyFrom: {} {}", nQueues, Generic.objectToString(this));
+            this.listOfQueues.send(this.getCopy());
+        }
 
         return readSuccessful;
     }
@@ -169,7 +169,7 @@ public class RulesManager
             managedEvent = this.events.get(eventId);
         } else {
             managedEvent = new ManagedEvent(eventId);
-            this.listOfQueues.send(new RulesManagerModification(RulesManagerModificationCommand.addManagedEvent, eventId, managedEvent));
+            this.listOfQueues.send(new SerializableObjectModification<>(RulesManagerModificationCommand.addManagedEvent, eventId, managedEvent));
             this.events.put(eventId, managedEvent);
             this.rulesHaveChanged.set(true);
         }
@@ -182,7 +182,7 @@ public class RulesManager
             managedMarket = this.markets.get(marketId);
         } else {
             managedMarket = new ManagedMarket(marketId);
-            this.listOfQueues.send(new RulesManagerModification(RulesManagerModificationCommand.addManagedMarket, marketId, managedMarket));
+            this.listOfQueues.send(new SerializableObjectModification<>(RulesManagerModificationCommand.addManagedMarket, marketId, managedMarket));
             this.markets.put(marketId, managedMarket);
             checkMarketsAreAssociatedWithEvents();
             this.rulesHaveChanged.set(true);
@@ -211,7 +211,7 @@ public class RulesManager
     private synchronized ManagedMarket removeManagedMarket(final String marketId) {
         @Nullable final ManagedMarket managedMarket;
         if (this.markets.containsKey(marketId)) {
-            this.listOfQueues.send(new RulesManagerModification(RulesManagerModificationCommand.removeManagedMarket, marketId));
+            this.listOfQueues.send(new SerializableObjectModification<>(RulesManagerModificationCommand.removeManagedMarket, marketId));
             managedMarket = this.markets.remove(marketId);
             this.rulesHaveChanged.set(true);
             this.marketsMapModified.set(true);

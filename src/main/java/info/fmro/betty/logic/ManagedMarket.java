@@ -2,7 +2,7 @@ package info.fmro.betty.logic;
 
 import info.fmro.shared.enums.MarketBettingType;
 import info.fmro.shared.enums.RulesManagerModificationCommand;
-import info.fmro.shared.stream.objects.RulesManagerModification;
+import info.fmro.shared.stream.objects.SerializableObjectModification;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.cache.market.Market;
 import info.fmro.betty.stream.cache.order.OrderMarket;
@@ -271,7 +271,7 @@ public class ManagedMarket
             }
 
         if (modified) {
-            Statics.rulesManager.listOfQueues.send(new RulesManagerModification(RulesManagerModificationCommand.setMarketAmountLimit, this.amountLimit));
+            Statics.rulesManager.listOfQueues.send(new SerializableObjectModification<>(RulesManagerModificationCommand.setMarketAmountLimit, this.amountLimit));
             Statics.rulesManager.rulesHaveChanged.set(true);
         }
         return modified;
@@ -283,7 +283,7 @@ public class ManagedMarket
             returnValue = this.runners.get(runnerId);
         } else { // managedRunner does not exist, I'll generate it; this is done initially, but also later if runners are added
             returnValue = new ManagedRunner(this.id, runnerId);
-            Statics.rulesManager.listOfQueues.send(new RulesManagerModification(RulesManagerModificationCommand.addManagedRunner, runnerId, returnValue));
+            Statics.rulesManager.listOfQueues.send(new SerializableObjectModification<>(RulesManagerModificationCommand.addManagedRunner, runnerId, returnValue));
             this.runners.put(runnerId, returnValue); // runners.put needs to be before runnersOrderedList.addAll
             returnValue.attachRunner(this.market);
 

@@ -1,8 +1,8 @@
 package info.fmro.betty.objects;
 
-import info.fmro.shared.enums.RulesManagerModificationCommand;
 import info.fmro.betty.main.ApiDefault;
-import info.fmro.shared.stream.objects.RulesManagerModification;
+import info.fmro.shared.enums.RulesManagerModificationCommand;
+import info.fmro.shared.stream.objects.SerializableObjectModification;
 import org.apache.commons.lang3.SerializationUtils;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +20,7 @@ public class RulesManagerModificationTest
         }
         assertArrayEquals(secondArray, firstArray, "array clone test");
 
-        final RulesManagerModification object = new RulesManagerModification(RulesManagerModificationCommand.setMaxLayOdds, 1, 1.1, true);
+        final SerializableObjectModification<RulesManagerModificationCommand> object = new SerializableObjectModification<>(RulesManagerModificationCommand.setMaxLayOdds, 1, 1.1, true);
         final Serializable[] array = object.getArray();
         assertArrayEquals(new Serializable[]{1, 1.1, true}, array, "constructor test");
     }
