@@ -1,16 +1,17 @@
 package info.fmro.betty.logic;
 
-import info.fmro.shared.enums.RulesManagerModificationCommand;
-import info.fmro.shared.stream.objects.SerializableObjectModification;
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.stream.cache.market.Market;
-import info.fmro.betty.stream.cache.market.MarketRunner;
-import info.fmro.betty.stream.cache.order.OrderMarket;
-import info.fmro.betty.stream.cache.order.OrderMarketRunner;
-import info.fmro.shared.stream.objects.RunnerId;
-import info.fmro.betty.stream.cache.util.Utils;
-import info.fmro.betty.stream.definitions.Order;
+import info.fmro.betty.stream.cache.Utils;
+import info.fmro.shared.enums.RulesManagerModificationCommand;
+import info.fmro.shared.objects.Exposure;
+import info.fmro.shared.stream.cache.market.Market;
+import info.fmro.shared.stream.cache.market.MarketRunner;
+import info.fmro.shared.stream.cache.order.OrderMarket;
+import info.fmro.shared.stream.cache.order.OrderMarketRunner;
+import info.fmro.shared.stream.definitions.Order;
 import info.fmro.shared.stream.enums.Side;
+import info.fmro.shared.stream.objects.RunnerId;
+import info.fmro.shared.stream.objects.SerializableObjectModification;
 import info.fmro.shared.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Contract;
@@ -113,7 +114,7 @@ public class ManagedRunner
             final RunnerId localRunnerId = this.runnerId;
             if (localRunnerId.equals(orderRunnerId)) {
 //                this.updateExposure(orderMarketRunner.getExposure());
-                this.orderMarketRunner.getExposure(this); // updates the exposure into this object
+                this.orderMarketRunner.getExposure(this, Statics.pendingOrdersThread); // updates the exposure into this object
             } else {
                 logger.error("not equal runnerIds in ManagedRunner.processOrders for: {} {} {}", Generic.objectToString(orderRunnerId), Generic.objectToString(localRunnerId), Generic.objectToString(this));
             }
@@ -139,11 +140,12 @@ public class ManagedRunner
                 final double backExcessExposure = Math.max(0d, backTotalExposure - this.backAmountLimit), layExcessExposure = Math.max(0d, layTotalExposure - this.layAmountLimit);
                 final double backMatchedExposure = this.getBackMatchedExposure(), layMatchedExposure = this.getLayMatchedExposure();
                 final double backExcessMatchedExposure = Math.max(0d, backMatchedExposure - this.backAmountLimit), layExcessMatchedExposure = Math.max(0d, layMatchedExposure - this.layAmountLimit);
-                exposureHasBeenModified += this.orderMarketRunner.cancelUnmatchedAmounts(backExcessExposure, layExcessExposure);
+                exposureHasBeenModified += this.orderMarketRunner.cancelUnmatchedAmounts(backExcessExposure, layExcessExposure, Statics.pendingOrdersThread);
 
                 if (backExcessMatchedExposure >= .1d || layExcessMatchedExposure >= .1d) {
                     logger.error("matched exposure has breached the limit back:{} {} lay:{} {} for runner: {}", this.backAmountLimit, backMatchedExposure, this.layAmountLimit, layMatchedExposure, Generic.objectToString(this));
-                    exposureHasBeenModified += this.orderMarketRunner.balanceMatchedAmounts(this.getBackAmountLimit(), this.getLayAmountLimit(), this.getToBeUsedBackOdds(), this.getToBeUsedLayOdds(), backExcessMatchedExposure, layExcessMatchedExposure);
+                    exposureHasBeenModified += this.orderMarketRunner.balanceMatchedAmounts(this.getBackAmountLimit(), this.getLayAmountLimit(), this.getToBeUsedBackOdds(), this.getToBeUsedLayOdds(), backExcessMatchedExposure, layExcessMatchedExposure,
+                                                                                            Statics.pendingOrdersThread);
                 } else { // matched amounts don't break the limits, nothing to be done
                 }
 
@@ -175,42 +177,44 @@ public class ManagedRunner
             }
 
             if (backMatchedExcessExposure < .1d && layMatchedExcessExposure < .1d) {
-                exposureHasBeenModified += this.orderMarketRunner.cancelUnmatched();
+                exposureHasBeenModified += this.orderMarketRunner.cancelUnmatched(Statics.pendingOrdersThread);
             } else if (backMatchedExcessExposure >= .1d) {
-                exposureHasBeenModified += this.orderMarketRunner.cancelUnmatched(Side.B);
+                exposureHasBeenModified += this.orderMarketRunner.cancelUnmatched(Side.B, Statics.pendingOrdersThread);
                 // matchedBackExposure, matchedLayExposure, unmatchedBackExposure, unmatchedBackProfit, unmatchedLayExposure, unmatchedLayProfit, tempBackExposure, tempBackProfit, tempLayExposure, tempLayProfit, tempBackCancel, tempLayCancel;
                 final double backExcessExposureAfterTempIsConsidered =
                         backMatchedExcessExposure + this.orderMarketRunner.getTempBackExposure() + this.orderMarketRunner.getTempBackProfit() - this.orderMarketRunner.getTempLayExposure() - this.orderMarketRunner.getTempLayProfit();
                 if (backExcessExposureAfterTempIsConsidered < .1d) {
-                    exposureHasBeenModified += this.orderMarketRunner.cancelUnmatched(Side.L);
+                    exposureHasBeenModified += this.orderMarketRunner.cancelUnmatched(Side.L, Statics.pendingOrdersThread);
                 } else {
-                    final double excessOnTheOtherSideRemaining = this.orderMarketRunner.cancelUnmatchedExceptExcessOnTheOtherSide(Side.L, backExcessExposureAfterTempIsConsidered);
+                    final double excessOnTheOtherSideRemaining = this.orderMarketRunner.cancelUnmatchedExceptExcessOnTheOtherSide(Side.L, backExcessExposureAfterTempIsConsidered, Statics.pendingOrdersThread);
                     if (excessOnTheOtherSideRemaining < backExcessExposureAfterTempIsConsidered) {
                         exposureHasBeenModified++;
                     } else { // no modification was made
                     }
 
                     if (excessOnTheOtherSideRemaining >= .1d) {
-                        exposureHasBeenModified += this.orderMarketRunner.balanceMatchedAmounts(this.getBackAmountLimit(), this.getLayAmountLimit(), this.getToBeUsedBackOdds(), this.getToBeUsedLayOdds(), excessOnTheOtherSideRemaining, 0d);
+                        exposureHasBeenModified += this.orderMarketRunner.balanceMatchedAmounts(this.getBackAmountLimit(), this.getLayAmountLimit(), this.getToBeUsedBackOdds(), this.getToBeUsedLayOdds(), excessOnTheOtherSideRemaining, 0d,
+                                                                                                Statics.pendingOrdersThread);
                     } else { // problem solved, no more adjustments needed
                     }
                 }
             } else if (layMatchedExcessExposure >= .1d) {
-                exposureHasBeenModified += this.orderMarketRunner.cancelUnmatched(Side.L);
+                exposureHasBeenModified += this.orderMarketRunner.cancelUnmatched(Side.L, Statics.pendingOrdersThread);
                 // matchedBackExposure, matchedLayExposure, unmatchedBackExposure, unmatchedBackProfit, unmatchedLayExposure, unmatchedLayProfit, tempBackExposure, tempBackProfit, tempLayExposure, tempLayProfit, tempBackCancel, tempLayCancel;
                 final double layExcessExposureAfterTempIsConsidered =
                         layMatchedExcessExposure + this.orderMarketRunner.getTempLayExposure() + this.orderMarketRunner.getTempLayProfit() - this.orderMarketRunner.getTempBackExposure() - this.orderMarketRunner.getTempBackProfit();
                 if (layExcessExposureAfterTempIsConsidered < .1d) {
-                    exposureHasBeenModified += this.orderMarketRunner.cancelUnmatched(Side.B);
+                    exposureHasBeenModified += this.orderMarketRunner.cancelUnmatched(Side.B, Statics.pendingOrdersThread);
                 } else {
-                    final double excessOnTheOtherSideRemaining = this.orderMarketRunner.cancelUnmatchedExceptExcessOnTheOtherSide(Side.B, layExcessExposureAfterTempIsConsidered);
+                    final double excessOnTheOtherSideRemaining = this.orderMarketRunner.cancelUnmatchedExceptExcessOnTheOtherSide(Side.B, layExcessExposureAfterTempIsConsidered, Statics.pendingOrdersThread);
                     if (excessOnTheOtherSideRemaining < layExcessExposureAfterTempIsConsidered) {
                         exposureHasBeenModified++;
                     } else { // no modification was made
                     }
 
                     if (excessOnTheOtherSideRemaining >= .1d) {
-                        exposureHasBeenModified += this.orderMarketRunner.balanceMatchedAmounts(this.getBackAmountLimit(), this.getLayAmountLimit(), this.getToBeUsedBackOdds(), this.getToBeUsedLayOdds(), 0d, excessOnTheOtherSideRemaining);
+                        exposureHasBeenModified += this.orderMarketRunner.balanceMatchedAmounts(this.getBackAmountLimit(), this.getLayAmountLimit(), this.getToBeUsedBackOdds(), this.getToBeUsedLayOdds(), 0d, excessOnTheOtherSideRemaining,
+                                                                                                Statics.pendingOrdersThread);
                     } else { // problem solved, no more adjustments needed
                     }
                 }
@@ -233,8 +237,8 @@ public class ManagedRunner
         } else {
             final HashMap<String, Order> unmatchedOrders = this.orderMarketRunner == null ? null : this.orderMarketRunner.getUnmatchedOrders();
 
-            final double existingBackOdds = this.marketRunner.getBestAvailableBackPrice(unmatchedOrders, this.getBackAmountLimit(marketCalculatedLimit));
-            final double existingLayOdds = this.marketRunner.getBestAvailableLayPrice(unmatchedOrders, this.getLayAmountLimit(marketCalculatedLimit));
+            final double existingBackOdds = this.marketRunner.getBestAvailableBackPrice(unmatchedOrders, this.getBackAmountLimit(marketCalculatedLimit), Statics.safetyLimits.currencyRate);
+            final double existingLayOdds = this.marketRunner.getBestAvailableLayPrice(unmatchedOrders, this.getLayAmountLimit(marketCalculatedLimit), Statics.safetyLimits.currencyRate);
 
             final double layNStepDifferentOdds = existingLayOdds == 0 ? 1_000d : info.fmro.shared.utility.Formulas.getNStepDifferentOdds(existingLayOdds, -1);
             final double backNStepDifferentOdds = existingBackOdds == 0 ? 1.01d : info.fmro.shared.utility.Formulas.getNStepDifferentOdds(existingBackOdds, 1);
@@ -248,10 +252,12 @@ public class ManagedRunner
         }
         if (this.orderMarketRunner != null) {
             // send order to cancel all back bets at worse odds than to be used ones / send order to cancel all back bets
-            exposureHasBeenModified += info.fmro.shared.utility.Formulas.oddsAreUsable(this.toBeUsedBackOdds) ? this.orderMarketRunner.cancelUnmatched(Side.B, this.toBeUsedBackOdds) : this.orderMarketRunner.cancelUnmatched(Side.B);
+            exposureHasBeenModified += info.fmro.shared.utility.Formulas.oddsAreUsable(this.toBeUsedBackOdds) ?
+                                       this.orderMarketRunner.cancelUnmatched(Side.B, this.toBeUsedBackOdds, Statics.pendingOrdersThread) : this.orderMarketRunner.cancelUnmatched(Side.B, Statics.pendingOrdersThread);
 
             // send order to cancel all lay bets at worse odds than to be used ones / send order to cancel all lay bets
-            exposureHasBeenModified += info.fmro.shared.utility.Formulas.oddsAreUsable(this.toBeUsedLayOdds) ? this.orderMarketRunner.cancelUnmatched(Side.L, this.toBeUsedLayOdds) : this.orderMarketRunner.cancelUnmatched(Side.L);
+            exposureHasBeenModified += info.fmro.shared.utility.Formulas.oddsAreUsable(this.toBeUsedLayOdds) ?
+                                       this.orderMarketRunner.cancelUnmatched(Side.L, this.toBeUsedLayOdds, Statics.pendingOrdersThread) : this.orderMarketRunner.cancelUnmatched(Side.L, Statics.pendingOrdersThread);
         } else {
             logger.error("null orderMarketRunner in calculateOdds: {}", Generic.objectToString(this));
         }
@@ -274,7 +280,7 @@ public class ManagedRunner
             logger.error("null orderMarketRunner or marketRunner in cancelHardToReachOrders for: {}", Generic.objectToString(this));
         } else {
             // back
-            final TreeMap<Double, Double> unmatchedBackAmounts = this.orderMarketRunner.getUnmatchedBackAmounts(), availableLayAmounts = this.marketRunner.getAvailableToLay();
+            final TreeMap<Double, Double> unmatchedBackAmounts = this.orderMarketRunner.getUnmatchedBackAmounts(), availableLayAmounts = this.marketRunner.getAvailableToLay(Statics.safetyLimits.currencyRate);
             Formulas.removeOwnAmountsFromAvailableTreeMap(availableLayAmounts, unmatchedBackAmounts);
             final NavigableSet<Double> unmatchedBackPrices = unmatchedBackAmounts.descendingKeySet();
             double worstOddsThatAreGettingCanceledBack = 0d;
@@ -301,11 +307,11 @@ public class ManagedRunner
             } // end for
             if (worstOddsThatAreGettingCanceledBack == 0d) { // nothing to be done
             } else {
-                modifications += this.orderMarketRunner.cancelUnmatchedTooGoodOdds(Side.B, worstOddsThatAreGettingCanceledBack);
+                modifications += this.orderMarketRunner.cancelUnmatchedTooGoodOdds(Side.B, worstOddsThatAreGettingCanceledBack, Statics.pendingOrdersThread);
             }
 
             // lay
-            final TreeMap<Double, Double> unmatchedLayAmounts = this.orderMarketRunner.getUnmatchedLayAmounts(), availableBackAmounts = this.marketRunner.getAvailableToBack();
+            final TreeMap<Double, Double> unmatchedLayAmounts = this.orderMarketRunner.getUnmatchedLayAmounts(), availableBackAmounts = this.marketRunner.getAvailableToBack(Statics.safetyLimits.currencyRate);
             Formulas.removeOwnAmountsFromAvailableTreeMap(availableBackAmounts, unmatchedLayAmounts);
             final NavigableSet<Double> unmatchedLayPrices = unmatchedLayAmounts.descendingKeySet();
             double worstOddsThatAreGettingCanceledLay = 0d;
@@ -332,7 +338,7 @@ public class ManagedRunner
             } // end for
             if (worstOddsThatAreGettingCanceledLay == 0d) { // nothing to be done
             } else {
-                modifications += this.orderMarketRunner.cancelUnmatchedTooGoodOdds(Side.L, worstOddsThatAreGettingCanceledLay);
+                modifications += this.orderMarketRunner.cancelUnmatchedTooGoodOdds(Side.L, worstOddsThatAreGettingCanceledLay, Statics.pendingOrdersThread);
             }
         }
 
@@ -350,7 +356,7 @@ public class ManagedRunner
     public synchronized double getTotalValue() {
         final double result;
         if (this.getMarketRunner() != null) {
-            result = this.marketRunner.getTvEUR();
+            result = this.marketRunner.getTvEUR(Statics.safetyLimits.currencyRate);
         } else {
             logger.error("no marketRunner present in getTotalValue for: {}", Generic.objectToString(this));
             result = 0d;

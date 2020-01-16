@@ -4,7 +4,7 @@ import info.fmro.betty.main.VarsIO;
 import info.fmro.betty.objects.ManagedEventsMap;
 import info.fmro.betty.objects.RulesManagerStringObject;
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.stream.cache.util.Utils;
+import info.fmro.betty.stream.cache.Utils;
 import info.fmro.betty.stream.client.ClientHandler;
 import info.fmro.shared.enums.RulesManagerModificationCommand;
 import info.fmro.shared.stream.objects.ListOfQueues;

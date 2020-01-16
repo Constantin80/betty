@@ -2,9 +2,9 @@ package info.fmro.betty.threads;
 
 import info.fmro.betty.betapi.ApiNgRescriptOperations;
 import info.fmro.betty.betapi.RescriptResponseHandler;
-import info.fmro.betty.entities.PlaceExecutionReport;
-import info.fmro.betty.entities.PlaceInstruction;
-import info.fmro.betty.entities.PlaceInstructionReport;
+import info.fmro.shared.entities.PlaceExecutionReport;
+import info.fmro.shared.entities.PlaceInstruction;
+import info.fmro.shared.entities.PlaceInstructionReport;
 import info.fmro.shared.enums.ExecutionReportStatus;
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.objects.TemporaryOrder;

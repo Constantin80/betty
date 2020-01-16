@@ -1,6 +1,7 @@
 package info.fmro.betty.entities;
 
 import info.fmro.betty.main.ApiDefault;
+import info.fmro.shared.entities.LimitOrder;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

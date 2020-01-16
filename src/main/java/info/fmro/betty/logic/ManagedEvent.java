@@ -4,7 +4,7 @@ import info.fmro.shared.enums.RulesManagerModificationCommand;
 import info.fmro.betty.objects.ManagedMarketsMap;
 import info.fmro.shared.stream.objects.SerializableObjectModification;
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.stream.cache.util.Utils;
+import info.fmro.betty.stream.cache.Utils;
 import info.fmro.shared.utility.SynchronizedSet;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;

@@ -1,19 +1,19 @@
 package info.fmro.betty.logic;
 
+import info.fmro.betty.objects.Statics;
+import info.fmro.betty.stream.cache.Utils;
+import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.enums.MarketBettingType;
 import info.fmro.shared.enums.RulesManagerModificationCommand;
-import info.fmro.shared.stream.objects.SerializableObjectModification;
-import info.fmro.betty.objects.Statics;
-import info.fmro.betty.stream.cache.market.Market;
-import info.fmro.betty.stream.cache.order.OrderMarket;
-import info.fmro.betty.stream.cache.order.OrderMarketRunner;
-import info.fmro.shared.stream.objects.RunnerId;
-import info.fmro.betty.stream.cache.util.Utils;
+import info.fmro.shared.stream.cache.market.Market;
+import info.fmro.shared.stream.cache.order.OrderMarket;
+import info.fmro.shared.stream.cache.order.OrderMarketRunner;
 import info.fmro.shared.stream.definitions.MarketDefinition;
-import info.fmro.betty.stream.definitions.Order;
+import info.fmro.shared.stream.definitions.Order;
 import info.fmro.shared.stream.enums.Side;
+import info.fmro.shared.stream.objects.RunnerId;
+import info.fmro.shared.stream.objects.SerializableObjectModification;
 import info.fmro.shared.utility.ComparatorMarketPrices;
-import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -392,7 +392,7 @@ public class ManagedMarket
     public synchronized double getTotalValue() {
         final double result;
         if (this.market != null) {
-            result = this.market.getTvEUR();
+            result = this.market.getTvEUR(Statics.safetyLimits.currencyRate);
         } else {
             logger.error("no market present in getTotalValue for: {}", Generic.objectToString(this));
             result = 0d;
@@ -422,8 +422,9 @@ public class ManagedMarket
                     isValid = false;
                 } else {
                     final double firstMinBackOdds = firstRunner.getMinBackOdds(), secondMinBackOdds = secondRunner.getMinBackOdds(), firstMaxLayOdds = firstRunner.getMaxLayOdds(), secondMaxLayOdds = secondRunner.getMaxLayOdds();
-                    if (info.fmro.shared.utility.Formulas.oddsAreUsable(firstMinBackOdds) != info.fmro.shared.utility.Formulas.oddsAreUsable(secondMaxLayOdds) || info.fmro.shared.utility.Formulas.oddsAreUsable(secondMinBackOdds) != info.fmro.shared.utility.Formulas
-                            .oddsAreUsable(firstMaxLayOdds)) {
+                    if (info.fmro.shared.utility.Formulas.oddsAreUsable(firstMinBackOdds) != info.fmro.shared.utility.Formulas.oddsAreUsable(secondMaxLayOdds) ||
+                        info.fmro.shared.utility.Formulas.oddsAreUsable(secondMinBackOdds) != info.fmro.shared.utility.Formulas
+                                .oddsAreUsable(firstMaxLayOdds)) {
                         logger.error("not equal oddsAreUsable in checkTwoWayMarketLimitsValid for: {} {} {} {} {} {} {} {}", firstMinBackOdds, secondMinBackOdds, firstMaxLayOdds, secondMaxLayOdds, Generic.objectToString(firstRunner),
                                      Generic.objectToString(secondRunner), Generic.objectToString(this.runnersOrderedList), Generic.objectToString(this));
                         isValid = false;
@@ -451,40 +452,40 @@ public class ManagedMarket
         } else {
             final @NotNull Side firstSide = sideList.get(0), secondSide = sideList.get(1);
             if (firstSide == Side.B && secondSide == Side.L) {
-                modifications += firstOrderRunner.cancelUnmatched(Side.L);
-                modifications += secondOrderRunner.cancelUnmatched(Side.B);
+                modifications += firstOrderRunner.cancelUnmatched(Side.L, Statics.pendingOrdersThread);
+                modifications += secondOrderRunner.cancelUnmatched(Side.B, Statics.pendingOrdersThread);
                 final @NotNull List<Double> exposuresToBePlaced = Utils.getExposureToBePlacedForTwoWayMarket(firstRunner, secondRunner, firstOrderRunner, secondOrderRunner, sideList, excessMatchedExposure);
                 final double firstExposureToBePlaced = exposuresToBePlaced.get(0), secondExposureToBePlaced = exposuresToBePlaced.get(1);
                 if (firstExposureToBePlaced <= 0d) {
-                    modifications += firstOrderRunner.cancelUnmatchedAmounts(-firstExposureToBePlaced, 0d);
+                    modifications += firstOrderRunner.cancelUnmatchedAmounts(-firstExposureToBePlaced, 0d, Statics.pendingOrdersThread);
                 } else {
-                    if (firstOrderRunner.placeOrder(firstRunner.getBackAmountLimit(), firstRunner.getLayAmountLimit(), Side.B, firstRunner.getToBeUsedBackOdds(), firstExposureToBePlaced) > 0d) {
+                    if (firstOrderRunner.placeOrder(firstRunner.getBackAmountLimit(), firstRunner.getLayAmountLimit(), Side.B, firstRunner.getToBeUsedBackOdds(), firstExposureToBePlaced, Statics.pendingOrdersThread) > 0d) {
                         modifications++;
                     }
                 }
                 if (secondExposureToBePlaced <= 0d) {
-                    modifications += secondOrderRunner.cancelUnmatchedAmounts(0d, -secondExposureToBePlaced);
+                    modifications += secondOrderRunner.cancelUnmatchedAmounts(0d, -secondExposureToBePlaced, Statics.pendingOrdersThread);
                 } else {
-                    if (secondOrderRunner.placeOrder(secondRunner.getBackAmountLimit(), secondRunner.getLayAmountLimit(), Side.L, secondRunner.getToBeUsedLayOdds(), secondExposureToBePlaced) > 0d) {
+                    if (secondOrderRunner.placeOrder(secondRunner.getBackAmountLimit(), secondRunner.getLayAmountLimit(), Side.L, secondRunner.getToBeUsedLayOdds(), secondExposureToBePlaced, Statics.pendingOrdersThread) > 0d) {
                         modifications++;
                     }
                 }
             } else if (firstSide == Side.L && secondSide == Side.B) {
-                modifications += firstOrderRunner.cancelUnmatched(Side.B);
-                modifications += secondOrderRunner.cancelUnmatched(Side.L);
+                modifications += firstOrderRunner.cancelUnmatched(Side.B, Statics.pendingOrdersThread);
+                modifications += secondOrderRunner.cancelUnmatched(Side.L, Statics.pendingOrdersThread);
                 final @NotNull List<Double> exposuresToBePlaced = Utils.getExposureToBePlacedForTwoWayMarket(firstRunner, secondRunner, firstOrderRunner, secondOrderRunner, sideList, excessMatchedExposure);
                 final double firstExposureToBePlaced = exposuresToBePlaced.get(0), secondExposureToBePlaced = exposuresToBePlaced.get(1);
                 if (firstExposureToBePlaced <= 0d) {
-                    modifications += firstOrderRunner.cancelUnmatchedAmounts(0d, -firstExposureToBePlaced);
+                    modifications += firstOrderRunner.cancelUnmatchedAmounts(0d, -firstExposureToBePlaced, Statics.pendingOrdersThread);
                 } else {
-                    if (firstOrderRunner.placeOrder(firstRunner.getBackAmountLimit(), firstRunner.getLayAmountLimit(), Side.L, firstRunner.getToBeUsedLayOdds(), firstExposureToBePlaced) > 0d) {
+                    if (firstOrderRunner.placeOrder(firstRunner.getBackAmountLimit(), firstRunner.getLayAmountLimit(), Side.L, firstRunner.getToBeUsedLayOdds(), firstExposureToBePlaced, Statics.pendingOrdersThread) > 0d) {
                         modifications++;
                     }
                 }
                 if (secondExposureToBePlaced <= 0d) {
-                    modifications += secondOrderRunner.cancelUnmatchedAmounts(-secondExposureToBePlaced, 0d);
+                    modifications += secondOrderRunner.cancelUnmatchedAmounts(-secondExposureToBePlaced, 0d, Statics.pendingOrdersThread);
                 } else {
-                    if (secondOrderRunner.placeOrder(secondRunner.getBackAmountLimit(), secondRunner.getLayAmountLimit(), Side.B, secondRunner.getToBeUsedBackOdds(), secondExposureToBePlaced) > 0d) {
+                    if (secondOrderRunner.placeOrder(secondRunner.getBackAmountLimit(), secondRunner.getLayAmountLimit(), Side.B, secondRunner.getToBeUsedBackOdds(), secondExposureToBePlaced, Statics.pendingOrdersThread) > 0d) {
                         modifications++;
                     }
                 }
@@ -508,16 +509,16 @@ public class ManagedMarket
                 final @NotNull List<Double> exposuresToBePlaced = Utils.getAmountsToBePlacedForTwoWayMarket(firstRunner, secondRunner, firstOrderRunner, secondOrderRunner, sideList, availableLimit);
                 final double firstExposureToBePlaced = exposuresToBePlaced.get(0), secondExposureToBePlaced = exposuresToBePlaced.get(1);
                 if (firstExposureToBePlaced <= 0d) {
-                    modifications += firstOrderRunner.cancelUnmatchedAmounts(-firstExposureToBePlaced, 0d);
+                    modifications += firstOrderRunner.cancelUnmatchedAmounts(-firstExposureToBePlaced, 0d, Statics.pendingOrdersThread);
                 } else {
-                    if (firstOrderRunner.placeOrder(firstRunner.getBackAmountLimit(), firstRunner.getLayAmountLimit(), Side.B, firstRunner.getToBeUsedBackOdds(), firstExposureToBePlaced) > 0d) {
+                    if (firstOrderRunner.placeOrder(firstRunner.getBackAmountLimit(), firstRunner.getLayAmountLimit(), Side.B, firstRunner.getToBeUsedBackOdds(), firstExposureToBePlaced, Statics.pendingOrdersThread) > 0d) {
                         modifications++;
                     }
                 }
                 if (secondExposureToBePlaced <= 0d) {
-                    modifications += secondOrderRunner.cancelUnmatchedAmounts(0d, -secondExposureToBePlaced);
+                    modifications += secondOrderRunner.cancelUnmatchedAmounts(0d, -secondExposureToBePlaced, Statics.pendingOrdersThread);
                 } else {
-                    if (secondOrderRunner.placeOrder(secondRunner.getBackAmountLimit(), secondRunner.getLayAmountLimit(), Side.L, secondRunner.getToBeUsedLayOdds(), secondExposureToBePlaced) > 0d) {
+                    if (secondOrderRunner.placeOrder(secondRunner.getBackAmountLimit(), secondRunner.getLayAmountLimit(), Side.L, secondRunner.getToBeUsedLayOdds(), secondExposureToBePlaced, Statics.pendingOrdersThread) > 0d) {
                         modifications++;
                     }
                 }
@@ -525,16 +526,16 @@ public class ManagedMarket
                 final @NotNull List<Double> exposuresToBePlaced = Utils.getAmountsToBePlacedForTwoWayMarket(firstRunner, secondRunner, firstOrderRunner, secondOrderRunner, sideList, availableLimit);
                 final double firstExposureToBePlaced = exposuresToBePlaced.get(0), secondExposureToBePlaced = exposuresToBePlaced.get(1);
                 if (firstExposureToBePlaced <= 0d) {
-                    modifications += firstOrderRunner.cancelUnmatchedAmounts(0d, -firstExposureToBePlaced);
+                    modifications += firstOrderRunner.cancelUnmatchedAmounts(0d, -firstExposureToBePlaced, Statics.pendingOrdersThread);
                 } else {
-                    if (firstOrderRunner.placeOrder(firstRunner.getBackAmountLimit(), firstRunner.getLayAmountLimit(), Side.L, firstRunner.getToBeUsedLayOdds(), firstExposureToBePlaced) > 0d) {
+                    if (firstOrderRunner.placeOrder(firstRunner.getBackAmountLimit(), firstRunner.getLayAmountLimit(), Side.L, firstRunner.getToBeUsedLayOdds(), firstExposureToBePlaced, Statics.pendingOrdersThread) > 0d) {
                         modifications++;
                     }
                 }
                 if (secondExposureToBePlaced <= 0d) {
-                    modifications += secondOrderRunner.cancelUnmatchedAmounts(-secondExposureToBePlaced, 0d);
+                    modifications += secondOrderRunner.cancelUnmatchedAmounts(-secondExposureToBePlaced, 0d, Statics.pendingOrdersThread);
                 } else {
-                    if (secondOrderRunner.placeOrder(secondRunner.getBackAmountLimit(), secondRunner.getLayAmountLimit(), Side.B, secondRunner.getToBeUsedBackOdds(), secondExposureToBePlaced) > 0d) {
+                    if (secondOrderRunner.placeOrder(secondRunner.getBackAmountLimit(), secondRunner.getLayAmountLimit(), Side.B, secondRunner.getToBeUsedBackOdds(), secondExposureToBePlaced, Statics.pendingOrdersThread) > 0d) {
                         modifications++;
                     }
                 }
@@ -669,8 +670,8 @@ public class ManagedMarket
                                     if (orderMarketRunner == null) {
                                         logger.error("null orderMarketRunner while positive amountToRemoveFromBack for: {} {} {}", amountToRemoveFromBack, Generic.objectToString(managedRunner), Generic.objectToString(this));
                                     } else {
-                                        modifications += orderMarketRunner
-                                                .balanceTotalAmounts(managedRunner.getBackAmountLimit(), managedRunner.getLayAmountLimit(), managedRunner.getToBeUsedBackOdds(), managedRunner.getToBeUsedLayOdds(), amountToRemoveFromBack, 0d);
+                                        modifications += orderMarketRunner.balanceTotalAmounts(managedRunner.getBackAmountLimit(), managedRunner.getLayAmountLimit(), managedRunner.getToBeUsedBackOdds(), managedRunner.getToBeUsedLayOdds(),
+                                                                                               amountToRemoveFromBack, 0d, Statics.pendingOrdersThread);
                                     }
                                 } else { // amount negative, won't remove anything
                                 }
@@ -707,8 +708,8 @@ public class ManagedMarket
                         if (orderMarketRunner == null) {
                             logger.error("null orderMarketRunner while negative minimumAvailableLimit for: {} {} {}", minimumAvailableLimit, Generic.objectToString(managedRunner), Generic.objectToString(this));
                         } else {
-                            modifications +=
-                                    orderMarketRunner.balanceTotalAmounts(managedRunner.getBackAmountLimit(), managedRunner.getLayAmountLimit(), managedRunner.getToBeUsedBackOdds(), managedRunner.getToBeUsedLayOdds(), 0d, -minimumAvailableLimit);
+                            modifications += orderMarketRunner.balanceTotalAmounts(managedRunner.getBackAmountLimit(), managedRunner.getLayAmountLimit(), managedRunner.getToBeUsedBackOdds(), managedRunner.getToBeUsedLayOdds(),
+                                                                                   0d, -minimumAvailableLimit, Statics.pendingOrdersThread);
                         }
                     } else { // difference too small, nothing to be done
                     }
@@ -1030,7 +1031,7 @@ public class ManagedMarket
                                 if (side == null || price == null || size == null || betId == null) {
                                     logger.error("null order attributes in cancelAllUnmatchedBets for: {} {} {} {} {}", side, price, size, betId, Generic.objectToString(order));
                                 } else {
-                                    modifications += Generic.booleanToInt(order.cancelOrder(this.id, runnerId));
+                                    modifications += Generic.booleanToInt(order.cancelOrder(this.id, runnerId, Statics.pendingOrdersThread));
                                 }
                             }
                         } // end for
@@ -1117,7 +1118,6 @@ public class ManagedMarket
                             }
                             if (exposureHasBeenModified > 0) {
                                 calculateExposure();
-                                //noinspection ReuseOfLocalVariable
                                 exposureHasBeenModified = 0;
                             } else { // no need to calculateExposure
                             }

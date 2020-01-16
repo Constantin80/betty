@@ -1,11 +1,11 @@
-package info.fmro.betty.stream.cache.util;
+package info.fmro.betty.stream.cache;
 
 import info.fmro.betty.logic.ManagedMarket;
 import info.fmro.betty.logic.ManagedRunner;
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.stream.cache.market.Market;
-import info.fmro.betty.stream.cache.order.OrderMarket;
-import info.fmro.betty.stream.cache.order.OrderMarketRunner;
+import info.fmro.shared.stream.cache.market.Market;
+import info.fmro.shared.stream.cache.order.OrderMarket;
+import info.fmro.shared.stream.cache.order.OrderMarketRunner;
 import info.fmro.shared.stream.enums.Side;
 import info.fmro.shared.utility.Formulas;
 import info.fmro.shared.utility.Generic;

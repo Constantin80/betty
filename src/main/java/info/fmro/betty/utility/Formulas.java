@@ -2,7 +2,7 @@ package info.fmro.betty.utility;
 
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.MarketCatalogue;
-import info.fmro.betty.entities.PlaceInstruction;
+import info.fmro.shared.entities.PlaceInstruction;
 import info.fmro.betty.main.VarsIO;
 import info.fmro.shared.objects.OrderPrice;
 import info.fmro.shared.objects.StampedDouble;

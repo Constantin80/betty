@@ -1,22 +1,23 @@
 package info.fmro.betty.threads.permanent;
 
+import info.fmro.betty.betapi.RescriptOpThread;
 import info.fmro.betty.main.Betty;
+import info.fmro.betty.objects.Statics;
 import info.fmro.betty.safebet.CancelOrdersThread;
 import info.fmro.betty.threads.PlaceOrdersThread;
-import info.fmro.betty.betapi.RescriptOpThread;
 import info.fmro.shared.entities.CancelInstruction;
-import info.fmro.betty.entities.LimitOrder;
-import info.fmro.betty.entities.PlaceInstruction;
+import info.fmro.shared.entities.LimitOrder;
+import info.fmro.shared.entities.PlaceInstruction;
 import info.fmro.shared.enums.OrderType;
 import info.fmro.shared.enums.PersistenceType;
 import info.fmro.shared.enums.TemporaryOrderType;
-import info.fmro.betty.objects.Statics;
 import info.fmro.shared.objects.TemporaryOrder;
-import info.fmro.betty.stream.cache.order.OrderMarketRunner;
-import info.fmro.shared.stream.objects.RunnerId;
-import info.fmro.betty.stream.definitions.Order;
-import info.fmro.betty.stream.definitions.OrderRunnerChange;
+import info.fmro.shared.stream.cache.order.OrderMarketRunner;
+import info.fmro.shared.stream.definitions.Order;
+import info.fmro.shared.stream.definitions.OrderRunnerChange;
 import info.fmro.shared.stream.enums.Side;
+import info.fmro.shared.stream.objects.OrdersThreadInterface;
+import info.fmro.shared.stream.objects.RunnerId;
 import info.fmro.shared.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
@@ -33,7 +34,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class PendingOrdersThread
-        implements Runnable {
+        implements Runnable, OrdersThreadInterface {
     private static final Logger logger = LoggerFactory.getLogger(PendingOrdersThread.class);
     public static final long minimumCancelAllOrderSpacing = 1_000L;
     private final Collection<Long> cancelAllOrdersRunTimesSet = new HashSet<>(8);
@@ -66,7 +67,7 @@ public class PendingOrdersThread
                                     if (foundOrder != null) {
                                         iterator.remove();
                                     } else { // unmatched order with betId not found, looking into matched orders
-                                        final double existingSize = orderMarketRunner.getMatchedSize(side, price);
+                                        final double existingSize = orderMarketRunner.getMatchedSize(side, price, Statics.safetyLimits.currencyRate);
                                         final double newSize = orderRunnerChange.getMatchedSize(side, price);
                                         final double sizeModification = newSize - existingSize;
                                         final boolean areEqual = Math.abs(size - sizeModification) < .02d;
@@ -76,7 +77,7 @@ public class PendingOrdersThread
                                         }
                                     }
                                 } else { // placeOrder command hasn't finished and no betId available yet; yet stream only returns once, so I'll use this branch too
-                                    final double existingSize = orderMarketRunner.getMatchedSize(side, price);
+                                    final double existingSize = orderMarketRunner.getMatchedSize(side, price, Statics.safetyLimits.currencyRate);
                                     final double newSize = orderRunnerChange.getMatchedSize(side, price);
                                     final double sizeModification = newSize - existingSize;
                                     final boolean areEqual = Math.abs(size - sizeModification) < .02d;

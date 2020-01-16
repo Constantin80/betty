@@ -10,8 +10,8 @@ import info.fmro.shared.stream.definitions.HeartbeatMessage;
 import info.fmro.shared.stream.definitions.MarketChange;
 import info.fmro.shared.stream.definitions.MarketChangeMessage;
 import info.fmro.shared.stream.definitions.MarketSubscriptionMessage;
-import info.fmro.betty.stream.definitions.OrderChangeMessage;
-import info.fmro.betty.stream.definitions.OrderMarketChange;
+import info.fmro.shared.stream.definitions.OrderChangeMessage;
+import info.fmro.shared.stream.definitions.OrderMarketChange;
 import info.fmro.shared.stream.definitions.OrderSubscriptionMessage;
 import info.fmro.shared.stream.definitions.RequestMessage;
 import info.fmro.shared.stream.definitions.ResponseMessage;
@@ -20,9 +20,9 @@ import info.fmro.shared.stream.enums.ErrorCode;
 import info.fmro.shared.stream.enums.RequestOperationType;
 import info.fmro.shared.stream.enums.StatusCode;
 import info.fmro.shared.stream.protocol.ChangeMessage;
-import info.fmro.betty.stream.protocol.ChangeMessageFactory;
+import info.fmro.shared.stream.protocol.ChangeMessageFactory;
 import info.fmro.shared.stream.protocol.ConnectionStatus;
-import info.fmro.betty.stream.protocol.MixInResponseMessage;
+import info.fmro.shared.stream.protocol.MixInResponseMessage;
 import info.fmro.shared.stream.protocol.RequestResponse;
 import info.fmro.shared.stream.protocol.SubscriptionHandler;
 import info.fmro.shared.utility.Generic;
@@ -442,7 +442,7 @@ class RequestResponseProcessor
             change = this.orderSubscriptionHandler.processChangeMessage(change);
             if (change != null) {
                 Statics.orderCache.listOfQueues.send(message);
-                Statics.orderCache.onOrderChange(change);
+                Statics.orderCache.onOrderChange(change, Statics.rulesManager.orderCacheHasReset, Statics.rulesManager.newOrderMarketCreated, Statics.pendingOrdersThread, Statics.safetyLimits.currencyRate);
             }
         }
     }
@@ -468,7 +468,7 @@ class RequestResponseProcessor
 
                 if (change != null) {
                     Statics.marketCache.listOfQueues.send(message);
-                    Statics.marketCache.onMarketChange(change);
+                    Statics.marketCache.onMarketChange(change, Statics.safetyLimits.currencyRate);
                 }
             } else {
                 if (isIdRecentlyRemoved(id)) {
