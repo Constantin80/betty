@@ -1,7 +1,8 @@
 package info.fmro.betty.stream.client;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.stream.definitions.AuthenticationMessage;
@@ -76,8 +77,12 @@ class RequestResponseProcessor
         this.client = client;
         this.marketsSet = new HashSet<>(4);
         this.objectMapper = new ObjectMapper();
+
+        this.objectMapper.setVisibility(PropertyAccessor.ALL, Visibility.NONE); // remove visibility of everything, including getters/setters
+        this.objectMapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY); // add full visibility for fields
+
         this.objectMapper.addMixIn(ResponseMessage.class, MixInResponseMessage.class);
-        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+//        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false); // I'm curious what failures will apear now that I disabled this line
     }
 
     synchronized boolean hasValidHandler() {

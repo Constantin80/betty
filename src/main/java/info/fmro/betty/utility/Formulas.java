@@ -2,18 +2,19 @@ package info.fmro.betty.utility;
 
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.MarketCatalogue;
-import info.fmro.shared.entities.PlaceInstruction;
 import info.fmro.betty.main.VarsIO;
-import info.fmro.shared.objects.OrderPrice;
-import info.fmro.shared.objects.StampedDouble;
 import info.fmro.betty.objects.Statics;
-import info.fmro.shared.objects.TwoOrderedStrings;
 import info.fmro.betty.safebet.BetradarEvent;
 import info.fmro.betty.safebet.CoralEvent;
 import info.fmro.betty.safebet.ScraperEvent;
 import info.fmro.betty.safebet.ScraperPermanentThread;
 import info.fmro.shared.entities.EventType;
 import info.fmro.shared.entities.MarketDescription;
+import info.fmro.shared.entities.PlaceInstruction;
+import info.fmro.shared.objects.OrderPrice;
+import info.fmro.shared.objects.StampedDouble;
+import info.fmro.shared.objects.TwoOrderedStrings;
+import info.fmro.shared.stream.objects.MarketCatalogueInterface;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
 import info.fmro.shared.utility.LogLevel;
@@ -630,49 +631,6 @@ public final class Formulas {
         return returnValue;
     }
 
-    private static String getEventIdOfMarketCatalogue(final MarketCatalogue marketCatalogue) {
-        @Nullable final String result;
-
-        if (marketCatalogue != null) {
-            final Event eventStump = marketCatalogue.getEventStump();
-            if (eventStump == null) {
-                logger.error("null event in marketCatalogue during getEventOfMarket: {}", Generic.objectToString(marketCatalogue));
-                result = null;
-            } else {
-                result = eventStump.getId();
-            }
-        } else {
-            logger.error("null marketCatalogue in Formulas.getEventIdOfMarketCatalogue");
-            result = null;
-        }
-
-        return result;
-    }
-
-    public static String getEventIdOfMarketId(final String marketId) {
-        @Nullable final String result;
-
-        final MarketCatalogue marketCatalogue = Statics.marketCataloguesMap.get(marketId);
-        if (marketCatalogue != null) {
-            result = getEventIdOfMarketCatalogue(marketCatalogue);
-        } else {
-            logger.info("couldn't find marketId {} in Statics.marketCataloguesMap during getEventOfMarket", marketId);
-            result = null;
-        }
-
-        return result;
-    }
-
-    public static Event getStoredEventOfMarketId(final String marketId) {
-        final String eventId = getEventIdOfMarketId(marketId);
-        return Statics.eventsMap.get(eventId);
-    }
-
-    public static Event getStoredEventOfMarketCatalogue(final MarketCatalogue marketCatalogue) {
-        final String eventId = getEventIdOfMarketCatalogue(marketCatalogue);
-        return Statics.eventsMap.get(eventId);
-    }
-
     public static boolean isMarketType(final MarketCatalogue marketCatalogue, final Collection<String> typesList) {
         final boolean result;
 
@@ -721,5 +679,10 @@ public final class Formulas {
         }
 
         return isEachWay;
+    }
+
+    public static Event getStoredEventOfMarketCatalogue(final MarketCatalogueInterface marketCatalogue) {
+        final String eventId = info.fmro.shared.utility.Formulas.getEventIdOfMarketCatalogue(marketCatalogue);
+        return Statics.eventsMap.get(eventId);
     }
 }

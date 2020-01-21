@@ -2,13 +2,13 @@ package info.fmro.betty.safebet;
 
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.MarketCatalogue;
+import info.fmro.betty.objects.Statics;
+import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.enums.MarketStatus;
 import info.fmro.shared.enums.ParsedMarketType;
 import info.fmro.shared.enums.ParsedRunnerType;
 import info.fmro.shared.enums.RunnerStatus;
 import info.fmro.shared.enums.Side;
-import info.fmro.betty.objects.Statics;
-import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.SynchronizedMap;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;

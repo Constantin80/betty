@@ -1,11 +1,12 @@
 package info.fmro.betty.entities;
 
-import info.fmro.shared.enums.CommandType;
 import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.safebet.ScraperEvent;
 import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.enums.CommandType;
+import info.fmro.shared.stream.objects.EventInterface;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
 import info.fmro.shared.utility.SynchronizedMap;
@@ -31,7 +32,7 @@ import java.util.Set;
 @SuppressWarnings({"ClassWithTooManyMethods", "OverlyComplexClass"})
 public class Event
         extends Ignorable
-        implements Serializable, Comparable<Event> {
+        implements Serializable, Comparable<Event>, EventInterface {
     private static final Logger logger = LoggerFactory.getLogger(Event.class);
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
     private static final long serialVersionUID = -6755870038911915452L;

@@ -4,15 +4,15 @@ import com.google.common.collect.Iterables;
 import info.fmro.betty.betapi.RescriptOpThread;
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.MarketCatalogue;
+import info.fmro.betty.objects.Statics;
+import info.fmro.betty.threads.LaunchCommandThread;
+import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.entities.MarketDescription;
 import info.fmro.shared.entities.RunnerCatalog;
 import info.fmro.shared.enums.CommandType;
 import info.fmro.shared.enums.MarketProjection;
 import info.fmro.shared.enums.ParsedMarketType;
 import info.fmro.shared.enums.ParsedRunnerType;
-import info.fmro.betty.objects.Statics;
-import info.fmro.betty.threads.LaunchCommandThread;
-import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import org.apache.commons.lang3.StringUtils;
@@ -669,8 +669,8 @@ public final class FindMarkets {
     }
 
     @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "OverlyNestedMethod", "NestedSwitchStatement", "BooleanVariableAlwaysNegated"})
-    public static boolean parseSupportedMarket(final String eventHomeNameString, final String eventAwayNameString, final MarketCatalogue marketCatalogue, final String marketId, final String marketName, final MarketDescription marketDescription,
-                                               final List<? extends RunnerCatalog> runnerCatalogsList) {
+    static boolean parseSupportedMarket(final String eventHomeNameString, final String eventAwayNameString, final MarketCatalogue marketCatalogue, final String marketId, final String marketName, final MarketDescription marketDescription,
+                                        final List<? extends RunnerCatalog> runnerCatalogsList) {
         final boolean interestingMarket;
         if (Formulas.isMarketType(marketCatalogue, Statics.supportedEventTypes) && eventHomeNameString != null && eventAwayNameString != null) {
             final StringBuilder eventHomeName = new StringBuilder(eventHomeNameString);

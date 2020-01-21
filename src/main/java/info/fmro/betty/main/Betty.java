@@ -2,8 +2,6 @@ package info.fmro.betty.main;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import info.fmro.betty.betapi.JsonConverter;
-import info.fmro.shared.entities.SessionToken;
-import info.fmro.shared.objects.SessionTokenObject;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.client.ClientHandler;
 import info.fmro.betty.threads.permanent.GetFundsThread;
@@ -15,6 +13,8 @@ import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.betty.threads.permanent.PlacedAmountsThread;
 import info.fmro.betty.threads.permanent.TimeJumpDetectorThread;
 import info.fmro.betty.utility.BettyUncaughtExceptionHandler;
+import info.fmro.shared.entities.SessionToken;
+import info.fmro.shared.objects.SessionTokenObject;
 import info.fmro.shared.utility.Generic;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
@@ -185,7 +185,9 @@ public final class Betty {
             for (int i = 0; i < streamClientsLength; i++) {
                 ClientHandler.streamClients[i].start();
             }
-            Statics.rulesManager.start();
+            final Thread rulesManagerThread = new Thread(Statics.rulesManager);
+            rulesManagerThread.start();
+//            Statics.rulesManager.start();
 
             if (Statics.safeBetModuleActivated) {
                 if (!BrowserVersion.BEST_SUPPORTED.equals(BrowserVersion.FIREFOX_60)) {
@@ -244,9 +246,9 @@ public final class Betty {
                 logger.info("joining quickCheck thread");
                 Statics.quickCheckThread.join();
             }
-            if (Statics.rulesManager.isAlive()) {
+            if (rulesManagerThread.isAlive()) {
                 logger.info("joining rulesManager thread");
-                Statics.rulesManager.join();
+                rulesManagerThread.join();
             }
             if (pendingOrdersThread.isAlive()) {
                 logger.info("joining pendingOrdersThread");

@@ -1,11 +1,12 @@
 package info.fmro.betty.entities;
 
+import info.fmro.betty.objects.Statics;
 import info.fmro.shared.entities.PriceSize;
 import info.fmro.shared.enums.OrderStatus;
 import info.fmro.shared.enums.OrderType;
 import info.fmro.shared.enums.PersistenceType;
 import info.fmro.shared.enums.Side;
-import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -100,7 +101,7 @@ public final class CurrentOrderSummary
     }
 
     private synchronized void createEventId() {
-        this.setEventId(Formulas.getEventIdOfMarketId(this.marketId));
+        this.setEventId(Formulas.getEventIdOfMarketId(this.marketId, Statics.marketCataloguesMap));
         if (this.eventId == null) {
             logger.info("null eventId after creation in CurrentOrderSummary: {}", Generic.objectToString(this));
         }

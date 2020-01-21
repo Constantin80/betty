@@ -1,9 +1,9 @@
 package info.fmro.betty.threads;
 
 import info.fmro.betty.objects.Statics;
-import info.fmro.shared.utility.Generic;
 import info.fmro.shared.stream.objects.PoisonPill;
 import info.fmro.shared.stream.objects.StreamObjectInterface;
+import info.fmro.shared.utility.Generic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +35,11 @@ public class InterfaceConnectionThread
         Generic.closeObjects(this.socket);
     }
 
+    private synchronized void runAfterReceive() {
+// todo add StreamObjectInterface logic here
+        
+    }
+
     @Override
     public void run() {
         this.writerThread.start();
@@ -48,7 +53,8 @@ public class InterfaceConnectionThread
                 receivedObject = objectInputStream.readObject();
                 if (receivedObject instanceof StreamObjectInterface) {
                     final StreamObjectInterface receivedCommand = (StreamObjectInterface) receivedObject;
-                    receivedCommand.runAfterReceive();
+
+                    runAfterReceive();
                 } else if (receivedObject == null) { // nothing to be done, will reach end of loop and exit loop
                 } else {
                     logger.error("unknown type of object in interfaceConnection stream: {} {}", receivedObject.getClass(), Generic.objectToString(receivedObject));

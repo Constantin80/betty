@@ -1,15 +1,16 @@
 package info.fmro.betty.entities;
 
+import info.fmro.betty.objects.Statics;
+import info.fmro.betty.safebet.ParsedMarket;
+import info.fmro.betty.threads.LaunchCommandThread;
+import info.fmro.betty.threads.permanent.MaintenanceThread;
+import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.entities.Competition;
 import info.fmro.shared.entities.EventType;
 import info.fmro.shared.entities.MarketDescription;
 import info.fmro.shared.entities.RunnerCatalog;
 import info.fmro.shared.enums.CommandType;
-import info.fmro.betty.threads.LaunchCommandThread;
-import info.fmro.betty.threads.permanent.MaintenanceThread;
-import info.fmro.betty.safebet.ParsedMarket;
-import info.fmro.betty.objects.Statics;
-import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.stream.objects.MarketCatalogueInterface;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
 import org.jetbrains.annotations.Contract;
@@ -30,7 +31,7 @@ import java.util.Objects;
 @SuppressWarnings("OverlyComplexClass")
 public class MarketCatalogue
         extends Ignorable
-        implements Serializable, Comparable<MarketCatalogue> {
+        implements Serializable, Comparable<MarketCatalogue>, MarketCatalogueInterface {
     private static final Logger logger = LoggerFactory.getLogger(MarketCatalogue.class);
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
     private static final long serialVersionUID = 1172556202262757207L;

@@ -3,9 +3,7 @@ package info.fmro.betty.logic;
 import com.google.common.util.concurrent.AtomicDouble;
 import info.fmro.betty.betapi.RescriptOpThread;
 import info.fmro.betty.entities.CurrentOrderSummary;
-import info.fmro.shared.entities.LimitOrder;
 import info.fmro.betty.entities.MarketBook;
-import info.fmro.shared.entities.PlaceInstruction;
 import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.safebet.SafeBet;
@@ -14,8 +12,9 @@ import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.entities.ClearedOrderSummary;
-import info.fmro.shared.entities.CurrencyRate;
 import info.fmro.shared.entities.ExchangePrices;
+import info.fmro.shared.entities.LimitOrder;
+import info.fmro.shared.entities.PlaceInstruction;
 import info.fmro.shared.entities.PriceSize;
 import info.fmro.shared.entities.Runner;
 import info.fmro.shared.enums.CommandType;
@@ -23,22 +22,19 @@ import info.fmro.shared.enums.MarketStatus;
 import info.fmro.shared.enums.OrderType;
 import info.fmro.shared.enums.PersistenceType;
 import info.fmro.shared.enums.RunnerStatus;
-import info.fmro.shared.enums.SafetyLimitsModificationCommand;
 import info.fmro.shared.enums.Side;
+import info.fmro.shared.logic.BetFrequencyLimit;
+import info.fmro.shared.logic.ExistingFunds;
+import info.fmro.shared.logic.SafetyLimitsInterface;
 import info.fmro.shared.objects.OrderPrice;
-import info.fmro.shared.stream.objects.ListOfQueues;
-import info.fmro.shared.stream.objects.SerializableObjectModification;
-import info.fmro.shared.stream.objects.StreamObjectInterface;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import info.fmro.shared.utility.SynchronizedSet;
-import org.apache.commons.lang3.SerializationUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,15 +42,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
-@SuppressWarnings({"ClassWithTooManyMethods", "OverlyComplexClass", "OverlyCoupledClass"})
+@SuppressWarnings({"OverlyComplexClass", "OverlyCoupledClass"})
 public class SafetyLimits
-        implements Serializable, StreamObjectInterface {
+        extends ExistingFunds
+        implements Serializable, SafetyLimitsInterface {
     private static final Logger logger = LoggerFactory.getLogger(SafetyLimits.class);
-    public transient ListOfQueues listOfQueues = new ListOfQueues();
     private static final long serialVersionUID = 9100257467817248236L;
     private static final long specialLimitInitialPeriod = 120_000L;
     private static final PersistenceType persistenceType = PersistenceType.LAPSE; // sometimes PersistenceType.PERSIST causes an order placing error
@@ -64,13 +59,8 @@ public class SafetyLimits
     private static final double safeEventLimitFraction = .2d; // max bet per safe event
     private static final double eventLimitFraction = .1d; // max bet per regular event
     private static final double marketLimitFraction = .05d; // max bet per regular market
-    @SuppressWarnings("FieldHasSetterButNoGetter")
-    public final AtomicDouble currencyRate = new AtomicDouble(1d); // GBP/EUR, 1.1187000274658203 right now, on 13-08-2018; default 1d
     //    private final HashMap<AtomicDouble, Long> tempReserveMap = new HashMap<>(0);
     // private final HashSet<AtomicDouble> localUsedBalanceSet = new HashSet<>(0);
-    private double reserve = 5_000d; // default value; will always be truncated to int; can only increase
-    private double availableFunds; // total amount available on the account; it includes the reserve
-    private double exposure; // total exposure on the account; it's a negative number
     private double totalFunds; // total funds on the account, including the exposure (= availableFunds - exposure); exposure is a negative number
     private final HashMap<String, Double> eventAmounts = new HashMap<>(16, 0.75F); // eventId, totalAmount
     private final HashMap<String, Double> marketAmounts = new HashMap<>(16, 0.75F); // marketId, totalAmount
@@ -78,23 +68,6 @@ public class SafetyLimits
     private final HashMap<String, HashMap<String, List<PlaceInstruction>>> tempInstructionsListMap = new HashMap<>(2, 0.75F);
     public final BetFrequencyLimit speedLimit = new BetFrequencyLimit();
     private boolean startedGettingOrders;
-
-    private void readObject(@NotNull final java.io.ObjectInputStream in)
-            throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        this.listOfQueues = new ListOfQueues();
-    }
-
-    public synchronized SafetyLimits getCopy() {
-        return SerializationUtils.clone(this);
-    }
-
-    public synchronized int runAfterReceive() {
-        return 0;
-    }
-
-    public synchronized void runBeforeSend() {
-    }
 
     public synchronized void copyFrom(final SafetyLimits safetyLimits) {
 //        if (!this.tempReserveMap.isEmpty()) {
@@ -110,22 +83,24 @@ public class SafetyLimits
         if (safetyLimits == null) {
             logger.error("null safetyLimits in copyFrom for: {}", Generic.objectToString(this));
         } else {
-            this.tempInstructionsListMap.clear();
-            this.tempInstructionsListMap.putAll(safetyLimits.tempInstructionsListMap);
-            this.eventAmounts.clear();
-            this.eventAmounts.putAll(safetyLimits.eventAmounts);
-            this.marketAmounts.clear();
-            this.marketAmounts.putAll(safetyLimits.marketAmounts);
-            this.runnerAmounts.clear();
-            this.runnerAmounts.putAll(safetyLimits.runnerAmounts);
-            this.startedGettingOrders = safetyLimits.startedGettingOrders;
-            this.availableFunds = safetyLimits.availableFunds;
-            this.exposure = safetyLimits.exposure;
-            this.totalFunds = safetyLimits.totalFunds;
-            this.currencyRate.set(safetyLimits.currencyRate.get());
-            this.setReserve(safetyLimits.reserve);
-            this.speedLimit.copyFrom(safetyLimits.speedLimit);
-//            this.rulesManager.copyFrom(safetyLimits.rulesManager);
+            Generic.updateObject(this, safetyLimits);
+
+//            this.tempInstructionsListMap.clear();
+//            this.tempInstructionsListMap.putAll(safetyLimits.tempInstructionsListMap);
+//            this.eventAmounts.clear();
+//            this.eventAmounts.putAll(safetyLimits.eventAmounts);
+//            this.marketAmounts.clear();
+//            this.marketAmounts.putAll(safetyLimits.marketAmounts);
+//            this.runnerAmounts.clear();
+//            this.runnerAmounts.putAll(safetyLimits.runnerAmounts);
+//            this.startedGettingOrders = safetyLimits.startedGettingOrders;
+//            this.availableFunds = safetyLimits.availableFunds;
+//            this.exposure = safetyLimits.exposure;
+//            this.totalFunds = safetyLimits.totalFunds;
+//            this.currencyRate.set(safetyLimits.currencyRate.get());
+//            this.setReserve(safetyLimits.reserve);
+//            this.speedLimit.copyFrom(safetyLimits.speedLimit);
+////            this.rulesManager.copyFrom(safetyLimits.rulesManager);
         }
 
         //noinspection FloatingPointEquality
@@ -287,7 +262,7 @@ public class SafetyLimits
 //                                            } // end for
 
             if (!Statics.notPlacingOrders && !Statics.denyBetting.get()) {
-                final String eventId = Formulas.getEventIdOfMarketId(marketId);
+                final String eventId = info.fmro.shared.utility.Formulas.getEventIdOfMarketId(marketId, Statics.marketCataloguesMap);
                 final boolean isStartedGettingOrders = addInstructionsList(eventId, marketId, placeInstructionsList);
 
                 Statics.threadPoolExecutorImportant.execute(new RescriptOpThread<>(marketId, placeInstructionsList, isStartedGettingOrders)); // place order thread
@@ -302,7 +277,7 @@ public class SafetyLimits
 
         final Collection<Long> orderDelaysSet = new HashSet<>(0);
         final Double handicap = runner.getHandicap();
-        final double localAvailableFunds = Statics.safetyLimits.getAvailableFunds(safeRunner);
+        final double localAvailableFunds = Statics.safetyLimits.getAvailableFundsForRunner(safeRunner);
         @Nullable PlaceInstruction returnOversizedPlaceInstruction = oversizedPlaceInstruction;
         boolean currentOrderIsOversized = false;
         //noinspection unused
@@ -584,7 +559,7 @@ public class SafetyLimits
         return returnOversizedPlaceInstruction;
     }
 
-    private synchronized double getAvailableFunds(final SafeRunner safeRunner) {
+    private synchronized double getAvailableFundsForRunner(final SafeRunner safeRunner) {
         double returnValue;
 
         if (safeRunner == null) {
@@ -596,19 +571,19 @@ public class SafetyLimits
 
             // initial limit per safeRunner
             if (safeRunner.getMinScoreScrapers() <= 2 && System.currentTimeMillis() - safeRunner.getAddedStamp() <= SafetyLimits.specialLimitInitialPeriod) {
-                returnValue = Math.min(returnValue, this.availableFunds * SafetyLimits.initialSafeRunnerLimitFraction - getRunnerAmount(safeRunner));
+                returnValue = Math.min(returnValue, this.getAvailableFunds() * SafetyLimits.initialSafeRunnerLimitFraction - getRunnerAmount(safeRunner));
 //                    safeRunner.getPlacedAmount());
             } else { // returnValue was already set before if, no need to apply initial limit
             }
 
             // permanent limit per safe event
             final String marketId = safeRunner.getMarketId();
-            final String eventId = Formulas.getEventIdOfMarketId(marketId);
+            final String eventId = info.fmro.shared.utility.Formulas.getEventIdOfMarketId(marketId, Statics.marketCataloguesMap);
             if (eventId == null) {
                 returnValue = Math.min(returnValue, 0d);
                 logger.error("null eventId for marketId {} in SafetyLimits during getAvailableFunds: {}", marketId, Generic.objectToString(safeRunner));
             } else {
-                returnValue = Math.min(returnValue, this.availableFunds * SafetyLimits.safeEventLimitFraction - getEventAmount(eventId));
+                returnValue = Math.min(returnValue, this.getAvailableFunds() * SafetyLimits.safeEventLimitFraction - getEventAmount(eventId));
             }
         }
 
@@ -616,14 +591,14 @@ public class SafetyLimits
     }
 
     private synchronized double getAvailableLimit() {
-        return this.availableFunds - this.getReserve() - 0.01d; // leave 1 cent, to avoid errors
+        return this.getAvailableFunds() - this.getReserve() - 0.01d; // leave 1 cent, to avoid errors
     }
 
-    synchronized double getTotalLimit() {
+    public synchronized double getTotalLimit() {
         return this.totalFunds - this.getReserve() - 0.01d; // leave 1 cent, to avoid errors
     }
 
-    synchronized double getDefaultEventLimit(final String eventId) {
+    public synchronized double getDefaultEventLimit(final String eventId) {
         final double returnValue;
         if (eventId == null) {
             returnValue = 0d;
@@ -635,69 +610,21 @@ public class SafetyLimits
         return returnValue;
     }
 
-    synchronized double getDefaultMarketLimit(final String marketId) {
+    public synchronized double getDefaultMarketLimit(final String marketId) {
         final double returnValue;
         if (marketId == null) {
             returnValue = 0d;
             logger.error("null marketId in SafetyLimits during getDefaultMarketLimit: {}", Generic.objectToString(this));
         } else {
-            final String eventId = Formulas.getEventIdOfMarketId(marketId);
+            final String eventId = info.fmro.shared.utility.Formulas.getEventIdOfMarketId(marketId, Statics.marketCataloguesMap);
             returnValue = Math.min(getDefaultEventLimit(eventId), this.totalFunds * SafetyLimits.marketLimitFraction); // getDefaultEventLimit already contains getAvailableLimit
         }
         return returnValue;
     }
 
-    public synchronized double getReserve() {
-//        if (!tempReserveMap.isEmpty()) {
-//            // long currentTime = System.currentTimeMillis();
-//            final Set<AtomicDouble> keys = tempReserveMap.keySet();
-//            for (AtomicDouble key : keys) {
-//                returnValue += key.get();
-//            }
-//
-//            // Iterator<Entry<AtomicDouble, Long>> iterator = tempReserveMap.entrySet().iterator();
-//            // while (iterator.hasNext()) {
-//            //     Entry<AtomicDouble, Long> entry = iterator.next();
-//            // if (entry.getValue() < currentTime) {
-//            // iterator.remove(); // I remove when I process funds; this partly avoids errors with tempReserve removed and availableFunds not updated
-//            // } else {
-//            //     returnValue += entry.getKey().get();
-//            // removed logging as well in order to optimise speed
-//            //     if (Statics.debugLevel.check(3, 159)) {
-//            //         logger.info("tempReserve: {} {}", returnValue, this.reserve);
-//            //     }
-//            // }
-//            // }
-//        }
-        // if (!localUsedBalanceSet.isEmpty()) {
-        //     for (AtomicDouble localUsedBalance : localUsedBalanceSet) {
-        //         returnValue += localUsedBalance.get();
-        //         logger.info("localReserve: {} {}", returnValue, this.reserve);
-        //     }
-        // }
-        return this.reserve;
-    }
-
-    public synchronized boolean setReserve(final double newReserve) {
-        final boolean modified;
-
-        final double truncatedValue = Math.floor(newReserve);
-        if (truncatedValue > this.reserve) {
-            logger.info("modifying reserve value {} to {}", this.reserve, truncatedValue);
-            this.listOfQueues.send(new SerializableObjectModification<>(SafetyLimitsModificationCommand.setReserve, truncatedValue));
-            this.reserve = truncatedValue;
-            modified = true;
-        } else {
-            modified = false;
-        }
-        return modified;
-    }
-
     public synchronized boolean processFunds(final double newAvailableFunds, final double newExposure) {
-        this.listOfQueues.send(new SerializableObjectModification<>(SafetyLimitsModificationCommand.setAvailableFunds, newAvailableFunds));
-        this.listOfQueues.send(new SerializableObjectModification<>(SafetyLimitsModificationCommand.setExposure, newExposure));
-        this.availableFunds = newAvailableFunds;
-        this.exposure = newExposure;
+        this.setAvailableFunds(newAvailableFunds);
+        this.setExposure(newExposure);
         this.totalFunds = newAvailableFunds - newExposure; // exposure is a negative number
 
         final double newReserve = Math.floor(this.totalFunds * SafetyLimits.reserveFraction);
@@ -927,31 +854,5 @@ public class SafetyLimits
         addAmountToDoubleMap(safeRunner, addedAmount, this.runnerAmounts);
 
         return addedAmount;
-    }
-
-    public synchronized void setCurrencyRate(final Iterable<? extends CurrencyRate> currencyRates) {
-        // Market subscriptions - are always in underlying exchange currency - GBP
-        // Orders subscriptions - are provided in the currency of the account that the orders are placed in
-        if (currencyRates != null) {
-            for (final CurrencyRate newCurrencyRate : currencyRates) {
-                final String currencyCode = newCurrencyRate.getCurrencyCode();
-                if (Objects.equals(currencyCode, "EUR")) {
-                    final Double rate = newCurrencyRate.getRate();
-                    if (rate != null) {
-                        this.listOfQueues.send(new SerializableObjectModification<>(SafetyLimitsModificationCommand.setCurrencyRate, rate));
-                        this.currencyRate.set(rate);
-                    } else {
-                        logger.error("null rate for: {}", Generic.objectToString(currencyRates));
-                    }
-                    break;
-                } else { // I only need EUR rate, nothing to be done with the rest
-                }
-            } // end for
-        } else {
-            if (Statics.mustStop.get() && Statics.needSessionToken.get()) { // normal to happen during program stop, if not logged in
-            } else {
-                logger.error("currencyRates null");
-            }
-        }
     }
 }

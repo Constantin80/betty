@@ -3,7 +3,7 @@ package info.fmro.betty.main;
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.MarketBook;
 import info.fmro.betty.entities.MarketCatalogue;
-import info.fmro.betty.logic.RulesManager;
+import info.fmro.shared.logic.RulesManager;
 import info.fmro.betty.logic.SafetyLimits;
 import info.fmro.shared.utility.DebugLevel;
 import info.fmro.shared.objects.SessionTokenObject;

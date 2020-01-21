@@ -1,10 +1,14 @@
 package info.fmro.betty.betapi;
 
+import info.fmro.betty.entities.MarketCatalogue;
+import info.fmro.betty.logic.SafetyLimits;
+import info.fmro.betty.objects.Statics;
+import info.fmro.betty.threads.permanent.PlacedAmountsThread;
+import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.entities.AccountFundsResponse;
 import info.fmro.shared.entities.CancelExecutionReport;
 import info.fmro.shared.entities.CurrencyRate;
 import info.fmro.shared.entities.LimitOrder;
-import info.fmro.betty.entities.MarketCatalogue;
 import info.fmro.shared.entities.MarketFilter;
 import info.fmro.shared.entities.PlaceExecutionReport;
 import info.fmro.shared.entities.PlaceInstruction;
@@ -13,10 +17,6 @@ import info.fmro.shared.enums.MarketProjection;
 import info.fmro.shared.enums.OperationType;
 import info.fmro.shared.enums.Side;
 import info.fmro.shared.objects.OrderPrice;
-import info.fmro.betty.logic.SafetyLimits;
-import info.fmro.betty.objects.Statics;
-import info.fmro.betty.threads.permanent.PlacedAmountsThread;
-import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import org.apache.http.client.ResponseHandler;
@@ -172,7 +172,7 @@ public class RescriptOpThread<T>
                     final ResponseHandler<String> rescriptAccountResponseHandler = new RescriptAccountResponseHandler();
                     final List<CurrencyRate> currencyRates = ApiNgRescriptOperations.listCurrencyRates(Statics.appKey.get(), rescriptAccountResponseHandler);
 
-                    this.safetyLimits.setCurrencyRate(currencyRates);
+                    this.safetyLimits.setCurrencyRate(currencyRates, Statics.mustStop, Statics.needSessionToken);
                 } else {
                     logger.error("null or empty variables in RescriptOpThread listCurrencyRates");
                 }
@@ -225,7 +225,7 @@ public class RescriptOpThread<T>
 
                         if (!this.isStartedGettingOrders && this.safetyLimits.isStartedGettingOrders()) {
                             // will add the list again; being added twice is less dangerous than not being added at all
-                            final String eventId = Formulas.getEventIdOfMarketId(this.marketId);
+                            final String eventId = info.fmro.shared.utility.Formulas.getEventIdOfMarketId(this.marketId, Statics.marketCataloguesMap);
                             this.safetyLimits.addInstructionsList(eventId, this.marketId, this.placeInstructionsList);
                         } else { // added at beginning, and no need to add again
                         }
