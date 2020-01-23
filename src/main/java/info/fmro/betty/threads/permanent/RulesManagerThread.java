@@ -1,4 +1,4 @@
-package info.fmro.betty.logic;
+package info.fmro.betty.threads.permanent;
 
 import info.fmro.betty.main.VarsIO;
 import info.fmro.betty.objects.Statics;
@@ -112,10 +112,6 @@ public class RulesManagerThread
                 if (this.orderCacheHasReset.get()) {
                     resetOrderCacheObjects(); // the method resets the AtomicBoolean
                 }
-                if (this.rulesHaveChanged.get()) {
-                    Generic.threadSleepSegmented(500L, 50L, Statics.mustStop); // small sleep against multiple quick modifications that lead to writes
-                    VarsIO.writeSettings(); // this method sets the AtomicBoolean to false
-                }
                 if (this.newOrderMarketCreated.get()) {
                     addManagedMarketsForExistingOrders(Statics.orderCache); // this method resets the AtomicBoolean
                 }
@@ -123,7 +119,7 @@ public class RulesManagerThread
                     calculateMarketLimits(Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits); // this method resets the AtomicBoolean
                 }
                 if (this.newAddManagedRunnerCommand.get()) {
-                    addManagedRunnerCommands(Statics.marketCataloguesMap); // this method resets the AtomicBoolean
+                    addManagedRunnerCommands(Statics.marketCataloguesMap, Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits); // this method resets the AtomicBoolean
                 }
                 if (!this.marketsToCheck.isEmpty()) { // run just on the marketsToCheck
 //                    final HashSet<RulesManagerStringObject> objectsSet = this.marketsToCheck.copy();

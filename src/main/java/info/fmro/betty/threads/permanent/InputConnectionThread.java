@@ -1,11 +1,11 @@
 package info.fmro.betty.threads.permanent;
 
-import info.fmro.shared.enums.CommandType;
 import info.fmro.betty.main.VarsIO;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.utility.DebuggingMethods;
 import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.enums.CommandType;
 import info.fmro.shared.utility.Generic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,7 +154,7 @@ public class InputConnectionThread
                     logger.info("rulesManager command executed: {}", rulesString);
                     printWriter.println("Will execute rulesManager command");
 
-                    Statics.rulesManager.executeCommand(rulesString);
+                    Statics.rulesManagerThread.executeCommand(rulesString, Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits);
                 } else if ("findMarketTypes".equals(inputLine)) {
                     printWriter.println("Will find new market types");
                     newOrder = "findMarketTypes";
@@ -401,8 +401,8 @@ public class InputConnectionThread
                     logger.info("safetyLimits: {}", Generic.objectToString(Statics.safetyLimits));
                 } else if (inputLine.startsWith("addManagedRunner ")) {
                     final String addManagedRunnerCommandString = inputLine.substring("addManagedRunner ".length()).trim();
-                    Statics.rulesManager.addManagedRunnerCommands.add(addManagedRunnerCommandString);
-                    Statics.rulesManager.newAddManagedRunnerCommand.set(true);
+                    Statics.rulesManagerThread.addManagedRunnerCommands.add(addManagedRunnerCommandString);
+                    Statics.rulesManagerThread.newAddManagedRunnerCommand.set(true);
                     printWriter.println("added managedRunnerCommandString: " + addManagedRunnerCommandString);
                     logger.info("adding newAddManagedRunnerCommand: {}", addManagedRunnerCommandString);
                 } else if ("help".equals(inputLine)) {

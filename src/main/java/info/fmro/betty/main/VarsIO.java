@@ -405,8 +405,8 @@ public final class VarsIO {
 
     public static void writeSettings() {
         Statics.timeStamps.lastSettingsSaveStamp(Generic.MINUTE_LENGTH_MILLISECONDS);
-        Statics.rulesManager.rulesHaveChanged.set(false);
-        Generic.synchronizedWriteObjectToFile(Statics.rulesManager, Statics.SETTINGS_FILE_NAME);
+        Statics.rulesManagerThread.rulesHaveChanged.set(false);
+        Generic.synchronizedWriteObjectToFile(Statics.rulesManagerThread, Statics.SETTINGS_FILE_NAME);
         writeSettingsCounter.incrementAndGet();
     }
 
@@ -415,12 +415,12 @@ public final class VarsIO {
         final Object objectFromFile = Generic.readObjectFromFile(Statics.SETTINGS_FILE_NAME);
         if (objectFromFile != null) {
             final RulesManager rulesManager = (RulesManager) objectFromFile;
-            readSuccessful = Statics.rulesManager.copyFrom(rulesManager);
+            readSuccessful = Statics.rulesManagerThread.copyFrom(rulesManager);
         } else {
             readSuccessful = false;
             logger.error("objectFromFile null in readSettings");
             if (Statics.resetTestMarker) {
-                Statics.rulesManager.copyFrom(new RulesManager()); // I need copyFrom to run for reset to work
+                Statics.rulesManagerThread.copyFrom(new RulesManager()); // I need copyFrom to run for reset to work
             }
         }
 

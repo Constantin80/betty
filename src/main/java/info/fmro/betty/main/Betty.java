@@ -185,7 +185,7 @@ public final class Betty {
             for (int i = 0; i < streamClientsLength; i++) {
                 ClientHandler.streamClients[i].start();
             }
-            final Thread rulesManagerThread = new Thread(Statics.rulesManager);
+            final Thread rulesManagerThread = new Thread(Statics.rulesManagerThread);
             rulesManagerThread.start();
 //            Statics.rulesManager.start();
 

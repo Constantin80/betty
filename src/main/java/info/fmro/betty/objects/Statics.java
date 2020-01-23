@@ -3,7 +3,6 @@ package info.fmro.betty.objects;
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.MarketBook;
 import info.fmro.betty.entities.MarketCatalogue;
-import info.fmro.betty.logic.RulesManagerThread;
 import info.fmro.betty.logic.SafetyLimits;
 import info.fmro.betty.safebet.BetradarEvent;
 import info.fmro.betty.safebet.BetradarScraperThread;
@@ -17,6 +16,7 @@ import info.fmro.betty.safebet.ScraperPermanentThread;
 import info.fmro.betty.threads.permanent.LoggerThread;
 import info.fmro.betty.threads.permanent.PendingOrdersThread;
 import info.fmro.betty.threads.permanent.QuickCheckThread;
+import info.fmro.betty.threads.permanent.RulesManagerThread;
 import info.fmro.shared.enums.ParsedMarketType;
 import info.fmro.shared.objects.OrderPrice;
 import info.fmro.shared.objects.SessionTokenObject;
@@ -124,7 +124,7 @@ public final class Statics {
     public static final BetradarScraperThread betradarScraperThread = new BetradarScraperThread();
     public static final CoralScraperThread coralScraperThread = new CoralScraperThread();
     public static final LoggerThread loggerThread = new LoggerThread();
-    public static final RulesManagerThread rulesManager = new RulesManagerThread();
+    public static final RulesManagerThread rulesManagerThread = new RulesManagerThread();
     public static final QuickCheckThread quickCheckThread = new QuickCheckThread();
     public static final PendingOrdersThread pendingOrdersThread = new PendingOrdersThread();
 

@@ -447,7 +447,7 @@ class RequestResponseProcessor
             change = this.orderSubscriptionHandler.processChangeMessage(change);
             if (change != null) {
                 Statics.orderCache.listOfQueues.send(message);
-                Statics.orderCache.onOrderChange(change, Statics.rulesManager.orderCacheHasReset, Statics.rulesManager.newOrderMarketCreated, Statics.pendingOrdersThread, Statics.safetyLimits.currencyRate);
+                Statics.orderCache.onOrderChange(change, Statics.rulesManagerThread.orderCacheHasReset, Statics.rulesManagerThread.newOrderMarketCreated, Statics.pendingOrdersThread, Statics.safetyLimits.currencyRate);
             }
         }
     }

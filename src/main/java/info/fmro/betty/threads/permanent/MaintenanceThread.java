@@ -1296,6 +1296,10 @@ public class MaintenanceThread
                     VarsIO.writeSettings();
                     Statics.mustWriteObjects.set(false);
                 }
+                if (Statics.rulesManagerThread.rulesHaveChanged.get()) {
+                    Generic.threadSleepSegmented(500L, 50L, Statics.mustStop); // small sleep against multiple quick modifications that lead to writes
+                    VarsIO.writeSettings(); // this method sets the AtomicBoolean to false
+                }
                 if (Statics.orderToPrint.get() != null) {
                     final String orders = Statics.orderToPrint.getAndSet(null).trim();
                     final String[] ordersArray = orders.split(" ");
@@ -1339,7 +1343,7 @@ public class MaintenanceThread
                 timeToSleep = Math.min(timeToSleep, timedReadAliases());
                 timeToSleep = Math.min(timeToSleep, timedCheckDeadlock());
 
-                Generic.threadSleepSegmented(timeToSleep, 100L, Statics.mustStop, Statics.mustWriteObjects, Statics.needSessionToken, Statics.orderToPrint);
+                Generic.threadSleepSegmented(timeToSleep, 100L, Statics.mustStop, Statics.mustWriteObjects, Statics.needSessionToken, Statics.orderToPrint, Statics.rulesManagerThread.rulesHaveChanged);
             } catch (Throwable throwable) {
                 logger.error("STRANGE ERROR inside Maintenance loop", throwable);
             }
