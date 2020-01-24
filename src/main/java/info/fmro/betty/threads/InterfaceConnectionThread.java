@@ -1,8 +1,8 @@
 package info.fmro.betty.threads;
 
 import info.fmro.betty.objects.Statics;
+import info.fmro.shared.enums.ExistingFundsModificationCommand;
 import info.fmro.shared.enums.RulesManagerModificationCommand;
-import info.fmro.shared.enums.SafetyLimitsModificationCommand;
 import info.fmro.shared.logic.ManagedEvent;
 import info.fmro.shared.logic.ManagedMarket;
 import info.fmro.shared.logic.ManagedRunner;
@@ -106,7 +106,7 @@ public class InterfaceConnectionThread
                             if (objectsToModify[0] instanceof String && objectsToModify[1] instanceof Double) {
                                 final String eventId = (String) objectsToModify[0];
                                 final Double newAmount = (Double) objectsToModify[1];
-                                Statics.rulesManagerThread.setEventAmountLimit(eventId, newAmount, Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits);
+                                Statics.rulesManagerThread.setEventAmountLimit(eventId, newAmount, Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits, Statics.marketCataloguesMap);
                             } else {
                                 logger.error("wrong objectsToModify class in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), rulesManagerModificationCommand.name(), Generic.objectToString(receivedCommand));
                             }
@@ -211,20 +211,20 @@ public class InterfaceConnectionThread
                     default:
                         logger.error("unknown rulesManagerModificationCommand in betty runAfterReceive: {} {}", rulesManagerModificationCommand.name(), Generic.objectToString(receivedCommand));
                 } // end switch
-            } else if (command instanceof SafetyLimitsModificationCommand) {
-                final SafetyLimitsModificationCommand safetyLimitsModificationCommand = (SafetyLimitsModificationCommand) command;
+            } else if (command instanceof ExistingFundsModificationCommand) {
+                final ExistingFundsModificationCommand existingFundsModificationCommand = (ExistingFundsModificationCommand) command;
                 final Object[] objectsToModify = serializableObjectModification.getArray();
-                switch (safetyLimitsModificationCommand) {
+                switch (existingFundsModificationCommand) {
                     case setCurrencyRate:
                         if (objectsToModify != null && objectsToModify.length == 1) {
                             if (objectsToModify[0] instanceof Double) {
                                 final Double rate = (Double) objectsToModify[0];
                                 Statics.safetyLimits.setCurrencyRate(rate);
                             } else {
-                                logger.error("wrong objectsToModify class in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), safetyLimitsModificationCommand.name(), Generic.objectToString(receivedCommand));
+                                logger.error("wrong objectsToModify class in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), existingFundsModificationCommand.name(), Generic.objectToString(receivedCommand));
                             }
                         } else {
-                            logger.error("wrong size objectsToModify in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), safetyLimitsModificationCommand.name(), Generic.objectToString(receivedCommand));
+                            logger.error("wrong size objectsToModify in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), existingFundsModificationCommand.name(), Generic.objectToString(receivedCommand));
                         }
                         break;
                     case setReserve:
@@ -233,14 +233,14 @@ public class InterfaceConnectionThread
                                 final Double reserve = (Double) objectsToModify[0];
                                 Statics.safetyLimits.setReserve(reserve);
                             } else {
-                                logger.error("wrong objectsToModify class in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), safetyLimitsModificationCommand.name(), Generic.objectToString(receivedCommand));
+                                logger.error("wrong objectsToModify class in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), existingFundsModificationCommand.name(), Generic.objectToString(receivedCommand));
                             }
                         } else {
-                            logger.error("wrong size objectsToModify in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), safetyLimitsModificationCommand.name(), Generic.objectToString(receivedCommand));
+                            logger.error("wrong size objectsToModify in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), existingFundsModificationCommand.name(), Generic.objectToString(receivedCommand));
                         }
                         break;
                     default:
-                        logger.error("unknown safetyLimitsModificationCommand in betty runAfterReceive: {} {}", safetyLimitsModificationCommand.name(), Generic.objectToString(receivedCommand));
+                        logger.error("unknown safetyLimitsModificationCommand in betty runAfterReceive: {} {}", existingFundsModificationCommand.name(), Generic.objectToString(receivedCommand));
                 } // end switch
             } else {
                 logger.error("unknown command object in betty runAfterReceive: {} {} {} {}", command == null ? null : command.getClass(), command, receivedCommand.getClass(), Generic.objectToString(receivedCommand));

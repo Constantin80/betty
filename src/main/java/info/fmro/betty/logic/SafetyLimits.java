@@ -25,7 +25,6 @@ import info.fmro.shared.enums.RunnerStatus;
 import info.fmro.shared.enums.Side;
 import info.fmro.shared.logic.BetFrequencyLimit;
 import info.fmro.shared.logic.ExistingFunds;
-import info.fmro.shared.logic.SafetyLimitsInterface;
 import info.fmro.shared.objects.OrderPrice;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
@@ -48,7 +47,7 @@ import java.util.TreeSet;
 @SuppressWarnings({"OverlyComplexClass", "OverlyCoupledClass"})
 public class SafetyLimits
         extends ExistingFunds
-        implements Serializable, SafetyLimitsInterface {
+        implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(SafetyLimits.class);
     private static final long serialVersionUID = 9100257467817248236L;
     private static final long specialLimitInitialPeriod = 120_000L;
@@ -57,11 +56,8 @@ public class SafetyLimits
     private static final double reserveFraction = .5d; // reserve is 50% of total (but starts at 500 and only increases)
     private static final double initialSafeRunnerLimitFraction = .1d; // max bet during the initial period, as fraction of total; applied for safeRunners
     private static final double safeEventLimitFraction = .2d; // max bet per safe event
-    private static final double eventLimitFraction = .1d; // max bet per regular event
-    private static final double marketLimitFraction = .05d; // max bet per regular market
     //    private final HashMap<AtomicDouble, Long> tempReserveMap = new HashMap<>(0);
     // private final HashSet<AtomicDouble> localUsedBalanceSet = new HashSet<>(0);
-    private double totalFunds; // total funds on the account, including the exposure (= availableFunds - exposure); exposure is a negative number
     private final HashMap<String, Double> eventAmounts = new HashMap<>(16, 0.75F); // eventId, totalAmount
     private final HashMap<String, Double> marketAmounts = new HashMap<>(16, 0.75F); // marketId, totalAmount
     private final HashMap<SafeRunner, Double> runnerAmounts = new HashMap<>(16, 0.75F); // safeRunner, totalAmount
@@ -594,40 +590,12 @@ public class SafetyLimits
         return this.getAvailableFunds() - this.getReserve() - 0.01d; // leave 1 cent, to avoid errors
     }
 
-    public synchronized double getTotalLimit() {
-        return this.totalFunds - this.getReserve() - 0.01d; // leave 1 cent, to avoid errors
-    }
-
-    public synchronized double getDefaultEventLimit(final String eventId) {
-        final double returnValue;
-        if (eventId == null) {
-            returnValue = 0d;
-            logger.error("null eventId in SafetyLimits during getDefaultEventLimit: {}", Generic.objectToString(this));
-        } else {
-            // eventId not used for now, and default limit is same for all non safe events (plus I no longer use safe events)
-            returnValue = Math.min(getTotalLimit(), this.totalFunds * SafetyLimits.eventLimitFraction);
-        }
-        return returnValue;
-    }
-
-    public synchronized double getDefaultMarketLimit(final String marketId) {
-        final double returnValue;
-        if (marketId == null) {
-            returnValue = 0d;
-            logger.error("null marketId in SafetyLimits during getDefaultMarketLimit: {}", Generic.objectToString(this));
-        } else {
-            final String eventId = info.fmro.shared.utility.Formulas.getEventIdOfMarketId(marketId, Statics.marketCataloguesMap);
-            returnValue = Math.min(getDefaultEventLimit(eventId), this.totalFunds * SafetyLimits.marketLimitFraction); // getDefaultEventLimit already contains getAvailableLimit
-        }
-        return returnValue;
-    }
-
     public synchronized boolean processFunds(final double newAvailableFunds, final double newExposure) {
         this.setAvailableFunds(newAvailableFunds);
         this.setExposure(newExposure);
-        this.totalFunds = newAvailableFunds - newExposure; // exposure is a negative number
+        this.setTotalFunds(newAvailableFunds - newExposure); // exposure is a negative number
 
-        final double newReserve = Math.floor(this.totalFunds * SafetyLimits.reserveFraction);
+        final double newReserve = Math.floor(this.getTotalFunds() * SafetyLimits.reserveFraction);
 //        final double newReserve = Math.floor(availableFunds * SafetyLimits.reserveFraction);
 
         return setReserve(newReserve);

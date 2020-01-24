@@ -116,7 +116,7 @@ public class RulesManagerThread
                     addManagedMarketsForExistingOrders(Statics.orderCache); // this method resets the AtomicBoolean
                 }
                 if (this.marketsMapModified.get()) {
-                    calculateMarketLimits(Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits); // this method resets the AtomicBoolean
+                    calculateMarketLimits(Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits, Statics.marketCataloguesMap); // this method resets the AtomicBoolean
                 }
                 if (this.newAddManagedRunnerCommand.get()) {
                     addManagedRunnerCommands(Statics.marketCataloguesMap, Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits); // this method resets the AtomicBoolean
@@ -135,7 +135,7 @@ public class RulesManagerThread
                     addManagedMarketsForExistingOrders(Statics.orderCache); // this can modify the marketsMapModified AtomicBoolean marker
                     //calculateMarketLimits(marketIds);
                     if (this.marketsMapModified.get()) {
-                        calculateMarketLimits(Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits); // this method resets the AtomicBoolean
+                        calculateMarketLimits(Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits, Statics.marketCataloguesMap); // this method resets the AtomicBoolean
                     } else { // nothing to be done, will only calculated limits if marketsMapModified
                     }
 
@@ -150,7 +150,7 @@ public class RulesManagerThread
 
 //                    checkMarketsAreAssociatedWithEvents();
                     addManagedMarketsForExistingOrders(Statics.orderCache);
-                    calculateMarketLimits(Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits); // this method resets the marketsMapModified AtomicBoolean
+                    calculateMarketLimits(Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits, Statics.marketCataloguesMap); // this method resets the marketsMapModified AtomicBoolean
                     for (final ManagedMarket managedMarket : this.markets.valuesCopy()) {
                         manageMarket(managedMarket, Statics.marketCache, Statics.orderCache, Statics.pendingOrdersThread, Statics.safetyLimits.currencyRate, Statics.safetyLimits.speedLimit, Statics.safetyLimits);
                     }

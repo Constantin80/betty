@@ -140,7 +140,6 @@ public final class Statics {
     public static final SynchronizedMap<String, Event> eventsMap = new SynchronizedMap<>(128); // <eventId, Event>
     // marketCataloguesMap contains interestingMarkets; markets that can be parsed and have at least MIN_MATCHED scraperEvents attached; added to in FindMarkets
     public static final SynchronizedMap<String, MarketCatalogue> marketCataloguesMap = new SynchronizedMap<>(128); // <marketId, MarketCatalogue>
-
     // safeMarketsMap contains the safeRunners and marketIds of their markets; these markets are being quickly rechecked; added to in FindSafeRunners
     public static final SynchronizedMap<String, SynchronizedSafeSet<SafeRunner>> safeMarketsMap = new SynchronizedMap<>(64); // <marketId, HashSet<SafeRunner>>
     // safeMarketsImportantMap contains marketIds of markets with safeRunners that have available amounts on them; these are rechecked very quicly, until the safeBet dissapears; added to in QuickCheckThread
