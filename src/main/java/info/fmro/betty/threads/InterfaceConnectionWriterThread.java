@@ -58,6 +58,7 @@ class InterfaceConnectionWriterThread
         Statics.orderCache.listOfQueues.registerQueue(this.sendQueue, Statics.orderCache);
         Statics.rulesManagerThread.listOfQueues.registerQueue(this.sendQueue, Statics.rulesManagerThread);
         Statics.safetyLimits.listOfQueues.registerQueue(this.sendQueue, Statics.safetyLimits);
+        Statics.marketCataloguesMap.listOfQueues.registerQueue(this.sendQueue, Statics.marketCataloguesMap);
 //        this.sendObject(initialImage);
 
         while (!Statics.mustStop.get() && !this.finished.get()) {
@@ -71,6 +72,7 @@ class InterfaceConnectionWriterThread
         Statics.orderCache.listOfQueues.removeQueue(this.sendQueue);
         Statics.rulesManagerThread.listOfQueues.removeQueue(this.sendQueue);
         Statics.safetyLimits.listOfQueues.removeQueue(this.sendQueue);
+        Statics.marketCataloguesMap.listOfQueues.removeQueue(this.sendQueue);
 
         logger.info("InterfaceConnectionWriterThread ends");
     }

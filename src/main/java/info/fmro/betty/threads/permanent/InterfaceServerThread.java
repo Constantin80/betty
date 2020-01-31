@@ -75,8 +75,6 @@ public class InterfaceServerThread
             while (!Statics.mustStop.get()) {
                 try {
                     final Socket socket = this.serverSocket.accept();
-                    // todo ssl auth check test
-
                     final InterfaceConnectionThread interfaceConnectionThread = new InterfaceConnectionThread(socket);
                     this.interfaceConnectionThreadsSet.add(interfaceConnectionThread);
                     interfaceConnectionThread.start();

@@ -3,17 +3,18 @@ package info.fmro.betty.main;
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.MarketBook;
 import info.fmro.betty.entities.MarketCatalogue;
-import info.fmro.shared.logic.RulesManager;
 import info.fmro.betty.logic.SafetyLimits;
-import info.fmro.shared.utility.DebugLevel;
-import info.fmro.shared.objects.SessionTokenObject;
 import info.fmro.betty.objects.Statics;
-import info.fmro.shared.objects.TimeStamps;
 import info.fmro.betty.safebet.BetradarEvent;
 import info.fmro.betty.safebet.CoralEvent;
 import info.fmro.betty.safebet.SafeRunner;
 import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
 import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.logic.RulesManager;
+import info.fmro.shared.objects.SessionTokenObject;
+import info.fmro.shared.objects.TimeStamps;
+import info.fmro.shared.stream.objects.StreamSynchronizedMap;
+import info.fmro.shared.utility.DebugLevel;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.SynchronizedMap;
 import info.fmro.shared.utility.SynchronizedReader;
@@ -281,7 +282,7 @@ public final class VarsIO {
                             Statics.eventsMap.copyFrom(eventsMap);
                             break;
                         case "marketCataloguesMap":
-                            @SuppressWarnings("unchecked") final SynchronizedMap<String, MarketCatalogue> marketCataloguesMap = (SynchronizedMap<String, MarketCatalogue>) objectFromFile;
+                            @SuppressWarnings("unchecked") final StreamSynchronizedMap<String, MarketCatalogue> marketCataloguesMap = (StreamSynchronizedMap<String, MarketCatalogue>) objectFromFile;
                             Statics.marketCataloguesMap.copyFrom(marketCataloguesMap);
                             break;
                         case "safeMarketsMap":

@@ -1,18 +1,27 @@
-apply plugin: 'java'
-apply plugin: 'maven-publish'
-apply plugin: 'idea'
+plugins {
+    id 'idea'
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
+}
 
-group = 'info.fmro'
-version = '0.1'
+group 'info.fmro'
+version '0.1'
 description = "betty"
 sourceCompatibility = 13
 targetCompatibility = 13
+
+shadowJar {
+    getDestinationDirectory().set(new File(projectDir, "jar"))
+    archiveBaseName.set("betty")
+    archiveClassifier.set("")
+    archiveVersion.set("")
+    mainClassName = 'info.fmro.betty.main.Betty'
+}
 
 allprojects {
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
     }
-
     tasks.withType(Test) {
         systemProperty "file.encoding", "UTF-8"
     }
@@ -41,6 +50,6 @@ dependencies {
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.10.2'
     testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.14.0'
     testImplementation group: 'com.jayway.awaitility', name: 'awaitility', version: '1.7.0'
-    testImplementation('org.junit.jupiter:junit-jupiter-api:5.5.2')
-    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.5.2"
+    testImplementation('org.junit.jupiter:junit-jupiter-api:5.6.0')
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.6.0"
 }
