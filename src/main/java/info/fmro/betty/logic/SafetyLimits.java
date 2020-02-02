@@ -79,24 +79,24 @@ public class SafetyLimits
         if (safetyLimits == null) {
             logger.error("null safetyLimits in copyFrom for: {}", Generic.objectToString(this));
         } else {
-            Generic.updateObject(this, safetyLimits);
+//            Generic.updateObject(this, safetyLimits);
 
-//            this.tempInstructionsListMap.clear();
-//            this.tempInstructionsListMap.putAll(safetyLimits.tempInstructionsListMap);
-//            this.eventAmounts.clear();
-//            this.eventAmounts.putAll(safetyLimits.eventAmounts);
-//            this.marketAmounts.clear();
-//            this.marketAmounts.putAll(safetyLimits.marketAmounts);
-//            this.runnerAmounts.clear();
-//            this.runnerAmounts.putAll(safetyLimits.runnerAmounts);
-//            this.startedGettingOrders = safetyLimits.startedGettingOrders;
-//            this.availableFunds = safetyLimits.availableFunds;
-//            this.exposure = safetyLimits.exposure;
-//            this.totalFunds = safetyLimits.totalFunds;
-//            this.currencyRate.set(safetyLimits.currencyRate.get());
-//            this.setReserve(safetyLimits.reserve);
-//            this.speedLimit.copyFrom(safetyLimits.speedLimit);
-////            this.rulesManager.copyFrom(safetyLimits.rulesManager);
+            this.tempInstructionsListMap.clear();
+            this.tempInstructionsListMap.putAll(safetyLimits.tempInstructionsListMap);
+            this.eventAmounts.clear();
+            this.eventAmounts.putAll(safetyLimits.eventAmounts);
+            this.marketAmounts.clear();
+            this.marketAmounts.putAll(safetyLimits.marketAmounts);
+            this.runnerAmounts.clear();
+            this.runnerAmounts.putAll(safetyLimits.runnerAmounts);
+            this.startedGettingOrders = safetyLimits.startedGettingOrders;
+            this.setAvailableFunds(safetyLimits.getAvailableFunds());
+            this.setExposure(safetyLimits.getExposure());
+            this.setTotalFunds(safetyLimits.getTotalFunds());
+            this.currencyRate.set(safetyLimits.currencyRate.get());
+            this.setReserve(safetyLimits.getReserve());
+            this.speedLimit.copyFrom(safetyLimits.speedLimit);
+//            this.rulesManager.copyFrom(safetyLimits.rulesManager);
         }
 
         //noinspection FloatingPointEquality

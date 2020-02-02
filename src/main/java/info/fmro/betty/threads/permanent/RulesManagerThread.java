@@ -18,53 +18,77 @@ public class RulesManagerThread
     private static final long serialVersionUID = 7059620547591940095L;
     // shouldn't have serializable fields, as those could conflict with the testMarker from RulesManager class
 
-    public synchronized boolean copyFrom(final RulesManagerThread other) {
-        final boolean readSuccessful;
-        if (!this.events.isEmpty() || !this.markets.isEmpty()) {
-            logger.error("not empty map in RulesManager copyFrom: {}", Generic.objectToString(this));
-            readSuccessful = false;
-        } else {
-            if (other == null) {
-                logger.error("null other in copyFrom for: {}", Generic.objectToString(this));
-                readSuccessful = false;
-            } else {
-                Generic.updateObject(this, other);
+    @Override
+    public synchronized boolean copyFrom(final RulesManager other) {
+        boolean readSuccessful = super.copyFrom(other);
 
-//                this.events.copyFrom(other.events);
-//                this.markets.clear();
-//                this.markets.putAll(other.markets.copy());
-//                // likely forgot addManagedRunnerCommands
-
-                this.setTestMarker(other.getTestMarker());
-
-                if (Statics.resetTestMarker) {
-                    logger.error("resetTestMarker {} , will still exit the program after reset", getTestMarker());
-                    final boolean objectModified = this.setTestMarker(Statics.TEST_MARKER);
-                    if (objectModified) {
-                        VarsIO.writeSettings();
-                    }
-                    readSuccessful = false; // in order to exit the program after reset
-                } else {
-                    readSuccessful = getTestMarker() != null && getTestMarker() == Statics.TEST_MARKER; // testMarker needs to have a certain value
-                }
-
-                if (this.markets.isEmpty()) { // map still empty, no modification was made
-                } else {
-                    this.rulesHaveChanged.set(true);
-                    this.marketsMapModified.set(true);
-                }
+        if (Statics.resetTestMarker) {
+            logger.error("resetTestMarker {} to {} , will still exit the program after reset", this.getTestMarker(), Statics.TEST_MARKER);
+            final boolean objectModified = this.setTestMarker(Statics.TEST_MARKER);
+            if (objectModified) {
+                VarsIO.writeSettings();
             }
-        }
-//        associateMarketsWithEvents( marketCataloguesMap);
+            readSuccessful = false; // in order to exit the program after reset
+        } else if (readSuccessful) {
+            final Integer marker = this.getTestMarker();
 
-        final int nQueues = this.listOfQueues.size();
-        if (nQueues == 0) { // normal case, nothing to be done
-        } else {
-            logger.error("existing queues during RulesManager.copyFrom: {} {}", nQueues, Generic.objectToString(this));
-            this.listOfQueues.send(this.getCopy());
+            if (marker != null && marker == Statics.TEST_MARKER) {
+                readSuccessful = true;
+            } else {
+                logger.error("wrong testMarker {} instead of {}", marker, Statics.TEST_MARKER);
+                readSuccessful = false;
+            }
+        } else { // read was not successful, no need to check if testMarker is correct
         }
 
         return readSuccessful;
+
+//        final boolean readSuccessful;
+//        if (!this.events.isEmpty() || !this.markets.isEmpty()) {
+//            logger.error("not empty map in RulesManager copyFrom: {}", Generic.objectToString(this));
+//            readSuccessful = false;
+//        } else {
+//            if (other == null) {
+//                logger.error("null other in copyFrom for: {}", Generic.objectToString(this));
+//                readSuccessful = false;
+//            } else {
+//                Generic.updateObject(this, other);
+//
+////                this.events.copyFrom(other.events);
+////                this.markets.clear();
+////                this.markets.putAll(other.markets.copy());
+////                // likely forgot addManagedRunnerCommands
+//
+//                this.setTestMarker(other.getTestMarker());
+//
+//                if (Statics.resetTestMarker) {
+//                    logger.error("resetTestMarker {} , will still exit the program after reset", getTestMarker());
+//                    final boolean objectModified = this.setTestMarker(Statics.TEST_MARKER);
+//                    if (objectModified) {
+//                        VarsIO.writeSettings();
+//                    }
+//                    readSuccessful = false; // in order to exit the program after reset
+//                } else {
+//                    readSuccessful = getTestMarker() != null && getTestMarker() == Statics.TEST_MARKER; // testMarker needs to have a certain value
+//                }
+//
+//                if (this.markets.isEmpty()) { // map still empty, no modification was made
+//                } else {
+//                    this.rulesHaveChanged.set(true);
+//                    this.marketsMapModified.set(true);
+//                }
+//            }
+//        }
+////        associateMarketsWithEvents( marketCataloguesMap);
+//
+//        final int nQueues = this.listOfQueues.size();
+//        if (nQueues == 0) { // normal case, nothing to be done
+//        } else {
+//            logger.error("existing queues during RulesManager.copyFrom: {} {}", nQueues, Generic.objectToString(this));
+//            this.listOfQueues.send(this.getCopy());
+//        }
+//
+//        return readSuccessful;
     }
 
     @Override

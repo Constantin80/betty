@@ -9,8 +9,8 @@ import info.fmro.betty.safebet.BetradarEvent;
 import info.fmro.betty.safebet.CoralEvent;
 import info.fmro.betty.safebet.SafeRunner;
 import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
+import info.fmro.betty.threads.permanent.RulesManagerThread;
 import info.fmro.betty.utility.Formulas;
-import info.fmro.shared.logic.RulesManager;
 import info.fmro.shared.objects.SessionTokenObject;
 import info.fmro.shared.objects.TimeStamps;
 import info.fmro.shared.stream.objects.StreamSynchronizedMap;
@@ -415,13 +415,13 @@ public final class VarsIO {
         final boolean readSuccessful;
         final Object objectFromFile = Generic.readObjectFromFile(Statics.SETTINGS_FILE_NAME);
         if (objectFromFile != null) {
-            final RulesManager rulesManager = (RulesManager) objectFromFile;
+            final RulesManagerThread rulesManager = (RulesManagerThread) objectFromFile;
             readSuccessful = Statics.rulesManagerThread.copyFrom(rulesManager);
         } else {
             readSuccessful = false;
             logger.error("objectFromFile null in readSettings");
             if (Statics.resetTestMarker) {
-                Statics.rulesManagerThread.copyFrom(new RulesManager()); // I need copyFrom to run for reset to work
+                Statics.rulesManagerThread.copyFrom(new RulesManagerThread()); // I need copyFrom to run for reset to work
             }
         }
 
