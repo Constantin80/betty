@@ -298,8 +298,8 @@ class RequestResponseProcessor
             if (getLastRequestTime() + Client.keepAliveHeartbeat < System.currentTimeMillis()) { //send a heartbeat to server to keep networks open
                 logger.info("[{}]Last Request Time is longer than {}: Sending Keep Alive Heartbeat", this.client.id, Client.keepAliveHeartbeat);
                 heartbeat();
-            } else if (getLastResponseTime() + Client.timeout < System.currentTimeMillis()) {
-                logger.info("[{}]Last Response Time is longer than timeout {}: Sending Keep Alive Heartbeat", this.client.id, Client.timeout);
+            } else if (getLastResponseTime() + Client.TIMEOUT < System.currentTimeMillis()) {
+                logger.info("[{}]Last Response Time is longer than timeout {}: Sending Keep Alive Heartbeat", this.client.id, Client.TIMEOUT);
                 heartbeat();
             }
         }
@@ -447,7 +447,8 @@ class RequestResponseProcessor
             change = this.orderSubscriptionHandler.processChangeMessage(change);
             if (change != null) {
                 Statics.orderCache.listOfQueues.send(message);
-                Statics.orderCache.onOrderChange(change, Statics.rulesManagerThread.orderCacheHasReset, Statics.rulesManagerThread.newOrderMarketCreated, Statics.pendingOrdersThread, Statics.safetyLimits.currencyRate);
+                Statics.orderCache.onOrderChange(change, Statics.rulesManagerThread.rulesManager.orderCacheHasReset, Statics.rulesManagerThread.rulesManager.newOrderMarketCreated, Statics.pendingOrdersThread,
+                                                 Statics.safetyLimits.existingFunds.currencyRate);
             }
         }
     }
@@ -473,7 +474,7 @@ class RequestResponseProcessor
 
                 if (change != null) {
                     Statics.marketCache.listOfQueues.send(message);
-                    Statics.marketCache.onMarketChange(change, Statics.safetyLimits.currencyRate);
+                    Statics.marketCache.onMarketChange(change, Statics.safetyLimits.existingFunds.currencyRate);
                 }
             } else {
                 if (isIdRecentlyRemoved(id)) {

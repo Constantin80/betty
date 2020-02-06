@@ -1,10 +1,10 @@
 package info.fmro.betty.stream.client;
 
-import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
 import info.fmro.betty.objects.Statics;
+import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
 import info.fmro.shared.stream.definitions.AuthenticationMessage;
-import info.fmro.shared.stream.enums.FilterFlag;
 import info.fmro.shared.stream.definitions.MarketDataFilter;
+import info.fmro.shared.stream.enums.FilterFlag;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class Client
         extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
-    public static final long timeout = 30L * 1_000L;
+    public static final long TIMEOUT = 30L * 1_000L;
     public static final long keepAliveHeartbeat = Generic.HOUR_LENGTH_MILLISECONDS;
 
     public final int id;
@@ -179,7 +179,7 @@ public class Client
         while (newSocket == null && !Statics.mustStop.get()) {
             try {
                 newSocket = (SSLSocket) factory.createSocket(this.hostName, this.port);
-                newSocket.setSoTimeout((int) timeout);
+                newSocket.setSoTimeout((int) TIMEOUT);
                 newSocket.startHandshake();
             } catch (@SuppressWarnings("OverlyBroadCatchBlock") IOException e) {
                 logger.error("[{}]IOException in streamClient.createSocket", this.id, e);
@@ -196,7 +196,7 @@ public class Client
         if (this.streamIsConnected.get()) {
             logger.error("[{}]connecting a stream that is already connected", this.id);
         }
-        Generic.threadSleepSegmented(timeout, 50L, this.streamIsConnected, Statics.mustStop);
+        Generic.threadSleepSegmented(TIMEOUT, 50L, this.streamIsConnected, Statics.mustStop);
 
         if (this.streamIsConnected.get()) {
             authenticateAndResubscribe();
@@ -223,7 +223,7 @@ public class Client
             authenticationMessage.setSession(Statics.sessionTokenObject.getSessionToken());
 
             this.processor.authenticate(authenticationMessage);
-            Generic.threadSleepSegmented(timeout, 10L, this.isAuth, Statics.mustStop);
+            Generic.threadSleepSegmented(TIMEOUT, 10L, this.isAuth, Statics.mustStop);
 
             if (this.socketIsConnected.get() && this.streamIsConnected.get() && this.isAuth.get()) {
                 this.processor.resubscribe();

@@ -3,6 +3,7 @@ package info.fmro.betty.main;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import info.fmro.betty.betapi.JsonConverter;
 import info.fmro.betty.objects.Statics;
+import info.fmro.betty.safebet.PlacedAmountsThread;
 import info.fmro.betty.stream.client.ClientHandler;
 import info.fmro.betty.threads.permanent.GetFundsThread;
 import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
@@ -10,7 +11,6 @@ import info.fmro.betty.threads.permanent.IdleConnectionMonitorThread;
 import info.fmro.betty.threads.permanent.InputServerThread;
 import info.fmro.betty.threads.permanent.InterfaceServerThread;
 import info.fmro.betty.threads.permanent.MaintenanceThread;
-import info.fmro.betty.threads.permanent.PlacedAmountsThread;
 import info.fmro.betty.threads.permanent.TimeJumpDetectorThread;
 import info.fmro.betty.utility.BettyUncaughtExceptionHandler;
 import info.fmro.shared.entities.SessionToken;
@@ -128,7 +128,11 @@ public final class Betty {
 
             if (Statics.notPlacingOrders) {
                 logger.error("Statics.notPlacingOrders true. The program will not place orders.");
-            } else { // regular run, nothing ot be done
+            } else { // regular run, nothing to be done
+            }
+            if (Statics.connectingToBetfairServersDisabled) {
+                logger.error("Statics.connectingToBetfairServersDisabled true. Communication with Betfair server will be stopped.");
+            } else { // regular run, nothing to be done
             }
 
             VarsIO.readVarsFromFile(Statics.VARS_FILE_NAME);
@@ -172,19 +176,32 @@ public final class Betty {
                 //noinspection InstantiatingAThreadWithDefaultRunMethod
                 coralThread = new Thread();
             }
-            Statics.quickCheckThread.start();
+
+            if (Statics.safeBetModuleActivated) {
+                Statics.quickCheckThread.start();
+            }
+
             final Thread pendingOrdersThread = new Thread(Statics.pendingOrdersThread);
             pendingOrdersThread.start();
+
             final Thread placedAmountsThread = new Thread(new PlacedAmountsThread());
-            placedAmountsThread.start();
+            if (Statics.safeBetModuleActivated) {
+                placedAmountsThread.start();
+            }
+
             final Thread timeJumpDetectorThread = new Thread(new TimeJumpDetectorThread());
             timeJumpDetectorThread.start();
             final Thread idleConnectionMonitorThread = new Thread(new IdleConnectionMonitorThread(Statics.connManager));
             idleConnectionMonitorThread.start();
+
             final int streamClientsLength = ClientHandler.streamClients.length;
-            for (int i = 0; i < streamClientsLength; i++) {
-                ClientHandler.streamClients[i].start();
+            if (Statics.connectingToBetfairServersDisabled) { // won't start streamClients
+            } else {
+                for (int i = 0; i < streamClientsLength; i++) {
+                    ClientHandler.streamClients[i].start();
+                }
             }
+
             final Thread rulesManagerThread = new Thread(Statics.rulesManagerThread);
             rulesManagerThread.start();
 //            Statics.rulesManager.start();
@@ -242,9 +259,11 @@ public final class Betty {
                 logger.info("joining coralScraper thread");
                 coralThread.join();
             }
-            if (Statics.quickCheckThread.isAlive()) {
-                logger.info("joining quickCheck thread");
-                Statics.quickCheckThread.join();
+            if (Statics.safeBetModuleActivated) {
+                if (Statics.quickCheckThread.isAlive()) {
+                    logger.info("joining quickCheck thread");
+                    Statics.quickCheckThread.join();
+                }
             }
             if (rulesManagerThread.isAlive()) {
                 logger.info("joining rulesManager thread");
@@ -254,9 +273,11 @@ public final class Betty {
                 logger.info("joining pendingOrdersThread");
                 pendingOrdersThread.join();
             }
-            if (placedAmountsThread.isAlive()) {
-                logger.info("joining placedAmountsThread");
-                placedAmountsThread.join();
+            if (Statics.safeBetModuleActivated) {
+                if (placedAmountsThread.isAlive()) {
+                    logger.info("joining placedAmountsThread");
+                    placedAmountsThread.join();
+                }
             }
             if (timeJumpDetectorThread.isAlive()) {
                 logger.info("joining timeJumpDetectorThread");

@@ -1,7 +1,7 @@
 package info.fmro.betty.main;
 
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.threads.permanent.QuickCheckThread;
+import info.fmro.betty.safebet.QuickCheckThread;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

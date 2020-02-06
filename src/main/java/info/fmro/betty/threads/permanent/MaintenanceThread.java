@@ -70,8 +70,8 @@ public class MaintenanceThread
                     Statics.coralScraperThread.averageLogger.printRecords();
                 }
                 // Statics.coralScraperThread.averageLoggerFull.printRecords(); // this will have a check on Statics.coralScraperThread.singleLogger
+                Statics.quickCheckThread.averageLogger.printRecords();
             }
-            Statics.quickCheckThread.averageLogger.printRecords();
 
             int size = Statics.linkedBlockingQueue.size();
             if (size >= 10) {
@@ -756,21 +756,6 @@ public class MaintenanceThread
         }
     }
 
-    //    public static void removeScraperEvents(LinkedHashMap<Class<? extends ScraperEvent>, Long> map) {
-//        if (map != null && !map.isEmpty()) {
-//            for (Entry<Class<? extends ScraperEvent>, Long> entry : map.entrySet()) {
-//                final Class<? extends ScraperEvent> clazz = entry.getKey();
-//                final long scraperId = entry.getValue();
-//                final SynchronizedMap<Long, ? extends ScraperEvent> scraperMap = Formulas.getScraperEventsMap(clazz);
-//                scraperMap.remove(scraperId);
-//            } // end for
-//        } // end if
-//    }safeRunners.isEmpty
-
-//    public static void cleanMarketCache() {
-//        Statics.marketCache.maintenanceClean();
-//    }
-
     @SuppressWarnings("OverlyNestedMethod")
     private static void cleanEventsMap() {
         Statics.eventsMap.timeCleanStamp(Generic.MINUTE_LENGTH_MILLISECONDS * 10L);
@@ -806,11 +791,10 @@ public class MaintenanceThread
         for (final Entry<String, Event> entry : entrySetCopy) {
             final Event event = entry.getValue();
             final long timeStamp = event.getTimeStamp();
-            // Date openDate = value.getOpenDate();
-            // long openTime = openDate.getTime();
+//            final Date openDate = event.getOpenDate();
+//            final long openTime = openDate == null ? -1 : openDate.getTime();
             final String eventId = entry.getKey();
-            if (eventsMapLastUpdate - timeStamp > Generic.MINUTE_LENGTH_MILLISECONDS * 5L // && eventsMapLastUpdate - openTime > Generic.HOUR_LENGTH_MILLISECONDS * 12L
-            ) {
+            if (eventsMapLastUpdate - timeStamp > Generic.MINUTE_LENGTH_MILLISECONDS * 5L || startTime - eventsMapLastUpdate > Generic.DAY_LENGTH_MILLISECONDS << 1) {
                 final Event removedEvent = removeEvent(eventId, false);
 //                Statics.eventsMap.remove(key);
 //                removedEventIds.add(key);
@@ -848,6 +832,8 @@ public class MaintenanceThread
                     logger.error("null scraperEventIds in cleanEventsMap for: {} {}", eventId, Generic.objectToString(event));
                 }
             } else { // safeBetModule not activated and event not expired, nothing to be done
+//                final long currentTime = System.currentTimeMillis();
+//                logger.info("event not removed: {} {} {} {} {} {}", eventsMapLastUpdate, timeStamp, eventsMapLastUpdate - timeStamp, currentTime, currentTime - eventsMapLastUpdate, currentTime - timeStamp);
             }
         } // end for
         //        } // end synchronized block
@@ -920,12 +906,6 @@ public class MaintenanceThread
                     logger.error("matched scraperEvent getting removed during maintenance: {} {} {} {}", matchedEventId, clazz, key, Generic.objectToString(removedScraperEvent));
                 } else { // normal, non matched scraper removed
                 }
-//                map.remove(key);
-//                // removedScraperEventIds.add(key);
-//                if (matchedEventId != null && Statics.eventsMap.containsKey(matchedEventId)) {
-//                    Statics.eventsMap.remove(matchedEventId);
-//                    removedEventIds.add(matchedEventId);
-//                }
             } else { // not expired yet, nothing to be done
             }
         } // end for
@@ -1003,38 +983,6 @@ public class MaintenanceThread
 
             @SuppressWarnings("unchecked") final Class<T> clazz = (Class<T>) scraperEvent.getClass();
             existingScraperEvent = removeScraper(clazz, scraperEventId);
-
-//            @SuppressWarnings("unchecked") final SynchronizedMap<Long, T> scraperEventsMap = (SynchronizedMap<Long, T>) Formulas.getScraperEventsMap(clazz);
-//            if (scraperEventId >= 0) {
-//                existingScraperEvent = scraperEventsMap.get(scraperEventId);
-//            } else {
-//                logger.error("negative scraperEventId {} in removeScraper for: {}", scraperEventId, scraperEvent);
-//                existingScraperEvent = null;
-//            }
-//            if (existingScraperEvent != null) {
-//                scraperEventsMap.remove(scraperEventId);
-//            }
-
-            // this portion is passed in the invoked overloaded removeScraper method
-//            String matchedEventId = null;
-//            if (existingScraperEvent != null) {
-//                matchedEventId = existingScraperEvent.getMatchedEventId();
-//            } else { // no ScraperEvent present in the map, nothing to be done here
-//            }
-//            if (matchedEventId == null) {
-//                matchedEventId = scraperEvent.getMatchedEventId();
-//            } else { // using the matchedEventId I have
-//            }
-//
-//            if (matchedEventId != null) {
-////            ignoreEvent(matchedEventId, safetyPeriod, shortSafetyPeriod);
-//                if (BlackList.notExist(Event.class, matchedEventId)) { // matched event was removed already, normal behavior
-//                } else {
-//                    logger.error("scraper getting removed and matched event still present in maps: {} {} {}", scraperEventId, matchedEventId, Generic.objectToString(scraperEvent));
-//                }
-////                BlackList.checkEventNMatched(matchedEventId, clazz);
-//            } else { // no event attached, nothing to be done
-//            }
         }
 
         return existingScraperEvent;
@@ -1285,18 +1233,17 @@ public class MaintenanceThread
                 if (Statics.mustSleep.get()) {
                     Betty.programSleeps(Statics.mustSleep, Statics.mustStop, "maintenance thread");
                 }
-
                 if (Statics.needSessionToken.get()) {
                     Betty.authenticate(Statics.AUTH_URL, Statics.bu, Statics.bp, Statics.sessionTokenObject, Statics.KEY_STORE_FILE_NAME, Statics.KEY_STORE_PASSWORD, Statics.KEY_STORE_TYPE, Statics.appKey);
                 }
-                long timeToSleep = Statics.needSessionToken.get() ? 10_000L : 5L * Generic.MINUTE_LENGTH_MILLISECONDS; // initialized with minimum sleep time
+                long timeToSleep = Statics.needSessionToken.get() ? 10_000L : 5L * Generic.MINUTE_LENGTH_MILLISECONDS; // initialized with maximum sleep time
 
                 if (Statics.mustWriteObjects.get()) {
                     VarsIO.writeObjectsToFiles();
                     VarsIO.writeSettings();
                     Statics.mustWriteObjects.set(false);
                 }
-                if (Statics.rulesManagerThread.rulesHaveChanged.get()) {
+                if (Statics.rulesManagerThread.rulesManager.rulesHaveChanged.get()) {
                     Generic.threadSleepSegmented(500L, 50L, Statics.mustStop); // small sleep against multiple quick modifications that lead to writes
                     VarsIO.writeSettings(); // this method sets the AtomicBoolean to false
                 }
@@ -1343,7 +1290,7 @@ public class MaintenanceThread
                 timeToSleep = Math.min(timeToSleep, timedReadAliases());
                 timeToSleep = Math.min(timeToSleep, timedCheckDeadlock());
 
-                Generic.threadSleepSegmented(timeToSleep, 100L, Statics.mustStop, Statics.mustWriteObjects, Statics.needSessionToken, Statics.orderToPrint, Statics.rulesManagerThread.rulesHaveChanged);
+                Generic.threadSleepSegmented(timeToSleep, 100L, Statics.mustStop, Statics.mustWriteObjects, Statics.needSessionToken, Statics.orderToPrint, Statics.rulesManagerThread.rulesManager.rulesHaveChanged);
             } catch (Throwable throwable) {
                 logger.error("STRANGE ERROR inside Maintenance loop", throwable);
             }

@@ -54,8 +54,8 @@ class ReaderThread
         return result;
     }
 
-    private synchronized String readLine()
-            throws IOException {
+    private String readLine()
+            throws IOException { // this can't be synchronized, as it contains a blocking method, and it would block all the other synchronized calls
         return this.bufferedReader.readLine();
     }
 

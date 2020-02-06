@@ -28,7 +28,7 @@ class InterfaceConnectionWriterThread
             //noinspection resource,IOResourceOpenedButNotSafelyClosed
             tempObjectOutputStream = new ObjectOutputStream(socket.getOutputStream());
         } catch (IOException e) {
-            logger.error("IOException in InterfaceConnectionWriterThread constructor");
+            logger.error("IOException in InterfaceConnectionWriterThread constructor", e);
             this.finished.set(true);
         }
         this.objectOutputStream = tempObjectOutputStream;
@@ -56,8 +56,8 @@ class InterfaceConnectionWriterThread
     public void run() {
         Statics.marketCache.listOfQueues.registerQueue(this.sendQueue, Statics.marketCache);
         Statics.orderCache.listOfQueues.registerQueue(this.sendQueue, Statics.orderCache);
-        Statics.rulesManagerThread.listOfQueues.registerQueue(this.sendQueue, Statics.rulesManagerThread);
-        Statics.safetyLimits.listOfQueues.registerQueue(this.sendQueue, Statics.safetyLimits);
+        Statics.rulesManagerThread.rulesManager.listOfQueues.registerQueue(this.sendQueue, Statics.rulesManagerThread.rulesManager);
+        Statics.safetyLimits.existingFunds.listOfQueues.registerQueue(this.sendQueue, Statics.safetyLimits.existingFunds);
         Statics.marketCataloguesMap.listOfQueues.registerQueue(this.sendQueue, Statics.marketCataloguesMap);
 //        this.sendObject(initialImage);
 
@@ -70,8 +70,8 @@ class InterfaceConnectionWriterThread
         } // end while
         Statics.marketCache.listOfQueues.removeQueue(this.sendQueue);
         Statics.orderCache.listOfQueues.removeQueue(this.sendQueue);
-        Statics.rulesManagerThread.listOfQueues.removeQueue(this.sendQueue);
-        Statics.safetyLimits.listOfQueues.removeQueue(this.sendQueue);
+        Statics.rulesManagerThread.rulesManager.listOfQueues.removeQueue(this.sendQueue);
+        Statics.safetyLimits.existingFunds.listOfQueues.removeQueue(this.sendQueue);
         Statics.marketCataloguesMap.listOfQueues.removeQueue(this.sendQueue);
 
         logger.info("InterfaceConnectionWriterThread ends");

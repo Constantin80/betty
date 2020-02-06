@@ -67,7 +67,7 @@ public class PendingOrdersThread
                                     if (foundOrder != null) {
                                         iterator.remove();
                                     } else { // unmatched order with betId not found, looking into matched orders
-                                        final double existingSize = orderMarketRunner.getMatchedSize(side, price, Statics.safetyLimits.currencyRate);
+                                        final double existingSize = orderMarketRunner.getMatchedSize(side, price, Statics.safetyLimits.existingFunds.currencyRate);
                                         final double newSize = orderRunnerChange.getMatchedSize(side, price);
                                         final double sizeModification = newSize - existingSize;
                                         final boolean areEqual = Math.abs(size - sizeModification) < .02d;
@@ -77,7 +77,7 @@ public class PendingOrdersThread
                                         }
                                     }
                                 } else { // placeOrder command hasn't finished and no betId available yet; yet stream only returns once, so I'll use this branch too
-                                    final double existingSize = orderMarketRunner.getMatchedSize(side, price, Statics.safetyLimits.currencyRate);
+                                    final double existingSize = orderMarketRunner.getMatchedSize(side, price, Statics.safetyLimits.existingFunds.currencyRate);
                                     final double newSize = orderRunnerChange.getMatchedSize(side, price);
                                     final double sizeModification = newSize - existingSize;
                                     final boolean areEqual = Math.abs(size - sizeModification) < .02d;

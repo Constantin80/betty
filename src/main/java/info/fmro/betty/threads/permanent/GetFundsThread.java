@@ -1,7 +1,7 @@
 package info.fmro.betty.threads.permanent;
 
-import info.fmro.betty.main.Betty;
 import info.fmro.betty.betapi.RescriptOpThread;
+import info.fmro.betty.main.Betty;
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
 import org.slf4j.Logger;
@@ -17,7 +17,7 @@ public class GetFundsThread
     private static long timedGetAccountFunds() {
         final long currentTime = System.currentTimeMillis();
         final long runInterval;
-        final boolean newQuickRun = currentTime - Statics.timeLastFundsOp.get() <= 20000L;
+        final boolean newQuickRun = currentTime - Statics.timeLastFundsOp.get() <= 20_000L;
         final boolean quickRun = Statics.fundsQuickRun.getAndSet(newQuickRun);
         if (quickRun) {
             runInterval = 0L;
@@ -25,7 +25,7 @@ public class GetFundsThread
                 logger.info("quickRun ending");
             }
         } else {
-            runInterval = 1000L;
+            runInterval = 1_000L;
             if (newQuickRun) {
                 logger.error("possible racing problem, quickRun starting");
             }
@@ -92,10 +92,13 @@ public class GetFundsThread
                 }
                 GetLiveMarketsThread.waitForSessionToken("GetFundsThread main");
 
-                long timeToSleep;
+                long timeToSleep = Generic.MINUTE_LENGTH_MILLISECONDS * 5L; // maximum sleep
 
-                timeToSleep = timedGetAccountFunds();
-                timeToSleep = Math.min(timeToSleep, timedListCurrencyRates());
+                if (Statics.connectingToBetfairServersDisabled) { // if stream module stopped, I'm disabling interrogating account funds and currency rates
+                } else {
+                    timeToSleep = Math.min(timeToSleep, timedGetAccountFunds());
+                    timeToSleep = Math.min(timeToSleep, timedListCurrencyRates());
+                }
 
                 Generic.threadSleepSegmented(timeToSleep, 10L, Statics.mustStop, Statics.fundsQuickRun);
             } catch (Throwable throwable) {

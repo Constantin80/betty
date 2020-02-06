@@ -8,14 +8,15 @@ import info.fmro.betty.safebet.BetradarEvent;
 import info.fmro.betty.safebet.BetradarScraperThread;
 import info.fmro.betty.safebet.CoralEvent;
 import info.fmro.betty.safebet.CoralScraperThread;
+import info.fmro.betty.safebet.QuickCheckThread;
 import info.fmro.betty.safebet.SafeBet;
+import info.fmro.betty.safebet.SafeBetSafetyLimits;
 import info.fmro.betty.safebet.SafeBetsMap;
 import info.fmro.betty.safebet.SafeRunner;
 import info.fmro.betty.safebet.ScraperEvent;
 import info.fmro.betty.safebet.ScraperPermanentThread;
 import info.fmro.betty.threads.permanent.LoggerThread;
 import info.fmro.betty.threads.permanent.PendingOrdersThread;
-import info.fmro.betty.threads.permanent.QuickCheckThread;
 import info.fmro.betty.threads.permanent.RulesManagerThread;
 import info.fmro.shared.enums.ParsedMarketType;
 import info.fmro.shared.objects.OrderPrice;
@@ -63,6 +64,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class Statics {
     private static final Logger logger = LoggerFactory.getLogger(Statics.class);
     public static final boolean notPlacingOrders = true; // hard stop for order placing; true for testing, false enables order placing
+    public static final boolean connectingToBetfairServersDisabled = true; // hard stop for interrogating Betfair servers, when not needed during testing
     public static final boolean safeBetModuleActivated = false; // false for now, I won't be using this module for quite a while
     public static final boolean resetTestMarker = false; // when true, resets rulesManager testMarker variable, and then exits the program
     @SuppressWarnings("unchecked")
@@ -77,8 +79,8 @@ public final class Statics {
     public static final String VARS_FILE_NAME = "input/vars.txt", STDOUT_FILE_NAME = "out.txt", STDERR_FILE_NAME = "err.txt", MATCHER_FILE_NAME = "matcher.txt", SAFE_BETS_FILE_NAME = "bets.txt", NEW_MARKET_FILE_NAME = "newMarket.txt",
             KEY_STORE_FILE_NAME = "input/client-2048.p12", KEY_STORE_PASSWORD = "", APING_URL = "https://api.betfair.com/exchange/betting/", RESCRIPT_SUFFIX = "rest/v1.0/", APPLICATION_JSON = "application/json", ACCOUNT_APING_URL =
             "https://api.betfair.com/exchange/account/", ALIASES_FILE_NAME = "input/aliases.txt", FULL_ALIASES_FILE_NAME = "input/aliasesFull.txt", LOGS_FOLDER_NAME = "logs", DATA_FOLDER_NAME = "data", STREAM_HOST = "stream-api.betfair.com",
-            SETTINGS_FILE_NAME = Statics.DATA_FOLDER_NAME + "/rulesManager.txt", INTERFACE_KEY_STORE_FILE_NAME = "input/keystore";
-
+            SETTINGS_FILE_NAME = Statics.DATA_FOLDER_NAME + "/rulesManager.txt";
+    public static final String INTERFACE_KEY_STORE_FILE_NAME = "input/keystore";
     public static final List<String> supportedEventTypes = List.of("1"); // "1" = soccer
 
     //    public static AtomicBoolean closeStandardStreams = new AtomicBoolean(true); // modified by reflection for tests
@@ -133,6 +135,7 @@ public final class Statics {
     public static final DebugLevel debugLevel = new DebugLevel();
     public static final SessionTokenObject sessionTokenObject = new SessionTokenObject();
     public static final SafetyLimits safetyLimits = new SafetyLimits();
+    public static final SafeBetSafetyLimits safeBetSafetyLimits = new SafeBetSafetyLimits();
 //    public static final BlackList blackList = new BlackList();
 //    public static final PlacedAmounts placedAmounts = new PlacedAmounts();
 

@@ -46,7 +46,7 @@ public class InterfaceServerThread
         SSLContext sSLContext = null;
         try {
             sSLContext = SSLContext.getInstance("TLS");
-            sSLContext.init(keyManagers, null, new SecureRandom());
+            sSLContext.init(keyManagers, Generic.getCustomTrustManager(Statics.INTERFACE_KEY_STORE_FILE_NAME, Statics.interfaceKeyStorePassword.get()), new SecureRandom());
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             logger.error("SSLContext exception in InterfaceServer", e);
         }

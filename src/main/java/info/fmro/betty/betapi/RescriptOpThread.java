@@ -3,7 +3,7 @@ package info.fmro.betty.betapi;
 import info.fmro.betty.entities.MarketCatalogue;
 import info.fmro.betty.logic.SafetyLimits;
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.threads.permanent.PlacedAmountsThread;
+import info.fmro.betty.safebet.PlacedAmountsThread;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.entities.AccountFundsResponse;
 import info.fmro.shared.entities.CancelExecutionReport;
@@ -172,7 +172,7 @@ public class RescriptOpThread<T>
                     final ResponseHandler<String> rescriptAccountResponseHandler = new RescriptAccountResponseHandler();
                     final List<CurrencyRate> currencyRates = ApiNgRescriptOperations.listCurrencyRates(Statics.appKey.get(), rescriptAccountResponseHandler);
 
-                    this.safetyLimits.setCurrencyRate(currencyRates, Statics.mustStop, Statics.needSessionToken);
+                    this.safetyLimits.existingFunds.setCurrencyRate(currencyRates, Statics.mustStop, Statics.needSessionToken);
                 } else {
                     logger.error("null or empty variables in RescriptOpThread listCurrencyRates");
                 }
@@ -223,10 +223,10 @@ public class RescriptOpThread<T>
                             logger.error("null placeExecutionReport for: {} {}", this.marketId, Generic.objectToString(this.placeInstructionsList));
                         }
 
-                        if (!this.isStartedGettingOrders && this.safetyLimits.isStartedGettingOrders()) {
+                        if (!this.isStartedGettingOrders && Statics.safeBetSafetyLimits.isStartedGettingOrders()) {
                             // will add the list again; being added twice is less dangerous than not being added at all
                             final String eventId = info.fmro.shared.utility.Formulas.getEventIdOfMarketId(this.marketId, Statics.marketCataloguesMap);
-                            this.safetyLimits.addInstructionsList(eventId, this.marketId, this.placeInstructionsList);
+                            Statics.safeBetSafetyLimits.addInstructionsList(eventId, this.marketId, this.placeInstructionsList);
                         } else { // added at beginning, and no need to add again
                         }
                     } else { // Statics.notPlacingOrders || Statics.denyBetting.get()

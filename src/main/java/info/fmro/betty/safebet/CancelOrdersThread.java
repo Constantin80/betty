@@ -2,12 +2,11 @@ package info.fmro.betty.safebet;
 
 import info.fmro.betty.betapi.ApiNgRescriptOperations;
 import info.fmro.betty.betapi.RescriptResponseHandler;
+import info.fmro.betty.objects.Statics;
 import info.fmro.shared.entities.CancelExecutionReport;
 import info.fmro.shared.entities.CancelInstruction;
 import info.fmro.shared.enums.ExecutionReportStatus;
-import info.fmro.betty.objects.Statics;
 import info.fmro.shared.objects.TemporaryOrder;
-import info.fmro.betty.threads.permanent.PlacedAmountsThread;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +42,10 @@ public class CancelOrdersThread
                 if (executionReportStatus == ExecutionReportStatus.SUCCESS) {
                     logger.info("canceled orders: {}", Generic.objectToString(cancelExecutionReport));
 
-                    PlacedAmountsThread.shouldCheckAmounts.set(true);
+                    if (Statics.safeBetModuleActivated) {
+                        PlacedAmountsThread.shouldCheckAmounts.set(true);
+                    } else { // PlacedAmountsThread is part of safeBetModule, and is not needed if I have stream access
+                    }
 
                     success = true;
                 } else {

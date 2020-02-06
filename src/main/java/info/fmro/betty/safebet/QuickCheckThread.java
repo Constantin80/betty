@@ -1,4 +1,4 @@
-package info.fmro.betty.threads.permanent;
+package info.fmro.betty.safebet;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -10,9 +10,8 @@ import info.fmro.betty.entities.MarketCatalogue;
 import info.fmro.betty.main.Betty;
 import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.safebet.SafeRunner;
-import info.fmro.betty.safebet.ScraperEvent;
-import info.fmro.betty.threads.GetMarketBooksThread;
+import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
+import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.entities.ExBestOffersOverrides;
 import info.fmro.shared.entities.PriceProjection;
@@ -55,8 +54,8 @@ public class QuickCheckThread
     public static final EnumSet<PriceData> priceDataSetBest = EnumSet.of(PriceData.EX_BEST_OFFERS);
     public static final PriceProjection priceProjectionBest = new PriceProjection();
     public static final ExBestOffersOverrides exBestOffersOverrides = new ExBestOffersOverrides();
-    @SuppressWarnings({"PackageVisibleField", "ThisEscapedInObjectConstruction"})
-    final AverageLogger averageLogger =
+    @SuppressWarnings("ThisEscapedInObjectConstruction")
+    public final AverageLogger averageLogger =
             new AverageLogger(this, "getMarketBooks ran {}({}) times average/max: listSize {}/{} took {}/{} ms of which {}/{} ms waiting for threads", "getMarketBooks ran {}({}) times", 3);
 
     static {
@@ -278,7 +277,7 @@ public class QuickCheckThread
                                     final MarketStatus marketStatus = marketBook.getStatus();
                                     final List<Runner> runnersList = marketBook.getRunners();
                                     if (marketStatus != null && runnersList != null) {
-                                        Statics.safetyLimits.createPlaceInstructionList(runnersList, safeRunnersSet, marketBook, marketId, startTime, endTime, marketStatus, inPlay, betDelay, timePreviousMarketBookCheck);
+                                        Statics.safeBetSafetyLimits.createPlaceInstructionList(runnersList, safeRunnersSet, marketBook, marketId, startTime, endTime, marketStatus, inPlay, betDelay, timePreviousMarketBookCheck);
                                     } else {
                                         logger.error("null marketStatus or runnersList in getMarketBooks for: {}", Generic.objectToString(marketBook));
                                     }

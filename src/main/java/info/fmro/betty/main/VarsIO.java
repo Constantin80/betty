@@ -406,7 +406,7 @@ public final class VarsIO {
 
     public static void writeSettings() {
         Statics.timeStamps.lastSettingsSaveStamp(Generic.MINUTE_LENGTH_MILLISECONDS);
-        Statics.rulesManagerThread.rulesHaveChanged.set(false);
+        Statics.rulesManagerThread.rulesManager.rulesHaveChanged.set(false);
         Generic.synchronizedWriteObjectToFile(Statics.rulesManagerThread, Statics.SETTINGS_FILE_NAME);
         writeSettingsCounter.incrementAndGet();
     }

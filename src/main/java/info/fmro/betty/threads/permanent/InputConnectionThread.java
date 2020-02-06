@@ -154,11 +154,11 @@ public class InputConnectionThread
                     logger.info("rulesManager command executed: {}", rulesString);
                     printWriter.println("Will execute rulesManager command");
 
-                    Statics.rulesManagerThread.executeCommand(rulesString, Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits, Statics.marketCataloguesMap);
+                    Statics.rulesManagerThread.rulesManager.executeCommand(rulesString, Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap);
                 } else if ("findMarketTypes".equals(inputLine)) {
                     printWriter.println("Will find new market types");
                     newOrder = "findMarketTypes";
-                } else if (inputLine.startsWith("printCachedMarkets ")) {
+                } else if (inputLine.startsWith("printCachedMarkets ".toLowerCase(Locale.ENGLISH))) {
                     String marketIds = inputLine.substring("printCachedMarkets ".length()).trim();
                     if (!marketIds.isEmpty() && marketIds.charAt(0) == '=') {
                         marketIds = marketIds.substring("=".length()).trim();
@@ -168,21 +168,21 @@ public class InputConnectionThread
                 } else if ("printCachedOrders".equals(inputLine)) {
                     printWriter.println("Will print cached orders");
                     DebuggingMethods.printCachedOrders();
-                } else if (inputLine.startsWith("printMarket ")) {
+                } else if (inputLine.startsWith("printMarket ".toLowerCase(Locale.ENGLISH))) {
                     String marketId = inputLine.substring("printMarket ".length()).trim();
                     if (!marketId.isEmpty() && marketId.charAt(0) == '=') {
                         marketId = marketId.substring("=".length()).trim();
                     }
                     printWriter.println("Will print marketId: " + marketId);
                     newOrder = "market:" + marketId;
-                } else if (inputLine.startsWith("printEvent ")) {
+                } else if (inputLine.startsWith("printEvent ".toLowerCase(Locale.ENGLISH))) {
                     String eventId = inputLine.substring("printEvent ".length()).trim();
                     if (!eventId.isEmpty() && eventId.charAt(0) == '=') {
                         eventId = eventId.substring("=".length()).trim();
                     }
                     printWriter.println("Will print eventId: " + eventId);
                     newOrder = "event:" + eventId;
-                } else if (inputLine.startsWith("printMarketType ")) {
+                } else if (inputLine.startsWith("printMarketType ".toLowerCase(Locale.ENGLISH))) {
                     String marketType = inputLine.substring("printMarketType ".length()).trim();
                     if (!marketType.isEmpty() && marketType.charAt(0) == '=') {
                         marketType = marketType.substring("=".length()).trim();
@@ -193,9 +193,9 @@ public class InputConnectionThread
                 } else if ("weightTest".equals(inputLine)) {
                     printWriter.println("Will run weightTest");
                     newOrder = "weightTest";
-                } else if (inputLine.startsWith("printMap ")) {
+                } else if (inputLine.startsWith("printMap ".toLowerCase(Locale.ENGLISH))) {
                     final String mapString = inputLine.substring("printMap ".length()).trim();
-                    if (mapString.startsWith("betradarEventsMap ")) {
+                    if (mapString.startsWith("betradarEventsMap ".toLowerCase(Locale.ENGLISH))) {
                         final String mapCommandString = mapString.substring("betradarEventsMap ".length()).trim();
                         if ("keys".equals(mapCommandString)) {
                             logger.info("betradarEventsMap keys: {}", Statics.betradarEventsMap.keySetCopy());
@@ -207,7 +207,7 @@ public class InputConnectionThread
                             }
                         }
                         printWriter.println("Executed betradarEventsMap command");
-                    } else if (mapString.startsWith("coralEventsMap ")) {
+                    } else if (mapString.startsWith("coralEventsMap ".toLowerCase(Locale.ENGLISH))) {
                         final String mapCommandString = mapString.substring("coralEventsMap ".length()).trim();
                         if ("keys".equals(mapCommandString)) {
                             logger.info("coralEventsMap keys: {}", Statics.coralEventsMap.keySetCopy());
@@ -219,7 +219,7 @@ public class InputConnectionThread
                             }
                         }
                         printWriter.println("Executed coralEventsMap command");
-                    } else if (mapString.startsWith("eventsMap ")) {
+                    } else if (mapString.startsWith("eventsMap ".toLowerCase(Locale.ENGLISH))) {
                         final String mapCommandString = mapString.substring("eventsMap ".length()).trim();
                         if ("keys".equals(mapCommandString)) {
                             logger.info("eventsMap keys: {}", Statics.eventsMap.keySetCopy());
@@ -227,7 +227,7 @@ public class InputConnectionThread
                             logger.info("eventsMap key {} : {}", mapCommandString, Generic.objectToString(Statics.eventsMap.get(mapCommandString)));
                         }
                         printWriter.println("Executed eventsMap command");
-                    } else if (mapString.startsWith("marketCataloguesMap ")) {
+                    } else if (mapString.startsWith("marketCataloguesMap ".toLowerCase(Locale.ENGLISH))) {
                         final String mapCommandString = mapString.substring("marketCataloguesMap ".length()).trim();
                         if ("keys".equals(mapCommandString)) {
                             logger.info("marketCataloguesMap keys: {}", Statics.marketCataloguesMap.keySetCopy());
@@ -251,7 +251,7 @@ public class InputConnectionThread
                         //     logger.info("interestingMarketsSet key {} : {}", mapCommandString, Statics.interestingMarketsSet.get(mapCommandString));
                         // }
                         // printWriter.println("Executed interestingMarketsSet command");
-                    } else if (mapString.startsWith("safeMarketsMap ")) {
+                    } else if (mapString.startsWith("safeMarketsMap ".toLowerCase(Locale.ENGLISH))) {
                         final String mapCommandString = mapString.substring("safeMarketsMap ".length()).trim();
                         if ("keys".equals(mapCommandString)) {
                             logger.info("safeMarketsMap keys: {}", Statics.safeMarketsMap.keySetCopy());
@@ -259,7 +259,7 @@ public class InputConnectionThread
                             logger.info("safeMarketsMap key {} : {}", mapCommandString, Generic.objectToString(Statics.safeMarketsMap.get(mapCommandString)));
                         }
                         printWriter.println("Executed safeMarketsMap command");
-                    } else if (mapString.startsWith("safeMarketBooksMap ")) {
+                    } else if (mapString.startsWith("safeMarketBooksMap ".toLowerCase(Locale.ENGLISH))) {
                         final String mapCommandString = mapString.substring("safeMarketBooksMap ".length()).trim();
                         if ("keys".equals(mapCommandString)) {
                             logger.info("safeMarketBooksMap keys: {}", Statics.safeMarketBooksMap.keySetCopy());
@@ -365,17 +365,17 @@ public class InputConnectionThread
                 } else if (inputLine.startsWith("reserve ")) {
                     final String reserveCommandString = inputLine.substring("reserve ".length()).trim();
                     if (reserveCommandString.startsWith("get")) {
-                        logger.info("current safety reserve is: {}", Statics.safetyLimits.getReserve());
-                        printWriter.println("current safety reserve is: " + Statics.safetyLimits.getReserve());
+                        logger.info("current safety reserve is: {}", Statics.safetyLimits.existingFunds.getReserve());
+                        printWriter.println("current safety reserve is: " + Statics.safetyLimits.existingFunds.getReserve());
                     } else if (reserveCommandString.startsWith("set ")) {
                         try {
                             final double newReserve = Double.parseDouble(reserveCommandString.substring("set ".length()).trim());
 
-                            if (Statics.safetyLimits.setReserve(newReserve)) {
-                                printWriter.println("have set new reserve: " + Statics.safetyLimits.getReserve());
-                                logger.info("have set new reserve: {}", Statics.safetyLimits.getReserve());
+                            if (Statics.safetyLimits.existingFunds.setReserve(newReserve)) {
+                                printWriter.println("have set new reserve: " + Statics.safetyLimits.existingFunds.getReserve());
+                                logger.info("have set new reserve: {}", Statics.safetyLimits.existingFunds.getReserve());
                             } else {
-                                printWriter.println("new reserve " + newReserve + " not set: " + Statics.safetyLimits.getReserve());
+                                printWriter.println("new reserve " + newReserve + " not set: " + Statics.safetyLimits.existingFunds.getReserve());
                             }
                         } catch (NumberFormatException numberFormatException) {
                             printWriter.println("numberFormatException: " + reserveCommandString);
@@ -399,10 +399,10 @@ public class InputConnectionThread
                 } else if ("safetyLimits".equals(inputLine)) {
                     printWriter.println("Will print placed amounts");
                     logger.info("safetyLimits: {}", Generic.objectToString(Statics.safetyLimits));
-                } else if (inputLine.startsWith("addManagedRunner ")) {
+                } else if (inputLine.startsWith("addManagedRunner ".toLowerCase(Locale.ENGLISH))) {
                     final String addManagedRunnerCommandString = inputLine.substring("addManagedRunner ".length()).trim();
-                    Statics.rulesManagerThread.addManagedRunnerCommands.add(addManagedRunnerCommandString);
-                    Statics.rulesManagerThread.newAddManagedRunnerCommand.set(true);
+                    Statics.rulesManagerThread.rulesManager.addManagedRunnerCommands.add(addManagedRunnerCommandString);
+                    Statics.rulesManagerThread.rulesManager.newAddManagedRunnerCommand.set(true);
                     printWriter.println("added managedRunnerCommandString: " + addManagedRunnerCommandString);
                     logger.info("adding newAddManagedRunnerCommand: {}", addManagedRunnerCommandString);
                 } else if ("help".equals(inputLine)) {
@@ -434,6 +434,7 @@ public class InputConnectionThread
                 logger.error("IOException in InputConnection thread", iOException);
             }
         } finally {
+            //noinspection ConstantConditions
             Generic.closeObjects(printWriter, outputStream, bufferedReader, inputStreamReader, inputStream, this.socket);
         }
         logger.info("reached the end of inputConnectionThread");

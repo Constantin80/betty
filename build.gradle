@@ -18,6 +18,9 @@ shadowJar {
     mainClassName = 'info.fmro.betty.main.Betty'
 }
 
+compileJava {
+    options.compilerArgs += ["-Xlint"]
+}
 allprojects {
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'

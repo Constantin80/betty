@@ -2,7 +2,6 @@ package info.fmro.betty.safebet;
 
 import info.fmro.shared.entities.PriceProjection;
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.threads.permanent.QuickCheckThread;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.SynchronizedMap;
 import org.jetbrains.annotations.Nullable;

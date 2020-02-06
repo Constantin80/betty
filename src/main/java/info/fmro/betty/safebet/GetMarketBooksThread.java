@@ -1,6 +1,5 @@
-package info.fmro.betty.threads;
+package info.fmro.betty.safebet;
 
-import info.fmro.betty.threads.permanent.QuickCheckThread;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 

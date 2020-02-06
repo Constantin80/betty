@@ -3,10 +3,10 @@ package info.fmro.betty.threads.permanent;
 import info.fmro.betty.betapi.ApiNGJRescriptDemo;
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.EventResult;
-import info.fmro.shared.enums.CommandType;
 import info.fmro.betty.main.Betty;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
+import info.fmro.shared.enums.CommandType;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import org.slf4j.Logger;
@@ -206,16 +206,18 @@ public class GetLiveMarketsThread
                 }
                 waitForSessionToken("GetLiveMarketsThread main");
 
-                long timeToSleep;
+                long timeToSleep = Generic.MINUTE_LENGTH_MILLISECONDS * 5L; // maximum sleep
 
-                timeToSleep = timedCheckEventResultList();
+                if (Statics.connectingToBetfairServersDisabled) { // won't get the events if the stream module is stopped
+                } else {
+                    timeToSleep = Math.min(timeToSleep, timedCheckEventResultList());
+                }
                 if (Statics.safeBetModuleActivated) {
                     timeToSleep = Math.min(timeToSleep, timedMapEventsToScraperEvents());
-                }
-                timeToSleep = Math.min(timeToSleep, timedFindMarkets());
-                if (Statics.safeBetModuleActivated) {
+                    timeToSleep = Math.min(timeToSleep, timedFindMarkets());
                     timeToSleep = Math.min(timeToSleep, timedFindSafeRunners());
                 }
+
                 timeToSleep = Math.min(timeToSleep, timedStreamMarkets());
 
                 Generic.threadSleepSegmented(timeToSleep, 100L, Statics.mustStop);

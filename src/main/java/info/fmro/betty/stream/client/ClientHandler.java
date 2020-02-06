@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
-// todo rough measurement of network traffic by full firehose client
+
 @SuppressWarnings("UtilityClass")
 public final class ClientHandler {
     private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
