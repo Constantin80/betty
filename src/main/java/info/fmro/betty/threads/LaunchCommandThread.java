@@ -2,8 +2,6 @@ package info.fmro.betty.threads;
 
 import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.MarketCatalogue;
-import info.fmro.shared.enums.CommandType;
-import info.fmro.shared.enums.MatchStatus;
 import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.safebet.FindMarkets;
@@ -13,6 +11,8 @@ import info.fmro.betty.safebet.ScraperPermanentThread;
 import info.fmro.betty.stream.client.ClientHandler;
 import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
 import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.enums.CommandType;
+import info.fmro.shared.enums.MatchStatus;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import info.fmro.shared.utility.SynchronizedMap;

@@ -22,11 +22,11 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.util.concurrent.LinkedBlockingQueue;
 
+@SuppressWarnings("OverlyComplexClass")
 public class InterfaceConnectionThread
         extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(InterfaceConnectionThread.class);
     private final Socket socket;
-    @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
     private final InterfaceConnectionWriterThread writerThread;
     private final LinkedBlockingQueue<StreamObjectInterface> sendQueue = new LinkedBlockingQueue<>();
 
@@ -45,6 +45,7 @@ public class InterfaceConnectionThread
         Generic.closeObjects(this.socket);
     }
 
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "ChainOfInstanceofChecks", "SwitchStatementDensity"})
     private synchronized void runAfterReceive(@NotNull final StreamObjectInterface receivedCommand) {
         if (receivedCommand instanceof SerializableObjectModification) {
             final SerializableObjectModification<?> serializableObjectModification = (SerializableObjectModification<?>) receivedCommand;

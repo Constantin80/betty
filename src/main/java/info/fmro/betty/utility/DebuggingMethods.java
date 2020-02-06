@@ -1,11 +1,14 @@
 package info.fmro.betty.utility;
 
-import info.fmro.shared.entities.ClearedOrderSummary;
+import info.fmro.betty.betapi.ApiNgRescriptOperations;
+import info.fmro.betty.betapi.RescriptResponseHandler;
 import info.fmro.betty.entities.CurrentOrderSummary;
 import info.fmro.betty.entities.EventResult;
-import info.fmro.shared.entities.ExBestOffersOverrides;
 import info.fmro.betty.entities.MarketBook;
 import info.fmro.betty.entities.MarketCatalogue;
+import info.fmro.betty.objects.Statics;
+import info.fmro.shared.entities.ClearedOrderSummary;
+import info.fmro.shared.entities.ExBestOffersOverrides;
 import info.fmro.shared.entities.MarketDescription;
 import info.fmro.shared.entities.MarketFilter;
 import info.fmro.shared.entities.MarketTypeResult;
@@ -17,9 +20,6 @@ import info.fmro.shared.enums.OrderProjection;
 import info.fmro.shared.enums.PriceData;
 import info.fmro.shared.enums.RollupModel;
 import info.fmro.shared.enums.SortDir;
-import info.fmro.betty.betapi.ApiNgRescriptOperations;
-import info.fmro.betty.betapi.RescriptResponseHandler;
-import info.fmro.betty.objects.Statics;
 import info.fmro.shared.stream.cache.market.Market;
 import info.fmro.shared.stream.cache.order.OrderMarket;
 import info.fmro.shared.utility.Generic;
@@ -61,10 +61,10 @@ public final class DebuggingMethods {
 
     public static void listCurrentOrders() {
         final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
-        final HashSet<CurrentOrderSummary> currentOrderSummarySet =
+        @NotNull final HashSet<CurrentOrderSummary> currentOrderSummarySet =
                 ApiNgRescriptOperations.listCurrentOrders(null, null, OrderProjection.ALL, null, OrderBy.BY_PLACE_TIME, SortDir.EARLIEST_TO_LATEST, 0, 0, Statics.appKey.get(), rescriptResponseHandler);
 
-        logger.info("listCurrentOrders size: {}", currentOrderSummarySet == null ? null : currentOrderSummarySet.size());
+        logger.info("listCurrentOrders size: {}", currentOrderSummarySet.size());
         logger.info("listCurrentOrders: {}", Generic.objectToString(currentOrderSummarySet));
     }
 
@@ -74,7 +74,7 @@ public final class DebuggingMethods {
                 ApiNgRescriptOperations.listClearedOrders(BetStatus.SETTLED, null, null, null, null, null, null, null, null, true, 0, 0,
                                                           Statics.appKey.get(), rescriptResponseHandler);
 
-        logger.info("listClearedOrders size: {}", clearedOrderSummarySet == null ? null : clearedOrderSummarySet.size());
+        logger.info("listClearedOrders size: {}", clearedOrderSummarySet.size());
         logger.info("listClearedOrders: {}", Generic.objectToString(clearedOrderSummarySet));
     }
 

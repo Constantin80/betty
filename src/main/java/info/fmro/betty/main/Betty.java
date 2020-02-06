@@ -60,7 +60,7 @@ public final class Betty {
     private Betty() {
     }
 
-    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "MethodWithMultipleReturnPoints", "OverlyCoupledMethod"})
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "MethodWithMultipleReturnPoints"})
     public static void main(final String[] args) {
 //        System.out.println("fhadkflcnruw 12121 dsdasdase");
 //        System.exit(0);
@@ -353,6 +353,7 @@ public final class Betty {
 
             Generic.closeStandardStreams();
 
+            //noinspection ConstantConditions
             Generic.closeObjects(outPrintStream, outFileOutputStream, errPrintStream, errFileOutputStream, Statics.matcherSynchronizedWriter, Statics.safeBetsSynchronizedWriter, Statics.newMarketSynchronizedWriter);
         }
     }

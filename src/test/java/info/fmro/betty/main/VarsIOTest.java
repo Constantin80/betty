@@ -13,7 +13,7 @@ public class VarsIOTest
         extends ApiDefault {
     @Test
     void getUnescapedSplits_String_char() {
-        String initialString = "ante\"ab\'c\"inter\"def\"post";
+        String initialString = "ante\"ab'c\"inter\"def\"post";
         char marker = '"';
         List<String> expResult = new ArrayList<>(Arrays.asList("ante", "ab'c", "inter", "def", "post"));
         List<String> result = VarsIO.getUnescapedSplits(initialString, marker);

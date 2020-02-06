@@ -121,7 +121,8 @@ public class BetradarEvent
     // public synchronized void setMatchFacts(ScraperMatchFacts matchFacts) {
     //     this.matchFacts = matchFacts;
     // }
-    public synchronized int adjustStartTimeMatchPlayed() { // for events that started in the previous day and continue this day
+    @SuppressWarnings("UnusedReturnValue")
+    synchronized int adjustStartTimeMatchPlayed() { // for events that started in the previous day and continue this day
         final int modified;
         final long currentTime = System.currentTimeMillis(), startTimeMillis = this.startTime != null ? this.startTime.getTime() : 0L;
 

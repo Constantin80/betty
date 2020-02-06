@@ -1,8 +1,8 @@
 package info.fmro.betty.betapi;
 
-import info.fmro.shared.enums.ApiNgOperation;
-import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
 import info.fmro.betty.objects.Statics;
+import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
+import info.fmro.shared.enums.ApiNgOperation;
 import info.fmro.shared.utility.Generic;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.ClientProtocolException;

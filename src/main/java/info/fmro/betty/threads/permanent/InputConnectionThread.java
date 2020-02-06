@@ -23,7 +23,7 @@ import java.util.Locale;
 import java.util.Objects;
 
 @SuppressWarnings("OverlyComplexClass")
-public class InputConnectionThread
+class InputConnectionThread
         extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(InputConnectionThread.class);
     private final Socket socket;
@@ -33,7 +33,7 @@ public class InputConnectionThread
         this.socket = socket;
     }
 
-    public synchronized void closeSocket() {
+    synchronized void closeSocket() {
         logger.info("closing InputConnectionThread socket");
         Generic.closeObjects(this.socket);
     }
@@ -99,7 +99,7 @@ public class InputConnectionThread
                     } else {
                         printWriter.println("denyBetting already inactive");
                     }
-                } else if (inputLine.startsWith("savePage ")) {
+                } else if (inputLine.startsWith("savePage ".toLowerCase(Locale.ENGLISH))) {
                     final String command = inputLine.substring("savePage ".length()).trim();
                     final boolean success;
                     switch (command) {
@@ -120,7 +120,7 @@ public class InputConnectionThread
                         logger.info("savePage {} command executed", command);
                         printWriter.println("Will save " + command + " web page");
                     }
-                } else if (inputLine.startsWith("refreshPage ")) {
+                } else if (inputLine.startsWith("refreshPage ".toLowerCase(Locale.ENGLISH))) {
                     final String command = inputLine.substring("refreshPage ".length()).trim();
                     final boolean success;
                     switch (command) {

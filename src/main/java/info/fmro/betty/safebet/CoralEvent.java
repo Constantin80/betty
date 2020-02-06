@@ -1,8 +1,8 @@
 package info.fmro.betty.safebet;
 
-import info.fmro.shared.enums.MatchStatus;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.enums.MatchStatus;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import org.jetbrains.annotations.Contract;
@@ -53,7 +53,7 @@ public class CoralEvent
         return this.eventName;
     }
 
-    public synchronized int setEventName(final String newEventName) {
+    synchronized int setEventName(final String newEventName) {
         final int modified;
         if (this.eventName == null) {
             if (newEventName == null) {
@@ -119,7 +119,7 @@ public class CoralEvent
         return modified;
     }
 
-    public synchronized int getSeconds() {
+    synchronized int getSeconds() {
         return this.seconds;
     }
 

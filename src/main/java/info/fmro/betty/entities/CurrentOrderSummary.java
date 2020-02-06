@@ -284,6 +284,7 @@ public final class CurrentOrderSummary
             return EQUAL;
         }
 
+        //noinspection ConstantConditions
         if (this.getClass() != o.getClass()) {
             return this.getClass().hashCode() < o.getClass().hashCode() ? BEFORE : AFTER;
         }

@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+@SuppressWarnings({"OverlyComplexClass", "OverlyCoupledClass"})
 public class SafeBetSafetyLimits
         implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(SafeBetSafetyLimits.class);
@@ -56,8 +57,8 @@ public class SafeBetSafetyLimits
     private boolean startedGettingOrders;
 
     @SuppressWarnings({"OverlyLongMethod", "OverlyNestedMethod"})
-    public synchronized void createPlaceInstructionList(@NotNull final Iterable<? extends Runner> runnersList, final SynchronizedSet<SafeRunner> safeRunnersSet, final MarketBook marketBook, final String marketId, final long startTime, final long endTime,
-                                                        final MarketStatus marketStatus, final boolean inPlay, final int betDelay, final long timePreviousMarketBookCheck) {
+    synchronized void createPlaceInstructionList(@NotNull final Iterable<? extends Runner> runnersList, final SynchronizedSet<SafeRunner> safeRunnersSet, final MarketBook marketBook, final String marketId, final long startTime, final long endTime,
+                                                 final MarketStatus marketStatus, final boolean inPlay, final int betDelay, final long timePreviousMarketBookCheck) {
         logger.error("createPlaceInstructionList is an old method from the old disabled safeBets support; it needs heavy modifications and it should not be used");
 
         final List<PlaceInstruction> placeInstructionsList = new ArrayList<>(0);
@@ -240,7 +241,6 @@ public class SafeBetSafetyLimits
                         orderSize = 2d;
                         orderDelay = betDelay * 1_000L + 2_001L;
                         logger.info("will place oversized order {} {}", orderSize, size);
-                        //noinspection ReuseOfLocalVariable
                         currentOrderIsOversized = true;
 
                         // RescriptOpThread<?> rescriptOpCancelThread = new RescriptOpThread<>(overSizedOrderDelay, null);
@@ -266,7 +266,6 @@ public class SafeBetSafetyLimits
                         orderSize = 2d;
                         orderDelay = betDelay * 1_000L + 2_001L;
                         logger.info("will place oversized order {} {}", orderSize, size);
-                        //noinspection ReuseOfLocalVariable
                         currentOrderIsOversized = true;
 
                         // RescriptOpThread<?> rescriptOpCancelThread = new RescriptOpThread<>(overSizedOrderDelay, null);
@@ -372,7 +371,6 @@ public class SafeBetSafetyLimits
                                         if (newSize < 2d) {
                                             newSize = 2d;
                                         } else {
-                                            //noinspection ReuseOfLocalVariable
                                             currentOrderIsOversized = false;
                                         }
                                     } else {
@@ -414,7 +412,6 @@ public class SafeBetSafetyLimits
                                             if (newSize < 2d) {
                                                 newSize = 2d;
                                             } else {
-                                                //noinspection ReuseOfLocalVariable
                                                 currentOrderIsOversized = false;
                                             }
                                         } else {
@@ -497,7 +494,8 @@ public class SafeBetSafetyLimits
         return returnOversizedPlaceInstruction;
     }
 
-    public synchronized boolean startingGettingOrders() {
+    @SuppressWarnings("UnusedReturnValue")
+    synchronized boolean startingGettingOrders() {
         final boolean modified;
         if (this.startedGettingOrders) {
             logger.error("startedGettingOrders already true in SafetyLimits ... normal in the beginning, and only if previous program run didn't end normally");
@@ -543,7 +541,7 @@ public class SafeBetSafetyLimits
         return addedAmount;
     }
 
-    public synchronized void addOrderSummaries(final Iterable<CurrentOrderSummary> currentOrderSummaries, final Iterable<? extends ClearedOrderSummary> clearedOrderSummaries) {
+    synchronized void addOrderSummaries(final Iterable<CurrentOrderSummary> currentOrderSummaries, final Iterable<? extends ClearedOrderSummary> clearedOrderSummaries) {
         this.eventAmounts.clear();
         this.marketAmounts.clear();
         this.runnerAmounts.clear();

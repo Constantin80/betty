@@ -34,7 +34,7 @@ public class SafeBet
 
     @SuppressWarnings("ConstructorWithTooManyParameters")
     @Contract(pure = true)
-    public SafeBet(final String marketId, final MarketStatus marketStatus, final boolean inPlay, final int betDelay, final long runnerId, final RunnerStatus runnerStatus, final double price, final double size, final Side side) {
+    SafeBet(final String marketId, final MarketStatus marketStatus, final boolean inPlay, final int betDelay, final long runnerId, final RunnerStatus runnerStatus, final double price, final double size, final Side side) {
         this.marketId = marketId;
         this.marketStatus = marketStatus;
         this.inPlay = inPlay;

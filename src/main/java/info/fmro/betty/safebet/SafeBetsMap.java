@@ -1,7 +1,7 @@
 package info.fmro.betty.safebet;
 
-import info.fmro.shared.entities.PriceProjection;
 import info.fmro.betty.objects.Statics;
+import info.fmro.shared.entities.PriceProjection;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.SynchronizedMap;
 import org.jetbrains.annotations.Nullable;
@@ -24,10 +24,12 @@ public class SafeBetsMap<K extends SafeBet>
         super();
     }
 
+    @SuppressWarnings("unused")
     private SafeBetsMap(final int initialSize) {
         super(initialSize);
     }
 
+    @SuppressWarnings("unused")
     private SafeBetsMap(final int initialSize, final float loadFactor) {
         super(initialSize, loadFactor);
     }
@@ -45,7 +47,7 @@ public class SafeBetsMap<K extends SafeBet>
 //    }
 
     @SuppressWarnings("OverlyNestedMethod")
-    public synchronized void parseNoLongerSeenSafeBets(final String marketId, final PriceProjection localPriceProjection, final long endTime) {
+    synchronized void parseNoLongerSeenSafeBets(final String marketId, final PriceProjection localPriceProjection, final long endTime) {
         final SynchronizedMap<K, SafeBetStats> safeBetsStatsMap = this.get(marketId); // will be null if no such key exists
 
         if (safeBetsStatsMap != null && !safeBetsStatsMap.isEmpty()) {
@@ -84,7 +86,7 @@ public class SafeBetsMap<K extends SafeBet>
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    public synchronized SafeBetStats addAndGetSafeBetStats(final String marketId, final K safeBet, final long endTime, final long timePreviousMarketBookCheck) {
+    synchronized SafeBetStats addAndGetSafeBetStats(final String marketId, final K safeBet, final long endTime, final long timePreviousMarketBookCheck) {
         final SynchronizedMap<K, SafeBetStats> safeBetsStatsMap;
         if (this.containsKey(marketId)) {
             safeBetsStatsMap = get(marketId); // real map value

@@ -1,9 +1,9 @@
 package info.fmro.betty.safebet;
 
 import info.fmro.betty.entities.Event;
-import info.fmro.shared.enums.MatchStatus;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.enums.MatchStatus;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
 import info.fmro.shared.utility.LogLevel;
@@ -174,7 +174,7 @@ public class ScraperEvent
         return this.homeRedCards;
     }
 
-    public synchronized int setHomeRedCards(final int newHomeRedCards) {
+    synchronized int setHomeRedCards(final int newHomeRedCards) {
         final int modified;
         if (this.homeRedCards == newHomeRedCards) {
             modified = 0;
@@ -196,7 +196,7 @@ public class ScraperEvent
         return this.awayRedCards;
     }
 
-    public synchronized int setAwayRedCards(final int newAwayRedCards) {
+    synchronized int setAwayRedCards(final int newAwayRedCards) {
         final int modified;
         if (this.awayRedCards == newAwayRedCards) {
             modified = 0;
@@ -283,7 +283,7 @@ public class ScraperEvent
         this.homeScoreTimeStamp = homeScoreTimeStamp;
     }
 
-    public synchronized int getAwayScore() {
+    synchronized int getAwayScore() {
         return this.awayScore;
     }
 
@@ -387,7 +387,7 @@ public class ScraperEvent
         return modified;
     }
 
-    public synchronized int getAwayHtScore() {
+    synchronized int getAwayHtScore() {
         return isHtIgnored() ? -1 : this.awayHtScore;
     }
 
@@ -554,7 +554,7 @@ public class ScraperEvent
         return this.stoppageTime;
     }
 
-    public synchronized int setStoppageTime(final int newStoppageTime) {
+    synchronized int setStoppageTime(final int newStoppageTime) {
         final int modified;
         if (this.stoppageTime == newStoppageTime) {
             modified = 0;
@@ -855,7 +855,7 @@ public class ScraperEvent
         return stoppageTimeExists() || minutesAre(minutes);
     }
 
-    public synchronized boolean minutesAre(final int minute) {
+    synchronized boolean minutesAre(final int minute) {
         return this.getMinutesPlayed() == minute;
     }
 
@@ -1000,7 +1000,7 @@ public class ScraperEvent
         return 0L; // dummy method, normally overriden
     }
 
-    public synchronized boolean hasStarted() {
+    synchronized boolean hasStarted() {
         final boolean hasStarted;
         //            switch (this.matchStatus) {
         //                case NOT_STARTED:

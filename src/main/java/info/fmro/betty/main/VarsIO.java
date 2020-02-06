@@ -51,10 +51,12 @@ public final class VarsIO {
         return (new File(fileName)).lastModified();
     }
 
+    @NotNull
     public static List<String> getUnescapedSplits(final CharSequence charSequence, final char marker) {
         return getUnescapedSplits(charSequence, marker, 0);
     }
 
+    @NotNull
     private static List<String> getUnescapedSplits(final CharSequence charSequence, final char marker, final int nExpected) {
         // doesn't get empty strings
         final List<String> matchList = new ArrayList<>(nExpected);

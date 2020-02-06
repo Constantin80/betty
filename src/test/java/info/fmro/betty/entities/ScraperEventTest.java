@@ -57,7 +57,8 @@ class ScraperEventTest {
             firstObject.update(secondObject);
 
             // fillRandom does not initialize the fields of the super Ignorable class, but other methods might
-            assertThat(firstObject).as("updated object different").isEqualToIgnoringGivenFields(secondObject, "matchedEventId", "matchedTimeStamp", "ignored", "ignoredExpiration", "resetIgnoredStamp", "setIgnoredStamp");
+            assertThat(firstObject).as("updated object different").isEqualToIgnoringGivenFields(secondObject, "matchedEventId", "matchedTimeStamp", "ignored", "ignoredExpiration", "resetIgnoredStamp",
+                                                                                                "setIgnoredStamp", "homeHtScore", "awayHtScore");
 
             assertEquals(initialMatchedTimeStamp, firstObject.getMatchedTimeStamp(), "matchedTimeStamp");
             assertEquals(initialMatchedEventId, firstObject.getMatchedEventId(), "matchedEventId");

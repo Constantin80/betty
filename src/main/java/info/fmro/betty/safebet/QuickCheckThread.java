@@ -25,6 +25,7 @@ import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import info.fmro.shared.utility.SynchronizedMap;
 import info.fmro.shared.utility.SynchronizedSet;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +81,8 @@ public class QuickCheckThread
         } // end synchronized
     }
 
-    public static LinkedHashMap<Class<? extends ScraperEvent>, Long> getTimeScraperEventCheck(final String marketId) { // I decided to remove isIgnored support for this method
+    @NotNull
+    static LinkedHashMap<Class<? extends ScraperEvent>, Long> getTimeScraperEventCheck(final String marketId) { // I decided to remove isIgnored support for this method
         final LinkedHashMap<Class<? extends ScraperEvent>, Long> timeScraperEventCheckMap = new LinkedHashMap<>(4);
         final MarketCatalogue marketCatalogue = Statics.marketCataloguesMap.get(marketId);
         if (marketCatalogue != null) {
@@ -151,12 +153,13 @@ public class QuickCheckThread
             final double safeMarketsImportant = Statics.safeMarketsImportantMap.size();
 
             final int nAllThreads = (int) Math.ceil(safeMarkets / Statics.N_ALL); // nThreads if N_ALL is used
-            final int nBestThreads = (int) (Math.ceil((safeMarkets - safeMarketsImportant) / Statics.N_BEST) + Math.ceil(safeMarketsImportant / Statics.N_ALL)); // nThreads if N_BEST
+
+            final double ceil = Math.ceil((safeMarkets - safeMarketsImportant) / Statics.N_BEST);
+            final int nBestThreads = (int) (ceil + Math.ceil(safeMarketsImportant / Statics.N_ALL)); // nThreads if N_BEST
 
             final int minExpectedRuns;
             // nAllThreads > nBestThreads
-            minExpectedRuns = nAllThreads <= nBestThreads ? (int) (Math.ceil(safeMarkets / Statics.N_ALL) * Statics.DELAY_PRINT_AVERAGES / Statics.DELAY_GET_MARKET_BOOKS) :
-                              (int) ((Math.ceil(safeMarketsImportant / Statics.N_ALL) + Math.ceil((safeMarkets - safeMarketsImportant) / Statics.N_BEST)) * Statics.DELAY_PRINT_AVERAGES / Statics.DELAY_GET_MARKET_BOOKS);
+            minExpectedRuns = nAllThreads <= nBestThreads ? maxExpectedRuns : (int) (ceil + (Math.ceil(safeMarketsImportant / Statics.N_ALL)) * Statics.DELAY_PRINT_AVERAGES / Statics.DELAY_GET_MARKET_BOOKS);
 
             expectedRuns = Math.max(maxLimitation, minExpectedRuns); // always at least minExpectedRuns
         }
@@ -182,7 +185,7 @@ public class QuickCheckThread
         }
     }
 
-    public void getMarketBooks(final List<String> marketIdsList, final long timeStamp, final int marketsPerOperation) {
+    void getMarketBooks(final List<String> marketIdsList, final long timeStamp, final int marketsPerOperation) {
         if (timeStamp > 0) {
             Statics.timeStamps.lastGetMarketBooksStamp(timeStamp);
         }
@@ -202,7 +205,7 @@ public class QuickCheckThread
     }
 
     @SuppressWarnings("OverlyNestedMethod")
-    public void singleGetMarketBooks(final List<String> marketIdsListSplit) {
+    void singleGetMarketBooks(final List<String> marketIdsListSplit) {
         if (marketIdsListSplit != null) {
             final int listSize = marketIdsListSplit.size();
             if (listSize > 0) {

@@ -18,6 +18,7 @@ import info.fmro.shared.enums.CommandType;
 import info.fmro.shared.enums.ScrapedField;
 import info.fmro.shared.objects.StampedDouble;
 import info.fmro.shared.objects.TwoOrderedStrings;
+import info.fmro.shared.stream.objects.EventInterface;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import info.fmro.shared.utility.SynchronizedMap;
@@ -989,7 +990,7 @@ public class MaintenanceThread
     }
 
     @SuppressWarnings("unused")
-    private static Event removeEvent(final Event event) {
+    private static Event removeEvent(final EventInterface event) {
         @Nullable Event existingEvent;
         if (event == null) {
             logger.error("null event in removeEvent");

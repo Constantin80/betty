@@ -313,6 +313,7 @@ public final class WebScraperMethods {
         }
     }
 
+    @NotNull
     public static ArrayList<String> getAlertsList(@NotNull final WebClient webClient) {
         final ArrayList<String> collectedAlertsList = new ArrayList<>(0);
         final AlertHandler collectingAlertHandler = new CollectingAlertHandler(collectedAlertsList);
@@ -321,30 +322,37 @@ public final class WebScraperMethods {
         return collectedAlertsList;
     }
 
+    @NotNull
     public static Cache initializeCache(final WebClient webClient, final String threadId) {
         return initializeCache(webClient, null, null, defaultCacheMaxSize, threadId);
     }
 
+    @NotNull
     public static Cache initializeCache(final WebClient webClient, final String fileName, final String threadId) {
         return initializeCache(webClient, fileName, null, defaultCacheMaxSize, threadId);
     }
 
+    @NotNull
     public static Cache initializeCache(final WebClient webClient, final String fileName, final int cacheMaxSize, final String threadId) {
         return initializeCache(webClient, fileName, null, cacheMaxSize, threadId);
     }
 
+    @NotNull
     public static Cache initializeCache(final WebClient webClient, final Cache sourceCache, final String threadId) {
         return initializeCache(webClient, null, sourceCache, defaultCacheMaxSize, threadId);
     }
 
+    @NotNull
     public static Cache initializeCache(final WebClient webClient, final Cache sourceCache, final int cacheMaxSize, final String threadId) {
         return initializeCache(webClient, null, sourceCache, cacheMaxSize, threadId);
     }
 
+    @NotNull
     public static Cache initializeCache(final WebClient webClient, final int cacheMaxSize, final String threadId) {
         return initializeCache(webClient, null, null, cacheMaxSize, threadId);
     }
 
+    @NotNull
     private static Cache initializeCache(final WebClient webClient, final String fileName, final Cache sourceCache, final int cacheMaxSize, final String threadId) {
         @Nullable Cache cache;
         if (sourceCache != null) {
@@ -367,11 +375,13 @@ public final class WebScraperMethods {
         return cache;
     }
 
+    @NotNull
     public static WebClient getNewWebClient(final String threadId) {
         // return getNewWebClient(BrowserVersion.INTERNET_EXPLORER_8, threadId);
         return getNewWebClient(BrowserVersion.FIREFOX_60, threadId);
     }
 
+    @NotNull
     public static WebClient getNewWebClient(final BrowserVersion browserVersion, final String threadId) {
 //        browserVersion.setApplicationCodeName(BrowserVersion.INTERNET_EXPLORER_8.getApplicationCodeName());
 //        browserVersion.setApplicationMinorVersion(BrowserVersion.INTERNET_EXPLORER_8.getApplicationMinorVersion());

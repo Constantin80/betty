@@ -278,7 +278,7 @@ public class Event
 
     @Contract(pure = true)
     @Nullable
-    public synchronized Date getOpenDate() {
+    private synchronized Date getOpenDate() {
         return this.openDate == null ? null : (Date) this.openDate.clone();
     }
 
@@ -304,7 +304,7 @@ public class Event
         return this.marketCount;
     }
 
-    public synchronized int setMarketCount(final Integer newMarketCount) {
+    synchronized int setMarketCount(final Integer newMarketCount) {
         final int modified;
 
         if (newMarketCount == null) {

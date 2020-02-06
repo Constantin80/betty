@@ -11,11 +11,11 @@ import com.ximpleware.VTDNav;
 import com.ximpleware.XPathEvalException;
 import com.ximpleware.XPathParseException;
 import info.fmro.betty.entities.Event;
-import info.fmro.shared.enums.CommandType;
-import info.fmro.shared.enums.MatchStatus;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.utility.WebScraperMethods;
+import info.fmro.shared.enums.CommandType;
+import info.fmro.shared.enums.MatchStatus;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import org.jetbrains.annotations.NotNull;
@@ -62,7 +62,7 @@ public class CoralScraperThread
                 if (indexIdAttributeVal >= 0) {
                     final String eventIdString = vtdNav.toString(indexIdAttributeVal);
                     try {
-                        final long eventId = Long.valueOf(eventIdString.substring(eventIdString.indexOf("listlive_evname_") + "listlive_evname_".length()));
+                        final long eventId = Long.parseLong(eventIdString.substring(eventIdString.indexOf("listlive_evname_") + "listlive_evname_".length()));
                         final int indexEventNameString = vtdNav.getText();
                         if (indexEventNameString >= 0) {
                             String eventName = vtdNav.toString(indexEventNameString);

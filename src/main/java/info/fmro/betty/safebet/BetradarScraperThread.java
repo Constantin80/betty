@@ -11,11 +11,11 @@ import com.ximpleware.VTDNav;
 import com.ximpleware.XPathEvalException;
 import com.ximpleware.XPathParseException;
 import info.fmro.betty.entities.Event;
-import info.fmro.shared.enums.CommandType;
-import info.fmro.shared.enums.MatchStatus;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.utility.WebScraperMethods;
+import info.fmro.shared.enums.CommandType;
+import info.fmro.shared.enums.MatchStatus;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import org.jetbrains.annotations.NotNull;
@@ -737,7 +737,7 @@ public class BetradarScraperThread
                 if (indexIdAttributeVal >= 0) {
                     final String eventIdString = vtdNav.toString(indexIdAttributeVal);
                     try {
-                        final long eventId = Long.valueOf(eventIdString.substring(eventIdString.indexOf("match-") + "match-".length()));
+                        final long eventId = Long.parseLong(eventIdString.substring(eventIdString.indexOf("match-") + "match-".length()));
 //                        if (!BlackList.containsBetradarId(eventId)) {
                         final int indexClassAttributeVal = vtdNav.getAttrVal("class");
                         if (indexClassAttributeVal >= 0) {
@@ -794,30 +794,30 @@ public class BetradarScraperThread
                                             existingScraperEvent = Statics.betradarEventsMap.get(eventId);
                                             if (matchStatus != null && matchStatus.hasStarted()) { // all good, nothing to be done here
                                             } else if (matchStatus == null) {
-                                                    logger.error("{} matchStatus null; this else branch shouldn't be entered: {} {}", this.threadId, scrapedMatchStatus,
-                                                                 Generic.objectToString(scraperEvent));
-                                                } else { // !matchStatus.hasStarted()
-                                                    if (existingScraperEvent != null) {
-                                                        logger.error("{} !hasStarted exists in map: {} {}", this.threadId, Generic.objectToString(existingScraperEvent), Generic.objectToString(scraperEvent));
-                                                        scraperEvent.setIgnored(Generic.MINUTE_LENGTH_MILLISECONDS << 1); // * 2
+                                                logger.error("{} matchStatus null; this else branch shouldn't be entered: {} {}", this.threadId, scrapedMatchStatus,
+                                                             Generic.objectToString(scraperEvent));
+                                            } else { // !matchStatus.hasStarted()
+                                                if (existingScraperEvent != null) {
+                                                    logger.error("{} !hasStarted exists in map: {} {}", this.threadId, Generic.objectToString(existingScraperEvent), Generic.objectToString(scraperEvent));
+                                                    scraperEvent.setIgnored(Generic.MINUTE_LENGTH_MILLISECONDS << 1); // * 2
 //                                                    MaintenanceThread.removeScraper(scraperEvent);
-                                                    } else { // existingScraperEvent null & betradarEventsMap.containsKey(eventId)
-                                                        final long timeSinceLastRemoved = startTime - Statics.betradarEventsMap.getTimeStampRemoved();
-                                                        Statics.betradarEventsMap.removeValueAll(null);
+                                                } else { // existingScraperEvent null & betradarEventsMap.containsKey(eventId)
+                                                    final long timeSinceLastRemoved = startTime - Statics.betradarEventsMap.getTimeStampRemoved();
+                                                    Statics.betradarEventsMap.removeValueAll(null);
 
-                                                        final String printedString = MessageFormatter.arrayFormat(
-                                                                "{} null betradarEvent in map, timeSinceLastRemoved: {} for eventId: {} of scraperEvent: {} {}",
-                                                                new Object[]{this.threadId, timeSinceLastRemoved, eventId, Generic.objectToString(scraperEvent),
-                                                                             Generic.objectToString(existingScraperEvent)}).getMessage();
+                                                    final String printedString = MessageFormatter.arrayFormat(
+                                                            "{} null betradarEvent in map, timeSinceLastRemoved: {} for eventId: {} of scraperEvent: {} {}",
+                                                            new Object[]{this.threadId, timeSinceLastRemoved, eventId, Generic.objectToString(scraperEvent),
+                                                                         Generic.objectToString(existingScraperEvent)}).getMessage();
 //                                                    if (timeSinceLastRemoved < 1_000L) {
 //                                                        logger.info("{} null betradarEvent in map timeSinceLastRemoved {} for eventId {}", threadId, timeSinceLastRemoved,
 //                                                                eventId);
 //                                                    } else {
-                                                        logger.error(printedString);
+                                                    logger.error(printedString);
 //                                                    }
-                                                    }
-                                                    existingScraperEvent = null; // has just been removed
-                                                } // end else
+                                                }
+                                                existingScraperEvent = null; // has just been removed
+                                            } // end else
                                         } else {
                                             if (matchStatus != null && matchStatus.hasStarted()) {
 //                                                if (!BlackList.dummyScraperEvent.equals(BlackList.checkedPutScraper(eventId, scraperEvent))) {

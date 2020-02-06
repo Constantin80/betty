@@ -224,6 +224,7 @@ class RequestResponseProcessor
         return resub;
     }
 
+    @Nullable
     private synchronized OrderSubscriptionMessage getOrderResubscribeMessage() {
         @Nullable final OrderSubscriptionMessage resub;
         if (this.orderSubscriptionHandler != null) {

@@ -161,10 +161,12 @@ public final class FindSafeRunners {
         return matchStatus == MatchStatus.SECOND_HALF || matchStatus == MatchStatus.AWAITING_ET;
     }
 
+    @NotNull
     private static SynchronizedMap<Class<? extends ScraperEvent>, Long> putUsedScrapersSet(final Map<? super ScrapedField, ? super SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapersMap, final ScrapedField scrapedField) {
         return putUsedScrapersMap(usedScrapersMap, scrapedField, 4);
     }
 
+    @NotNull
     private static SynchronizedMap<Class<? extends ScraperEvent>, Long> putUsedScrapersMap(final @NotNull Map<? super ScrapedField, ? super SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapersMap, final ScrapedField scrapedField,
                                                                                            final int initialSetSize) {
         final SynchronizedMap<Class<? extends ScraperEvent>, Long> map = new SynchronizedMap<>(initialSetSize);
@@ -1345,8 +1347,9 @@ public final class FindSafeRunners {
                                             }
                                             break;
                                         case METHOD_OF_VICTORY:
-                                            if (matchStatus == MatchStatus.AWAITING_ET || matchStatus == MatchStatus.OVERTIME || matchStatus == MatchStatus.FIRST_ET || matchStatus == MatchStatus.ET_HALF_TIME || matchStatus == MatchStatus.SECOND_ET ||
-                                                matchStatus == MatchStatus.AWAITING_PEN || matchStatus == MatchStatus.PENALTIES) {
+                                            final boolean beyondNormalTime = matchStatus == MatchStatus.AWAITING_ET || matchStatus == MatchStatus.OVERTIME || matchStatus == MatchStatus.FIRST_ET || matchStatus == MatchStatus.ET_HALF_TIME ||
+                                                                             matchStatus == MatchStatus.SECOND_ET || matchStatus == MatchStatus.AWAITING_PEN || matchStatus == MatchStatus.PENALTIES;
+                                            if (beyondNormalTime) {
                                                 final int nRunners = marketCatalogue.getNRunners();
                                                 final int nSafeRunners;
                                                 if (nRunners == 6) {
@@ -1365,8 +1368,7 @@ public final class FindSafeRunners {
                                                     switch (parsedRunnerType) {
                                                         case HOME_90_MINUTES:
                                                         case AWAY_90_MINUTES:
-                                                            if (matchStatus == MatchStatus.AWAITING_ET || matchStatus == MatchStatus.OVERTIME || matchStatus == MatchStatus.FIRST_ET || matchStatus == MatchStatus.ET_HALF_TIME ||
-                                                                matchStatus == MatchStatus.SECOND_ET || matchStatus == MatchStatus.AWAITING_PEN || matchStatus == MatchStatus.PENALTIES) {
+                                                            if (beyondNormalTime) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, ScrapedField.MATCH_STATUS);
                                                             }
                                                             break;

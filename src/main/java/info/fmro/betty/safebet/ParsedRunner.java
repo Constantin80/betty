@@ -37,7 +37,7 @@ class ParsedRunner
         return this.selectionId;
     }
 
-    public synchronized ParsedRunnerType getParsedRunnerType() {
+    synchronized ParsedRunnerType getParsedRunnerType() {
         return this.parsedRunnerType;
     }
 

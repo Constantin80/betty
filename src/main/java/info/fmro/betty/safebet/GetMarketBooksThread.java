@@ -6,13 +6,13 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GetMarketBooksThread
+class GetMarketBooksThread
         implements Runnable {
     private final List<String> marketIdsListSplit;
     private final QuickCheckThread quickCheckThread;
 
     @Contract(pure = true)
-    public GetMarketBooksThread(@NotNull final QuickCheckThread quickCheckThread, @NotNull final List<String> marketIdsListSplit) {
+    GetMarketBooksThread(@NotNull final QuickCheckThread quickCheckThread, @NotNull final List<String> marketIdsListSplit) {
         this.marketIdsListSplit = new ArrayList<>(marketIdsListSplit);
         this.quickCheckThread = quickCheckThread;
     }

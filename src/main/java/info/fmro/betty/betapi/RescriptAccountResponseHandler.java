@@ -1,9 +1,9 @@
 package info.fmro.betty.betapi;
 
+import info.fmro.betty.objects.Statics;
 import info.fmro.shared.entities.AccountAPINGException;
 import info.fmro.shared.entities.HttpErrorAccountResponse;
 import info.fmro.shared.entities.HttpErrorResponseAccountException;
-import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import org.apache.http.HttpEntity;

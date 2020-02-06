@@ -907,7 +907,7 @@ public final class FindMarkets {
                     case "MATCH_ODDS_AND_OU_25":
                     case "MATCH_ODDS_AND_OU_35":
                         parsedMarketType = ParsedMarketType.valueOf(marketType);
-                        final int nGoalsFirst = Integer.valueOf(nGoalsString);
+                        final int nGoalsFirst = Integer.parseInt(nGoalsString);
                         nParsedRunners = 6;
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
                         for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
@@ -1630,7 +1630,7 @@ public final class FindMarkets {
                             case "Over/Under 12.5 Goals":
                             case "Over/Under 13.5 Goals":
                             case "Over/Under 14.5 Goals":
-                                final int nGoalsInner = Integer.valueOf(marketName.substring("Over/Under ".length(), marketName.indexOf(".5 Goals")));
+                                final int nGoalsInner = Integer.parseInt(marketName.substring("Over/Under ".length(), marketName.indexOf(".5 Goals")));
                                 parsedMarketType = ParsedMarketType.valueOf(marketType + "_" + nGoalsInner + "5");
                                 nParsedRunners = 2;
                                 parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
@@ -1685,7 +1685,7 @@ public final class FindMarkets {
                     case "ET_FH_OU_GOALS_05":
                     case "ET_FH_OU_GOALS_15":
                         parsedMarketType = ParsedMarketType.valueOf(marketType);
-                        final int nGoals = Integer.valueOf(nGoalsString);
+                        final int nGoals = Integer.parseInt(nGoalsString);
                         nParsedRunners = 2;
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
                         for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
@@ -1763,7 +1763,7 @@ public final class FindMarkets {
                     case "OVER_UNDER_45_CARDS":
                     case "OVER_UNDER_65_CARDS":
                         parsedMarketType = ParsedMarketType.valueOf(marketType);
-                        final int nCards = Integer.valueOf(marketType.substring("OVER_UNDER_".length(), marketType.indexOf("5_CARDS")));
+                        final int nCards = Integer.parseInt(marketType.substring("OVER_UNDER_".length(), marketType.indexOf("5_CARDS")));
                         nParsedRunners = 2;
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
                         for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
@@ -1788,7 +1788,7 @@ public final class FindMarkets {
                     case "OVER_UNDER_105_CORNR":
                     case "OVER_UNDER_135_CORNR":
                         parsedMarketType = ParsedMarketType.valueOf(marketType);
-                        final int nCorners = Integer.valueOf(marketType.substring("OVER_UNDER_".length(), marketType.indexOf("5_CORNR")));
+                        final int nCorners = Integer.parseInt(marketType.substring("OVER_UNDER_".length(), marketType.indexOf("5_CORNR")));
                         nParsedRunners = 2;
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
                         for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
@@ -1936,7 +1936,7 @@ public final class FindMarkets {
                     case "TEAM_A_8":
                     case "TEAM_A_9":
                         parsedMarketType = ParsedMarketType.valueOf(marketType);
-                        final int handicapA = Integer.valueOf(marketType.substring("TEAM_A_".length()));
+                        final int handicapA = Integer.parseInt(marketType.substring("TEAM_A_".length()));
                         nParsedRunners = 3;
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
                         for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {
@@ -1979,7 +1979,7 @@ public final class FindMarkets {
                     case "TEAM_B_8":
                     case "TEAM_B_9":
                         parsedMarketType = ParsedMarketType.valueOf(marketType);
-                        final int handicapB = Integer.valueOf(marketType.substring("TEAM_B_".length()));
+                        final int handicapB = Integer.parseInt(marketType.substring("TEAM_B_".length()));
                         nParsedRunners = 3;
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
                         for (final RunnerCatalog runnerCatalog : runnerCatalogsList) {

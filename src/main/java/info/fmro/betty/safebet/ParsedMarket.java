@@ -16,7 +16,7 @@ public class ParsedMarket
     private final ParsedMarketType parsedMarketType;
     private final HashSet<ParsedRunner> parsedRunnersSet; // the only place where ParsedRunners are stored
 
-    public ParsedMarket(final String marketId, final ParsedMarketType parsedMarketType, final HashSet<ParsedRunner> parsedRunnersSet) {
+    ParsedMarket(final String marketId, final ParsedMarketType parsedMarketType, final HashSet<ParsedRunner> parsedRunnersSet) {
         this.marketId = marketId;
         this.parsedMarketType = parsedMarketType;
         this.parsedRunnersSet = new HashSet<>(parsedRunnersSet);
@@ -26,11 +26,11 @@ public class ParsedMarket
         return this.marketId;
     }
 
-    public synchronized ParsedMarketType getParsedMarketType() {
+    synchronized ParsedMarketType getParsedMarketType() {
         return this.parsedMarketType;
     }
 
-    public synchronized HashSet<ParsedRunner> getParsedRunnersSet() {
+    synchronized HashSet<ParsedRunner> getParsedRunnersSet() {
         return new HashSet<>(this.parsedRunnersSet);
     }
 

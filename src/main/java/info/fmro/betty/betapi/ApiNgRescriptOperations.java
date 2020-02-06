@@ -83,6 +83,7 @@ public final class ApiNgRescriptOperations {
     private ApiNgRescriptOperations() {
     }
 
+    @NotNull
     public static HashSet<CurrentOrderSummary> listCurrentOrders(final Set<String> betIds, final Set<String> marketIds, final OrderProjection orderProjection, final TimeRange placedDateRange, final OrderBy orderBy, final SortDir sortDir,
                                                                  final int fromRecord, final int recordCount, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
         final HashSet<CurrentOrderSummary> currentOrderSummarySet = new HashSet<>(16, 0.75f); // empty in the beginning; its size will be used in the loop
@@ -135,6 +136,7 @@ public final class ApiNgRescriptOperations {
         return JsonConverter.convertFromJson(responseString, CurrentOrderSummaryReport.class);
     }
 
+    @NotNull
     public static HashSet<ClearedOrderSummary> listClearedOrders(final BetStatus betStatus, final Set<String> eventTypeIds, final Set<String> eventIds, final Set<String> marketIds, final Set<RunnerId> runnerIds, final Set<String> betIds, final Side side,
                                                                  final TimeRange settledDateRange, final GroupBy groupBy, final boolean includeItemDescription, final int fromRecord, final int recordCount, final String appKeyString,
                                                                  final RescriptResponseHandler rescriptResponseHandler) {
@@ -272,7 +274,6 @@ public final class ApiNgRescriptOperations {
         }.getType());
     }
 
-    @SuppressWarnings("WeakerAccess")
     public static PlaceExecutionReport placeOrders(final String marketIdString, final Collection<PlaceInstruction> placeInstructionsList, final String customerRefString, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
         final Map<String, Object> paramsHashMap = new HashMap<>(8, 0.75f);
         // paramsHashMap.put(LOCALE, localeString);
@@ -293,7 +294,6 @@ public final class ApiNgRescriptOperations {
         return JsonConverter.convertFromJson(responseString, PlaceExecutionReport.class);
     }
 
-    @SuppressWarnings("WeakerAccess")
     public static CancelExecutionReport cancelOrders(final String marketIdString, final List<CancelInstruction> cancelInstructionsList, final String customerRefString, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
         if (marketIdString == null || cancelInstructionsList == null) {
             logger.error("null marketIdString or cancelInstructionsList in cancelOrders for: {} {}", marketIdString, Generic.objectToString(cancelInstructionsList));

@@ -1,8 +1,8 @@
 package info.fmro.betty.objects;
 
-import info.fmro.shared.enums.MatchStatus;
 import info.fmro.betty.main.ApiDefault;
 import info.fmro.betty.safebet.BetradarEvent;
+import info.fmro.shared.enums.MatchStatus;
 import org.junit.jupiter.api.Test;
 
 import java.util.Date;

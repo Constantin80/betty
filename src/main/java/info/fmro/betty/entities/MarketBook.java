@@ -1,9 +1,9 @@
 package info.fmro.betty.entities;
 
+import info.fmro.betty.objects.Statics;
 import info.fmro.shared.entities.KeyLineDescription;
 import info.fmro.shared.entities.Runner;
 import info.fmro.shared.enums.MarketStatus;
-import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;

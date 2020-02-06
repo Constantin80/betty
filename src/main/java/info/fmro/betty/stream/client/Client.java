@@ -64,7 +64,7 @@ public class Client
     @SuppressWarnings("PackageVisibleField")
     final MarketDataFilter marketDataFilter = new MarketDataFilter(FilterFlag.EX_ALL_OFFERS, FilterFlag.EX_TRADED, FilterFlag.EX_TRADED_VOL, FilterFlag.EX_LTP, FilterFlag.EX_MARKET_DEF);
 
-    public Client(final int id, final String hostName, final int port) {
+    Client(final int id, final String hostName, final int port) {
         super();
         this.id = id;
         this.hostName = hostName;

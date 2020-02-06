@@ -1,12 +1,12 @@
 package info.fmro.betty.safebet;
 
-import info.fmro.shared.enums.ScrapedField;
-import info.fmro.shared.enums.Side;
 import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.permanent.MaintenanceThread;
-import info.fmro.shared.utility.Generic;
+import info.fmro.shared.enums.ScrapedField;
+import info.fmro.shared.enums.Side;
 import info.fmro.shared.objects.SafeObjectInterface;
+import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.SynchronizedMap;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -60,11 +60,11 @@ public class SafeRunner
         this.addedStamp = timeStamp;
     }
 
-    public SafeRunner(final String marketId, final Long selectionId, final Side side, final Map<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapers, final ScrapedField... scrapedFields) {
+    SafeRunner(final String marketId, final Long selectionId, final Side side, final Map<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapers, final ScrapedField... scrapedFields) {
         this(marketId, selectionId, side, System.currentTimeMillis(), usedScrapers, scrapedFields);
     }
 
-    public SafeRunner(final String marketId, final Long selectionId, final Side side) {
+    SafeRunner(final String marketId, final Long selectionId, final Side side) {
         // create stump for SafetyLimits use
         this.marketId = marketId;
         this.selectionId = selectionId;
@@ -72,7 +72,7 @@ public class SafeRunner
         this.addedStamp = System.currentTimeMillis();
     }
 
-    public synchronized boolean hasBeenRemoved() {
+    synchronized boolean hasBeenRemoved() {
         return this.hasBeenRemoved;
     }
 
@@ -117,11 +117,11 @@ public class SafeRunner
         return map == null ? 0 : map.size();
     }
 
-    public synchronized int getMinScoreScrapers() {
+    synchronized int getMinScoreScrapers() {
         return Math.min(this.getMatchedScrapers(ScrapedField.HOME_SCORE), this.getMatchedScrapers(ScrapedField.AWAY_SCORE));
     }
 
-    public synchronized long getAddedStamp() {
+    synchronized long getAddedStamp() {
         return this.addedStamp;
     }
 
@@ -132,7 +132,7 @@ public class SafeRunner
     //    public synchronized void setSelectionId(long selectionId) {
 //        this.selectionId = selectionId;
 //    }
-    public synchronized Side getSide() {
+    synchronized Side getSide() {
         return this.side;
     }
 
@@ -151,11 +151,12 @@ public class SafeRunner
         return minimum;
     }
 
-    public final synchronized boolean sufficientScrapers() {
+    final synchronized boolean sufficientScrapers() {
         return leastUsedScrapers() >= Statics.MIN_MATCHED;
     }
 
-    public synchronized int checkScrapers() {
+    @SuppressWarnings("UnusedReturnValue")
+    synchronized int checkScrapers() {
         // checks the associated scrapers
         // self-removes from map if not enough associated scrapers left
         // sets lenghty ignore on self if safeRunner is young and some associated scraper is ignored, although enough associated scrapers left; safety feature
@@ -199,7 +200,7 @@ public class SafeRunner
     }
 
     @SuppressWarnings("OverlyNestedMethod")
-    public synchronized int updateUsedScrapers(final SafeRunner safeRunner) {
+    synchronized int updateUsedScrapers(final SafeRunner safeRunner) {
         int modified;
         if (this == safeRunner) {
             logger.error("update from same object in SafeRunner.update: {}", Generic.objectToString(this));

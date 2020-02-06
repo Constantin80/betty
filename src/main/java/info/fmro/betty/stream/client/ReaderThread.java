@@ -14,7 +14,7 @@ class ReaderThread
         extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(ReaderThread.class);
     private final Client client;
-    @SuppressWarnings("FieldHasSetterButNoGetter")
+    @SuppressWarnings({"FieldHasSetterButNoGetter", "FieldAccessedSynchronizedAndUnsynchronized"})
     private BufferedReader bufferedReader;
     private final LinkedList<String> linesList = new LinkedList<>();
     @SuppressWarnings("PackageVisibleField")
