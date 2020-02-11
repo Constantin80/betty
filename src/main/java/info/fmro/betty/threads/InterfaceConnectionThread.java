@@ -1,23 +1,30 @@
 package info.fmro.betty.threads;
 
 import info.fmro.betty.objects.Statics;
+import info.fmro.shared.enums.CommandType;
 import info.fmro.shared.enums.ExistingFundsModificationCommand;
 import info.fmro.shared.enums.RulesManagerModificationCommand;
+import info.fmro.shared.enums.SynchronizedMapModificationCommand;
 import info.fmro.shared.logic.ManagedEvent;
 import info.fmro.shared.logic.ManagedMarket;
 import info.fmro.shared.logic.ManagedRunner;
+import info.fmro.shared.stream.objects.EventInterface;
+import info.fmro.shared.stream.objects.MarketCatalogueInterface;
 import info.fmro.shared.stream.objects.PoisonPill;
 import info.fmro.shared.stream.objects.RunnerId;
 import info.fmro.shared.stream.objects.SerializableObjectModification;
 import info.fmro.shared.stream.objects.StreamObjectInterface;
+import info.fmro.shared.stream.objects.StreamSynchronizedMap;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -45,7 +52,7 @@ public class InterfaceConnectionThread
         Generic.closeObjects(this.socket);
     }
 
-    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "ChainOfInstanceofChecks", "SwitchStatementDensity"})
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "ChainOfInstanceofChecks", "SwitchStatementDensity", "unchecked", "OverlyCoupledMethod", "OverlyNestedMethod"})
     private synchronized void runAfterReceive(@NotNull final StreamObjectInterface receivedCommand) {
         if (receivedCommand instanceof SerializableObjectModification) {
             final SerializableObjectModification<?> serializableObjectModification = (SerializableObjectModification<?>) receivedCommand;
@@ -245,6 +252,47 @@ public class InterfaceConnectionThread
                     default:
                         logger.error("unknown safetyLimitsModificationCommand in betty runAfterReceive: {} {}", existingFundsModificationCommand.name(), Generic.objectToString(receivedCommand));
                 } // end switch
+            } else if (command instanceof SynchronizedMapModificationCommand) {
+                @NotNull final SynchronizedMapModificationCommand synchronizedMapModificationCommand = (SynchronizedMapModificationCommand) command;
+                final Object[] objectsToModify = serializableObjectModification.getArray();
+                if (objectsToModify == null || !(objectsToModify[0] instanceof Class<?>)) {
+                    logger.error("improper objectsToModify for SynchronizedMapModificationCommand: {} {} {}", Generic.objectToString(objectsToModify), synchronizedMapModificationCommand.name(), Generic.objectToString(receivedCommand));
+                } else {
+                    final Class<?> clazz = (Class<?>) objectsToModify[0];
+                    @Nullable final StreamSynchronizedMap<String, Serializable> mapToUse;
+
+                    if (MarketCatalogueInterface.class.equals(clazz)) {
+                        //noinspection rawtypes
+                        mapToUse = (StreamSynchronizedMap) Statics.marketCataloguesMap;
+                    } else if (EventInterface.class.equals(clazz)) {
+                        //noinspection rawtypes
+                        mapToUse = (StreamSynchronizedMap) Statics.eventsMap;
+                    } else {
+                        logger.error("unknown streamSynchronizedMap class in runAfterReceive for: {} {}", clazz, Generic.objectToString(receivedCommand));
+                        mapToUse = null;
+                    }
+
+                    if (mapToUse == null) { // nothing to do, error message was already printed
+                    } else {
+                        final int nObjects = objectsToModify.length;
+                        //noinspection SwitchStatementWithTooFewBranches
+                        switch (synchronizedMapModificationCommand) {
+                            case refresh:
+                                if (nObjects == 1) {
+                                    if (EventInterface.class.equals(clazz)) {
+                                        Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.checkEventResultList));
+                                    } else {
+                                        logger.error("unsupported refresh map in runAfterReceive: {} {} {} {}", clazz, Generic.objectToString(objectsToModify), synchronizedMapModificationCommand.name(), Generic.objectToString(receivedCommand));
+                                    }
+                                } else {
+                                    logger.error("wrong size objectsToModify in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), synchronizedMapModificationCommand.name(), Generic.objectToString(receivedCommand));
+                                }
+                                break;
+                            default:
+                                logger.error("unsupported synchronizedMapModificationCommand in betty runAfterReceive: {} {}", synchronizedMapModificationCommand.name(), Generic.objectToString(receivedCommand));
+                        }
+                    }
+                }
             } else {
                 logger.error("unknown command object in betty runAfterReceive: {} {} {} {}", command == null ? null : command.getClass(), command, receivedCommand.getClass(), Generic.objectToString(receivedCommand));
             }

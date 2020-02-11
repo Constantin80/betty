@@ -278,7 +278,7 @@ public class Event
 
     @Contract(pure = true)
     @Nullable
-    private synchronized Date getOpenDate() {
+    public synchronized Date getOpenDate() {
         return this.openDate == null ? null : (Date) this.openDate.clone();
     }
 

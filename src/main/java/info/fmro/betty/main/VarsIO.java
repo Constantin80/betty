@@ -280,7 +280,7 @@ public final class VarsIO {
                             Statics.coralEventsMap.copyFrom(coralEventsMap);
                             break;
                         case "eventsMap":
-                            @SuppressWarnings("unchecked") final SynchronizedMap<String, Event> eventsMap = (SynchronizedMap<String, Event>) objectFromFile;
+                            @SuppressWarnings("unchecked") final StreamSynchronizedMap<String, Event> eventsMap = (StreamSynchronizedMap<String, Event>) objectFromFile;
                             Statics.eventsMap.copyFrom(eventsMap);
                             break;
                         case "marketCataloguesMap":

@@ -117,7 +117,7 @@ public class MarketCatalogue
 
     @Contract(pure = true)
     @Nullable
-    private synchronized Date getMarketStartTime() {
+    public synchronized Date getMarketStartTime() {
         return this.marketStartTime == null ? null : (Date) this.marketStartTime.clone();
     }
 
