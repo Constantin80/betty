@@ -1,6 +1,6 @@
 package info.fmro.betty.objects;
 
-import info.fmro.betty.entities.MarketBook;
+import info.fmro.shared.entities.MarketBook;
 import info.fmro.betty.logic.SafetyLimits;
 import info.fmro.betty.safebet.BetradarEvent;
 import info.fmro.betty.safebet.BetradarScraperThread;

@@ -2,7 +2,7 @@ package info.fmro.betty.safebet;
 
 import info.fmro.betty.betapi.ApiNgRescriptOperations;
 import info.fmro.betty.betapi.RescriptResponseHandler;
-import info.fmro.betty.entities.CurrentOrderSummary;
+import info.fmro.shared.entities.CurrentOrderSummary;
 import info.fmro.betty.main.Betty;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.permanent.GetLiveMarketsThread;

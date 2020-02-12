@@ -1,6 +1,6 @@
 package info.fmro.betty.threads.permanent;
 
-import info.fmro.betty.entities.MarketBook;
+import info.fmro.shared.entities.MarketBook;
 import info.fmro.betty.main.Betty;
 import info.fmro.betty.main.VarsIO;
 import info.fmro.betty.objects.Statics;

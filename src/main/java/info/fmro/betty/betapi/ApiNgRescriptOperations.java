@@ -1,10 +1,10 @@
 package info.fmro.betty.betapi;
 
 import com.google.gson.reflect.TypeToken;
-import info.fmro.betty.entities.CurrentOrderSummary;
-import info.fmro.betty.entities.CurrentOrderSummaryReport;
+import info.fmro.shared.entities.CurrentOrderSummary;
+import info.fmro.shared.entities.CurrentOrderSummaryReport;
 import info.fmro.shared.entities.EventResult;
-import info.fmro.betty.entities.MarketBook;
+import info.fmro.shared.entities.MarketBook;
 import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.entities.AccountFundsResponse;

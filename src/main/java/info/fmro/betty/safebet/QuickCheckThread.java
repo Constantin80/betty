@@ -4,7 +4,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import info.fmro.betty.betapi.ApiNgRescriptOperations;
 import info.fmro.betty.betapi.RescriptResponseHandler;
-import info.fmro.betty.entities.MarketBook;
+import info.fmro.shared.entities.MarketBook;
 import info.fmro.betty.main.Betty;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
@@ -267,7 +267,7 @@ public class QuickCheckThread
                                 final long timePreviousMarketBookCheck;
                                 if (existingMarketBook != null) {
                                     timePreviousMarketBookCheck = existingMarketBook.getTimeStamp();
-                                    if (existingMarketBook.update(marketBook) > 0) {
+                                    if (existingMarketBook.update(marketBook, Statics.timeLastSaveToDisk) > 0) {
                                         safeMarketBooksMapModified++;
                                     }
                                 } else {

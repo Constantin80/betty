@@ -2,8 +2,8 @@ package info.fmro.betty.safebet;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import info.fmro.betty.betapi.RescriptOpThread;
-import info.fmro.betty.entities.CurrentOrderSummary;
-import info.fmro.betty.entities.MarketBook;
+import info.fmro.shared.entities.CurrentOrderSummary;
+import info.fmro.shared.entities.MarketBook;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.threads.permanent.MaintenanceThread;
@@ -621,7 +621,7 @@ public class SafeBetSafetyLimits
     @SuppressWarnings("UnusedReturnValue")
     private synchronized double addAmountFromCurrentOrderSummary(@NotNull final CurrentOrderSummary currentOrderSummary, final Collection<? super String> newMarketIds) {
         final String marketId = currentOrderSummary.getMarketId();
-        final String eventId = currentOrderSummary.getEventId();
+        final String eventId = currentOrderSummary.getEventId(Statics.marketCataloguesMap);
 //        if (eventId == null) {
 //            eventId = Formulas.getEventIdOfMarketId(marketId);
 //        } else { // I got the eventId, nothing more to do in this conditional

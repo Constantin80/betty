@@ -1,7 +1,7 @@
 package info.fmro.betty.main;
 
 import info.fmro.shared.entities.Event;
-import info.fmro.betty.entities.MarketBook;
+import info.fmro.shared.entities.MarketBook;
 import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.betty.logic.SafetyLimits;
 import info.fmro.betty.objects.Statics;
