@@ -2,17 +2,21 @@ package info.fmro.betty.safebet;
 
 import com.google.common.collect.Iterables;
 import info.fmro.betty.betapi.RescriptOpThread;
-import info.fmro.betty.entities.Event;
-import info.fmro.betty.entities.MarketCatalogue;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
+import info.fmro.betty.threads.permanent.LoggerThread;
+import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.entities.Event;
+import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.shared.entities.MarketDescription;
 import info.fmro.shared.entities.RunnerCatalog;
 import info.fmro.shared.enums.CommandType;
 import info.fmro.shared.enums.MarketProjection;
 import info.fmro.shared.enums.ParsedMarketType;
 import info.fmro.shared.enums.ParsedRunnerType;
+import info.fmro.shared.objects.ParsedMarket;
+import info.fmro.shared.objects.ParsedRunner;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +61,7 @@ public final class FindMarkets {
         } else if (parsedRunnersSet.size() == expectedSize) {
             final ParsedMarket parsedMarket = new ParsedMarket(marketId, parsedMarketType, parsedRunnersSet);
 //            if (parsedMarket.checkSameTypeRunners()) {
-            interestingMarket = marketCatalogue.setParsedMarket(parsedMarket) > 0; // only true if modified
+            interestingMarket = marketCatalogue.setParsedMarket(parsedMarket, Statics.supportedEventTypes) > 0; // only true if modified
 //            } else {
 //                interestingMarket = false;
 //            }
@@ -280,7 +284,7 @@ public final class FindMarkets {
                     }
 
                     if (event != null) {
-                        final int update = event.update(eventStump);
+                        final int update = event.update(eventStump, LoggerThread.addLogEntryMethod);
                         if (update > 0) {
                             modifiedEvents.add(event);
                             logger.warn("event modified {} in findMarkets for: {} {} {}", update, marketId, Generic.objectToString(eventStump), Generic.objectToString(event)); // this might be normal behaviour
@@ -305,8 +309,8 @@ public final class FindMarkets {
 
                     if (existingMarketCatalogue != null) {
                         existingMarketCatalogue.setTotalMatched(marketCatalogue.getTotalMatched()); // else market marked as updated almost every time
-                        marketCatalogue.setParsedMarket(existingMarketCatalogue.getParsedMarket());
-                        if (existingMarketCatalogue.update(marketCatalogue) > 0) {
+                        marketCatalogue.setParsedMarket(existingMarketCatalogue.getParsedMarket(), Statics.supportedEventTypes);
+                        if (existingMarketCatalogue.update(marketCatalogue, Statics.supportedEventTypes, LoggerThread.addLogEntryMethod) > 0) {
                             if (!marketCatalogue.isIgnored()) {
                                 toCheckMarkets.add(new SimpleEntry<>(marketId, marketCatalogue));
                             }
@@ -386,7 +390,9 @@ public final class FindMarkets {
                 } else if (event.isIgnored()) {
                     iterator.remove();
                 } else {
-                    final int nMatched = event.getNValidScraperEventIds();
+                    final int nMatched = event.getNValidScraperEventIds(MaintenanceThread.removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated,
+                                                                        Statics.MIN_MATCHED, Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod,
+                                                                        LaunchCommandThread.constructorHashSetLongEvent);
                     final String eventId = event.getId();
                     if (nMatched < Statics.MIN_MATCHED || eventId == null) {
                         iterator.remove();
@@ -461,7 +467,7 @@ public final class FindMarkets {
                         final Event eventStump = marketCatalogue.getEventStump();
                         final int nMatched;
                         if (eventStump.parseName() <= 0) { // includes unparsed and errors
-                            if (Formulas.isMarketType(marketCatalogue, Statics.supportedEventTypes)) {
+                            if (info.fmro.shared.utility.Formulas.isMarketType(marketCatalogue, Statics.supportedEventTypes)) {
 //                                logger.info("findMarkets unparsed event name: {} for: {}", eventStump.getName(), marketId);
                                 Generic.alreadyPrintedMap.logOnce(4L * Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "findMarkets unparsed event name: {} for: {}", eventStump.getName(), marketId);
                             } else { // I won't clutter the logs, no print
@@ -471,13 +477,15 @@ public final class FindMarkets {
 
                             nMatched = 0; // so it just continues to next for element; actually without the safeBetsModule activated, it uses the element
                         } else {
-                            nMatched = event.getNValidScraperEventIds();
+                            nMatched = event.getNValidScraperEventIds(MaintenanceThread.removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.MIN_MATCHED,
+                                                                      Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod,
+                                                                      LaunchCommandThread.constructorHashSetLongEvent);
                         }
                         if (event.isIgnored(methodStartTime)) {
                             logger.warn("marketCatalogue attached to blackListed event: {}", marketId);
                         }
 
-                        final int update = event.update(eventStump);
+                        final int update = event.update(eventStump, LoggerThread.addLogEntryMethod);
                         if (update > 0) {
                             modifiedEvents.add(event);
                             logger.warn("event modified {} in findMarkets for: {} {} {}", update, marketId, Generic.objectToString(eventStump), Generic.objectToString(event)); // this might be normal behaviour
@@ -488,8 +496,8 @@ public final class FindMarkets {
                             existingMarketCatalogue = Statics.marketCataloguesMap.containsKey(marketId) ? Statics.marketCataloguesMap.get(marketId) : null;
                             if (existingMarketCatalogue != null) {
                                 existingMarketCatalogue.setTotalMatched(marketCatalogue.getTotalMatched()); // else market marked as updated almost every time
-                                marketCatalogue.setParsedMarket(existingMarketCatalogue.getParsedMarket());
-                                if (existingMarketCatalogue.update(marketCatalogue) > 0) {
+                                marketCatalogue.setParsedMarket(existingMarketCatalogue.getParsedMarket(), Statics.supportedEventTypes);
+                                if (existingMarketCatalogue.update(marketCatalogue, Statics.supportedEventTypes, LoggerThread.addLogEntryMethod) > 0) {
                                     if (!marketCatalogue.isIgnored()) {
 //                                        toCheckMarkets.add(new SimpleEntry<>(marketId, marketCatalogue));
                                         toCheckMarkets.add(new SimpleEntry<>(marketId, existingMarketCatalogue));
@@ -672,7 +680,7 @@ public final class FindMarkets {
     static boolean parseSupportedMarket(final String eventHomeNameString, final String eventAwayNameString, final MarketCatalogue marketCatalogue, final String marketId, final String marketName, final MarketDescription marketDescription,
                                         final List<? extends RunnerCatalog> runnerCatalogsList) {
         final boolean interestingMarket;
-        if (Formulas.isMarketType(marketCatalogue, Statics.supportedEventTypes) && eventHomeNameString != null && eventAwayNameString != null) {
+        if (info.fmro.shared.utility.Formulas.isMarketType(marketCatalogue, Statics.supportedEventTypes) && eventHomeNameString != null && eventAwayNameString != null) {
             final StringBuilder eventHomeName = new StringBuilder(eventHomeNameString);
             final StringBuilder eventAwayName = new StringBuilder(eventAwayNameString);
             final String marketType = marketDescription.getMarketType();

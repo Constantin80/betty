@@ -1,11 +1,8 @@
 package info.fmro.betty.threads.permanent;
 
-import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.MarketBook;
-import info.fmro.betty.entities.MarketCatalogue;
 import info.fmro.betty.main.Betty;
 import info.fmro.betty.main.VarsIO;
-import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.safebet.SafeBet;
 import info.fmro.betty.safebet.SafeBetStats;
@@ -14,22 +11,28 @@ import info.fmro.betty.safebet.ScraperEvent;
 import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.utility.DebuggingMethods;
 import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.entities.Event;
+import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.shared.enums.CommandType;
 import info.fmro.shared.enums.ScrapedField;
 import info.fmro.shared.objects.StampedDouble;
 import info.fmro.shared.objects.TwoOrderedStrings;
 import info.fmro.shared.stream.objects.EventInterface;
+import info.fmro.shared.stream.objects.ScraperEventInterface;
+import info.fmro.shared.utility.BlackList;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import info.fmro.shared.utility.SynchronizedMap;
 import info.fmro.shared.utility.SynchronizedSafeSet;
 import info.fmro.shared.utility.SynchronizedSet;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.lang.management.ThreadInfo;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashSet;
@@ -43,6 +46,8 @@ import java.util.Set;
 public class MaintenanceThread
         extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(MaintenanceThread.class);
+    @NotNull
+    public static final Method removeFromSecondaryMapsMethod = Objects.requireNonNull(Generic.getMethod(MaintenanceThread.class, "removeFromSecondaryMaps", String.class));
 
     // public static long timedCheckDiskSpace() {
     //     long timeForNext = Statics.debugger.getTimeLastCheckDiskSpace() + Generic.MINUTE_LENGTH_MILLISECONDS;
@@ -328,8 +333,8 @@ public class MaintenanceThread
                     logger.error("null value during cleanSafeBetsMap for: {}", marketId);
                     Statics.safeBetsMap.removeValueAll(null);
                 } else {
-                    if (BlackList.notExistOrIgnored(MarketCatalogue.class, marketId)) {
-                        BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "marketCatalogue, during cleanSafeBetsMap");
+                    if (BlackList.notExistOrIgnored(MarketCatalogue.class, marketId, Formulas.getIgnorableMapMethod)) {
+                        BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "marketCatalogue, during cleanSafeBetsMap", Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD);
                         removeFromSecondaryMaps(marketId);
                     } else {
                         final Set<Entry<SafeBet, SafeBetStats>> entrySetInnerCopy = value.entrySetCopy();
@@ -505,8 +510,8 @@ public class MaintenanceThread
 
         final Set<String> marketIds = Statics.safeMarketsImportantMap.keySetCopy();
         for (final String marketId : marketIds) {
-            if (BlackList.notExistOrIgnored(MarketCatalogue.class, marketId)) {
-                BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "marketCatalogue, during cleanSafeMarketsImportantMap");
+            if (BlackList.notExistOrIgnored(MarketCatalogue.class, marketId, Formulas.getIgnorableMapMethod)) {
+                BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "marketCatalogue, during cleanSafeMarketsImportantMap", Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD);
                 removeFromSecondaryMaps(marketId);
             }
         } // end for
@@ -551,27 +556,27 @@ public class MaintenanceThread
                         logger.error("null safeRunner in usedScrapersMap during cleanup: {}", marketId);
                         runnersSet.remove(null);
                     } else {
-                        final EnumMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapers = safeRunner.getUsedScrapers();
+                        final EnumMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEventInterface>, Long>> usedScrapers = safeRunner.getUsedScrapers();
                         if (usedScrapers == null) {
                             logger.error("null usedScrapers in usedScrapersMap during cleanup: {} {}", marketId, Generic.objectToString(safeRunner));
                             runnersSet.remove(safeRunner);
                         } else {
-                            for (final Entry<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedEntry : usedScrapers.entrySet()) {
+                            for (final Entry<ScrapedField, SynchronizedMap<Class<? extends ScraperEventInterface>, Long>> usedEntry : usedScrapers.entrySet()) {
                                 final ScrapedField scrapedField = usedEntry.getKey();
-                                final SynchronizedMap<Class<? extends ScraperEvent>, Long> map = usedEntry.getValue();
+                                final SynchronizedMap<Class<? extends ScraperEventInterface>, Long> map = usedEntry.getValue();
                                 if (scrapedField == null || map == null) {
                                     logger.error("null scrapedField or map in usedScrapersMap during cleanup: {} {}", marketId, Generic.objectToString(usedScrapers));
                                     runnersSet.remove(safeRunner);
                                 } else {
-                                    final Set<Entry<Class<? extends ScraperEvent>, Long>> entrySet = map.entrySetCopy();
-                                    for (final Entry<Class<? extends ScraperEvent>, Long> innerEntry : entrySet) {
-                                        final Class<? extends ScraperEvent> clazz = innerEntry.getKey();
+                                    final Set<Entry<Class<? extends ScraperEventInterface>, Long>> entrySet = map.entrySetCopy();
+                                    for (final Entry<Class<? extends ScraperEventInterface>, Long> innerEntry : entrySet) {
+                                        final Class<? extends ScraperEventInterface> clazz = innerEntry.getKey();
                                         final Long scraperId = innerEntry.getValue();
                                         if (clazz == null || scraperId == null) {
                                             logger.error("null clazz or scraperId in usedScrapersMap during cleanup: {} {}", marketId, Generic.objectToString(map));
                                             map.remove(clazz);
                                         } else {
-                                            final SynchronizedMap<Long, ? extends ScraperEvent> staticsMap = Formulas.getScraperEventsMap(clazz);
+                                            final SynchronizedMap<Long, ? extends ScraperEventInterface> staticsMap = Formulas.getScraperEventsMap(clazz);
                                             if (!staticsMap.containsKey(scraperId)) {
                                                 map.remove(clazz);
                                             }
@@ -596,8 +601,8 @@ public class MaintenanceThread
         final Set<String> marketIds = Statics.safeMarketsMap.keySetCopy();
         marketIds.addAll(Statics.safeMarketBooksMap.keySetCopy());
         for (final String marketId : marketIds) {
-            if (BlackList.notExistOrIgnored(MarketCatalogue.class, marketId)) {
-                BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "marketCatalogue, during cleanSecondaryMaps");
+            if (BlackList.notExistOrIgnored(MarketCatalogue.class, marketId, Formulas.getIgnorableMapMethod)) {
+                BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "marketCatalogue, during cleanSecondaryMaps", Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD);
                 removeFromSecondaryMaps(marketId);
             }
         } // end for
@@ -619,12 +624,12 @@ public class MaintenanceThread
 
     private static void checkScraperEvents(final Event event) {
         if (event != null) {
-            final LinkedHashMap<Class<? extends ScraperEvent>, Long> scraperEventIds = event.getScraperEventIds();
+            final LinkedHashMap<Class<? extends ScraperEventInterface>, Long> scraperEventIds = event.getScraperEventIds();
             if (scraperEventIds != null && !scraperEventIds.isEmpty()) {
-                for (final Entry<Class<? extends ScraperEvent>, Long> entry : scraperEventIds.entrySet()) {
-                    final Class<? extends ScraperEvent> clazz = entry.getKey();
+                for (final Entry<Class<? extends ScraperEventInterface>, Long> entry : scraperEventIds.entrySet()) {
+                    final Class<? extends ScraperEventInterface> clazz = entry.getKey();
                     final long scraperId = entry.getValue();
-                    final SynchronizedMap<Long, ? extends ScraperEvent> scraperMap = Formulas.getScraperEventsMap(clazz);
+                    final SynchronizedMap<Long, ? extends ScraperEventInterface> scraperMap = Formulas.getScraperEventsMap(clazz);
                     if (!scraperMap.containsKey(scraperId)) {
                         logger.error("scraperId {} not found in {} scraperMap in checkScraperEvents for: {}", scraperId, clazz.getSimpleName(), Generic.objectToString(event));
                         // won't remove, only print error message; removal might cause problems due to racing condition
@@ -688,7 +693,10 @@ public class MaintenanceThread
                         if (event != null) {
                             if (Statics.safeBetModuleActivated) {
                                 checkScraperEvents(event);
-                                final int nScraperEventIds = event.getNValidScraperEventIds();
+                                final int nScraperEventIds =
+                                        event.getNValidScraperEventIds(removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.MIN_MATCHED,
+                                                                       Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod,
+                                                                       LaunchCommandThread.constructorHashSetLongEvent);
                                 if (nScraperEventIds < Statics.MIN_MATCHED) {
                                     if (marketCatalogue.isIgnored()) { // normal behavior
                                     } else if (marketCatalogue.isResetIgnoredRecent()) {
@@ -711,7 +719,7 @@ public class MaintenanceThread
                                     logger.error("marketIgnoredExpiry {} smaller than eventIgnoredExpiry {} by {} in cleanMarketCataloguesMap for: {} {}", marketIgnoredExpiration, eventIgnoredExpiration, eventIgnoredExpiration - marketIgnoredExpiration,
                                                  Generic.objectToString(marketCatalogue), Generic.objectToString(event));
 //                                marketCatalogue.setIgnoredExpiration(eventIgnoredExpiration);
-                                    marketCatalogue.setIgnored(0L, eventIgnoredExpiration);
+                                    marketCatalogue.setIgnored(0L, eventIgnoredExpiration, removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated);
                                 }
                             }
                         } else {
@@ -806,24 +814,25 @@ public class MaintenanceThread
                     logger.error("event not removed from eventsMap in cleanEventsMap for: {} {}", eventId, Generic.objectToString(event));
                 }
 
-                final LinkedHashMap<Class<? extends ScraperEvent>, Long> scraperEventIds = event.getScraperEventIds();
+                final LinkedHashMap<Class<? extends ScraperEventInterface>, Long> scraperEventIds = event.getScraperEventIds();
                 nScraperEventsRemoved += removeScrapers(scraperEventIds);
 //                removeScraperEvents(scraperEventIds);
             } else if (Statics.safeBetModuleActivated) { // not expired yet, will check to see if attached scraperEvents are still in their map
-                final LinkedHashMap<Class<? extends ScraperEvent>, Long> scraperEventIds = event.getScraperEventIds();
+                final LinkedHashMap<Class<? extends ScraperEventInterface>, Long> scraperEventIds = event.getScraperEventIds();
                 if (scraperEventIds != null) {
                     if (scraperEventIds.isEmpty()) { // no attached scraperEventsIds, nothing to be done
                     } else {
-                        final Set<Entry<Class<? extends ScraperEvent>, Long>> scraperEventIdsEntries = scraperEventIds.entrySet();
-                        for (final Entry<Class<? extends ScraperEvent>, Long> scraperEntry : scraperEventIdsEntries) {
-                            final Class<? extends ScraperEvent> clazz = scraperEntry.getKey();
+                        final Set<Entry<Class<? extends ScraperEventInterface>, Long>> scraperEventIdsEntries = scraperEventIds.entrySet();
+                        for (final Entry<Class<? extends ScraperEventInterface>, Long> scraperEntry : scraperEventIdsEntries) {
+                            final Class<? extends ScraperEventInterface> clazz = scraperEntry.getKey();
                             final Long scraperId = scraperEntry.getValue();
-                            final SynchronizedMap<Long, ? extends ScraperEvent> scraperMap = Formulas.getScraperEventsMap(clazz);
-                            final ScraperEvent scraperEvent = scraperMap.get(scraperId);
+                            final SynchronizedMap<Long, ? extends ScraperEventInterface> scraperMap = Formulas.getScraperEventsMap(clazz);
+                            final ScraperEventInterface scraperEvent = scraperMap.get(scraperId);
 
                             if (scraperEvent == null) {
                                 logger.error("non existent matchedScraper {} {} found in cleanEventsMap for: {} {}", clazz.getSimpleName(), scraperId, eventId, Generic.objectToString(event));
-                                event.setIgnored(Generic.DAY_LENGTH_MILLISECONDS); // error is no joke
+                                event.setIgnored(Generic.DAY_LENGTH_MILLISECONDS, removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated,
+                                                 Statics.marketCataloguesMap, LaunchCommandThread.constructorHashSetLongEvent); // error is no joke
 //                                event.removeScraperEventId(clazz);
                             } else { // everything is good, nothing to be done, ignored scrapers are OK
                             }
@@ -860,7 +869,7 @@ public class MaintenanceThread
     }
 
     private static void cleanScraperEventsMap(final Class<? extends ScraperEvent> clazz) {
-        final SynchronizedMap<Long, ? extends ScraperEvent> map = Formulas.getScraperEventsMap(clazz);
+        final SynchronizedMap<Long, ? extends ScraperEventInterface> map = Formulas.getScraperEventsMap(clazz);
         final long startTime = System.currentTimeMillis();
 
         final long scraperEventsMapLastUpdate = map.getTimeStamp();
@@ -873,7 +882,7 @@ public class MaintenanceThread
         final int initialSize = map.size();
 
         if (map.containsKey(null)) {
-            final ScraperEvent removedScraperEvent = map.remove(null);
+            final ScraperEventInterface removedScraperEvent = map.remove(null);
             logger.error("null key found in scraperEventsMap for: {} {}", clazz.getSimpleName(), Generic.objectToString(removedScraperEvent));
             nRemovedScraperEvents++;
 //            map.remove(null);
@@ -888,9 +897,9 @@ public class MaintenanceThread
             }
         }
 
-        final Set<? extends Entry<Long, ? extends ScraperEvent>> entrySetCopy = map.entrySetCopy();
-        for (final Entry<Long, ? extends ScraperEvent> entry : entrySetCopy) {
-            final ScraperEvent value = entry.getValue();
+        final Set<? extends Entry<Long, ? extends ScraperEventInterface>> entrySetCopy = map.entrySetCopy();
+        for (final Entry<Long, ? extends ScraperEventInterface> entry : entrySetCopy) {
+            final ScraperEventInterface value = entry.getValue();
             final long timeStamp = value.getTimeStamp();
             final Long key = entry.getKey();
             final String matchedEventId = value.getMatchedEventId();
@@ -923,16 +932,16 @@ public class MaintenanceThread
         }
     }
 
-    private static int removeScrapers(final Map<Class<? extends ScraperEvent>, Long> map) {
+    private static int removeScrapers(final Map<Class<? extends ScraperEventInterface>, Long> map) {
         int nRemoved = 0;
         if (map == null) {
             logger.warn("null map in removeScrapers");
         } else {
-            final Set<Entry<Class<? extends ScraperEvent>, Long>> entrySet = map.entrySet();
-            for (final Entry<Class<? extends ScraperEvent>, Long> entry : entrySet) {
-                final Class<? extends ScraperEvent> clazz = entry.getKey();
+            final Set<Entry<Class<? extends ScraperEventInterface>, Long>> entrySet = map.entrySet();
+            for (final Entry<Class<? extends ScraperEventInterface>, Long> entry : entrySet) {
+                final Class<? extends ScraperEventInterface> clazz = entry.getKey();
                 final Long id = entry.getValue();
-                final ScraperEvent returnValue = removeScraper(clazz, id);
+                final ScraperEventInterface returnValue = removeScraper(clazz, id);
                 if (returnValue == null) {
                     logger.error("scraperEvent not removed in removeScrapers for: {} {}", clazz.getSimpleName(), id);
                 } else {
@@ -944,7 +953,7 @@ public class MaintenanceThread
         return nRemoved;
     }
 
-    private static <T extends ScraperEvent> T removeScraper(final Class<T> clazz, final Long scraperEventId) {
+    private static <T extends ScraperEventInterface> T removeScraper(final Class<T> clazz, final Long scraperEventId) {
         @SuppressWarnings("unchecked") final SynchronizedMap<Long, T> scraperEventsMap = (SynchronizedMap<Long, T>) Formulas.getScraperEventsMap(clazz);
         @Nullable final T existingScraperEvent;
         if (scraperEventId != null && scraperEventId >= 0) {
@@ -958,7 +967,7 @@ public class MaintenanceThread
             final String matchedEventId = existingScraperEvent.getMatchedEventId();
             if (matchedEventId != null) {
 //            ignoreEvent(matchedEventId, safetyPeriod, shortSafetyPeriod);
-                if (BlackList.notExist(Event.class, matchedEventId)) { // matched event was removed already, normal behavior
+                if (BlackList.notExist(Event.class, matchedEventId, Formulas.getIgnorableMapMethod)) { // matched event was removed already, normal behavior
                 } else {
                     logger.error("scraper getting removed and matched event still present in maps: {} {} {} {}", scraperEventId, clazz.getSimpleName(), matchedEventId, Generic.objectToString(existingScraperEvent));
                 }
@@ -1038,14 +1047,14 @@ public class MaintenanceThread
 
             final int nScraperEventIds = matchedEvent.getNTotalScraperEventIds();
             if (nScraperEventIds > 0) {
-                final LinkedHashMap<Class<? extends ScraperEvent>, Long> scraperEventIds = matchedEvent.getScraperEventIds();
-                final Set<Entry<Class<? extends ScraperEvent>, Long>> entrySet = scraperEventIds != null ? scraperEventIds.entrySet() : null;
+                final LinkedHashMap<Class<? extends ScraperEventInterface>, Long> scraperEventIds = matchedEvent.getScraperEventIds();
+                final Set<Entry<Class<? extends ScraperEventInterface>, Long>> entrySet = scraperEventIds != null ? scraperEventIds.entrySet() : null;
                 if (entrySet != null) {
-                    for (final Entry<Class<? extends ScraperEvent>, Long> entry : entrySet) {
-                        final Class<? extends ScraperEvent> clazz = entry.getKey();
+                    for (final Entry<Class<? extends ScraperEventInterface>, Long> entry : entrySet) {
+                        final Class<? extends ScraperEventInterface> clazz = entry.getKey();
                         final Long scraperId = entry.getValue();
                         //                    final SynchronizedMap<Long, ? extends ScraperEvent> scraperEventMap = Formulas.getScraperEventsMap(clazz);
-                        final ScraperEvent scraperEvent = removeScraper(clazz, scraperId);
+                        final ScraperEventInterface scraperEvent = removeScraper(clazz, scraperId);
                         if (scraperEvent != null) {
                             final String matchedEventId = scraperEvent.getMatchedEventId();
                             if (matchedEventId.equals(eventId)) { // it gets removed, nothing else needs to be done

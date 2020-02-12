@@ -4,7 +4,6 @@ import com.google.common.util.concurrent.AtomicDouble;
 import info.fmro.betty.betapi.RescriptOpThread;
 import info.fmro.betty.entities.CurrentOrderSummary;
 import info.fmro.betty.entities.MarketBook;
-import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.threads.permanent.MaintenanceThread;
@@ -22,6 +21,7 @@ import info.fmro.shared.enums.PersistenceType;
 import info.fmro.shared.enums.RunnerStatus;
 import info.fmro.shared.enums.Side;
 import info.fmro.shared.objects.OrderPrice;
+import info.fmro.shared.utility.BlackList;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import info.fmro.shared.utility.SynchronizedSet;
@@ -110,12 +110,12 @@ public class SafeBetSafetyLimits
                                 final AtomicDouble previousOversizedRealAmount = new AtomicDouble();
                                 PlaceInstruction oversizedPlaceInstruction = null;
                                 if (BlackList.notExistOrIgnored(Statics.marketCataloguesMap, marketId, startTime)) {
-                                    BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "market with bets, marketCatalogue map");
+                                    BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "market with bets, marketCatalogue map", Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD);
                                     MaintenanceThread.removeFromSecondaryMaps(marketId);
                                 } else {
                                     Statics.safeMarketsImportantMap.put(marketId, endTime);
                                     if (BlackList.notExistOrIgnored(Statics.marketCataloguesMap, marketId, startTime)) {
-                                        BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "market with bets after importantMap add, marketCatalogue map");
+                                        BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "market with bets after importantMap add, marketCatalogue map", Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD);
                                         MaintenanceThread.removeFromSecondaryMaps(marketId);
 //                                    } else if (safeRunner.isIgnored(startTime)) {
 //                                        logger.error("ignored safeRunner with bets after importantMap add: {} {}", marketId,
@@ -135,7 +135,7 @@ public class SafeBetSafetyLimits
                                                 Statics.safeBetsMap.addAndGetSafeBetStats(marketId, safeBet, endTime, timePreviousMarketBookCheck);
 
                                                 if (BlackList.notExistOrIgnored(Statics.marketCataloguesMap, marketId, startTime)) {
-                                                    BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "market with bets after safeBet add, marketCatalogue map");
+                                                    BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "market with bets after safeBet add, marketCatalogue map", Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD);
                                                     MaintenanceThread.removeFromSecondaryMaps(marketId);
                                                     break; // break from for
 //                                                } else if (safeRunner.isIgnored(startTime)) {
@@ -223,7 +223,7 @@ public class SafeBetSafetyLimits
         double localUsedBalance = 0d;
 
         if (BlackList.notExistOrIgnored(Statics.marketCataloguesMap, marketId)) {
-            BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, "processOpenMarket, marketCatalogue map");
+            BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, "processOpenMarket, marketCatalogue map", Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD);
         } else if (localAvailableFunds < 2d || (side == Side.LAY && localAvailableFunds < 2d * (price - 1d))) {
             logger.warn("not enough funds to place bets: {} {} {}", side, price, localAvailableFunds);
             Statics.pendingOrdersThread.addCancelAllOrder(0L);

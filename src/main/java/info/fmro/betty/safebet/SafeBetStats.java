@@ -1,6 +1,7 @@
 package info.fmro.betty.safebet;
 
 import info.fmro.betty.objects.Statics;
+import info.fmro.shared.stream.objects.ScraperEventInterface;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -14,13 +15,13 @@ public class SafeBetStats {
     private static final Logger logger = LoggerFactory.getLogger(SafeBetStats.class);
     private final long timeFirstAppear;
     private final long timeMarketBookCheckBeforeAppear;
-    private final LinkedHashMap<Class<? extends ScraperEvent>, Long> timeScraperEventCheckBeforeAppearMap;
+    private final LinkedHashMap<Class<? extends ScraperEventInterface>, Long> timeScraperEventCheckBeforeAppearMap;
     private long timeLastAppear;
     private long timeFirstNotAppeared;
     private int nAppeared;
 
     @Contract(pure = true)
-    SafeBetStats(final long timeFirstAppear, final long timeMarketBookCheckBeforeAppear, @NotNull final LinkedHashMap<Class<? extends ScraperEvent>, Long> timeScraperEventCheckBeforeAppear) {
+    SafeBetStats(final long timeFirstAppear, final long timeMarketBookCheckBeforeAppear, @NotNull final LinkedHashMap<Class<? extends ScraperEventInterface>, Long> timeScraperEventCheckBeforeAppear) {
         this.timeFirstAppear = timeFirstAppear;
         this.timeMarketBookCheckBeforeAppear = timeMarketBookCheckBeforeAppear;
         this.timeScraperEventCheckBeforeAppearMap = new LinkedHashMap<>(timeScraperEventCheckBeforeAppear);
@@ -38,8 +39,8 @@ public class SafeBetStats {
             stringBuilder.append(this.timeFirstAppear - this.timeMarketBookCheckBeforeAppear).append("ms ");
         }
         if (!this.timeScraperEventCheckBeforeAppearMap.isEmpty()) {
-            for (final Entry<Class<? extends ScraperEvent>, Long> entry : this.timeScraperEventCheckBeforeAppearMap.entrySet()) {
-                final Class<? extends ScraperEvent> clazz = entry.getKey();
+            for (final Entry<Class<? extends ScraperEventInterface>, Long> entry : this.timeScraperEventCheckBeforeAppearMap.entrySet()) {
+                final Class<? extends ScraperEventInterface> clazz = entry.getKey();
                 final long timeScraperEventCheckBeforeAppear = entry.getValue();
                 stringBuilder.append(clazz.getSimpleName()).append(":");
                 if (timeScraperEventCheckBeforeAppear == 0L) {
@@ -70,7 +71,7 @@ public class SafeBetStats {
         return this.timeMarketBookCheckBeforeAppear;
     }
 
-    public synchronized LinkedHashMap<Class<? extends ScraperEvent>, Long> getTimeScraperEventCheckBeforeAppear() {
+    public synchronized LinkedHashMap<Class<? extends ScraperEventInterface>, Long> getTimeScraperEventCheckBeforeAppear() {
         return new LinkedHashMap<>(this.timeScraperEventCheckBeforeAppearMap);
     }
 

@@ -1,20 +1,20 @@
 package info.fmro.betty.utility;
 
-import info.fmro.betty.entities.Event;
-import info.fmro.betty.entities.MarketCatalogue;
 import info.fmro.betty.main.VarsIO;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.safebet.BetradarEvent;
 import info.fmro.betty.safebet.CoralEvent;
 import info.fmro.betty.safebet.ScraperEvent;
 import info.fmro.betty.safebet.ScraperPermanentThread;
-import info.fmro.shared.entities.EventType;
+import info.fmro.shared.entities.Event;
+import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.shared.entities.MarketDescription;
 import info.fmro.shared.entities.PlaceInstruction;
 import info.fmro.shared.objects.OrderPrice;
 import info.fmro.shared.objects.StampedDouble;
 import info.fmro.shared.objects.TwoOrderedStrings;
 import info.fmro.shared.stream.objects.MarketCatalogueInterface;
+import info.fmro.shared.stream.objects.ScraperEventInterface;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
 import info.fmro.shared.utility.LogLevel;
@@ -25,20 +25,24 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 @SuppressWarnings({"ClassWithTooManyMethods", "OverlyComplexClass", "UtilityClass"})
 public final class Formulas {
     private static final Logger logger = LoggerFactory.getLogger(Formulas.class);
+    @NotNull
+    public static final Method getScraperEventsMapMethod = Objects.requireNonNull(Generic.getMethod(Formulas.class, "getScraperEventsMap", Class.class));
+    @NotNull
+    public static final Method getIgnorableMapMethod = Objects.requireNonNull(Generic.getMethod(Formulas.class, "getIgnorableMap", Class.class));
     @SuppressWarnings("PublicStaticCollectionField")
     public static final Map<String, String> aliasesMap = Collections.synchronizedMap(new LinkedHashMap<>(64, 0.75f));
     @SuppressWarnings("PublicStaticCollectionField")
@@ -558,7 +562,7 @@ public final class Formulas {
         } else if (clazz.equals(Event.class)) {
             returnValue = (SynchronizedMap<?, T>) Statics.eventsMap;
         } else if (ScraperEvent.class.isAssignableFrom(clazz)) {
-            returnValue = (SynchronizedMap<?, T>) getScraperEventsMap((Class<? extends ScraperEvent>) clazz);
+            returnValue = (SynchronizedMap<?, T>) getScraperEventsMap((Class<? extends ScraperEventInterface>) clazz);
         } else {
             logger.error("unsupported clazz {} in getIgnorableMap", clazz);
             returnValue = null;
@@ -566,8 +570,8 @@ public final class Formulas {
         return returnValue;
     }
 
-    public static SynchronizedMap<Long, ? extends ScraperEvent> getScraperEventsMap(final Class<? extends ScraperEvent> clazz) {
-        @Nullable final SynchronizedMap<Long, ? extends ScraperEvent> returnValue;
+    public static SynchronizedMap<Long, ? extends ScraperEventInterface> getScraperEventsMap(final Class<? extends ScraperEventInterface> clazz) {
+        @Nullable final SynchronizedMap<Long, ? extends ScraperEventInterface> returnValue;
         if (clazz == null) {
             logger.error("null clazz value in getScraperEventMap");
             returnValue = null;
@@ -629,35 +633,6 @@ public final class Formulas {
             returnValue = list.isEmpty() ? defaultValue : list.get(list.size() - 1);
         } // end else
         return returnValue;
-    }
-
-    public static boolean isMarketType(final MarketCatalogue marketCatalogue, final Collection<String> typesList) {
-        final boolean result;
-
-        if (marketCatalogue != null && typesList != null) {
-            final EventType eventType = marketCatalogue.getEventType();
-            if (eventType != null) {
-                final String eventTypeId = eventType.getId();
-                if (eventTypeId != null) {
-                    result = typesList.contains(eventTypeId);
-                } else {
-                    logger.error("null eventType in isMarketType listArg for: {} {}", Generic.objectToString(typesList), Generic.objectToString(marketCatalogue));
-                    result = false;
-                }
-            } else {
-                logger.error("null eventTypeId in isMarketType listArg for: {} {}", Generic.objectToString(typesList), Generic.objectToString(marketCatalogue));
-                result = false;
-            }
-        } else {
-            logger.error("null arguments in isMarketType listArg for: {} {}", Generic.objectToString(typesList), Generic.objectToString(marketCatalogue));
-            result = false;
-        }
-
-        return result;
-    }
-
-    public static boolean isMarketType(final MarketCatalogue marketCatalogue, final String... types) {
-        return isMarketType(marketCatalogue, types == null ? null : Arrays.asList(types));
     }
 
     public static boolean isEachWayMarketType(final String marketId) { // assumes the worst in case it doesn't find an answer

@@ -1,11 +1,11 @@
 package info.fmro.betty.threads.permanent;
 
 import info.fmro.betty.betapi.ApiNGJRescriptDemo;
-import info.fmro.betty.entities.Event;
-import info.fmro.betty.entities.EventResult;
+import info.fmro.shared.entities.EventResult;
 import info.fmro.betty.main.Betty;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
+import info.fmro.shared.entities.Event;
 import info.fmro.shared.enums.CommandType;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
@@ -59,7 +59,7 @@ public class GetLiveMarketsThread
                 }
 
                 if (existingEvent != null) {
-                    final int update = existingEvent.update(event);
+                    final int update = existingEvent.update(event, LoggerThread.addLogEntryMethod);
                     if (update > 0) {
                         modifiedEvents.add(existingEvent);
                     }

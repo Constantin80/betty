@@ -1,9 +1,12 @@
 package info.fmro.betty.safebet;
 
-import info.fmro.betty.entities.Event;
 import info.fmro.betty.objects.Statics;
+import info.fmro.betty.threads.LaunchCommandThread;
+import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.entities.Event;
 import info.fmro.shared.enums.MatchStatus;
+import info.fmro.shared.stream.objects.ScraperEventInterface;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
 import info.fmro.shared.utility.LogLevel;
@@ -19,7 +22,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @SuppressWarnings({"ClassWithTooManyMethods", "OverlyComplexClass"})
 public class ScraperEvent
         extends Ignorable
-        implements Serializable, Comparable<ScraperEvent> {
+        implements ScraperEventInterface, Serializable, Comparable<ScraperEvent> {
     private static final Logger logger = LoggerFactory.getLogger(ScraperEvent.class);
     private static final long serialVersionUID = 5045581708147478634L;
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
@@ -41,7 +44,7 @@ public class ScraperEvent
         this.timeStamp();
     }
 
-    public ScraperEvent(final String objectId, final long eventId, final long timeStamp) {
+    ScraperEvent(final String objectId, final long eventId, final long timeStamp) {
         super();
         this.objectId = objectId;
         this.eventId = eventId;
@@ -170,7 +173,7 @@ public class ScraperEvent
         return modified;
     }
 
-    synchronized int getHomeRedCards() {
+    public synchronized int getHomeRedCards() {
         return this.homeRedCards;
     }
 
@@ -192,7 +195,7 @@ public class ScraperEvent
         return modified;
     }
 
-    synchronized int getAwayRedCards() {
+    public synchronized int getAwayRedCards() {
         return this.awayRedCards;
     }
 
@@ -283,7 +286,7 @@ public class ScraperEvent
         this.homeScoreTimeStamp = homeScoreTimeStamp;
     }
 
-    synchronized int getAwayScore() {
+    public synchronized int getAwayScore() {
         return this.awayScore;
     }
 
@@ -387,7 +390,7 @@ public class ScraperEvent
         return modified;
     }
 
-    synchronized int getAwayHtScore() {
+    public synchronized int getAwayHtScore() {
         return isHtIgnored() ? -1 : this.awayHtScore;
     }
 
@@ -493,7 +496,7 @@ public class ScraperEvent
         return modified;
     }
 
-    synchronized int getMinutesPlayed() {
+    public synchronized int getMinutesPlayed() {
         return this.minutesPlayed;
     }
 
@@ -550,7 +553,7 @@ public class ScraperEvent
         return modified;
     }
 
-    synchronized int getStoppageTime() {
+    public synchronized int getStoppageTime() {
         return this.stoppageTime;
     }
 
@@ -596,25 +599,28 @@ public class ScraperEvent
         return timeSinceUpdate > Generic.HOUR_LENGTH_MILLISECONDS;
     }
 
-    @Override
     public synchronized int setIgnored(final long period) {
         final long currentTime = System.currentTimeMillis();
         return setIgnored(period, currentTime);
     }
 
-    @Override
     public synchronized int setIgnored(final long period, final long startTime) {
         final int modified = super.setIgnored(period, startTime);
         if (modified > 0) {
             if (this.matchedEventId != null) {
                 final Event event = Statics.eventsMap.get(this.matchedEventId);
                 if (event != null) {
-                    event.ignoredScrapersCheck();
+                    event.ignoredScrapersCheck(MaintenanceThread.removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.MIN_MATCHED,
+                                               Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod, LaunchCommandThread.constructorHashSetLongEvent);
                     if (event.isIgnored()) { // event got ignored, standard behavior, nothing to be done
                     } else {
-                        logger.info("event still not ignored after ScraperEvent ignored: {} {} {}", this.eventId, event.getId(), event.getNValidScraperEventIds());
+                        logger.info("event still not ignored after ScraperEvent ignored: {} {} {}", this.eventId, event.getId(),
+                                    event.getNValidScraperEventIds(MaintenanceThread.removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.MIN_MATCHED,
+                                                                   Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod,
+                                                                   LaunchCommandThread.constructorHashSetLongEvent));
                         final long eventIgnorePeriod = Math.min(period, Statics.MINIMUM_BAD_STUFF_HAPPENED_IGNORE); // if period is smaller than default minimum, it will be used
-                        event.setIgnored(eventIgnorePeriod, startTime);
+                        event.setIgnored(eventIgnorePeriod, startTime, MaintenanceThread.removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated,
+                                         Statics.marketCataloguesMap, LaunchCommandThread.constructorHashSetLongEvent);
                     }
 
                     // delayed starting of threads might no longer be necessary
@@ -1000,7 +1006,7 @@ public class ScraperEvent
         return 0L; // dummy method, normally overriden
     }
 
-    synchronized boolean hasStarted() {
+    public synchronized boolean hasStarted() {
         final boolean hasStarted;
         //            switch (this.matchStatus) {
         //                case NOT_STARTED:

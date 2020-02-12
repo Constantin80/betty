@@ -1,5 +1,6 @@
 package info.fmro.betty.entities;
 
+import info.fmro.shared.entities.Event;
 import info.fmro.shared.utility.Generic;
 import org.junit.jupiter.api.Test;
 

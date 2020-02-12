@@ -2,6 +2,7 @@ package info.fmro.betty.safebet;
 
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.entities.PriceProjection;
+import info.fmro.shared.stream.objects.ScraperEventInterface;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.SynchronizedMap;
 import org.jetbrains.annotations.Nullable;
@@ -100,7 +101,7 @@ public class SafeBetsMap<K extends SafeBet>
             safeBetStats = safeBetsStatsMap.get(safeBet);
             safeBetStats.setTimeLastAppear(endTime); // increases nAppeared too
         } else {
-            final LinkedHashMap<Class<? extends ScraperEvent>, Long> timeScraperEventCheck = QuickCheckThread.getTimeScraperEventCheck(marketId);
+            final LinkedHashMap<Class<? extends ScraperEventInterface>, Long> timeScraperEventCheck = QuickCheckThread.getTimeScraperEventCheck(marketId);
             final SafeBetStats newSafeBetStats = new SafeBetStats(endTime, timePreviousMarketBookCheck, timeScraperEventCheck);
             final SafeBetStats existingValue = safeBetsStatsMap.putIfAbsent(safeBet, newSafeBetStats);
             if (existingValue != null) {

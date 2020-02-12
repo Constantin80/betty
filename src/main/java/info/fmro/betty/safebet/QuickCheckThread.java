@@ -4,16 +4,15 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import info.fmro.betty.betapi.ApiNgRescriptOperations;
 import info.fmro.betty.betapi.RescriptResponseHandler;
-import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.MarketBook;
-import info.fmro.betty.entities.MarketCatalogue;
 import info.fmro.betty.main.Betty;
-import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
 import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.entities.Event;
 import info.fmro.shared.entities.ExBestOffersOverrides;
+import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.shared.entities.PriceProjection;
 import info.fmro.shared.entities.Runner;
 import info.fmro.shared.enums.MarketStatus;
@@ -21,6 +20,8 @@ import info.fmro.shared.enums.PriceData;
 import info.fmro.shared.enums.RollupModel;
 import info.fmro.shared.objects.AverageLogger;
 import info.fmro.shared.objects.AverageLoggerInterface;
+import info.fmro.shared.stream.objects.ScraperEventInterface;
+import info.fmro.shared.utility.BlackList;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import info.fmro.shared.utility.SynchronizedMap;
@@ -82,20 +83,20 @@ public class QuickCheckThread
     }
 
     @NotNull
-    static LinkedHashMap<Class<? extends ScraperEvent>, Long> getTimeScraperEventCheck(final String marketId) { // I decided to remove isIgnored support for this method
-        final LinkedHashMap<Class<? extends ScraperEvent>, Long> timeScraperEventCheckMap = new LinkedHashMap<>(4);
+    static LinkedHashMap<Class<? extends ScraperEventInterface>, Long> getTimeScraperEventCheck(final String marketId) { // I decided to remove isIgnored support for this method
+        final LinkedHashMap<Class<? extends ScraperEventInterface>, Long> timeScraperEventCheckMap = new LinkedHashMap<>(4);
         final MarketCatalogue marketCatalogue = Statics.marketCataloguesMap.get(marketId);
         if (marketCatalogue != null) {
 //            Event event = marketCatalogue.getEventStump();
             final Event event = Formulas.getStoredEventOfMarketCatalogue(marketCatalogue);
             if (event != null) {
-                final LinkedHashMap<Class<? extends ScraperEvent>, Long> scraperEventIds = event.getScraperEventIds();
+                final LinkedHashMap<Class<? extends ScraperEventInterface>, Long> scraperEventIds = event.getScraperEventIds();
                 if (scraperEventIds != null && !scraperEventIds.isEmpty()) {
-                    for (final Entry<Class<? extends ScraperEvent>, Long> entry : scraperEventIds.entrySet()) {
-                        final Class<? extends ScraperEvent> clazz = entry.getKey();
+                    for (final Entry<Class<? extends ScraperEventInterface>, Long> entry : scraperEventIds.entrySet()) {
+                        final Class<? extends ScraperEventInterface> clazz = entry.getKey();
                         final long scraperEventId = entry.getValue();
-                        final SynchronizedMap<Long, ? extends ScraperEvent> scraperEventsMap = Formulas.getScraperEventsMap(clazz);
-                        @Nullable final ScraperEvent scraperEvent = scraperEventsMap != null ? scraperEventsMap.get(scraperEventId) : null;
+                        final SynchronizedMap<Long, ? extends ScraperEventInterface> scraperEventsMap = Formulas.getScraperEventsMap(clazz);
+                        @Nullable final ScraperEventInterface scraperEvent = scraperEventsMap != null ? scraperEventsMap.get(scraperEventId) : null;
                         if (scraperEvent != null) {
 //                            if (!scraperEvent.isIgnored()) {
                             timeScraperEventCheckMap.put(clazz, scraperEvent.getTimeStamp());
@@ -242,7 +243,7 @@ public class QuickCheckThread
 //                                synchronized (Statics.safeMarketBooksMap) {
 
                                 if (BlackList.notExistOrIgnored(Statics.marketCataloguesMap, marketId, startTime)) {
-                                    BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "marketBook, marketCatalogue map");
+                                    BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "marketBook, marketCatalogue map", Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD);
 
                                     MaintenanceThread.removeFromSecondaryMaps(marketId);
                                     //noinspection ContinueStatement
@@ -251,7 +252,7 @@ public class QuickCheckThread
                                     existingMarketBook = Statics.safeMarketBooksMap.putIfAbsent(marketId, marketBook);
                                     if (existingMarketBook == null) { // marketBook was added, no previous marketBook existed
                                         if (BlackList.notExistOrIgnored(Statics.marketCataloguesMap, marketId, startTime)) {
-                                            BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "marketBook, marketCatalogue map, after put");
+                                            BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "marketBook, marketCatalogue map, after put", Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD);
                                             MaintenanceThread.removeFromSecondaryMaps(marketId);
                                             //noinspection ContinueStatement
                                             continue; // next for element

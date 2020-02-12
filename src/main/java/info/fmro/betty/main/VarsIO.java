@@ -1,8 +1,8 @@
 package info.fmro.betty.main;
 
-import info.fmro.betty.entities.Event;
+import info.fmro.shared.entities.Event;
 import info.fmro.betty.entities.MarketBook;
-import info.fmro.betty.entities.MarketCatalogue;
+import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.betty.logic.SafetyLimits;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.safebet.BetradarEvent;

@@ -1,6 +1,6 @@
 package info.fmro.betty.betapi;
 
-import info.fmro.betty.entities.MarketCatalogue;
+import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.betty.logic.SafetyLimits;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.safebet.PlacedAmountsThread;

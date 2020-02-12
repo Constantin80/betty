@@ -1,16 +1,20 @@
 package info.fmro.betty.safebet;
 
-import info.fmro.betty.entities.Event;
-import info.fmro.betty.entities.MarketCatalogue;
-import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.Statics;
+import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.entities.Event;
+import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.shared.enums.MatchStatus;
 import info.fmro.shared.enums.ParsedMarketType;
 import info.fmro.shared.enums.ParsedRunnerType;
 import info.fmro.shared.enums.ScrapedField;
 import info.fmro.shared.enums.Side;
+import info.fmro.shared.objects.ParsedMarket;
+import info.fmro.shared.objects.ParsedRunner;
+import info.fmro.shared.stream.objects.ScraperEventInterface;
+import info.fmro.shared.utility.BlackList;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import info.fmro.shared.utility.SynchronizedMap;
@@ -49,7 +53,7 @@ public final class FindSafeRunners {
                                                 final String eventName, final Collection<? super String> modifiedMarketsList, final long startTime, final HashSet<ParsedRunner> usedParsedRunnersSet, final String scraperData) {
         if (safeRunnersSet.size() == nSafeRunners) {
             if (BlackList.notExistOrIgnored(Statics.marketCataloguesMap, marketId, startTime)) {
-                BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "marketCatalogue in safeRunnersSetSizeCheck");
+                BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "marketCatalogue in safeRunnersSetSizeCheck", Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD);
                 MaintenanceThread.removeFromSecondaryMaps(marketId);
             } else if (Statics.marketsUnderTesting.contains(parsedMarketType)) {
                 Generic.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "marketsUnderTesting safeRunnersSet not added, size: {} in findSafeRunners for: {} {} {} {}", safeRunnersSet.size(), scraperData, Generic.objectToString(usedParsedRunnersSet),
@@ -58,7 +62,7 @@ public final class FindSafeRunners {
                 final SynchronizedSafeSet<SafeRunner> inMapSafeRunnersSet = Statics.safeMarketsMap.putIfAbsent(marketId, safeRunnersSet);
                 if (inMapSafeRunnersSet == null) { // safeRunnersSet was added, no previous safeRunnersSet existed
                     if (BlackList.notExistOrIgnored(Statics.marketCataloguesMap, marketId, startTime)) {
-                        BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "marketCatalogue in safeRunnersSetSizeCheck after add");
+                        BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "marketCatalogue in safeRunnersSetSizeCheck after add", Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD);
                         MaintenanceThread.removeFromSecondaryMaps(marketId);
                     } else {
                         if (!modifiedMarketsList.contains(marketId)) {
@@ -162,14 +166,14 @@ public final class FindSafeRunners {
     }
 
     @NotNull
-    private static SynchronizedMap<Class<? extends ScraperEvent>, Long> putUsedScrapersSet(final Map<? super ScrapedField, ? super SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapersMap, final ScrapedField scrapedField) {
+    private static SynchronizedMap<Class<? extends ScraperEventInterface>, Long> putUsedScrapersSet(final Map<? super ScrapedField, ? super SynchronizedMap<Class<? extends ScraperEventInterface>, Long>> usedScrapersMap, final ScrapedField scrapedField) {
         return putUsedScrapersMap(usedScrapersMap, scrapedField, 4);
     }
 
     @NotNull
-    private static SynchronizedMap<Class<? extends ScraperEvent>, Long> putUsedScrapersMap(final @NotNull Map<? super ScrapedField, ? super SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapersMap, final ScrapedField scrapedField,
-                                                                                           final int initialSetSize) {
-        final SynchronizedMap<Class<? extends ScraperEvent>, Long> map = new SynchronizedMap<>(initialSetSize);
+    private static SynchronizedMap<Class<? extends ScraperEventInterface>, Long> putUsedScrapersMap(final @NotNull Map<? super ScrapedField, ? super SynchronizedMap<Class<? extends ScraperEventInterface>, Long>> usedScrapersMap,
+                                                                                                    final ScrapedField scrapedField, final int initialSetSize) {
+        final SynchronizedMap<Class<? extends ScraperEventInterface>, Long> map = new SynchronizedMap<>(initialSetSize);
         usedScrapersMap.put(scrapedField, map);
         return map;
     }
@@ -206,21 +210,23 @@ public final class FindSafeRunners {
                     final Event event = Formulas.getStoredEventOfMarketCatalogue(marketCatalogue);
                     if (parsedMarket != null && event != null && !event.isIgnored(startTime)) {
                         if (eventsSet == null || eventsSet.contains(event)) {
-                            final LinkedHashMap<Class<? extends ScraperEvent>, Long> scraperEventIds = event.getScraperEventIds();
+                            final LinkedHashMap<Class<? extends ScraperEventInterface>, Long> scraperEventIds = event.getScraperEventIds();
                             final HashSet<ParsedRunner> parsedRunnersSet = parsedMarket.getParsedRunnersSet();
                             final HashSet<ParsedRunner> usedParsedRunnersSet = new HashSet<>(0);
                             final ParsedMarketType parsedMarketType = parsedMarket.getParsedMarketType();
                             final String eventName = event.getName();
                             if (parsedRunnersSet != null && parsedMarketType != null && eventName != null && scraperEventIds != null) {
-                                final int nMatches = event.getNValidScraperEventIds();
+                                final int nMatches = event.getNValidScraperEventIds(MaintenanceThread.removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated,
+                                                                                    Statics.MIN_MATCHED, Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod,
+                                                                                    LaunchCommandThread.constructorHashSetLongEvent);
                                 final List<Integer> homeScores = new ArrayList<>(nMatches), awayScores = new ArrayList<>(nMatches), homeHtScores = new ArrayList<>(nMatches), awayHtScores = new ArrayList<>(nMatches);
                                 final List<MatchStatus> matchStatuses = new ArrayList<>(nMatches);
-                                final Set<Entry<Class<? extends ScraperEvent>, Long>> scraperEventIdsEntrySet = scraperEventIds.entrySet();
-                                for (final Entry<Class<? extends ScraperEvent>, Long> entryMatched : scraperEventIdsEntrySet) {
-                                    final Class<? extends ScraperEvent> clazz = entryMatched.getKey();
+                                final Set<Entry<Class<? extends ScraperEventInterface>, Long>> scraperEventIdsEntrySet = scraperEventIds.entrySet();
+                                for (final Entry<Class<? extends ScraperEventInterface>, Long> entryMatched : scraperEventIdsEntrySet) {
+                                    final Class<? extends ScraperEventInterface> clazz = entryMatched.getKey();
                                     final long scraperEventId = entryMatched.getValue();
-                                    final SynchronizedMap<Long, ? extends ScraperEvent> map = Formulas.getScraperEventsMap(clazz);
-                                    final ScraperEvent scraperEvent = map.get(scraperEventId);
+                                    final SynchronizedMap<Long, ? extends ScraperEventInterface> map = Formulas.getScraperEventsMap(clazz);
+                                    final ScraperEventInterface scraperEvent = map.get(scraperEventId);
                                     if (scraperEvent != null) {
                                         if (scraperEvent.isIgnored()) { // ignored, I guess nothing to be done
                                         } else {
@@ -260,15 +266,15 @@ public final class FindSafeRunners {
                                 final String scraperData = matchStatus + " " + homeScore + "-" + awayScore + "(" + homeHtScore + "-" + awayHtScore + ")";
 
                                 if (homeScore >= 0 && awayScore >= 0 && (homeHtScore >= 0) == (awayHtScore >= 0)) {
-                                    final EnumMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapersMap = new EnumMap<>(ScrapedField.class);
-                                    final SynchronizedMap<Class<? extends ScraperEvent>, Long> homeScoreScrapers = putUsedScrapersSet(usedScrapersMap, ScrapedField.HOME_SCORE),
+                                    final EnumMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEventInterface>, Long>> usedScrapersMap = new EnumMap<>(ScrapedField.class);
+                                    final SynchronizedMap<Class<? extends ScraperEventInterface>, Long> homeScoreScrapers = putUsedScrapersSet(usedScrapersMap, ScrapedField.HOME_SCORE),
                                             awayScoreScrapers = putUsedScrapersSet(usedScrapersMap, ScrapedField.AWAY_SCORE), homeHtScoreScrapers = putUsedScrapersSet(usedScrapersMap, ScrapedField.HOME_HT_SCORE),
                                             awayHtScoreScrapers = putUsedScrapersSet(usedScrapersMap, ScrapedField.AWAY_HT_SCORE), matchStatusScrapers = putUsedScrapersSet(usedScrapersMap, ScrapedField.MATCH_STATUS);
-                                    for (final Entry<Class<? extends ScraperEvent>, Long> entryMatched : scraperEventIdsEntrySet) {
-                                        final Class<? extends ScraperEvent> clazz = entryMatched.getKey();
+                                    for (final Entry<Class<? extends ScraperEventInterface>, Long> entryMatched : scraperEventIdsEntrySet) {
+                                        final Class<? extends ScraperEventInterface> clazz = entryMatched.getKey();
                                         final long scraperEventId = entryMatched.getValue();
-                                        final SynchronizedMap<Long, ? extends ScraperEvent> map = Formulas.getScraperEventsMap(clazz);
-                                        final ScraperEvent scraperEvent = map.get(scraperEventId);
+                                        final SynchronizedMap<Long, ? extends ScraperEventInterface> map = Formulas.getScraperEventsMap(clazz);
+                                        final ScraperEventInterface scraperEvent = map.get(scraperEventId);
                                         if (scraperEvent != null) {
                                             if (scraperEvent.isIgnored()) { // ignored, I guess nothing to be done
                                             } else {

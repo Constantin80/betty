@@ -1,12 +1,15 @@
 package info.fmro.betty.safebet;
 
-import info.fmro.betty.objects.BlackList;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.permanent.MaintenanceThread;
+import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.enums.ScrapedField;
 import info.fmro.shared.enums.Side;
 import info.fmro.shared.objects.SafeObjectInterface;
+import info.fmro.shared.stream.objects.ScraperEventInterface;
+import info.fmro.shared.utility.BlackList;
 import info.fmro.shared.utility.Generic;
+import info.fmro.shared.utility.Ignorable;
 import info.fmro.shared.utility.SynchronizedMap;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -30,19 +33,19 @@ public class SafeRunner
     private final String marketId;
     private final Long selectionId; // The unique id of the runner (unique for that particular market)
     private final Side side; // only one side can ever be safe
-    private final EnumMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapers = new EnumMap<>(ScrapedField.class);
+    private final EnumMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEventInterface>, Long>> usedScrapers = new EnumMap<>(ScrapedField.class);
     @SuppressWarnings("FieldHasSetterButNoGetter")
     private boolean hasBeenRemoved; // flag placed as I remove the object from set, so I don't use the object anymore
 //    private double placedAmount; // only used for the specialLimitPeriod
 
     @SuppressWarnings("ConstructorWithTooManyParameters")
-    private SafeRunner(final String marketId, final Long selectionId, final Side side, final long timeStamp, final Map<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapers, final ScrapedField... scrapedFields) {
+    private SafeRunner(final String marketId, final Long selectionId, final Side side, final long timeStamp, final Map<ScrapedField, SynchronizedMap<Class<? extends ScraperEventInterface>, Long>> usedScrapers, final ScrapedField... scrapedFields) {
         this.marketId = marketId;
         this.selectionId = selectionId;
         this.side = side;
         if (scrapedFields != null) {
             for (final ScrapedField scrapedField : scrapedFields) {
-                final SynchronizedMap<Class<? extends ScraperEvent>, Long> existingValue = usedScrapers.get(scrapedField);
+                final SynchronizedMap<Class<? extends ScraperEventInterface>, Long> existingValue = usedScrapers.get(scrapedField);
                 if (existingValue != null && existingValue.size() >= Statics.MIN_MATCHED) {
                     this.usedScrapers.put(scrapedField, existingValue);
                 } else {
@@ -60,7 +63,7 @@ public class SafeRunner
         this.addedStamp = timeStamp;
     }
 
-    SafeRunner(final String marketId, final Long selectionId, final Side side, final Map<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> usedScrapers, final ScrapedField... scrapedFields) {
+    SafeRunner(final String marketId, final Long selectionId, final Side side, final Map<ScrapedField, SynchronizedMap<Class<? extends ScraperEventInterface>, Long>> usedScrapers, final ScrapedField... scrapedFields) {
         this(marketId, selectionId, side, System.currentTimeMillis(), usedScrapers, scrapedFields);
     }
 
@@ -113,7 +116,7 @@ public class SafeRunner
 //        return placedAmount;
 //    }
     private synchronized int getMatchedScrapers(final ScrapedField scrapedField) {
-        final SynchronizedMap<Class<? extends ScraperEvent>, Long> map = this.usedScrapers.get(scrapedField);
+        final SynchronizedMap<Class<? extends ScraperEventInterface>, Long> map = this.usedScrapers.get(scrapedField);
         return map == null ? 0 : map.size();
     }
 
@@ -139,13 +142,13 @@ public class SafeRunner
     //    public synchronized void setSide(Side side) {
 //        this.side = side;
 //    }
-    public synchronized EnumMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> getUsedScrapers() {
+    public synchronized EnumMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEventInterface>, Long>> getUsedScrapers() {
         return new EnumMap<>(this.usedScrapers);
     }
 
     private synchronized int leastUsedScrapers() {
         int minimum = Integer.MAX_VALUE;
-        for (final SynchronizedMap<Class<? extends ScraperEvent>, Long> map : this.usedScrapers.values()) {
+        for (final SynchronizedMap<Class<? extends ScraperEventInterface>, Long> map : this.usedScrapers.values()) {
             minimum = Math.min(minimum, map.size());
         }
         return minimum;
@@ -155,19 +158,19 @@ public class SafeRunner
         return leastUsedScrapers() >= Statics.MIN_MATCHED;
     }
 
-    @SuppressWarnings("UnusedReturnValue")
+    @SuppressWarnings({"UnusedReturnValue", "unchecked"})
     synchronized int checkScrapers() {
         // checks the associated scrapers
         // self-removes from map if not enough associated scrapers left
         // sets lenghty ignore on self if safeRunner is young and some associated scraper is ignored, although enough associated scrapers left; safety feature
         int modified = 0;
 
-        for (final SynchronizedMap<Class<? extends ScraperEvent>, Long> map : this.usedScrapers.values()) {
-            final Set<Entry<Class<? extends ScraperEvent>, Long>> entrySetCopy = map.entrySetCopy();
-            for (final Entry<Class<? extends ScraperEvent>, Long> entry : entrySetCopy) {
-                final Class<? extends ScraperEvent> key = entry.getKey();
+        for (final SynchronizedMap<Class<? extends ScraperEventInterface>, Long> map : this.usedScrapers.values()) {
+            final Set<Entry<Class<? extends ScraperEventInterface>, Long>> entrySetCopy = map.entrySetCopy();
+            for (final Entry<Class<? extends ScraperEventInterface>, Long> entry : entrySetCopy) {
+                final Class<? extends ScraperEventInterface> key = entry.getKey();
                 final Long value = entry.getValue();
-                if (BlackList.notExistOrIgnored(key, value)) {
+                if (BlackList.notExistOrIgnored((Class<? extends Ignorable>) key, value, Formulas.getIgnorableMapMethod)) {
                     if (map.remove(key) != null) {
                         modified++;
                     } else {
@@ -212,7 +215,7 @@ public class SafeRunner
             logger.error("mismatch side in SafeRunner.update: {} {}", Generic.objectToString(this), Generic.objectToString(safeRunner));
             modified = 0;
         } else {
-            final EnumMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> otherUsedScrapers = safeRunner.getUsedScrapers();
+            final EnumMap<ScrapedField, SynchronizedMap<Class<? extends ScraperEventInterface>, Long>> otherUsedScrapers = safeRunner.getUsedScrapers();
             if (otherUsedScrapers == null) {
                 logger.error("otherUsedScrapers null in SafeRunner.update: {} {}", Generic.objectToString(this), Generic.objectToString(safeRunner));
                 modified = 0;
@@ -224,10 +227,10 @@ public class SafeRunner
                     final Set<ScrapedField> otherUsedScrapersKeys = otherUsedScrapers.keySet();
                     if (Objects.equals(usedScrapersKeys, otherUsedScrapersKeys)) {
                         modified = 0; // initialized
-                        for (final Entry<ScrapedField, SynchronizedMap<Class<? extends ScraperEvent>, Long>> entry : this.usedScrapers.entrySet()) {
+                        for (final Entry<ScrapedField, SynchronizedMap<Class<? extends ScraperEventInterface>, Long>> entry : this.usedScrapers.entrySet()) {
                             final ScrapedField scrapedField = entry.getKey();
-                            final SynchronizedMap<Class<? extends ScraperEvent>, Long> map = entry.getValue();
-                            final SynchronizedMap<Class<? extends ScraperEvent>, Long> otherMap = otherUsedScrapers.get(scrapedField);
+                            final SynchronizedMap<Class<? extends ScraperEventInterface>, Long> map = entry.getValue();
+                            final SynchronizedMap<Class<? extends ScraperEventInterface>, Long> otherMap = otherUsedScrapers.get(scrapedField);
                             if (Objects.equals(map, otherMap)) { // equal, nothing to be done
                             } else {
                                 modified++;

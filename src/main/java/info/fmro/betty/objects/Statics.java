@@ -1,8 +1,6 @@
 package info.fmro.betty.objects;
 
-import info.fmro.betty.entities.Event;
 import info.fmro.betty.entities.MarketBook;
-import info.fmro.betty.entities.MarketCatalogue;
 import info.fmro.betty.logic.SafetyLimits;
 import info.fmro.betty.safebet.BetradarEvent;
 import info.fmro.betty.safebet.BetradarScraperThread;
@@ -18,6 +16,8 @@ import info.fmro.betty.safebet.ScraperPermanentThread;
 import info.fmro.betty.threads.permanent.LoggerThread;
 import info.fmro.betty.threads.permanent.PendingOrdersThread;
 import info.fmro.betty.threads.permanent.RulesManagerThread;
+import info.fmro.shared.entities.Event;
+import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.shared.enums.ParsedMarketType;
 import info.fmro.shared.objects.OrderPrice;
 import info.fmro.shared.objects.SessionTokenObject;

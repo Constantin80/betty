@@ -10,7 +10,7 @@ import com.ximpleware.NavException;
 import com.ximpleware.VTDNav;
 import com.ximpleware.XPathEvalException;
 import com.ximpleware.XPathParseException;
-import info.fmro.betty.entities.Event;
+import info.fmro.shared.entities.Event;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.utility.WebScraperMethods;
