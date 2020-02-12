@@ -1,6 +1,8 @@
 package info.fmro.betty.threads;
 
 import info.fmro.betty.objects.Statics;
+import info.fmro.shared.entities.Event;
+import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.shared.enums.CommandType;
 import info.fmro.shared.enums.ExistingFundsModificationCommand;
 import info.fmro.shared.enums.RulesManagerModificationCommand;
@@ -8,8 +10,6 @@ import info.fmro.shared.enums.SynchronizedMapModificationCommand;
 import info.fmro.shared.logic.ManagedEvent;
 import info.fmro.shared.logic.ManagedMarket;
 import info.fmro.shared.logic.ManagedRunner;
-import info.fmro.shared.stream.objects.EventInterface;
-import info.fmro.shared.stream.objects.MarketCatalogueInterface;
 import info.fmro.shared.stream.objects.PoisonPill;
 import info.fmro.shared.stream.objects.RunnerId;
 import info.fmro.shared.stream.objects.SerializableObjectModification;
@@ -27,6 +27,8 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.concurrent.LinkedBlockingQueue;
 
 @SuppressWarnings("OverlyComplexClass")
@@ -261,10 +263,10 @@ public class InterfaceConnectionThread
                     final Class<?> clazz = (Class<?>) objectsToModify[0];
                     @Nullable final StreamSynchronizedMap<String, Serializable> mapToUse;
 
-                    if (MarketCatalogueInterface.class.equals(clazz)) {
+                    if (MarketCatalogue.class.equals(clazz)) {
                         //noinspection rawtypes
                         mapToUse = (StreamSynchronizedMap) Statics.marketCataloguesMap;
-                    } else if (EventInterface.class.equals(clazz)) {
+                    } else if (Event.class.equals(clazz)) {
                         //noinspection rawtypes
                         mapToUse = (StreamSynchronizedMap) Statics.eventsMap;
                     } else {
@@ -275,15 +277,36 @@ public class InterfaceConnectionThread
                     if (mapToUse == null) { // nothing to do, error message was already printed
                     } else {
                         final int nObjects = objectsToModify.length;
-                        //noinspection SwitchStatementWithTooFewBranches
                         switch (synchronizedMapModificationCommand) {
                             case refresh:
                                 if (nObjects == 1) {
-                                    if (EventInterface.class.equals(clazz)) {
+                                    if (Event.class.equals(clazz)) {
                                         Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.checkEventResultList));
                                     } else {
                                         logger.error("unsupported refresh map in runAfterReceive: {} {} {} {}", clazz, Generic.objectToString(objectsToModify), synchronizedMapModificationCommand.name(), Generic.objectToString(receivedCommand));
                                     }
+                                } else {
+                                    logger.error("wrong size objectsToModify in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), synchronizedMapModificationCommand.name(), Generic.objectToString(receivedCommand));
+                                }
+                                break;
+                            case getMarkets:
+                                if (nObjects > 1) {
+                                    if (Event.class.equals(clazz)) { // todo get markets
+                                        final HashSet<Event> events = new HashSet<>(Generic.getCollectionCapacity(nObjects - 1));
+                                        for (int i = 1; i < nObjects; i++) {
+                                            events.add((Event) objectsToModify[i]);
+                                        }
+                                        Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.checkEventResultList));
+                                    } else //noinspection ConstantConditions
+                                        if (MarketCatalogue.class.equals(clazz)) {
+                                            final Collection<String> ids = new HashSet<>(Generic.getCollectionCapacity(nObjects - 1));
+                                            for (int i = 1; i < nObjects; i++) {
+                                                ids.add((String) objectsToModify[i]);
+                                            }
+                                            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.checkEventResultList));
+                                        } else {
+                                            logger.error("unsupported getMarkets map in runAfterReceive: {} {} {} {}", clazz, Generic.objectToString(objectsToModify), synchronizedMapModificationCommand.name(), Generic.objectToString(receivedCommand));
+                                        }
                                 } else {
                                     logger.error("wrong size objectsToModify in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), synchronizedMapModificationCommand.name(), Generic.objectToString(receivedCommand));
                                 }

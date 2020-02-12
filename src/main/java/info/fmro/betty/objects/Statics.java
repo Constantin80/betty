@@ -1,6 +1,5 @@
 package info.fmro.betty.objects;
 
-import info.fmro.shared.entities.MarketBook;
 import info.fmro.betty.logic.SafetyLimits;
 import info.fmro.betty.safebet.BetradarEvent;
 import info.fmro.betty.safebet.BetradarScraperThread;
@@ -17,6 +16,7 @@ import info.fmro.betty.threads.permanent.LoggerThread;
 import info.fmro.betty.threads.permanent.PendingOrdersThread;
 import info.fmro.betty.threads.permanent.RulesManagerThread;
 import info.fmro.shared.entities.Event;
+import info.fmro.shared.entities.MarketBook;
 import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.shared.enums.ParsedMarketType;
 import info.fmro.shared.objects.OrderPrice;
@@ -24,8 +24,6 @@ import info.fmro.shared.objects.SessionTokenObject;
 import info.fmro.shared.objects.TimeStamps;
 import info.fmro.shared.stream.cache.market.MarketCache;
 import info.fmro.shared.stream.cache.order.OrderCache;
-import info.fmro.shared.stream.objects.EventInterface;
-import info.fmro.shared.stream.objects.MarketCatalogueInterface;
 import info.fmro.shared.stream.objects.StreamSynchronizedMap;
 import info.fmro.shared.utility.DebugLevel;
 import info.fmro.shared.utility.Generic;
@@ -143,9 +141,9 @@ public final class Statics {
 
     public static final SynchronizedMap<Long, BetradarEvent> betradarEventsMap = new SynchronizedMap<>(128); // <scraperId, BetradarEvent>
     public static final SynchronizedMap<Long, CoralEvent> coralEventsMap = new SynchronizedMap<>(128); // <scraperId, CoralEvent>
-    public static final StreamSynchronizedMap<String, Event> eventsMap = new StreamSynchronizedMap<>(EventInterface.class, 128); // <eventId, Event>
+    public static final StreamSynchronizedMap<String, Event> eventsMap = new StreamSynchronizedMap<>(Event.class, 128); // <eventId, Event>
     // marketCataloguesMap contains interestingMarkets; markets that can be parsed and have at least MIN_MATCHED scraperEvents attached; added to in FindMarkets
-    public static final StreamSynchronizedMap<String, MarketCatalogue> marketCataloguesMap = new StreamSynchronizedMap<>(MarketCatalogueInterface.class, 128); // <marketId, MarketCatalogue>
+    public static final StreamSynchronizedMap<String, MarketCatalogue> marketCataloguesMap = new StreamSynchronizedMap<>(MarketCatalogue.class, 128); // <marketId, MarketCatalogue>
     // safeMarketsMap contains the safeRunners and marketIds of their markets; these markets are being quickly rechecked; added to in FindSafeRunners
     public static final SynchronizedMap<String, SynchronizedSafeSet<SafeRunner>> safeMarketsMap = new SynchronizedMap<>(64); // <marketId, HashSet<SafeRunner>>
     // safeMarketsImportantMap contains marketIds of markets with safeRunners that have available amounts on them; these are rechecked very quicly, until the safeBet dissapears; added to in QuickCheckThread

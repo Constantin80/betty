@@ -13,7 +13,6 @@ import info.fmro.shared.entities.PlaceInstruction;
 import info.fmro.shared.objects.OrderPrice;
 import info.fmro.shared.objects.StampedDouble;
 import info.fmro.shared.objects.TwoOrderedStrings;
-import info.fmro.shared.stream.objects.MarketCatalogueInterface;
 import info.fmro.shared.stream.objects.ScraperEventInterface;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
@@ -562,7 +561,7 @@ public final class Formulas {
         } else if (clazz.equals(Event.class)) {
             returnValue = (SynchronizedMap<?, T>) Statics.eventsMap;
         } else if (ScraperEvent.class.isAssignableFrom(clazz)) {
-            returnValue = (SynchronizedMap<?, T>) getScraperEventsMap((Class<? extends ScraperEventInterface>) clazz);
+            returnValue = (SynchronizedMap<?, T>) getScraperEventsMap((Class<? extends ScraperEvent>) clazz);
         } else {
             logger.error("unsupported clazz {} in getIgnorableMap", clazz);
             returnValue = null;
@@ -571,7 +570,7 @@ public final class Formulas {
     }
 
     public static SynchronizedMap<Long, ? extends ScraperEventInterface> getScraperEventsMap(final Class<? extends ScraperEventInterface> clazz) {
-        @Nullable final SynchronizedMap<Long, ? extends ScraperEventInterface> returnValue;
+        @Nullable final SynchronizedMap<Long, ? extends ScraperEvent> returnValue;
         if (clazz == null) {
             logger.error("null clazz value in getScraperEventMap");
             returnValue = null;
@@ -656,7 +655,7 @@ public final class Formulas {
         return isEachWay;
     }
 
-    public static Event getStoredEventOfMarketCatalogue(final MarketCatalogueInterface marketCatalogue) {
+    public static Event getStoredEventOfMarketCatalogue(final MarketCatalogue marketCatalogue) {
         final String eventId = info.fmro.shared.utility.Formulas.getEventIdOfMarketCatalogue(marketCatalogue);
         return Statics.eventsMap.get(eventId);
     }

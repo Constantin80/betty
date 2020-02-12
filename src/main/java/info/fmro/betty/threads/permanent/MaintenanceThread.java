@@ -1,6 +1,5 @@
 package info.fmro.betty.threads.permanent;
 
-import info.fmro.shared.entities.MarketBook;
 import info.fmro.betty.main.Betty;
 import info.fmro.betty.main.VarsIO;
 import info.fmro.betty.objects.Statics;
@@ -12,12 +11,12 @@ import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.utility.DebuggingMethods;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.entities.Event;
+import info.fmro.shared.entities.MarketBook;
 import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.shared.enums.CommandType;
 import info.fmro.shared.enums.ScrapedField;
 import info.fmro.shared.objects.StampedDouble;
 import info.fmro.shared.objects.TwoOrderedStrings;
-import info.fmro.shared.stream.objects.EventInterface;
 import info.fmro.shared.stream.objects.ScraperEventInterface;
 import info.fmro.shared.utility.BlackList;
 import info.fmro.shared.utility.Generic;
@@ -868,7 +867,7 @@ public class MaintenanceThread
         }
     }
 
-    private static void cleanScraperEventsMap(final Class<? extends ScraperEvent> clazz) {
+    private static void cleanScraperEventsMap(final Class<? extends ScraperEventInterface> clazz) {
         final SynchronizedMap<Long, ? extends ScraperEventInterface> map = Formulas.getScraperEventsMap(clazz);
         final long startTime = System.currentTimeMillis();
 
@@ -905,7 +904,7 @@ public class MaintenanceThread
             final String matchedEventId = value.getMatchedEventId();
 
             if (matchedEventId != null ? scraperEventsMapLastUpdate - timeStamp > Generic.HOUR_LENGTH_MILLISECONDS : scraperEventsMapLastUpdate - timeStamp > Generic.MINUTE_LENGTH_MILLISECONDS * 5L) {
-                final ScraperEvent removedScraperEvent = removeScraper(clazz, key);
+                final ScraperEventInterface removedScraperEvent = removeScraper(clazz, key);
                 if (removedScraperEvent != null) {
                     nRemovedScraperEvents++;
                 } else {
@@ -999,7 +998,7 @@ public class MaintenanceThread
     }
 
     @SuppressWarnings("unused")
-    private static Event removeEvent(final EventInterface event) {
+    private static Event removeEvent(final Event event) {
         @Nullable Event existingEvent;
         if (event == null) {
             logger.error("null event in removeEvent");
