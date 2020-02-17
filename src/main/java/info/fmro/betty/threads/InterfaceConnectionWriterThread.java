@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -47,7 +48,11 @@ class InterfaceConnectionWriterThread
                 this.objectOutputStream.writeObject(object); // not synchronized, so when sending initialImage I'll send a copy of the main cache object
                 this.objectOutputStream.flush();
             } catch (IOException e) {
-                logger.error("IOException in InterfaceConnectionWriterThread.sendObject", e);
+                if (e.getClass().equals(SocketException.class) && (Statics.mustStop.get() || this.finished.get())) {
+                    logger.info("IOException in InterfaceConnectionWriterThread.sendObject, thread ending: {}", e.toString());
+                } else {
+                    logger.error("IOException in InterfaceConnectionWriterThread.sendObject", e);
+                }
             }
         }
     }

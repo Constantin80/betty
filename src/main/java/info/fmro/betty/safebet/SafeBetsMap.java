@@ -61,8 +61,7 @@ public class SafeBetsMap<K extends SafeBet>
                         if (localPriceProjection == QuickCheckThread.priceProjectionAll || key.getSize() >= 2L) {
                             value.setTimeFirstNotAppeared(endTime);
 
-                            final String printedString = MessageFormatter.arrayFormat("{} {} {} {}", new Object[]{value.printStats(), key.printStats(),
-                                                                                                                  Generic.objectToString(key), Generic.objectToString(value)}).getMessage();
+                            final String printedString = MessageFormatter.arrayFormat("{} {} {} {}", new Object[]{value.printStats(), key.printStats(), Generic.objectToString(key), Generic.objectToString(value)}).getMessage();
                             logger.info(printedString);
                             Statics.safeBetsSynchronizedWriter.writeAndFlush(Generic.properTimeStamp() + " " + printedString + "\r\n");
 

@@ -45,7 +45,8 @@ public final class ClientHandler {
     }
 
     public static void streamAllMarkets() {
-        final Set<String> marketsSet = Statics.marketCataloguesMap.keySetCopy();
+//        final Set<String> marketsSet = Statics.marketCataloguesMap.keySetCopy();
+        final Set<String> marketsSet = Statics.rulesManagerThread.rulesManager.markets.keySetCopy();
         streamMarkets(marketsSet);
     }
 

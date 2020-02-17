@@ -1,6 +1,5 @@
 package info.fmro.betty.betapi;
 
-import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.betty.logic.SafetyLimits;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.safebet.PlacedAmountsThread;
@@ -9,6 +8,7 @@ import info.fmro.shared.entities.AccountFundsResponse;
 import info.fmro.shared.entities.CancelExecutionReport;
 import info.fmro.shared.entities.CurrencyRate;
 import info.fmro.shared.entities.LimitOrder;
+import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.shared.entities.MarketFilter;
 import info.fmro.shared.entities.PlaceExecutionReport;
 import info.fmro.shared.entities.PlaceInstruction;
@@ -52,7 +52,8 @@ public class RescriptOpThread<T>
     @Contract(pure = true)
     public RescriptOpThread(final Set<? super T> returnSet, final HashSet<String> eventIdsSet, final EnumSet<MarketProjection> marketProjectionsSet) {
         this.operation = OperationType.listMarketCatalogue;
-        this.returnSet = new HashSet<>(returnSet);
+        //noinspection AssignmentOrReturnOfFieldWithMutableType
+        this.returnSet = returnSet; // returnSet has to stay the same object, as I'm returning the elements to the caller using it
         this.eventIdsSet = new HashSet<>(eventIdsSet);
         this.marketProjectionsSet = EnumSet.copyOf(marketProjectionsSet);
     }
@@ -60,7 +61,8 @@ public class RescriptOpThread<T>
     @Contract(pure = true)
     public RescriptOpThread(final Set<? super T> returnSet, final TreeSet<String> marketIdsSet, final EnumSet<MarketProjection> marketProjectionsSet) {
         this.operation = OperationType.listMarketCatalogue;
-        this.returnSet = new HashSet<>(returnSet);
+        //noinspection AssignmentOrReturnOfFieldWithMutableType
+        this.returnSet = returnSet; // returnSet has to stay the same object, as I'm returning the elements to the caller using it
         this.marketIdsSet = new TreeSet<>(marketIdsSet);
         this.marketProjectionsSet = EnumSet.copyOf(marketProjectionsSet);
     }

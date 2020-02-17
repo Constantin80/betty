@@ -2,27 +2,25 @@ package info.fmro.betty.threads.permanent;
 
 import info.fmro.betty.main.Betty;
 import info.fmro.betty.objects.Statics;
+import info.fmro.shared.objects.LoggerThreadInterface;
 import info.fmro.shared.utility.Generic;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Set;
 
 public class LoggerThread
-        implements Runnable {
+        implements LoggerThreadInterface, Runnable {
     private static final Logger logger = LoggerFactory.getLogger(LoggerThread.class);
-    @NotNull
-    public static final Method addLogEntryMethod = Objects.requireNonNull(Generic.getMethod(LoggerThread.class, "addLogEntry", String.class, long.class));
+    //    @NotNull
+//    public static final Method addLogEntryMethod = Objects.requireNonNull(Generic.getMethod(LoggerThread.class, "addLogEntry", String.class, long.class));
     public static final long DEFAULT_TIME_OUT_TO_PRINT = 1_000L;
     private final HashMap<String, ArrayList<Long>> logEntries = new HashMap<>(2);
     private final Map<String, Long> logEntriesExpiration = new HashMap<>(2);

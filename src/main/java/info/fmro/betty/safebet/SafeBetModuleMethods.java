@@ -4,14 +4,13 @@ import com.google.common.collect.Iterables;
 import info.fmro.betty.betapi.ApiNgRescriptOperations;
 import info.fmro.betty.betapi.RescriptOpThread;
 import info.fmro.betty.betapi.RescriptResponseHandler;
-import info.fmro.shared.entities.EventResult;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
-import info.fmro.betty.threads.permanent.LoggerThread;
 import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.entities.Event;
+import info.fmro.shared.entities.EventResult;
 import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.shared.entities.MarketDescription;
 import info.fmro.shared.entities.MarketFilter;
@@ -96,7 +95,7 @@ final class SafeBetModuleMethods {
                     } // end synchronized
 
                     if (existingEvent != null) {
-                        final int update = existingEvent.update(event, LoggerThread.addLogEntryMethod);
+                        final int update = existingEvent.update(event, Statics.loggerThread);
                         if (update > 0) {
                             modifiedEvents.add(existingEvent);
                         }
@@ -188,7 +187,7 @@ final class SafeBetModuleMethods {
                     }
 
                     if (event != null) {
-                        final int update = event.update(eventStump, LoggerThread.addLogEntryMethod);
+                        final int update = event.update(eventStump, Statics.loggerThread);
                         if (update > 0) {
                             modifiedEvents.add(event);
                             logger.warn("event modified {} in findInterestingMarkets for: {} {} {}", update, marketId, Generic.objectToString(eventStump), Generic.objectToString(event)); // this might be normal behaviour
@@ -213,7 +212,7 @@ final class SafeBetModuleMethods {
                     if (existingMarketCatalogue != null) {
                         existingMarketCatalogue.setTotalMatched(marketCatalogue.getTotalMatched()); // else market marked as updated almost every time
                         marketCatalogue.setParsedMarket(existingMarketCatalogue.getParsedMarket(), Statics.supportedEventTypes);
-                        if (existingMarketCatalogue.update(marketCatalogue, Statics.supportedEventTypes, LoggerThread.addLogEntryMethod) > 0) {
+                        if (existingMarketCatalogue.update(marketCatalogue, Statics.supportedEventTypes, Statics.loggerThread) > 0) {
                             if (!marketCatalogue.isIgnored()) {
                                 toCheckMarkets.add(new SimpleEntry<>(marketId, marketCatalogue));
                             }
@@ -385,7 +384,7 @@ final class SafeBetModuleMethods {
                             logger.warn("marketCatalogue attached to blackListed event: {}", marketId);
                         }
 
-                        final int update = event.update(eventStump, LoggerThread.addLogEntryMethod);
+                        final int update = event.update(eventStump, Statics.loggerThread);
                         if (update > 0) {
                             modifiedEvents.add(event);
                             logger.warn("event modified {} in findInterestingMarkets for: {} {} {}", update, marketId, Generic.objectToString(eventStump), Generic.objectToString(event)); // this might be normal behaviour
@@ -397,7 +396,7 @@ final class SafeBetModuleMethods {
                             if (existingMarketCatalogue != null) {
                                 existingMarketCatalogue.setTotalMatched(marketCatalogue.getTotalMatched()); // else market marked as updated almost every time
                                 marketCatalogue.setParsedMarket(existingMarketCatalogue.getParsedMarket(), Statics.supportedEventTypes);
-                                if (existingMarketCatalogue.update(marketCatalogue, Statics.supportedEventTypes, LoggerThread.addLogEntryMethod) > 0) {
+                                if (existingMarketCatalogue.update(marketCatalogue, Statics.supportedEventTypes, Statics.loggerThread) > 0) {
                                     if (!marketCatalogue.isIgnored()) {
 //                                        toCheckMarkets.add(new SimpleEntry<>(marketId, marketCatalogue));
                                         toCheckMarkets.add(new SimpleEntry<>(marketId, existingMarketCatalogue));

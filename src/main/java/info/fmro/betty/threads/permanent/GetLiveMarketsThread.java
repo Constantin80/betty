@@ -1,11 +1,11 @@
 package info.fmro.betty.threads.permanent;
 
 import info.fmro.betty.betapi.ApiNGJRescriptDemo;
-import info.fmro.shared.entities.EventResult;
 import info.fmro.betty.main.Betty;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.shared.entities.Event;
+import info.fmro.shared.entities.EventResult;
 import info.fmro.shared.enums.CommandType;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @SuppressWarnings("ReuseOfLocalVariable")
@@ -22,7 +23,21 @@ public class GetLiveMarketsThread
         extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(GetLiveMarketsThread.class);
     public static final AtomicInteger timedMapEventsCounter = new AtomicInteger(), timedFindInterestingMarketsCounter = new AtomicInteger();
+    public static final Set<String> unsupportedEventNames = Set.of("Set 01", "Set 02", "Set 03", "Set 04", "Set 05");
 
+    @SuppressWarnings("WeakerAccess")
+    public static boolean unsupportedEvent(final Event event) {
+        final boolean unsupported;
+        if (event == null) {
+            unsupported = true;
+        } else {
+            final String eventName = event.getName();
+            unsupported = unsupportedEventNames.contains(eventName);
+        }
+        return unsupported;
+    }
+
+    @SuppressWarnings("OverlyNestedMethod")
     public static void parseEventList() {
         final long startTime = System.currentTimeMillis();
         final List<EventResult> eventResultList = ApiNGJRescriptDemo.getEventList(Statics.appKey.get());
@@ -32,36 +47,39 @@ public class GetLiveMarketsThread
             final Collection<Event> modifiedEvents = new HashSet<>(0);
             for (final EventResult eventResult : eventResultList) {
                 final Event event = eventResult.getEvent();
-                final String eventId = event.getId();
-                final Event existingEvent;
-
-                if (Statics.eventsMap.containsKey(eventId)) {
-                    existingEvent = Statics.eventsMap.get(eventId);
+                if (unsupportedEvent(event)) { // won't do anything
                 } else {
-                    if (event.isIgnored(startTime)) { // these events don't already exist in map, so they can't be ignored already; this would be an error
-                        logger.error("blackListed event added: {}", eventId);
-                    } else { // normal case, nothing to be done
-                    }
+                    final String eventId = event.getId();
+                    final Event existingEvent;
 
-                    existingEvent = Statics.eventsMap.putIfAbsent(eventId, event);
-                    if (existingEvent == null) { // event was added, no previous event existed, double check to avoid racing issues
-                        addedEvents.add(event);
+                    if (Statics.eventsMap.containsKey(eventId)) {
+                        existingEvent = Statics.eventsMap.get(eventId);
                     } else {
-                        final long eventStamp = event.getTimeStamp();
-                        final long existingEventStamp = existingEvent.getTimeStamp();
-                        final long timeDifference = eventStamp - existingEventStamp;
-                        if (timeDifference < 1_000L) {
-                            logger.info("existingEvent found {} ms during put double check: {} {}", timeDifference, Generic.objectToString(existingEvent), Generic.objectToString(event));
+                        if (event.isIgnored(startTime)) { // these events don't already exist in map, so they can't be ignored already; this would be an error
+                            logger.error("blackListed event added: {}", eventId);
+                        } else { // normal case, nothing to be done
+                        }
+
+                        existingEvent = Statics.eventsMap.putIfAbsent(eventId, event);
+                        if (existingEvent == null) { // event was added, no previous event existed, double check to avoid racing issues
+                            addedEvents.add(event);
                         } else {
-                            logger.error("existingEvent found {} ms during put double check: {} {}", timeDifference, Generic.objectToString(existingEvent), Generic.objectToString(event));
+                            final long eventStamp = event.getTimeStamp();
+                            final long existingEventStamp = existingEvent.getTimeStamp();
+                            final long timeDifference = eventStamp - existingEventStamp;
+                            if (timeDifference < 1_000L) {
+                                logger.info("existingEvent found {} ms during put double check: {} {}", timeDifference, Generic.objectToString(existingEvent), Generic.objectToString(event));
+                            } else {
+                                logger.error("existingEvent found {} ms during put double check: {} {}", timeDifference, Generic.objectToString(existingEvent), Generic.objectToString(event));
+                            }
                         }
                     }
-                }
 
-                if (existingEvent != null) {
-                    final int update = existingEvent.update(event, LoggerThread.addLogEntryMethod);
-                    if (update > 0) {
-                        modifiedEvents.add(existingEvent);
+                    if (existingEvent != null) {
+                        final int update = existingEvent.update(event, Statics.loggerThread);
+                        if (update > 0) {
+                            modifiedEvents.add(existingEvent);
+                        }
                     }
                 }
             } // end for
@@ -166,6 +184,7 @@ public class GetLiveMarketsThread
         return timeTillNext;
     }
 
+    @SuppressWarnings("unused")
     private static long timedStreamMarkets() {
         long timeForNext = Statics.timeStamps.getLastStreamMarkets();
         long timeTillNext = timeForNext - System.currentTimeMillis();
@@ -218,7 +237,7 @@ public class GetLiveMarketsThread
                     timeToSleep = Math.min(timeToSleep, timedFindSafeRunners());
                 }
 
-                timeToSleep = Math.min(timeToSleep, timedStreamMarkets());
+//                timeToSleep = Math.min(timeToSleep, timedStreamMarkets());
 
                 Generic.threadSleepSegmented(timeToSleep, 100L, Statics.mustStop);
             } catch (Throwable throwable) { // safety net

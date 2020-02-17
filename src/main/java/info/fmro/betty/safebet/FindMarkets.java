@@ -4,7 +4,6 @@ import com.google.common.collect.Iterables;
 import info.fmro.betty.betapi.RescriptOpThread;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
-import info.fmro.betty.threads.permanent.LoggerThread;
 import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.entities.Event;
@@ -199,8 +198,10 @@ public final class FindMarkets {
                     if (homeMatch > Statics.threshold && awayMatch < homeMatch) {
                         Generic.stringBuilderReplace(eventHomeName, teamString);
                     } else {
+//                        Generic.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "STRANGE runner home team matching {} {} {} / {} - {} in: {} {}", homeMatch, awayMatch, eventHomeName, eventAwayName, teamString, marketId,
+//                                                          Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
                         Generic.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "STRANGE runner home team matching {} {} {} / {} - {} in: {} {}", homeMatch, awayMatch, eventHomeName, eventAwayName, teamString, marketId,
-                                                          Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
+                                                          marketCatalogue == null ? null : marketCatalogue.getMarketName());
                         success = false;
                     }
                 }
@@ -210,8 +211,10 @@ public final class FindMarkets {
                     if (awayMatch > Statics.threshold && homeMatch < awayMatch) {
                         Generic.stringBuilderReplace(eventAwayName, teamString);
                     } else {
+//                        Generic.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "STRANGE runner away team matching {} {} {} / {} - {} in: {} {}", homeMatch, awayMatch, eventHomeName, eventAwayName, teamString, marketId,
+//                                                          Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
                         Generic.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "STRANGE runner away team matching {} {} {} / {} - {} in: {} {}", homeMatch, awayMatch, eventHomeName, eventAwayName, teamString, marketId,
-                                                          Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
+                                                          marketCatalogue == null ? null : marketCatalogue.getMarketName());
                         success = false;
                     }
                 }
@@ -284,7 +287,7 @@ public final class FindMarkets {
                     }
 
                     if (event != null) {
-                        final int update = event.update(eventStump, LoggerThread.addLogEntryMethod);
+                        final int update = event.update(eventStump, Statics.loggerThread);
                         if (update > 0) {
                             modifiedEvents.add(event);
                             logger.warn("event modified {} in findMarkets for: {} {} {}", update, marketId, Generic.objectToString(eventStump), Generic.objectToString(event)); // this might be normal behaviour
@@ -310,7 +313,7 @@ public final class FindMarkets {
                     if (existingMarketCatalogue != null) {
                         existingMarketCatalogue.setTotalMatched(marketCatalogue.getTotalMatched()); // else market marked as updated almost every time
                         marketCatalogue.setParsedMarket(existingMarketCatalogue.getParsedMarket(), Statics.supportedEventTypes);
-                        if (existingMarketCatalogue.update(marketCatalogue, Statics.supportedEventTypes, LoggerThread.addLogEntryMethod) > 0) {
+                        if (existingMarketCatalogue.update(marketCatalogue, Statics.supportedEventTypes, Statics.loggerThread) > 0) {
                             if (!marketCatalogue.isIgnored()) {
                                 toCheckMarkets.add(new SimpleEntry<>(marketId, marketCatalogue));
                             }
@@ -349,9 +352,8 @@ public final class FindMarkets {
                     Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, notIgnoredModifiedEvents));
                 }
             }
-
+            final int sizeEntries = toCheckMarkets.size();
             if (Statics.safeBetModuleActivated) {
-                final int sizeEntries = toCheckMarkets.size();
                 if (sizeEntries > 0) {
                     final String printedString = MessageFormatter.arrayFormat("findMarkets toCheckMarkets(modify/add): {}({}/{}) launch: findSafeRunners", new Object[]{sizeEntries, nModifiedMarkets, nAddedMarkets}).getMessage();
                     logger.info(printedString);
@@ -368,6 +370,8 @@ public final class FindMarkets {
                         Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, notIgnoredToCheckMarkets));
                     }
                 }
+            } else {
+                logger.info("findMarkets nAddedMarkets {} out of returnSet {}", nAddedMarkets, returnSet.size());
             }
         } else {
             logger.error("null marketIdsSet in findMarkets");
@@ -485,7 +489,7 @@ public final class FindMarkets {
                             logger.warn("marketCatalogue attached to blackListed event: {}", marketId);
                         }
 
-                        final int update = event.update(eventStump, LoggerThread.addLogEntryMethod);
+                        final int update = event.update(eventStump, Statics.loggerThread);
                         if (update > 0) {
                             modifiedEvents.add(event);
                             logger.warn("event modified {} in findMarkets for: {} {} {}", update, marketId, Generic.objectToString(eventStump), Generic.objectToString(event)); // this might be normal behaviour
@@ -497,7 +501,7 @@ public final class FindMarkets {
                             if (existingMarketCatalogue != null) {
                                 existingMarketCatalogue.setTotalMatched(marketCatalogue.getTotalMatched()); // else market marked as updated almost every time
                                 marketCatalogue.setParsedMarket(existingMarketCatalogue.getParsedMarket(), Statics.supportedEventTypes);
-                                if (existingMarketCatalogue.update(marketCatalogue, Statics.supportedEventTypes, LoggerThread.addLogEntryMethod) > 0) {
+                                if (existingMarketCatalogue.update(marketCatalogue, Statics.supportedEventTypes, Statics.loggerThread) > 0) {
                                     if (!marketCatalogue.isIgnored()) {
 //                                        toCheckMarkets.add(new SimpleEntry<>(marketId, marketCatalogue));
                                         toCheckMarkets.add(new SimpleEntry<>(marketId, existingMarketCatalogue));
@@ -537,7 +541,7 @@ public final class FindMarkets {
                             if (eventId != null) {
                                 final boolean interestingMarket = parseSupportedMarket(eventHomeNameString, eventAwayNameString, marketCatalogue, marketId, marketName, marketDescription, runnerCatalogsList);
 //                                logger.info("interesting or not: {} {} {}", marketId, interestingMarket, nMatched);
-                                if (interestingMarket && additionalInterestingCheck(marketCatalogue)) {
+                                if (interestingMarket && (!Statics.safeBetModuleActivated || additionalInterestingCheck(marketCatalogue))) {
                                     //noinspection ConstantConditions
                                     if (nMatched >= Statics.MIN_MATCHED) { // double check, just in case an error slips through
                                         final MarketCatalogue inMapMarketCatalogue = Statics.marketCataloguesMap.putIfAbsent(marketId, marketCatalogue);
@@ -847,7 +851,7 @@ public final class FindMarkets {
                         break;
                 } // end switch
             } else {
-                final String nGoalsString = marketType.substring(marketType.lastIndexOf('_') + "_".length(), marketType.lastIndexOf('5'));
+                final String nGoalsString;
                 //noinspection SwitchStatementDensity
                 switch (marketType) {
                     case "MATCH_ODDS_AND_BTTS":
@@ -915,6 +919,8 @@ public final class FindMarkets {
                     case "MATCH_ODDS_AND_OU_25":
                     case "MATCH_ODDS_AND_OU_35":
                         parsedMarketType = ParsedMarketType.valueOf(marketType);
+                        //noinspection DuplicateExpressions
+                        nGoalsString = marketType.substring(marketType.lastIndexOf('_') + "_".length(), marketType.lastIndexOf('5'));
                         final int nGoalsFirst = Integer.parseInt(nGoalsString);
                         nParsedRunners = 6;
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
@@ -1002,37 +1008,37 @@ public final class FindMarkets {
                             final long selectionId = runnerCatalog.getSelectionId();
                             final String runnerName = runnerCatalog.getRunnerName();
                             final ParsedRunnerType parsedRunnerType;
-                            if (selectionId == 1 && "0 - 0".equalsIgnoreCase(runnerName.trim())) {
+                            if ((selectionId == 1L || selectionId == 62784L) && "0 - 0".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_0_0;
-                            } else if (selectionId == 4 && "0 - 1".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 4L || selectionId == 975545L) && "0 - 1".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_0_1;
-                            } else if (selectionId == 9 && "0 - 2".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 9L || selectionId == 1063103L) && "0 - 2".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_0_2;
-                            } else if (selectionId == 16 && "0 - 3".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 16L || selectionId == 1170794L) && "0 - 3".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_0_3;
-                            } else if (selectionId == 2 && "1 - 0".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 2L || selectionId == 1063100L) && "1 - 0".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_1_0;
-                            } else if (selectionId == 3 && "1 - 1".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 3L || selectionId == 1063098L) && "1 - 1".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_1_1;
-                            } else if (selectionId == 8 && "1 - 2".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 8L || selectionId == 1063104L) && "1 - 2".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_1_2;
-                            } else if (selectionId == 15 && "1 - 3".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 15L || selectionId == 1170800L) && "1 - 3".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_1_3;
-                            } else if (selectionId == 5 && "2 - 0".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 5L || selectionId == 1063101L) && "2 - 0".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_2_0;
-                            } else if (selectionId == 6 && "2 - 1".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 6L || selectionId == 1063102L) && "2 - 1".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_2_1;
-                            } else if (selectionId == 7 && "2 - 2".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 7L || selectionId == 1063099L) && "2 - 2".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_2_2;
-                            } else if (selectionId == 14 && "2 - 3".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 14L || selectionId == 1170810L) && "2 - 3".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_2_3;
-                            } else if (selectionId == 10 && "3 - 0".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 10L || selectionId == 1170811L) && "3 - 0".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_3_0;
-                            } else if (selectionId == 11 && "3 - 1".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 11L || selectionId == 1170812L) && "3 - 1".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_3_1;
-                            } else if (selectionId == 12 && "3 - 2".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 12L || selectionId == 1170813L) && "3 - 2".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_3_2;
-                            } else if (selectionId == 13 && "3 - 3".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 13L || selectionId == 1170814L) && "3 - 3".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_3_3;
                             } else if (selectionId == 9063254L && "Any Other Home Win".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.ANY_OTHER_HOME_WIN;
@@ -1693,6 +1699,8 @@ public final class FindMarkets {
                     case "ET_FH_OU_GOALS_05":
                     case "ET_FH_OU_GOALS_15":
                         parsedMarketType = ParsedMarketType.valueOf(marketType);
+                        //noinspection DuplicateExpressions
+                        nGoalsString = marketType.substring(marketType.lastIndexOf('_') + "_".length(), marketType.lastIndexOf('5'));
                         final int nGoals = Integer.parseInt(nGoalsString);
                         nParsedRunners = 2;
                         parsedRunnersSet = createParsedRunnersSet(nParsedRunners);
