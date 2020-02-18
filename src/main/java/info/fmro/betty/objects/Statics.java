@@ -64,7 +64,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class Statics {
     private static final Logger logger = LoggerFactory.getLogger(Statics.class);
     public static final boolean notPlacingOrders = true; // hard stop for order placing; true for testing, false enables order placing
-    public static final boolean connectingToBetfairServersDisabled = true; // hard stop for interrogating Betfair servers, when not needed during testing
+    public static final boolean connectingToBetfairServersDisabled = true; // hard stop for interrogating Betfair servers, when not needed during testing; stop most communication, but not all
     public static final boolean safeBetModuleActivated = false; // false for now, I won't be using this module for quite a while
     public static final boolean resetTestMarker = false; // when true, resets rulesManager testMarker variable, and then exits the program
     @SuppressWarnings("unchecked")

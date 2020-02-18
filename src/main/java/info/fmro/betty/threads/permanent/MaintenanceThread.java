@@ -20,7 +20,6 @@ import info.fmro.shared.objects.TwoOrderedStrings;
 import info.fmro.shared.stream.objects.ScraperEventInterface;
 import info.fmro.shared.utility.BlackList;
 import info.fmro.shared.utility.Generic;
-import info.fmro.shared.utility.LogLevel;
 import info.fmro.shared.utility.SynchronizedMap;
 import info.fmro.shared.utility.SynchronizedSafeSet;
 import info.fmro.shared.utility.SynchronizedSet;
@@ -1229,7 +1228,7 @@ public class MaintenanceThread
                 logger.warn("null safeRunners in removeSafeMarket for: {}", marketId);
             } else {
 //                Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "null safeRunners in removeSafeMarket for: {}", marketId);
-                Generic.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "null safeRunners in removeSafeMarket");
+//                Generic.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "null safeRunners in removeSafeMarket"); // I don't think I event need to print this, as it is normal behavior
             }
         }
         return safeRunners;

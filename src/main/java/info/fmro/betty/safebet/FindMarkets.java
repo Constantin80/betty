@@ -336,24 +336,24 @@ public final class FindMarkets {
                 } // end else
             } // end for
 
-            final int sizeModified = modifiedEvents.size();
-            if (sizeModified > 0) {
+            if (Statics.safeBetModuleActivated) {
+                final int sizeModified = modifiedEvents.size();
+                if (sizeModified > 0) {
 //                final String printedString = MessageFormatter.arrayFormat("findMarkets modifiedEvents: {} launch: findMarkets", new Object[]{sizeModified}).getMessage();
 //                logger.info(printedString);
-                final HashSet<Event> notIgnoredModifiedEvents = new HashSet<>(Generic.getCollectionCapacity(modifiedEvents));
-                for (final Event event : modifiedEvents) {
-                    if (!event.isIgnored()) {
-                        notIgnoredModifiedEvents.add(event);
+                    final HashSet<Event> notIgnoredModifiedEvents = new HashSet<>(Generic.getCollectionCapacity(modifiedEvents));
+                    for (final Event event : modifiedEvents) {
+                        if (!event.isIgnored()) {
+                            notIgnoredModifiedEvents.add(event);
+                        }
+                    } // end for
+                    final int sizeNotIgnoredModified = notIgnoredModifiedEvents.size();
+                    if (sizeNotIgnoredModified > 0) {
+                        logger.info("findMarkets modifiedEvents: {} launch: findMarkets", sizeNotIgnoredModified);
+                        Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, notIgnoredModifiedEvents));
                     }
-                } // end for
-                final int sizeNotIgnoredModified = notIgnoredModifiedEvents.size();
-                if (sizeNotIgnoredModified > 0) {
-                    logger.info("findMarkets modifiedEvents: {} launch: findMarkets", sizeNotIgnoredModified);
-                    Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, notIgnoredModifiedEvents));
                 }
-            }
-            final int sizeEntries = toCheckMarkets.size();
-            if (Statics.safeBetModuleActivated) {
+                final int sizeEntries = toCheckMarkets.size();
                 if (sizeEntries > 0) {
                     final String printedString = MessageFormatter.arrayFormat("findMarkets toCheckMarkets(modify/add): {}({}/{}) launch: findSafeRunners", new Object[]{sizeEntries, nModifiedMarkets, nAddedMarkets}).getMessage();
                     logger.info(printedString);
@@ -615,27 +615,27 @@ public final class FindMarkets {
 
                 Statics.marketCataloguesMap.timeStamp();
 
-                final int sizeModified = modifiedEvents.size();
-                if (sizeModified > 0) {
-                    final String printedString = MessageFormatter.arrayFormat("findMarkets{}{} modifiedEvents: {} launch: findMarkets", new Object[]{fullRunString, checkAllString, sizeModified}).getMessage();
-                    if (fullRun) {
-                        logger.warn(printedString);
-                    } else {
-                        logger.info(printedString);
-                    }
-
-                    final HashSet<Event> notIgnoredModifiedEvents = new HashSet<>(Generic.getCollectionCapacity(modifiedEvents));
-                    for (final Event event : modifiedEvents) {
-                        if (!event.isIgnored()) {
-                            notIgnoredModifiedEvents.add(event);
-                        }
-                    } // end for
-                    if (!notIgnoredModifiedEvents.isEmpty()) {
-                        Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, notIgnoredModifiedEvents));
-                    }
-                }
-
                 if (Statics.safeBetModuleActivated) {
+                    final int sizeModified = modifiedEvents.size();
+                    if (sizeModified > 0) {
+                        final String printedString = MessageFormatter.arrayFormat("findMarkets{}{} modifiedEvents: {} launch: findMarkets", new Object[]{fullRunString, checkAllString, sizeModified}).getMessage();
+                        if (fullRun) {
+                            logger.warn(printedString);
+                        } else {
+                            logger.info(printedString);
+                        }
+
+                        final HashSet<Event> notIgnoredModifiedEvents = new HashSet<>(Generic.getCollectionCapacity(modifiedEvents));
+                        for (final Event event : modifiedEvents) {
+                            if (!event.isIgnored()) {
+                                notIgnoredModifiedEvents.add(event);
+                            }
+                        } // end for
+                        if (!notIgnoredModifiedEvents.isEmpty()) {
+                            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, notIgnoredModifiedEvents));
+                        }
+                    }
+
                     final int sizeEntries = toCheckMarkets.size();
                     if (sizeEntries > 0) {
                         final String printedString = MessageFormatter.arrayFormat("findMarkets{}{} toCheckMarkets(modify/add): {}({}/{}) launch: findSafeRunners",
