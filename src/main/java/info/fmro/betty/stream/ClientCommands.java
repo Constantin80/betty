@@ -1,4 +1,4 @@
-package info.fmro.betty.stream.client;
+package info.fmro.betty.stream;
 
 import info.fmro.shared.stream.definitions.MarketFilter;
 import info.fmro.shared.stream.definitions.MarketSubscriptionMessage;

@@ -4,7 +4,7 @@ import com.gargoylesoftware.htmlunit.BrowserVersion;
 import info.fmro.betty.betapi.JsonConverter;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.safebet.PlacedAmountsThread;
-import info.fmro.betty.stream.client.ClientHandler;
+import info.fmro.betty.stream.ClientHandler;
 import info.fmro.betty.threads.permanent.GetFundsThread;
 import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
 import info.fmro.betty.threads.permanent.IdleConnectionMonitorThread;

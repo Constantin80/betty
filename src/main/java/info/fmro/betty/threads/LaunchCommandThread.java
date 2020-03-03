@@ -1,11 +1,11 @@
 package info.fmro.betty.threads;
 
+import info.fmro.betty.logic.FindMarkets;
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.safebet.FindMarkets;
 import info.fmro.betty.safebet.FindSafeRunners;
 import info.fmro.betty.safebet.ScraperEvent;
 import info.fmro.betty.safebet.ScraperPermanentThread;
-import info.fmro.betty.stream.client.ClientHandler;
+import info.fmro.betty.stream.ClientHandler;
 import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
 import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.betty.utility.Formulas;
@@ -54,7 +54,7 @@ public class LaunchCommandThread
     public static final SynchronizedMap<String, Long> recentlyUsedMarketIds = new SynchronizedMap<>();
     public static final AtomicLong lastRecentlyUsedCleanStamp = new AtomicLong();
     private HashSet<Event> eventsSet;
-    private TreeSet<String> marketIdsSet;
+    private TreeSet<String> idsSet;
     private Set<?> scraperEventsSet;
     private LinkedHashSet<Entry<String, MarketCatalogue>> entrySet;
     private Class<? extends ScraperEvent> clazz;
@@ -80,9 +80,9 @@ public class LaunchCommandThread
     }
 
     @Contract(pure = true)
-    public LaunchCommandThread(final CommandType command, @NotNull final TreeSet<String> marketIdsSet) {
+    public LaunchCommandThread(final CommandType command, @NotNull final TreeSet<String> idsSet) {
         this.command = command;
-        this.marketIdsSet = new TreeSet<>(marketIdsSet);
+        this.idsSet = new TreeSet<>(idsSet);
     }
 
     @Contract(pure = true)
@@ -629,9 +629,9 @@ public class LaunchCommandThread
                     } else if (this.eventsSet != null) {
                         checkRecentlyUsed(this.eventsSet);
                         FindMarkets.findMarkets(this.eventsSet);
-                    } else if (this.marketIdsSet != null) {
-                        checkRecentlyUsed(this.marketIdsSet);
-                        FindMarkets.findMarkets(this.marketIdsSet);
+                    } else if (this.idsSet != null) {
+                        checkRecentlyUsed(this.idsSet);
+                        FindMarkets.findMarkets(this.idsSet);
                     } else {
                         FindMarkets.findMarkets(); // full run
                     }
@@ -641,7 +641,7 @@ public class LaunchCommandThread
                 if (Statics.debugLevel.check(2, 174)) {
                     logger.info("Running parseEventResultList");
                 }
-                GetLiveMarketsThread.parseEventList(); // this only has full run
+                GetLiveMarketsThread.parseEventList(this.idsSet);
                 break;
             case streamMarkets:
                 ClientHandler.streamAllMarkets();

@@ -1,7 +1,8 @@
-package info.fmro.betty.stream.client;
+package info.fmro.betty.stream;
 
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
+import info.fmro.shared.utility.LogLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,8 +49,12 @@ class ReaderThread
         if (this.linesList.isEmpty()) {
             this.bufferNotEmpty.set(false);
         }
-
-        logger.info("client[{}] polled line: {}", this.client.id, result);
+        if (result != null && result.contains("\"ct\":\"HEARTBEAT\"") && result.indexOf("\"clk\":") > 0 && result.indexOf(",\"ct\":") > result.indexOf("\"clk\":")) { // {"op":"mcm","id":3,"clk":"AMORMQCrzikAzusu","pt":1583203755763,"ct":"HEARTBEAT"}
+            Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "client[{}] polled line: {}", this.client.id,
+                                              result.substring(0, result.indexOf("\"clk\":") + "\"clk\":".length()) + "erased" + result.substring(result.indexOf(",\"ct\":")));
+        } else {
+            logger.info("client[{}] polled line: {}", this.client.id, result);
+        }
 
         return result;
     }

@@ -154,8 +154,7 @@ class InputConnectionThread
                     logger.info("rulesManager command executed: {}", rulesString);
                     printWriter.println("Will execute rulesManager command");
 
-                    Statics.rulesManagerThread.rulesManager.executeCommand(rulesString, Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap, Statics.eventsMap,
-                                                                           Statics.rulesManagerThread.rulesManager);
+                    Statics.rulesManagerThread.rulesManager.executeCommand(rulesString, Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap, Statics.eventsMap, Statics.marketCache);
                 } else if ("findMarketTypes".equals(inputLine)) {
                     printWriter.println("Will find new market types");
                     newOrder = "findMarketTypes";

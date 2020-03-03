@@ -1,4 +1,4 @@
-package info.fmro.betty.safebet;
+package info.fmro.betty.logic;
 
 import com.google.common.collect.Iterables;
 import info.fmro.betty.betapi.RescriptOpThread;
@@ -240,7 +240,7 @@ public final class FindMarkets {
     }
 
     @SuppressWarnings({"OverlyLongMethod", "OverlyNestedMethod"})
-    public static void findMarkets(@SuppressWarnings("TypeMayBeWeakened") final TreeSet<String> marketIdsSet) {
+    public static void findMarkets(final TreeSet<String> marketIdsSet) {
         if (marketIdsSet != null) {
             final long methodStartTime = System.currentTimeMillis();
             final Set<MarketCatalogue> returnSet = Collections.synchronizedSet(new HashSet<>(Generic.getCollectionCapacity(marketIdsSet.size())));
@@ -371,7 +371,7 @@ public final class FindMarkets {
                     }
                 }
             } else {
-                logger.info("findMarkets nAddedMarkets {} out of returnSet {}", nAddedMarkets, returnSet.size());
+                logger.info("findMarkets nAddedMarkets {} out of returnSet size {} out of initially checked size {}", nAddedMarkets, returnSet.size(), marketIdsSet.size());
             }
         } else {
             logger.error("null marketIdsSet in findMarkets");
@@ -541,7 +541,7 @@ public final class FindMarkets {
                             if (eventId != null) {
                                 final boolean interestingMarket = parseSupportedMarket(eventHomeNameString, eventAwayNameString, marketCatalogue, marketId, marketName, marketDescription, runnerCatalogsList);
 //                                logger.info("interesting or not: {} {} {}", marketId, interestingMarket, nMatched);
-                                if (interestingMarket && (!Statics.safeBetModuleActivated || additionalInterestingCheck(marketCatalogue))) {
+                                if (!Statics.safeBetModuleActivated || (interestingMarket && additionalInterestingCheck(marketCatalogue))) {
                                     //noinspection ConstantConditions
                                     if (nMatched >= Statics.MIN_MATCHED) { // double check, just in case an error slips through
                                         final MarketCatalogue inMapMarketCatalogue = Statics.marketCataloguesMap.putIfAbsent(marketId, marketCatalogue);
@@ -681,8 +681,8 @@ public final class FindMarkets {
     }
 
     @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "OverlyNestedMethod", "NestedSwitchStatement", "BooleanVariableAlwaysNegated"})
-    static boolean parseSupportedMarket(final String eventHomeNameString, final String eventAwayNameString, final MarketCatalogue marketCatalogue, final String marketId, final String marketName, final MarketDescription marketDescription,
-                                        final List<? extends RunnerCatalog> runnerCatalogsList) {
+    public static boolean parseSupportedMarket(final String eventHomeNameString, final String eventAwayNameString, final MarketCatalogue marketCatalogue, final String marketId, final String marketName, final MarketDescription marketDescription,
+                                               final List<? extends RunnerCatalog> runnerCatalogsList) {
         final boolean interestingMarket;
         if (info.fmro.shared.utility.Formulas.isMarketType(marketCatalogue, Statics.supportedEventTypes) && eventHomeNameString != null && eventAwayNameString != null) {
             final StringBuilder eventHomeName = new StringBuilder(eventHomeNameString);

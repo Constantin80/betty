@@ -1,11 +1,6 @@
 package info.fmro.betty.betapi;
 
 import com.google.gson.reflect.TypeToken;
-import info.fmro.shared.entities.CurrentOrderSummary;
-import info.fmro.shared.entities.CurrentOrderSummaryReport;
-import info.fmro.shared.entities.EventResult;
-import info.fmro.shared.entities.MarketBook;
-import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.entities.AccountFundsResponse;
 import info.fmro.shared.entities.CancelExecutionReport;
@@ -13,7 +8,12 @@ import info.fmro.shared.entities.CancelInstruction;
 import info.fmro.shared.entities.ClearedOrderSummary;
 import info.fmro.shared.entities.ClearedOrderSummaryReport;
 import info.fmro.shared.entities.CurrencyRate;
+import info.fmro.shared.entities.CurrentOrderSummary;
+import info.fmro.shared.entities.CurrentOrderSummaryReport;
+import info.fmro.shared.entities.EventResult;
 import info.fmro.shared.entities.EventTypeResult;
+import info.fmro.shared.entities.MarketBook;
+import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.shared.entities.MarketFilter;
 import info.fmro.shared.entities.MarketTypeResult;
 import info.fmro.shared.entities.PlaceExecutionReport;
@@ -197,7 +197,7 @@ public final class ApiNgRescriptOperations {
         return JsonConverter.convertFromJson(responseString, ClearedOrderSummaryReport.class);
     }
 
-    public static List<MarketTypeResult> listMarketTypes(final MarketFilter marketFilter, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
+    public static List<MarketTypeResult> listMarketTypes(@NotNull final MarketFilter marketFilter, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
         final Map<String, Object> paramsHashMap = new HashMap<>(4, 0.75f);
         paramsHashMap.put(FILTER, marketFilter);
         final String responseString = makeRequest(ApiNgOperation.LISTMARKETTYPES.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
@@ -209,7 +209,7 @@ public final class ApiNgRescriptOperations {
         }.getType());
     }
 
-    public static List<EventTypeResult> listEventTypes(final MarketFilter marketFilter, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
+    public static List<EventTypeResult> listEventTypes(@NotNull final MarketFilter marketFilter, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
         final Map<String, Object> paramsHashMap = new HashMap<>(4, 0.75f);
         paramsHashMap.put(FILTER, marketFilter);
         final String responseString = makeRequest(ApiNgOperation.LISTEVENTTYPES.getOperationName(), paramsHashMap, appKeyString, rescriptResponseHandler);
@@ -239,7 +239,7 @@ public final class ApiNgRescriptOperations {
         }.getType());
     }
 
-    public static List<EventResult> listEvents(final MarketFilter marketFilter, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
+    public static List<EventResult> listEvents(@NotNull final MarketFilter marketFilter, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
         final Map<String, Object> paramsHashMap = new HashMap<>(4, 0.75f);
         // paramsHashMap.put(LOCALE, localeString);
         paramsHashMap.put(FILTER, marketFilter); // mandatory
@@ -253,7 +253,7 @@ public final class ApiNgRescriptOperations {
         }.getType());
     }
 
-    public static List<MarketCatalogue> listMarketCatalogue(final MarketFilter marketFilter, final Set<MarketProjection> marketProjectionsSet, final MarketSort marketSort, final int maxResults, final String appKeyString,
+    public static List<MarketCatalogue> listMarketCatalogue(@NotNull final MarketFilter marketFilter, final Set<MarketProjection> marketProjectionsSet, final MarketSort marketSort, final int maxResults, final String appKeyString,
                                                             final RescriptResponseHandler rescriptResponseHandler) {
         final Map<String, Object> paramsHashMap = new HashMap<>(8, 0.75f);
         // paramsHashMap.put(LOCALE, localeString);

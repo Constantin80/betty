@@ -6,6 +6,7 @@ import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.shared.entities.Event;
 import info.fmro.shared.entities.EventResult;
+import info.fmro.shared.entities.MarketFilter;
 import info.fmro.shared.enums.CommandType;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -39,9 +41,14 @@ public class GetLiveMarketsThread
 //    }
 
     @SuppressWarnings("OverlyNestedMethod")
-    public static void parseEventList() {
+    public static void parseEventList(final Set<String> eventIds) {
         final long startTime = System.currentTimeMillis();
-        final List<EventResult> eventResultList = ApiNGJRescriptDemo.getEventList(Statics.appKey.get());
+        final MarketFilter marketFilter = new MarketFilter();
+        if (eventIds == null) { // full run, will check all events
+        } else {
+            marketFilter.setEventIds(eventIds);
+        }
+        final List<EventResult> eventResultList = ApiNGJRescriptDemo.getEventList(Statics.appKey.get(), marketFilter);
         final long receivedListFromServerTime = System.currentTimeMillis();
         if (eventResultList != null) {
             final Collection<Event> addedEvents = new HashSet<>(0);
@@ -210,7 +217,7 @@ public class GetLiveMarketsThread
         if (timeTillNext <= 0) {
             Statics.timeStamps.lastCheckManagedMarketsOrEventsStamp(Generic.MINUTE_LENGTH_MILLISECONDS << 3);
             Statics.rulesManagerThread.rulesManager.newMarketsOrEventsForOutsideCheck.set(false);
-            checkManagedEventsAndMarkets(Statics.rulesManagerThread.rulesManager.events.keySetCopy(), new TreeSet<>(Statics.rulesManagerThread.rulesManager.markets.keySetCopy()));
+            checkManagedEventsAndMarkets(new TreeSet<>(Statics.rulesManagerThread.rulesManager.events.keySetCopy()), new TreeSet<>(Statics.rulesManagerThread.rulesManager.markets.keySetCopy()));
 
             timeForNext = Statics.timeStamps.getLastCheckManagedMarketsOrEvents();
             timeTillNext = timeForNext - System.currentTimeMillis();
@@ -236,12 +243,12 @@ public class GetLiveMarketsThread
         return neededToken;
     }
 
-    private static void checkManagedEventsAndMarkets(@NotNull final Collection<String> events, @NotNull final TreeSet<String> markets) {
-        final HashSet<Event> eventsSet = new HashSet<>(Generic.getCollectionCapacity(events));
-        for (final String eventId : events) {
-            eventsSet.add(new Event(eventId));
-        }
-        Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, eventsSet));
+    private static void checkManagedEventsAndMarkets(@NotNull final TreeSet<String> events, @NotNull final TreeSet<String> markets) {
+//        final HashSet<Event> eventsSet = new HashSet<>(Generic.getCollectionCapacity(events));
+//        for (final String eventId : events) {
+//            eventsSet.add(new Event(eventId));
+//        }
+        Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.checkEventResultList, events));
         Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, markets));
     }
 
@@ -269,7 +276,7 @@ public class GetLiveMarketsThread
 //                timeToSleep = Math.min(timeToSleep, timedStreamMarkets());
                 timeToSleep = Math.min(timeToSleep, timedCheckManagedMarketsOrEvents());
                 if (Statics.rulesManagerThread.rulesManager.newMarketsOrEventsForOutsideCheck.getAndSet(false)) {
-                    checkManagedEventsAndMarkets(Statics.rulesManagerThread.rulesManager.eventsForOutsideCheck.copy(), new TreeSet<>(Statics.rulesManagerThread.rulesManager.marketsForOutsideCheck.copy()));
+                    checkManagedEventsAndMarkets(new TreeSet<>(Statics.rulesManagerThread.rulesManager.eventsForOutsideCheck.copy()), new TreeSet<>(Statics.rulesManagerThread.rulesManager.marketsForOutsideCheck.copy()));
                 }
 
                 Generic.threadSleepSegmented(timeToSleep, 100L, Statics.mustStop, Statics.rulesManagerThread.rulesManager.newMarketsOrEventsForOutsideCheck);

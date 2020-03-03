@@ -231,7 +231,7 @@ public final class Formulas {
             for (int i = 0; i < length; i++) {
                 final char c = modifiedString.charAt(i);
                 if ((c < 48 || c > 57) && (c < 97 || c > 122) && c != 32) {
-                    Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, Formulas.logger, LogLevel.ERROR, "forbidden char:{} code:{} in parseTeamString: {}", c, (int) c, teamString);
+                    Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.ERROR, "forbidden char:{} code:{} in parseTeamString: {}", c, (int) c, teamString);
                 }
             } // end for
 

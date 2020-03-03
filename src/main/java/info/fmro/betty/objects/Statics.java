@@ -11,7 +11,6 @@ import info.fmro.betty.safebet.SafeBetSafetyLimits;
 import info.fmro.betty.safebet.SafeBetsMap;
 import info.fmro.betty.safebet.SafeRunner;
 import info.fmro.betty.safebet.ScraperEvent;
-import info.fmro.betty.safebet.ScraperPermanentThread;
 import info.fmro.betty.threads.permanent.LoggerThread;
 import info.fmro.betty.threads.permanent.PendingOrdersThread;
 import info.fmro.betty.threads.permanent.RulesManagerThread;
@@ -64,7 +63,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class Statics {
     private static final Logger logger = LoggerFactory.getLogger(Statics.class);
     public static final boolean notPlacingOrders = true; // hard stop for order placing; true for testing, false enables order placing
-    public static final boolean connectingToBetfairServersDisabled = true; // hard stop for interrogating Betfair servers, when not needed during testing; stop most communication, but not all
+    public static final boolean connectingToBetfairServersDisabled = false; // hard stop for interrogating Betfair servers, when not needed during testing; stop most communication, but not all
     public static final boolean safeBetModuleActivated = false; // false for now, I won't be using this module for quite a while
     public static final boolean resetTestMarker = false; // when true, resets rulesManager testMarker variable, and then exits the program
     @SuppressWarnings("unchecked")
@@ -89,7 +88,7 @@ public final class Statics {
     public static ArrayList<? extends OutputStream> standardStreamsList;
     //    public static final ArrayList<? extends OutputStream> standardStreamsList = Generic.replaceStandardStreams(STDOUT_FILE_NAME, STDERR_FILE_NAME, LOGS_FOLDER_NAME, !closeStandardStreamsNotInitialized); // negated boolean, as it's not initialized
     public static final Set<Class<? extends ScraperEvent>> scraperEventSubclassesSet = Set.copyOf(Generic.getSubclasses(PROJECT_PREFIX, ScraperEvent.class));
-    public static final Set<Class<? extends ScraperPermanentThread>> scraperThreadSubclassesSet = Set.copyOf(Generic.getSubclasses(PROJECT_PREFIX, ScraperPermanentThread.class));
+    //    public static final Set<Class<? extends ScraperPermanentThread>> scraperThreadSubclassesSet = Set.copyOf(Generic.getSubclasses(PROJECT_PREFIX, ScraperPermanentThread.class));
     public static final AtomicBoolean mustStop = new AtomicBoolean(), mustSleep = new AtomicBoolean(), needSessionToken = new AtomicBoolean(), mustWriteObjects = new AtomicBoolean(), fundsQuickRun = new AtomicBoolean(), denyBetting = new AtomicBoolean(),
             programIsRunningMultiThreaded = new AtomicBoolean();
     public static final AtomicInteger inputServerPort = new AtomicInteger(), interfaceServerPort = new AtomicInteger();

@@ -94,7 +94,7 @@ public class InterfaceConnectionThread
                             if (objectsToModify[0] instanceof String && objectsToModify[1] instanceof ManagedMarket) {
                                 final String marketId = (String) objectsToModify[0];
                                 final ManagedMarket managedMarket = (ManagedMarket) objectsToModify[1];
-                                Statics.rulesManagerThread.rulesManager.addManagedMarket(marketId, managedMarket, Statics.marketCataloguesMap, Statics.eventsMap, Statics.rulesManagerThread.rulesManager);
+                                Statics.rulesManagerThread.rulesManager.addManagedMarket(marketId, managedMarket, Statics.marketCataloguesMap, Statics.eventsMap);
                             } else {
                                 logger.error("wrong objectsToModify class in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), rulesManagerModificationCommand.name(), Generic.objectToString(receivedCommand));
                             }
@@ -119,7 +119,7 @@ public class InterfaceConnectionThread
                             if (objectsToModify[0] instanceof String && objectsToModify[1] instanceof Double) {
                                 final String eventId = (String) objectsToModify[0];
                                 final Double newAmount = (Double) objectsToModify[1];
-                                Statics.rulesManagerThread.rulesManager.setEventAmountLimit(eventId, newAmount, Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap);
+                                Statics.rulesManagerThread.rulesManager.setEventAmountLimit(eventId, newAmount, Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap,Statics.marketCache);
                             } else {
                                 logger.error("wrong objectsToModify class in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), rulesManagerModificationCommand.name(), Generic.objectToString(receivedCommand));
                             }
@@ -131,7 +131,7 @@ public class InterfaceConnectionThread
                         if (objectsToModify != null && objectsToModify.length == 1) {
                             if (objectsToModify[0] instanceof ManagedRunner) {
                                 final ManagedRunner managedRunner = (ManagedRunner) objectsToModify[0];
-                                Statics.rulesManagerThread.rulesManager.addManagedRunner(managedRunner, Statics.marketCataloguesMap, Statics.marketCache, Statics.rulesManagerThread.rulesManager, Statics.eventsMap);
+                                Statics.rulesManagerThread.rulesManager.addManagedRunner(managedRunner, Statics.marketCataloguesMap, Statics.marketCache, Statics.eventsMap);
                             } else {
                                 logger.error("wrong objectsToModify class in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), rulesManagerModificationCommand.name(), Generic.objectToString(receivedCommand));
                             }

@@ -1,4 +1,4 @@
-package info.fmro.betty.stream.client;
+package info.fmro.betty.stream;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
@@ -518,6 +518,7 @@ class RequestResponseProcessor
                     case INVALID_REQUEST:
                     case SUBSCRIPTION_LIMIT_EXCEEDED:
                     case CONNECTION_FAILED:
+                    case TOO_MANY_REQUESTS:
                     case MAX_CONNECTION_LIMIT_EXCEEDED:
                         logger.error("{} Error Status Notification in streamClient[{}]: {}", errorCode, this.client.id, Generic.objectToString(statusMessage));
                         break;
@@ -680,6 +681,7 @@ class RequestResponseProcessor
                         case UNEXPECTED_ERROR:
                         case TIMEOUT:
                         case CONNECTION_FAILED:
+                        case TOO_MANY_REQUESTS:
                         case MAX_CONNECTION_LIMIT_EXCEEDED:
                             logger.error("{} in streamClient[{}]: {}", errorCode, this.client.id, Generic.objectToString(statusMessage));
                             tasksToRepeat.add(task);

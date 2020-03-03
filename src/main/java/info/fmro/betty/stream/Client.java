@@ -1,4 +1,4 @@
-package info.fmro.betty.stream.client;
+package info.fmro.betty.stream;
 
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
@@ -76,6 +76,7 @@ public class Client
         this.readerThread = new ReaderThread(this);
         //noinspection ThisEscapedInObjectConstruction
         this.writerThread = new WriterThread(this);
+        this.heartbeatMs.set(30_000L);
     }
 
     void setStreamError(final boolean newValue) { // not synchronized, as it's not needed and I have sleep inside, and synchronization would lead to deadlocks

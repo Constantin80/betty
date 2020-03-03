@@ -1,4 +1,4 @@
-package info.fmro.betty.stream.client;
+package info.fmro.betty.stream;
 
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.utility.Generic;
