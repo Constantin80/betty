@@ -604,7 +604,7 @@ public class ScraperEvent
         return setIgnored(period, currentTime);
     }
 
-    public synchronized int setIgnored(final long period, final long startTime) {
+    protected synchronized int setIgnored(final long period, final long startTime) {
         final int modified = super.setIgnored(period, startTime);
         if (modified > 0) {
             if (this.matchedEventId != null) {

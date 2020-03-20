@@ -237,7 +237,7 @@ public class PendingOrdersThread
         if (marketId != null && betId != null && (sizeReduction == null || sizeReduction > 0d)) {
             final TemporaryOrder temporaryOrder = new TemporaryOrder(marketId, runnerId, side, price, size, betId, sizeReduction);
             if (this.temporaryOrders.contains(temporaryOrder)) {
-                logger.error("will not post duplicate cancelOrder: {}", Generic.objectToString(temporaryOrder));
+                logger.info("will not post duplicate cancelOrder: {}", Generic.objectToString(temporaryOrder));
                 success = false;
             } else {
                 this.temporaryOrders.add(temporaryOrder);

@@ -32,10 +32,10 @@ class RescriptAccountResponseHandler
     // }
     @SuppressWarnings("OverlyNestedMethod")
     @Override
-    public synchronized String handleResponse(@NotNull final HttpResponse response)
+    public synchronized String handleResponse(@NotNull final HttpResponse httpResponse)
             throws IOException {
-        final StatusLine statusLine = response.getStatusLine();
-        final HttpEntity httpEntity = response.getEntity();
+        final StatusLine statusLine = httpResponse.getStatusLine();
+        final HttpEntity httpEntity = httpResponse.getEntity();
         @Nullable String httpEntityString = httpEntity == null ? null : EntityUtils.toString(httpEntity, Generic.UTF8_CHARSET);
         final int statusCode = statusLine.getStatusCode();
         if (statusCode == 200) { // there's no error present, httpEntityString will be returned further

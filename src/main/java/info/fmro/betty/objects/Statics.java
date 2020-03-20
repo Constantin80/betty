@@ -371,4 +371,12 @@ public final class Statics {
             logger.error("marketsUnderTesting not empty: {}", Generic.objectToString(marketsUnderTesting));
         }
     }
+
+    public static boolean programHasRecentlyStarted() {
+        return programHasRecentlyStarted(System.currentTimeMillis());
+    }
+
+    public static boolean programHasRecentlyStarted(final long currentTime) {
+        return currentTime - PROGRAM_START_TIME <= Generic.MINUTE_LENGTH_MILLISECONDS;
+    }
 }

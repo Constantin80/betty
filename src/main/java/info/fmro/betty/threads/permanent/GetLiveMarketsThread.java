@@ -8,6 +8,7 @@ import info.fmro.shared.entities.Event;
 import info.fmro.shared.entities.EventResult;
 import info.fmro.shared.entities.MarketFilter;
 import info.fmro.shared.enums.CommandType;
+import info.fmro.shared.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import org.jetbrains.annotations.NotNull;
@@ -40,17 +41,33 @@ public class GetLiveMarketsThread
 //        return unsupported;
 //    }
 
-    @SuppressWarnings("OverlyNestedMethod")
+    public static void parseEventListMarketIds(final Set<String> marketIds) {
+        final MarketFilter marketFilter = new MarketFilter();
+        if (marketIds == null) { // full run, will check all events
+        } else {
+            marketFilter.setMarketIds(marketIds);
+        }
+        parseEventList(marketFilter);
+    }
+
     public static void parseEventList(final Set<String> eventIds) {
-        final long startTime = System.currentTimeMillis();
         final MarketFilter marketFilter = new MarketFilter();
         if (eventIds == null) { // full run, will check all events
         } else {
             marketFilter.setEventIds(eventIds);
         }
+        parseEventList(marketFilter);
+    }
+
+    @SuppressWarnings("OverlyNestedMethod")
+    private static void parseEventList(@NotNull final MarketFilter marketFilter) {
+        final long startTime = System.currentTimeMillis();
         final List<EventResult> eventResultList = ApiNGJRescriptDemo.getEventList(Statics.appKey.get(), marketFilter);
         final long receivedListFromServerTime = System.currentTimeMillis();
         if (eventResultList != null) {
+            final Set<String> checkedEventIds = marketFilter.getEventIds();
+            final Set<String> notFoundEventIds = checkedEventIds == null ? new HashSet<>(0) : checkedEventIds;
+
             final Collection<Event> addedEvents = new HashSet<>(0);
             final Collection<Event> modifiedEvents = new HashSet<>(0);
             for (final EventResult eventResult : eventResultList) {
@@ -59,6 +76,7 @@ public class GetLiveMarketsThread
                 if (event == null) { // won't do anything
                 } else {
                     final String eventId = event.getId();
+                    notFoundEventIds.remove(eventId);
                     final Event existingEvent;
 
                     if (Statics.eventsMap.containsKey(eventId)) {
@@ -92,6 +110,10 @@ public class GetLiveMarketsThread
                     }
                 }
             } // end for
+            for (final String eventId : notFoundEventIds) {
+                logger.info("removing not found eventId: {}", eventId);
+                Statics.eventsMap.remove(eventId);
+            }
             Statics.eventsMap.timeStamp();
 
             if (Statics.safeBetModuleActivated) {
@@ -116,6 +138,10 @@ public class GetLiveMarketsThread
                     Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, toCheckEvents));
                 }
             } else { // nothing to be done, I think that market check is only needed if safeBetModule is active
+            }
+            if (addedEvents.isEmpty()) { // no events were added, nothing to be done
+            } else {
+                Statics.rulesManagerThread.rulesManager.checkManagedMarketsHaveParents(Statics.eventsMap, Statics.marketCataloguesMap);
             }
         } else {
             if (Statics.mustStop.get() && Statics.needSessionToken.get()) { // normal to happen during program stop, if not logged in
@@ -248,8 +274,28 @@ public class GetLiveMarketsThread
 //        for (final String eventId : events) {
 //            eventsSet.add(new Event(eventId));
 //        }
-        Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.checkEventResultList, events));
-        Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, markets));
+        if (events.isEmpty()) { // I guess this can happen if I have no managedEvents
+        } else {
+            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.checkEventResultList, events));
+        }
+
+        if (markets.isEmpty()) { // I guess this can happen if I have no managedMarkets
+        } else {
+            final TreeSet<String> marketsWithoutEventsInMap = new TreeSet<>();
+            for (final String marketId : markets) {
+                final String eventId = Formulas.getEventIdOfMarketId(marketId, Statics.marketCataloguesMap);
+                if (eventId == null) {
+                    marketsWithoutEventsInMap.add(marketId);
+                } else { // this marketId has eventId in map, nothing to be done
+                }
+            }
+            if (marketsWithoutEventsInMap.isEmpty()) { // no markets to get events for
+            } else {
+                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.checkEventResultList, marketsWithoutEventsInMap, true));
+            }
+
+            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, markets));
+        }
     }
 
     @Override

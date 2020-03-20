@@ -230,6 +230,7 @@ final class SafeBetModuleMethods {
                             toCheckMarkets.add(new SimpleEntry<>(marketId, marketCatalogue));
                             nAddedMarkets++;
                         }
+                        Statics.rulesManagerThread.rulesManager.updateMarketNameFromNewMarketCatalogueAdded(marketId, marketCatalogue);
                     }
                 } else {
                     logger.error("null fields in findInterestingMarkets marketIds for: {}", Generic.objectToString(marketCatalogue));
@@ -448,6 +449,7 @@ final class SafeBetModuleMethods {
                                                 toCheckMarkets.add(new SimpleEntry<>(marketId, marketCatalogue));
                                                 nAddedMarkets++;
                                             }
+                                            Statics.rulesManagerThread.rulesManager.updateMarketNameFromNewMarketCatalogueAdded(marketId, marketCatalogue);
                                         } else {
 //                                            logger.info("exists: {} size: {}", marketId, Statics.marketCataloguesMap.size());
                                             // nothing will be done, update is done at beginning

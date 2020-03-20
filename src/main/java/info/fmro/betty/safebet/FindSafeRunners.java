@@ -2904,7 +2904,8 @@ public final class FindSafeRunners {
                 // modified markets are supposed to be found during regular runs, not fullRun; when a modification happens, this should result in an immediate regular run
                 final String printedString = MessageFormatter.arrayFormat("findSafeRunners {}modifiedMarketsList: {} launch: getMarketBooks", new Object[]{fullRunString, sizeMarkets}).getMessage();
                 if (fullRun) {
-                    if (startTime - Statics.PROGRAM_START_TIME <= Generic.MINUTE_LENGTH_MILLISECONDS) {
+//                    if (startTime - Statics.PROGRAM_START_TIME <= Generic.MINUTE_LENGTH_MILLISECONDS) {
+                    if (Statics.programHasRecentlyStarted(startTime)) {
                         logger.info("beginning of the program {}", printedString); // this sometimes happens at the beginning of program run
                     } else {
                         final long currentTime = System.currentTimeMillis();

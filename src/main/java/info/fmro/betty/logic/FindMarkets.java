@@ -239,9 +239,10 @@ public final class FindMarkets {
         findMarkets(eventsSet, false);
     }
 
-    @SuppressWarnings({"OverlyLongMethod", "OverlyNestedMethod"})
+    @SuppressWarnings({"OverlyLongMethod", "OverlyNestedMethod", "OverlyComplexMethod"})
     public static void findMarkets(final TreeSet<String> marketIdsSet) {
-        if (marketIdsSet != null) {
+//        logger.info("findMarkets marketIdsSet: {}", Generic.objectToString(marketIdsSet));
+        if (marketIdsSet != null && !marketIdsSet.isEmpty()) {
             final long methodStartTime = System.currentTimeMillis();
             final Set<MarketCatalogue> returnSet = Collections.synchronizedSet(new HashSet<>(Generic.getCollectionCapacity(marketIdsSet.size())));
             final Iterable<List<String>> splitsIterable = Iterables.partition(marketIdsSet, 200);
@@ -268,11 +269,13 @@ public final class FindMarkets {
             final Collection<Event> modifiedEvents = new HashSet<>(0);
             final Collection<Entry<String, MarketCatalogue>> toCheckMarkets = new LinkedHashSet<>(0);
             int nModifiedMarkets = 0, nAddedMarkets = 0;
+            final Collection<String> notFoundMarketIds = new HashSet<>(marketIdsSet);
             for (MarketCatalogue marketCatalogue : returnSet) {
                 marketCatalogue.setTimeStamp(startedWaitingTime);
                 final Event event = Formulas.getStoredEventOfMarketCatalogue(marketCatalogue);
                 final String marketName = marketCatalogue.getMarketName();
                 final String marketId = marketCatalogue.getMarketId();
+                notFoundMarketIds.remove(marketId);
                 final MarketDescription marketDescription = marketCatalogue.getDescription();
                 final List<RunnerCatalog> runnerCatalogsList = marketCatalogue.getRunners();
                 final Event eventStump = marketCatalogue.getEventStump();
@@ -328,13 +331,19 @@ public final class FindMarkets {
                             logger.error("blackListed marketCatalogue has been added: {}", marketId);
                         } else {
                             toCheckMarkets.add(new SimpleEntry<>(marketId, marketCatalogue));
-                            nAddedMarkets++;
                         }
+                        nAddedMarkets++;
+                        Statics.rulesManagerThread.rulesManager.updateMarketNameFromNewMarketCatalogueAdded(marketId, marketCatalogue);
+                    } else { // marketId already existed in the map
                     }
                 } else {
                     logger.error("null fields in findMarkets marketIds for: {}", Generic.objectToString(marketCatalogue));
                 } // end else
             } // end for
+            for (final String marketId : notFoundMarketIds) {
+                logger.info("removing not found marketId: {}", marketId);
+                Statics.marketCataloguesMap.remove(marketId);
+            }
 
             if (Statics.safeBetModuleActivated) {
                 final int sizeModified = modifiedEvents.size();
@@ -372,9 +381,29 @@ public final class FindMarkets {
                 }
             } else {
                 logger.info("findMarkets nAddedMarkets {} out of returnSet size {} out of initially checked size {}", nAddedMarkets, returnSet.size(), marketIdsSet.size());
+//                final Collection<String> returnSetIds = new ArrayList<>(returnSet.size());
+//                for (final MarketCatalogue marketCatalogue : returnSet) {
+//                    if (marketCatalogue == null) {
+//                        logger.error("null marketCatalogue in returnSet");
+//                    } else {
+//                        returnSetIds.add(marketCatalogue.getMarketId());
+//                    }
+//                }
+//                logger.info("findMarkets returnSetIds: {}", Generic.objectToString(returnSetIds));
+            }
+            if (nAddedMarkets > 0) {
+                Statics.rulesManagerThread.rulesManager.checkManagedMarketsHaveParents(Statics.eventsMap, Statics.marketCataloguesMap);
+            } else { // no markets were added, nothing to be done
             }
         } else {
-            logger.error("null marketIdsSet in findMarkets");
+            if (marketIdsSet == null) {
+                logger.error("null marketIdsSet in findMarkets");
+            } else //noinspection ConstantConditions
+                if (marketIdsSet.isEmpty()) {
+                    logger.info("empty marketIdsSet in findMarkets");
+                } else {
+                    logger.error("unknown marketIdsSet error in findMarkets: {}", Generic.objectToString(marketIdsSet));
+                }
         }
     }
 
@@ -553,6 +582,7 @@ public final class FindMarkets {
                                                 toCheckMarkets.add(new SimpleEntry<>(marketId, marketCatalogue));
                                                 nAddedMarkets++;
                                             }
+                                            Statics.rulesManagerThread.rulesManager.updateMarketNameFromNewMarketCatalogueAdded(marketId, marketCatalogue);
                                         } else {
 //                                            logger.info("exists: {} size: {}", marketId, Statics.marketCataloguesMap.size());
                                             // nothing will be done, update is done at beginning
@@ -661,6 +691,10 @@ public final class FindMarkets {
                             Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, notIgnoredToCheckMarkets));
                         }
                     }
+                }
+                if (nAddedMarkets > 0) {
+                    Statics.rulesManagerThread.rulesManager.checkManagedMarketsHaveParents(Statics.eventsMap, Statics.marketCataloguesMap);
+                } else { // no markets were added, nothing to be done
                 }
             }
         } else {

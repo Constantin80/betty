@@ -38,7 +38,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
 
-@SuppressWarnings({"ClassWithTooManyConstructors", "OverlyComplexClass"})
+@SuppressWarnings({"ClassWithTooManyConstructors", "OverlyComplexClass", "WeakerAccess", "RedundantSuppression"})
 public class LaunchCommandThread
         implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(LaunchCommandThread.class);
@@ -46,20 +46,24 @@ public class LaunchCommandThread
     public static final Constructor<LaunchCommandThread> constructorLinkedHashSetLongMarket = Objects.requireNonNull(Generic.getConstructor(LaunchCommandThread.class, CommandType.class, LinkedHashSet.class, long.class)); // constructorMarket
     @NotNull
     public static final Constructor<LaunchCommandThread> constructorHashSetLongEvent = Objects.requireNonNull(Generic.getConstructor(LaunchCommandThread.class, CommandType.class, HashSet.class, long.class)); // constructorEvent
+    @NotNull
+    public static final Constructor<LaunchCommandThread> constructorTreeSetBoolean = Objects.requireNonNull(Generic.getConstructor(LaunchCommandThread.class, CommandType.class, TreeSet.class, boolean.class)); // get events from marketIds
     private final CommandType command;
     private boolean checkAll;
     private long delay;
     public static final long RECENT_PERIOD = 1_000L;
     public static final SynchronizedMap<Event, Long> recentlyUsedEvents = new SynchronizedMap<>();
     public static final SynchronizedMap<String, Long> recentlyUsedMarketIds = new SynchronizedMap<>();
+    public static final SynchronizedMap<String, Long> recentlyUsedMarketIdsWhileCheckingEvents = new SynchronizedMap<>();
     public static final AtomicLong lastRecentlyUsedCleanStamp = new AtomicLong();
     private HashSet<Event> eventsSet;
     private TreeSet<String> idsSet;
     private Set<?> scraperEventsSet;
     private LinkedHashSet<Entry<String, MarketCatalogue>> entrySet;
     private Class<? extends ScraperEvent> clazz;
-//    private InterfaceConnectionThread interfaceConnectionThread;
+    //    private InterfaceConnectionThread interfaceConnectionThread;
 //    private StreamObjectInterface streamObjectInterface;
+    private boolean areMarketIds;
 
     @Contract(pure = true)
     public LaunchCommandThread(final CommandType command) {
@@ -83,6 +87,13 @@ public class LaunchCommandThread
     public LaunchCommandThread(final CommandType command, @NotNull final TreeSet<String> idsSet) {
         this.command = command;
         this.idsSet = new TreeSet<>(idsSet);
+    }
+
+    @Contract(pure = true)
+    public LaunchCommandThread(final CommandType command, @NotNull final TreeSet<String> idsSet, final boolean areMarketIds) {
+        this.command = command;
+        this.idsSet = new TreeSet<>(idsSet);
+        this.areMarketIds = areMarketIds;
     }
 
     @Contract(pure = true)
@@ -525,8 +536,27 @@ public class LaunchCommandThread
             final long lastUsedTimePrimitive = lastUsedTime == null ? 0 : lastUsedTime;
             if (currentTime - lastUsedTimePrimitive <= RECENT_PERIOD) {
                 iterator.remove();
+                logger.info("checkRecentlyUsed throttle remove eventId: {}", event == null ? null : event.getId());
             } else {
                 recentlyUsedEvents.put(event, currentTime, true);
+            }
+        } // end while
+    }
+
+    private static void checkRecentlyUsedWhileCheckingEvents(@NotNull final Iterable<String> marketIdsSetWhileCheckingEvents) {
+        final long currentTime = System.currentTimeMillis();
+        cleanRecentlyUsed(currentTime);
+
+        final Iterator<String> iterator = marketIdsSetWhileCheckingEvents.iterator();
+        while (iterator.hasNext()) {
+            final String marketId = iterator.next();
+            final Long lastUsedTime = recentlyUsedMarketIdsWhileCheckingEvents.get(marketId);
+            final long lastUsedTimePrimitive = lastUsedTime == null ? 0 : lastUsedTime;
+            if (currentTime - lastUsedTimePrimitive <= RECENT_PERIOD) {
+                iterator.remove();
+                logger.info("checkRecentlyUsedWhileCheckingEvents throttle remove marketId: {}", marketId);
+            } else {
+                recentlyUsedMarketIdsWhileCheckingEvents.put(marketId, currentTime, true);
             }
         } // end while
     }
@@ -542,6 +572,7 @@ public class LaunchCommandThread
             final long lastUsedTimePrimitive = lastUsedTime == null ? 0 : lastUsedTime;
             if (currentTime - lastUsedTimePrimitive <= RECENT_PERIOD) {
                 iterator.remove();
+                logger.info("checkRecentlyUsed throttle remove marketId: {}", marketId);
             } else {
                 recentlyUsedMarketIds.put(marketId, currentTime, true);
             }
@@ -567,6 +598,7 @@ public class LaunchCommandThread
             lastRecentlyUsedCleanStamp.set(currentTime);
             cleanRecentlyUsedMap(recentlyUsedEvents);
             cleanRecentlyUsedMap(recentlyUsedMarketIds);
+            cleanRecentlyUsedMap(recentlyUsedMarketIdsWhileCheckingEvents);
         } else { // no yet the time for cleaning, nothing to be done
         }
     }
@@ -641,7 +673,19 @@ public class LaunchCommandThread
                 if (Statics.debugLevel.check(2, 174)) {
                     logger.info("Running parseEventResultList");
                 }
-                GetLiveMarketsThread.parseEventList(this.idsSet);
+                if (this.idsSet != null) {
+                    checkRecentlyUsedWhileCheckingEvents(this.idsSet);
+                } else { // normal, it means this is full run
+                }
+                if (this.idsSet != null && this.idsSet.isEmpty()) {
+                    logger.info("empty idsSet while checkEventResultList");
+                } else { // this.idsSet == null or not empty
+                    if (this.areMarketIds) {
+                        GetLiveMarketsThread.parseEventListMarketIds(this.idsSet);
+                    } else {
+                        GetLiveMarketsThread.parseEventList(this.idsSet);
+                    }
+                }
                 break;
             case streamMarkets:
                 ClientHandler.streamAllMarkets();

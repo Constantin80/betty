@@ -38,7 +38,6 @@ public class RescriptOpThread<T>
     private static final Logger logger = LoggerFactory.getLogger(RescriptOpThread.class);
     private final OperationType operation;
     private String marketId;
-    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private Set<? super T> returnSet;
     private HashSet<String> eventIdsSet;
     private TreeSet<String> marketIdsSet;

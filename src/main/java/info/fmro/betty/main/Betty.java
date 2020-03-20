@@ -14,6 +14,7 @@ import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.betty.threads.permanent.TimeJumpDetectorThread;
 import info.fmro.betty.utility.BettyUncaughtExceptionHandler;
 import info.fmro.shared.entities.SessionToken;
+import info.fmro.shared.enums.ProgramName;
 import info.fmro.shared.objects.SessionTokenObject;
 import info.fmro.shared.utility.Generic;
 import org.apache.http.HttpEntity;
@@ -62,6 +63,7 @@ public final class Betty {
 
     @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "MethodWithMultipleReturnPoints"})
     public static void main(final String[] args) {
+        Generic.programName.set(ProgramName.SERVER);
 //        System.out.println("fhadkflcnruw 12121 dsdasdase");
 //        System.exit(0);
         Statics.standardStreamsList = Generic.replaceStandardStreams(Statics.STDOUT_FILE_NAME, Statics.STDERR_FILE_NAME, Statics.LOGS_FOLDER_NAME, !Statics.closeStandardStreamsNotInitialized);
