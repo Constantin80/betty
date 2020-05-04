@@ -209,7 +209,7 @@ public final class Betty {
 //            Statics.rulesManager.start();
 
             if (Statics.safeBetModuleActivated) {
-                if (!BrowserVersion.BEST_SUPPORTED.equals(BrowserVersion.FIREFOX_60)) {
+                if (!BrowserVersion.BEST_SUPPORTED.equals(BrowserVersion.FIREFOX_68)) {
                     // sometimes this changes if I use a new version of HtmlUnit
                     logger.error("HtmlUnit BrowserVersion.BEST_SUPPORTED has changed, a review of BrowserVersion usage is necessary");
                 }
@@ -436,44 +436,25 @@ public final class Betty {
                 }
 
                 if (Statics.needSessionToken.get() && !Statics.mustStop.get()) {
-                    final long amountToSleep;
-                    switch (whileCounter) {
-                        case 0:
+                    final long amountToSleep = switch (whileCounter) {
+                        case 0 -> {
                             logger.error("whileCounter is {} in authenticate method", whileCounter);
-                            amountToSleep = 10_000L;
-                            break;
-                        case 1:
-                            amountToSleep = 1_000L;
-                            break;
-                        case 2:
-                            amountToSleep = 2_000L;
-                            break;
-                        case 3:
-                            amountToSleep = 5_000L;
-                            break;
-                        case 4:
-                            amountToSleep = 6_000L;
-                            break;
-                        case 5:
-                            amountToSleep = 8_000L;
-                            break;
-                        case 6:
-                            amountToSleep = 10_000L;
-                            break;
-                        case 7:
-                            amountToSleep = 12_000L;
-                            break;
-                        case 8:
-                            amountToSleep = 15_000L;
-                            break;
-                        case 9:
-                            amountToSleep = 20_000L;
-                            break;
-                        default:
+                            yield 10_000;
+                        }
+                        case 1 -> 1_000L;
+                        case 2 -> 2_000L;
+                        case 3 -> 5_000L;
+                        case 4 -> 6_000L;
+                        case 5 -> 8_000L;
+                        case 6 -> 10_000L;
+                        case 7 -> 12_000L;
+                        case 8 -> 15_000L;
+                        case 9 -> 20_000L;
+                        default -> {
                             logger.error("problems while authenticating, whileCounter {}", whileCounter);
-                            amountToSleep = 30_000L;
-                            break;
-                    }
+                            yield 30_000;
+                        }
+                    };
                     Generic.threadSleep(amountToSleep);
                 } else { // successful authentication, nothing else to be done
                 }

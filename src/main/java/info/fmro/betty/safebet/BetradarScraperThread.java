@@ -10,10 +10,10 @@ import com.ximpleware.NavException;
 import com.ximpleware.VTDNav;
 import com.ximpleware.XPathEvalException;
 import com.ximpleware.XPathParseException;
-import info.fmro.shared.entities.Event;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.utility.WebScraperMethods;
+import info.fmro.shared.entities.Event;
 import info.fmro.shared.enums.CommandType;
 import info.fmro.shared.enums.MatchStatus;
 import info.fmro.shared.utility.Generic;
@@ -49,7 +49,7 @@ public class BetradarScraperThread
     private final AtomicLong timeLastPageManipulation = new AtomicLong();
 
     public BetradarScraperThread() {
-        super("betradar", 500L, BrowserVersion.FIREFOX_60, 50, false);
+        super("betradar", 500L, BrowserVersion.FIREFOX_68, 50, false);
     }
 
     @SuppressWarnings("NestedTryStatement")
@@ -431,7 +431,7 @@ public class BetradarScraperThread
         return success;
     }
 
-    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "OverlyNestedMethod"})
+    @SuppressWarnings({"OverlyLongMethod", "OverlyNestedMethod"})
     private boolean scrapeMatchStatus(final BetradarEvent scraperEvent, @NotNull final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
@@ -457,69 +457,28 @@ public class BetradarScraperThread
                                 }
                                 success = false;
                             } else {
-                                final MatchStatus matchStatus;
-                                switch (statusString) {
-                                    case "Abandoned":
-                                        matchStatus = MatchStatus.ABANDONED;
-                                        break;
-                                    case "Postponed":
-                                        matchStatus = MatchStatus.POSTPONED;
-                                        break;
-                                    case "Not started":
-                                        matchStatus = MatchStatus.NOT_STARTED;
-                                        break;
-                                    case "Start delayed":
-                                        matchStatus = MatchStatus.START_DELAYED;
-                                        break;
-                                    case "1st half":
-                                        matchStatus = MatchStatus.FIRST_HALF;
-                                        break;
-                                    case "Half Time":
-                                        matchStatus = MatchStatus.HALF_TIME;
-                                        break;
-                                    case "2nd half":
-                                        matchStatus = MatchStatus.SECOND_HALF;
-                                        break;
-                                    case "Awaiting extra time":
-                                        matchStatus = MatchStatus.AWAITING_ET;
-                                        break;
-                                    case "Overtime":
-                                        matchStatus = MatchStatus.OVERTIME;
-                                        break;
-                                    case "1st extra":
-                                        matchStatus = MatchStatus.FIRST_ET;
-                                        break;
-                                    case "Extra time halftime":
-                                        matchStatus = MatchStatus.ET_HALF_TIME;
-                                        break;
-                                    case "2nd extra":
-                                        matchStatus = MatchStatus.SECOND_ET;
-                                        break;
-                                    case "Awaiting penalties":
-                                        matchStatus = MatchStatus.AWAITING_PEN;
-                                        break;
-                                    case "Penalties":
-                                        matchStatus = MatchStatus.PENALTIES;
-                                        break;
-                                    case "AET":
-                                        matchStatus = MatchStatus.AFTER_ET;
-                                        break;
-                                    case "AP":
-                                        matchStatus = MatchStatus.AFTER_PEN;
-                                        break;
-                                    case "Ended":
-                                        matchStatus = MatchStatus.ENDED;
-                                        break;
-                                    case "Interrupted":
-                                        matchStatus = MatchStatus.INTERRUPTED;
-                                        break;
-                                    case "Cancelled":
-                                        matchStatus = MatchStatus.CANCELLED;
-                                        break;
-                                    default:
-                                        matchStatus = MatchStatus.UNKNOWN;
+                                final MatchStatus matchStatus = switch (statusString) {
+                                    case "Abandoned" -> MatchStatus.ABANDONED;
+                                    case "Postponed" -> MatchStatus.POSTPONED;
+                                    case "Not started" -> MatchStatus.NOT_STARTED;
+                                    case "Start delayed" -> MatchStatus.START_DELAYED;
+                                    case "1st half" -> MatchStatus.FIRST_HALF;
+                                    case "Half Time" -> MatchStatus.HALF_TIME;
+                                    case "2nd half" -> MatchStatus.SECOND_HALF;
+                                    case "Awaiting extra time" -> MatchStatus.AWAITING_ET;
+                                    case "Overtime" -> MatchStatus.OVERTIME;
+                                    case "1st extra" -> MatchStatus.FIRST_ET;
+                                    case "Extra time halftime" -> MatchStatus.ET_HALF_TIME;
+                                    case "2nd extra" -> MatchStatus.SECOND_ET;
+                                    case "Awaiting penalties" -> MatchStatus.AWAITING_PEN;
+                                    case "Penalties" -> MatchStatus.PENALTIES;
+                                    case "AET" -> MatchStatus.AFTER_ET;
+                                    case "AP" -> MatchStatus.AFTER_PEN;
+                                    case "Ended" -> MatchStatus.ENDED;
+                                    case "Interrupted" -> MatchStatus.INTERRUPTED;
+                                    case "Cancelled" -> MatchStatus.CANCELLED;
+                                    default -> {
                                         logger.error("{} unknown statusString in scrapeMatchStatus: {} {}", this.threadId, statusString, Generic.objectToString(scraperEvent));
-
                                         final long currentTime = System.currentTimeMillis();
                                         synchronized (this.lastTimedPageSave) { // synchronized not necessary for now, added just in case
                                             if (currentTime - this.lastTimedPageSave.get() > Generic.MINUTE_LENGTH_MILLISECONDS * 30L) {
@@ -527,8 +486,9 @@ public class BetradarScraperThread
                                                 this.mustSavePage.set(true);
                                             }
                                         } // end synchronized
-                                        break;
-                                } // end switch
+                                        yield MatchStatus.UNKNOWN;
+                                    }
+                                }; // end switch
                                 scraperEvent.setMatchStatus(matchStatus);
                                 success = true;
                             }

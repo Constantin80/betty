@@ -100,7 +100,8 @@ public class RulesManagerThread
                 if (this.rulesManager.orderCacheHasReset.get()) {
                     this.rulesManager.resetOrderCacheObjects(); // the method resets the AtomicBoolean
                 }
-                if (this.rulesManager.newOrderMarketCreated.get()) {logger.info("checking newOrderMarketCreated");
+                if (this.rulesManager.newOrderMarketCreated.get()) {
+                    logger.info("checking newOrderMarketCreated");
                     this.rulesManager.addManagedMarketsForExistingOrders(Statics.orderCache, Statics.marketCataloguesMap, Statics.marketCache, Statics.eventsMap, Statics.PROGRAM_START_TIME); // this method resets the AtomicBoolean
                 }
                 if (this.rulesManager.marketsMapModified.getAndSet(false)) {
@@ -111,6 +112,7 @@ public class RulesManagerThread
                     this.rulesManager.addManagedRunnerCommands(Statics.marketCataloguesMap, Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits.existingFunds, Statics.marketCache, Statics.eventsMap, Statics.PROGRAM_START_TIME);
                 }
                 if (!this.rulesManager.marketsToCheck.isEmpty()) { // run just on the marketsToCheck
+                    logger.info("manageMarket marketsToCheck: {}", this.rulesManager.marketsToCheck.size());
 //                    final HashSet<RulesManagerStringObject> objectsSet = this.marketsToCheck.copy();
 //                    this.marketsToCheck.removeAll(objectsSet); // the atomicBoolean marker will get reset if marketsToCheck becomes empty
 //

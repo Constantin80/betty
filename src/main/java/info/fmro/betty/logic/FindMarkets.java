@@ -714,7 +714,7 @@ public final class FindMarkets {
         return interesting;
     }
 
-    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "OverlyNestedMethod", "NestedSwitchStatement", "BooleanVariableAlwaysNegated"})
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "OverlyNestedMethod", "NestedSwitchStatement", "BooleanVariableAlwaysNegated", "RedundantSuppression"})
     public static boolean parseSupportedMarket(final String eventHomeNameString, final String eventAwayNameString, final MarketCatalogue marketCatalogue, final String marketId, final String marketName, final MarketDescription marketDescription,
                                                final List<? extends RunnerCatalog> runnerCatalogsList) {
         final boolean interestingMarket;
@@ -772,17 +772,11 @@ public final class FindMarkets {
                             if (runnerCatalog != null) {
                                 final String runnerName = runnerCatalog.getRunnerName();
                                 if (runnerName != null) {
-                                    switch (runnerName) {
-                                        case "3 - 0":
-                                            parsedMarketType = ParsedMarketType.HALF_TIME_SCORE2_A;
-                                            break;
-                                        case "0 - 3":
-                                            parsedMarketType = ParsedMarketType.HALF_TIME_SCORE2_B;
-                                            break;
-                                        default:
-                                            parsedMarketType = null;
-                                            break;
-                                    } // end switch
+                                    parsedMarketType = switch (runnerName) {
+                                        case "3 - 0" -> ParsedMarketType.HALF_TIME_SCORE2_A;
+                                        case "0 - 3" -> ParsedMarketType.HALF_TIME_SCORE2_B;
+                                        default -> null;
+                                    }; // end switch
                                 } else {
                                     parsedMarketType = null;
                                 }
@@ -829,37 +823,38 @@ public final class FindMarkets {
                                         errorAlreadyPrinted = true;
                                         break;
                                     }
-                                } else if (parsedMarketType == ParsedMarketType.HALF_TIME_SCORE2_B) {
-                                    if (sortPriority == 1 && "0 - 3".equalsIgnoreCase(runnerName.trim())) {
-                                        parsedRunnerType = ParsedRunnerType.SCORE_0_3;
-                                    } else if (sortPriority == 2 && "1 - 3".equalsIgnoreCase(runnerName.trim())) {
-                                        parsedRunnerType = ParsedRunnerType.SCORE_1_3;
-                                    } else if (sortPriority == 3 && "0 - 4".equalsIgnoreCase(runnerName.trim())) {
-                                        parsedRunnerType = ParsedRunnerType.SCORE_0_4;
-                                    } else if (sortPriority == 4 && "1 - 4".equalsIgnoreCase(runnerName.trim())) {
-                                        parsedRunnerType = ParsedRunnerType.SCORE_1_4;
-                                    } else if (sortPriority == 5 && "0 - 5".equalsIgnoreCase(runnerName.trim())) {
-                                        parsedRunnerType = ParsedRunnerType.SCORE_0_5;
-                                    } else if (sortPriority == 6 && "1 - 5".equalsIgnoreCase(runnerName.trim())) {
-                                        parsedRunnerType = ParsedRunnerType.SCORE_1_5;
-                                    } else if (sortPriority == 7 && "0 - 6".equalsIgnoreCase(runnerName.trim())) {
-                                        parsedRunnerType = ParsedRunnerType.SCORE_0_6;
-                                    } else if (sortPriority == 8 && "1 - 6".equalsIgnoreCase(runnerName.trim())) {
-                                        parsedRunnerType = ParsedRunnerType.SCORE_1_6;
-                                    } else if (sortPriority == 9 && "0 - 7".equalsIgnoreCase(runnerName.trim())) {
-                                        parsedRunnerType = ParsedRunnerType.SCORE_0_7;
-                                    } else if (sortPriority == 10 && "1 - 7".equalsIgnoreCase(runnerName.trim())) {
-                                        parsedRunnerType = ParsedRunnerType.SCORE_1_7;
+                                } else //noinspection ConstantConditions
+                                    if (parsedMarketType == ParsedMarketType.HALF_TIME_SCORE2_B) {
+                                        if (sortPriority == 1 && "0 - 3".equalsIgnoreCase(runnerName.trim())) {
+                                            parsedRunnerType = ParsedRunnerType.SCORE_0_3;
+                                        } else if (sortPriority == 2 && "1 - 3".equalsIgnoreCase(runnerName.trim())) {
+                                            parsedRunnerType = ParsedRunnerType.SCORE_1_3;
+                                        } else if (sortPriority == 3 && "0 - 4".equalsIgnoreCase(runnerName.trim())) {
+                                            parsedRunnerType = ParsedRunnerType.SCORE_0_4;
+                                        } else if (sortPriority == 4 && "1 - 4".equalsIgnoreCase(runnerName.trim())) {
+                                            parsedRunnerType = ParsedRunnerType.SCORE_1_4;
+                                        } else if (sortPriority == 5 && "0 - 5".equalsIgnoreCase(runnerName.trim())) {
+                                            parsedRunnerType = ParsedRunnerType.SCORE_0_5;
+                                        } else if (sortPriority == 6 && "1 - 5".equalsIgnoreCase(runnerName.trim())) {
+                                            parsedRunnerType = ParsedRunnerType.SCORE_1_5;
+                                        } else if (sortPriority == 7 && "0 - 6".equalsIgnoreCase(runnerName.trim())) {
+                                            parsedRunnerType = ParsedRunnerType.SCORE_0_6;
+                                        } else if (sortPriority == 8 && "1 - 6".equalsIgnoreCase(runnerName.trim())) {
+                                            parsedRunnerType = ParsedRunnerType.SCORE_1_6;
+                                        } else if (sortPriority == 9 && "0 - 7".equalsIgnoreCase(runnerName.trim())) {
+                                            parsedRunnerType = ParsedRunnerType.SCORE_0_7;
+                                        } else if (sortPriority == 10 && "1 - 7".equalsIgnoreCase(runnerName.trim())) {
+                                            parsedRunnerType = ParsedRunnerType.SCORE_1_7;
+                                        } else {
+                                            unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
+                                            errorAlreadyPrinted = true;
+                                            break;
+                                        }
                                     } else {
                                         unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
                                         errorAlreadyPrinted = true;
                                         break;
                                     }
-                                } else {
-                                    unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
-                                    errorAlreadyPrinted = true;
-                                    break;
-                                }
                                 addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
                             } // end for
                             interestingMarket = !errorAlreadyPrinted && parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
@@ -886,7 +881,7 @@ public final class FindMarkets {
                 } // end switch
             } else {
                 final String nGoalsString;
-                //noinspection SwitchStatementDensity
+                //noinspection SwitchStatementDensity,EnhancedSwitchMigration,RedundantSuppression
                 switch (marketType) {
                     case "MATCH_ODDS_AND_BTTS":
                         parsedMarketType = ParsedMarketType.valueOf(marketType);
@@ -1274,23 +1269,13 @@ public final class FindMarkets {
                         } // end else
                         break;
                     case "CORRECT_SCORE2":
-                        switch (marketName) {
-                            case "Correct Score 2 Home":
-                                parsedMarketType = ParsedMarketType.CORRECT_SCORE2_A;
-                                break;
-                            case "Correct Score 2 Away":
-                                parsedMarketType = ParsedMarketType.CORRECT_SCORE2_B;
-                                break;
-                            case "Correct Score 3 Home":
-                                parsedMarketType = ParsedMarketType.CORRECT_SCORE3_A;
-                                break;
-                            case "Correct Score 3 Away":
-                                parsedMarketType = ParsedMarketType.CORRECT_SCORE3_B;
-                                break;
-                            default:
-                                parsedMarketType = null;
-                                break;
-                        } // end switch
+                        parsedMarketType = switch (marketName) {
+                            case "Correct Score 2 Home" -> ParsedMarketType.CORRECT_SCORE2_A;
+                            case "Correct Score 2 Away" -> ParsedMarketType.CORRECT_SCORE2_B;
+                            case "Correct Score 3 Home" -> ParsedMarketType.CORRECT_SCORE3_A;
+                            case "Correct Score 3 Away" -> ParsedMarketType.CORRECT_SCORE3_B;
+                            default -> null;
+                        }; // end switch
                         if (parsedMarketType == null) {
                             interestingMarket = unknownParsedMarketTypeError(marketName, eventHomeName, eventAwayName, marketId, marketCatalogue);
                         } else {
@@ -1671,13 +1656,9 @@ public final class FindMarkets {
                         }
                         break;
                     case "OVER_UNDER":
-                        switch (marketName) {
-                            case "Over/Under 9.5 Goals":
-                            case "Over/Under 10.5 Goals":
-                            case "Over/Under 11.5 Goals":
-                            case "Over/Under 12.5 Goals":
-                            case "Over/Under 13.5 Goals":
-                            case "Over/Under 14.5 Goals":
+                        //noinspection SwitchStatementDensity
+                        interestingMarket = switch (marketName) {
+                            case "Over/Under 9.5 Goals", "Over/Under 10.5 Goals", "Over/Under 11.5 Goals", "Over/Under 12.5 Goals", "Over/Under 13.5 Goals", "Over/Under 14.5 Goals" -> {
                                 final int nGoalsInner = Integer.parseInt(marketName.substring("Over/Under ".length(), marketName.indexOf(".5 Goals")));
                                 parsedMarketType = ParsedMarketType.valueOf(marketType + "_" + nGoalsInner + "5");
                                 nParsedRunners = 2;
@@ -1697,14 +1678,15 @@ public final class FindMarkets {
                                     }
                                     addParsedRunner(parsedRunnersSet, runnerCatalog, parsedRunnerType);
                                 } // end for
-                                interestingMarket = !errorAlreadyPrinted && parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
-                                break;
-                            default:
+                                @SuppressWarnings("UnnecessaryLocalVariable") final boolean returnValue = !errorAlreadyPrinted && parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
+                                yield returnValue;
+                            }
+                            default -> {
                                 Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "new OVER_UNDER marketName found: {}, for: {}", marketName,
                                                                   Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
-                                interestingMarket = false;
-                                break;
-                        } // end switch
+                                yield false;
+                            }
+                        }; // end switch
                         break;
                     case "FIRST_HALF_GOALS_05":
                     case "FIRST_HALF_GOALS_15":
@@ -2096,25 +2078,17 @@ public final class FindMarkets {
                             } else { // is 0, nothing to add
                             }
                             switch (Math.abs(handicapMultiplied) % 4) {
-                                case 0:
+                                case 0 -> {
                                     final int valueToAdd = Math.abs(handicapMultiplied) / 4;
                                     if (valueToAdd == 0) { // won't add anything when value is 0
                                     } else {
                                         runnerTypeBuilder.append(Math.abs(handicapMultiplied) / 4);
                                     }
-                                    break;
-                                case 1:
-                                    runnerTypeBuilder.append(Math.abs(handicapMultiplied) / 4).append("25");
-                                    break;
-                                case 2:
-                                    runnerTypeBuilder.append(Math.abs(handicapMultiplied) / 4).append("5");
-                                    break;
-                                case 3:
-                                    runnerTypeBuilder.append(Math.abs(handicapMultiplied) / 4).append("75");
-                                    break;
-                                default://-15 -3.75 3
-                                    logger.error("default in handicapMultiplied switch should never be reached: {} {} {}", handicapMultiplied, handicap, sortPriority);
-                                    break;
+                                }
+                                case 1 -> runnerTypeBuilder.append(Math.abs(handicapMultiplied) / 4).append("25");
+                                case 2 -> runnerTypeBuilder.append(Math.abs(handicapMultiplied) / 4).append("5");
+                                case 3 -> runnerTypeBuilder.append(Math.abs(handicapMultiplied) / 4).append("75");
+                                default -> logger.error("default in handicapMultiplied switch should never be reached: {} {} {}", handicapMultiplied, handicap, sortPriority); //-15 -3.75 3
                             }
 
                             //noinspection FloatingPointEquality

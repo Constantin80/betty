@@ -55,11 +55,12 @@ public class InterfaceConnectionThread
         Generic.closeObjects(this.socket);
     }
 
-    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "ChainOfInstanceofChecks", "SwitchStatementDensity", "unchecked", "OverlyCoupledMethod", "OverlyNestedMethod"})
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "SwitchStatementDensity", "unchecked", "OverlyCoupledMethod", "OverlyNestedMethod"})
     private synchronized void runAfterReceive(@NotNull final StreamObjectInterface receivedCommand) {
         if (receivedCommand instanceof SerializableObjectModification) {
             final SerializableObjectModification<?> serializableObjectModification = (SerializableObjectModification<?>) receivedCommand;
             final Enum<?> command = serializableObjectModification.getCommand();
+            //noinspection ChainOfInstanceofChecks
             if (command instanceof RulesManagerModificationCommand) {
                 final RulesManagerModificationCommand rulesManagerModificationCommand = (RulesManagerModificationCommand) command;
                 final Object[] objectsToModify = serializableObjectModification.getArray();

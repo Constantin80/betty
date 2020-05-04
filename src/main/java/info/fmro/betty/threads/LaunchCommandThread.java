@@ -613,7 +613,7 @@ public class LaunchCommandThread
             }
             Generic.threadSleepSegmented(this.delay, 100L, Statics.mustStop);
         }
-        //noinspection SwitchStatementDensity
+        //noinspection SwitchStatementDensity,EnhancedSwitchMigration
         switch (this.command) {
             case mapEventsToScraperEvents:
                 if (!Statics.safeBetModuleActivated) {

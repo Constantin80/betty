@@ -685,129 +685,127 @@ public final class FindSafeRunners {
                                                     final Long selectionId = parsedRunner.getSelectionId();
                                                     SafeRunner safeRunner = null;
                                                     switch (parsedRunnerType) {
-                                                        case SCORE_0_1:
+                                                        case SCORE_0_1 -> {
                                                             if (homeScore == 0 && awayScore >= 1) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
                                                             }
                                                             if (homeScore > 0 && awayScore < 1) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
                                                             }
-                                                            break;
-                                                        case SCORE_0_2:
+                                                        }
+                                                        case SCORE_0_2 -> {
                                                             if (homeScore == 0 && awayScore >= 2) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
                                                             }
                                                             if (homeScore > 0 && awayScore < 2) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
                                                             }
-                                                            break;
-                                                        case SCORE_0_3:
+                                                        }
+                                                        case SCORE_0_3 -> {
                                                             if (homeScore == 0 && awayScore >= 3) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
                                                             }
                                                             if (homeScore > 0 && awayScore < 3) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
                                                             }
-                                                            break;
-                                                        case SCORE_1_0:
+                                                        }
+                                                        case SCORE_1_0 -> {
                                                             if (homeScore >= 1 && awayScore == 0) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
                                                             }
                                                             if (homeScore < 1 && awayScore > 0) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
                                                             }
-                                                            break;
-                                                        case SCORE_1_1:
+                                                        }
+                                                        case SCORE_1_1 -> {
                                                             if (homeScore == 1 && awayScore == 1) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
                                                             }
                                                             if ((homeScore < 1 && awayScore > 1) || (homeScore > 1 && awayScore < 1)) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
                                                             }
-                                                            break;
-                                                        case SCORE_1_2:
+                                                        }
+                                                        case SCORE_1_2 -> {
                                                             if (homeScore == 1 && awayScore == 2) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
                                                             }
                                                             if ((homeScore < 1 && awayScore > 2) || (homeScore > 1 && awayScore < 2)) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
                                                             }
-                                                            break;
-                                                        case SCORE_1_3:
+                                                        }
+                                                        case SCORE_1_3 -> {
                                                             if (homeScore == 1 && awayScore == 3) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
                                                             }
                                                             if ((homeScore < 1 && awayScore > 3) || (homeScore > 1 && awayScore < 3)) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
                                                             }
-                                                            break;
-                                                        case SCORE_2_0:
+                                                        }
+                                                        case SCORE_2_0 -> {
                                                             if (homeScore >= 2 && awayScore == 0) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
                                                             }
                                                             if (homeScore < 2 && awayScore > 0) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
                                                             }
-                                                            break;
-                                                        case SCORE_2_1:
+                                                        }
+                                                        case SCORE_2_1 -> {
                                                             if (homeScore == 2 && awayScore == 1) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
                                                             }
                                                             if ((homeScore < 2 && awayScore > 1) || (homeScore > 2 && awayScore < 1)) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
                                                             }
-                                                            break;
-                                                        case SCORE_2_2:
+                                                        }
+                                                        case SCORE_2_2 -> {
                                                             if (homeScore == 2 && awayScore == 2) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
                                                             }
                                                             if ((homeScore < 2 && awayScore > 2) || (homeScore > 2 && awayScore < 2)) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
                                                             }
-                                                            break;
-                                                        case SCORE_2_3:
+                                                        }
+                                                        case SCORE_2_3 -> {
                                                             if (homeScore == 2 && awayScore == 3) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
                                                             }
                                                             if ((homeScore < 2 && awayScore > 3) || (homeScore > 2 && awayScore < 3)) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
                                                             }
-                                                            break;
-                                                        case SCORE_3_0:
+                                                        }
+                                                        case SCORE_3_0 -> {
                                                             if (homeScore >= 3 && awayScore == 0) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
                                                             }
                                                             if (homeScore < 3 && awayScore > 0) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
                                                             }
-                                                            break;
-                                                        case SCORE_3_1:
+                                                        }
+                                                        case SCORE_3_1 -> {
                                                             if (homeScore == 3 && awayScore == 1) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
                                                             }
                                                             if ((homeScore < 3 && awayScore > 1) || (homeScore > 3 && awayScore < 1)) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
                                                             }
-                                                            break;
-                                                        case SCORE_3_2:
+                                                        }
+                                                        case SCORE_3_2 -> {
                                                             if (homeScore == 3 && awayScore == 2) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
                                                             }
                                                             if ((homeScore < 3 && awayScore > 2) || (homeScore > 3 && awayScore < 2)) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
                                                             }
-                                                            break;
-                                                        case SCORE_3_3:
+                                                        }
+                                                        case SCORE_3_3 -> {
                                                             if (homeScore == 3 && awayScore == 3) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScores);
                                                             }
                                                             if ((homeScore < 3 && awayScore > 3) || (homeScore > 3 && awayScore < 3)) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScores);
                                                             }
-                                                            break;
-                                                        default:
-                                                            defaultParsedRunnerTypeError(parsedRunnerType, marketCatalogue);
-                                                            break;
+                                                        }
+                                                        default -> defaultParsedRunnerTypeError(parsedRunnerType, marketCatalogue);
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
@@ -1732,25 +1730,23 @@ public final class FindSafeRunners {
                                                     final Long selectionId = parsedRunner.getSelectionId();
                                                     SafeRunner safeRunner = null;
                                                     switch (parsedRunnerType) {
-                                                        case YES:
+                                                        case YES -> {
                                                             if (homeHtScore > 0 && homeScore > homeHtScore) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScoresHts);
                                                             }
                                                             if (homeHtScore == 0) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScoresHts);
                                                             }
-                                                            break;
-                                                        case NO:
+                                                        }
+                                                        case NO -> {
                                                             if (homeHtScore > 0 && homeScore > homeHtScore) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScoresHts);
                                                             }
                                                             if (homeHtScore == 0) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScoresHts);
                                                             }
-                                                            break;
-                                                        default:
-                                                            defaultParsedRunnerTypeError(parsedRunnerType, marketCatalogue);
-                                                            break;
+                                                        }
+                                                        default -> defaultParsedRunnerTypeError(parsedRunnerType, marketCatalogue);
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
@@ -1768,25 +1764,23 @@ public final class FindSafeRunners {
                                                     final Long selectionId = parsedRunner.getSelectionId();
                                                     SafeRunner safeRunner = null;
                                                     switch (parsedRunnerType) {
-                                                        case YES:
+                                                        case YES -> {
                                                             if (awayHtScore > 0 && awayScore > awayHtScore) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScoresHts);
                                                             }
                                                             if (awayHtScore == 0) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScoresHts);
                                                             }
-                                                            break;
-                                                        case NO:
+                                                        }
+                                                        case NO -> {
                                                             if (awayHtScore > 0 && awayScore > awayHtScore) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScoresHts);
                                                             }
                                                             if (awayHtScore == 0) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScoresHts);
                                                             }
-                                                            break;
-                                                        default:
-                                                            defaultParsedRunnerTypeError(parsedRunnerType, marketCatalogue);
-                                                            break;
+                                                        }
+                                                        default -> defaultParsedRunnerTypeError(parsedRunnerType, marketCatalogue);
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }
@@ -1865,25 +1859,23 @@ public final class FindSafeRunners {
                                                     final Long selectionId = parsedRunner.getSelectionId();
                                                     SafeRunner safeRunner = null;
                                                     switch (parsedRunnerType) {
-                                                        case YES:
+                                                        case YES -> {
                                                             if (awayHtScore + homeHtScore == 0) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusHts);
                                                             }
                                                             if (goalScoredInBothHalves) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusScoresHts);
                                                             }
-                                                            break;
-                                                        case NO:
+                                                        }
+                                                        case NO -> {
                                                             if (awayHtScore + homeHtScore == 0) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, BACK, usedScrapersMap, statusHts);
                                                             }
                                                             if (goalScoredInBothHalves) {
                                                                 safeRunner = new SafeRunner(marketId, selectionId, LAY, usedScrapersMap, statusScoresHts);
                                                             }
-                                                            break;
-                                                        default:
-                                                            defaultParsedRunnerTypeError(parsedRunnerType, marketCatalogue);
-                                                            break;
+                                                        }
+                                                        default -> defaultParsedRunnerTypeError(parsedRunnerType, marketCatalogue);
                                                     }
                                                     addSafeRunner(safeRunnersSet, safeRunner, usedParsedRunnersSet, parsedRunner);
                                                 }

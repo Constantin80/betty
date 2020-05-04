@@ -93,7 +93,7 @@ public class RescriptOpThread<T>
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "OverlyComplexMethod", "OverlyCoupledMethod", "OverlyLongMethod", "OverlyNestedMethod"})
+    @SuppressWarnings({"unchecked", "OverlyComplexMethod", "OverlyLongMethod", "OverlyNestedMethod"})
     public void run() {
         //noinspection SwitchStatementDensity
         switch (this.operation) {

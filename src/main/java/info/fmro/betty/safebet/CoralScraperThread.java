@@ -10,10 +10,10 @@ import com.ximpleware.NavException;
 import com.ximpleware.VTDNav;
 import com.ximpleware.XPathEvalException;
 import com.ximpleware.XPathParseException;
-import info.fmro.shared.entities.Event;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.utility.WebScraperMethods;
+import info.fmro.shared.entities.Event;
 import info.fmro.shared.enums.CommandType;
 import info.fmro.shared.enums.MatchStatus;
 import info.fmro.shared.utility.Generic;
@@ -40,7 +40,7 @@ public class CoralScraperThread
     private boolean shouldChangeCheckboxes;
 
     public CoralScraperThread() {
-        super("coral", 500L, BrowserVersion.FIREFOX_60, 200, true);
+        super("coral", 500L, BrowserVersion.FIREFOX_68, 200, true);
     }
 
     @SuppressWarnings("NestedTryStatement")
@@ -274,26 +274,14 @@ public class CoralScraperThread
                         scraperEvent.setMatchStatus(null);
                     } else {
                         @Nullable final MatchStatus matchStatus;
-                        switch (periodString) {
-                            case "&nbsp;":
-                                matchStatus = null; // is accepted for Coral; however resetting a known status to null is not, and this is checked for in setMatchStatus
-                                break;
-                            case "1H":
-                                matchStatus = MatchStatus.FIRST_HALF;
-                                break;
-                            case "HT":
-                                matchStatus = MatchStatus.HALF_TIME;
-                                break;
-                            case "2H":
-                                matchStatus = MatchStatus.SECOND_HALF;
-                                break;
-                            case "ET":
-                                matchStatus = MatchStatus.OVERTIME;
-                                break;
-                            default:
-                                matchStatus = MatchStatus.UNKNOWN;
+                        matchStatus = switch (periodString) {
+                            case "&nbsp;" -> null; // is accepted for Coral; however resetting a known status to null is not, and this is checked for in setMatchStatus
+                            case "1H" -> MatchStatus.FIRST_HALF;
+                            case "HT" -> MatchStatus.HALF_TIME;
+                            case "2H" -> MatchStatus.SECOND_HALF;
+                            case "ET" -> MatchStatus.OVERTIME;
+                            default -> {
                                 logger.error("{} unknown periodString in scrapePeriod: {} {} {}", this.threadId, periodString, Generic.getStringCodePointValues(periodString), Generic.objectToString(scraperEvent));
-
                                 final long currentTime = System.currentTimeMillis();
                                 synchronized (this.lastTimedPageSave) { // synchronized not necessary for now, added just in case
                                     if (currentTime - this.lastTimedPageSave.get() > Generic.MINUTE_LENGTH_MILLISECONDS * 5L) {
@@ -301,8 +289,9 @@ public class CoralScraperThread
                                         this.mustSavePage.set(true);
                                     }
                                 } // end synchronized
-                                break;
-                        } // end switch
+                                yield MatchStatus.UNKNOWN;
+                            }
+                        }; // end switch
                         scraperEvent.setMatchStatus(matchStatus);
                     }
 

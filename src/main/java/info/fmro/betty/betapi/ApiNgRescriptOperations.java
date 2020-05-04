@@ -47,7 +47,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-@SuppressWarnings({"UtilityClass", "OverlyCoupledClass"})
+@SuppressWarnings("UtilityClass")
 public final class ApiNgRescriptOperations {
     private static final Logger logger = LoggerFactory.getLogger(ApiNgRescriptOperations.class);
     public static final String FILTER = "filter";

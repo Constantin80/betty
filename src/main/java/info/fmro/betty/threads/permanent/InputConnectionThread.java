@@ -101,42 +101,40 @@ class InputConnectionThread
                     }
                 } else if (inputLine.startsWith("savePage ".toLowerCase(Locale.ENGLISH))) {
                     final String command = inputLine.substring("savePage ".length()).trim();
-                    final boolean success;
-                    switch (command) {
-                        case "betradar":
+                    final boolean success = switch (command) {
+                        case "betradar" -> {
                             Statics.betradarScraperThread.mustSavePage.set(true);
-                            success = true;
-                            break;
-                        case "coral":
+                            yield true;
+                        }
+                        case "coral" -> {
                             Statics.coralScraperThread.mustSavePage.set(true);
-                            success = true;
-                            break;
-                        default:
+                            yield true;
+                        }
+                        default -> {
                             printWriter.println("unknown savePage command: " + command);
-                            success = false;
-                            break;
-                    } // end switch
+                            yield false;
+                        }
+                    }; // end switch
                     if (success) {
                         logger.info("savePage {} command executed", command);
                         printWriter.println("Will save " + command + " web page");
                     }
                 } else if (inputLine.startsWith("refreshPage ".toLowerCase(Locale.ENGLISH))) {
                     final String command = inputLine.substring("refreshPage ".length()).trim();
-                    final boolean success;
-                    switch (command) {
-                        case "betradar":
+                    final boolean success = switch (command) {
+                        case "betradar" -> {
                             Statics.betradarScraperThread.mustRefreshPage.set(true);
-                            success = true;
-                            break;
-                        case "coral":
+                            yield true;
+                        }
+                        case "coral" -> {
                             Statics.coralScraperThread.mustRefreshPage.set(true);
-                            success = true;
-                            break;
-                        default:
+                            yield true;
+                        }
+                        default -> {
                             printWriter.println("unknown refreshPage command: " + command);
-                            success = false;
-                            break;
-                    } // end switch
+                            yield false;
+                        }
+                    }; // end switch
                     if (success) {
                         logger.info("refreshPage {} command executed", command);
                         printWriter.println("Will refresh " + command + " web page");

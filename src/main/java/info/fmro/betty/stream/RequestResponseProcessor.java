@@ -404,25 +404,23 @@ class RequestResponseProcessor
         this.lastResponseTime = System.currentTimeMillis();
         if (message != null) {
             switch (message.getOp()) {
-                case connection:
+                case connection -> {
                     logger.info("[{}]ESA->Client: {}", this.client.id, line);
                     processConnectionMessage((ConnectionMessage) message);
-                    break;
-                case status:
+                }
+                case status -> {
                     logger.info("[{}]ESA->Client: {}", this.client.id, line);
                     processStatusMessage((StatusMessage) message);
-                    break;
-                case mcm:
+                }
+                case mcm -> {
                     traceChange(line);
                     processMarketChangeMessage((MarketChangeMessage) message);
-                    break;
-                case ocm:
+                }
+                case ocm -> {
                     traceChange(line);
                     processOrderChangeMessage((OrderChangeMessage) message);
-                    break;
-                default:
-                    logger.error("[{}]ESA->Client: Unknown message type: {}, message:{}", this.client.id, message.getOp(), line);
-                    break;
+                }
+                default -> logger.error("[{}]ESA->Client: Unknown message type: {}, message:{}", this.client.id, message.getOp(), line);
             }
         } else { // message null, error was already printed, nothing to be done
         }
@@ -475,7 +473,7 @@ class RequestResponseProcessor
 
                 if (change != null) {
                     Statics.marketCache.listOfQueues.send(message);
-                    Statics.marketCache.onMarketChange(change, Statics.safetyLimits.existingFunds.currencyRate);
+                    Statics.marketCache.onMarketChange(change, Statics.safetyLimits.existingFunds.currencyRate, Statics.rulesManagerThread.rulesManager);
                 }
             } else {
                 if (isIdRecentlyRemoved(id)) {
@@ -666,6 +664,7 @@ class RequestResponseProcessor
                 } else if (task.isTaskFinished()) { // tasks with error are not normally repeated, but in the future I might change this for some error codes
                     final StatusMessage statusMessage = task.getStatusMessage();
                     final ErrorCode errorCode = statusMessage.getErrorCode();
+                    //noinspection EnhancedSwitchMigration
                     switch (errorCode) {
                         case NOT_AUTHORIZED:
                         case NO_APP_KEY:

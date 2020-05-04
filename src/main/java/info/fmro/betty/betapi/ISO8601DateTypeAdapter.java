@@ -29,14 +29,14 @@ class ISO8601DateTypeAdapter
     }
 
     @Override
-    public synchronized JsonElement serialize(final Date t, final Type type, final JsonSerializationContext jsonSerializationContext) {
-        return new JsonPrimitive(this.dateFormat.format(t));
+    public synchronized JsonElement serialize(final Date src, final Type typeOfSrc, final JsonSerializationContext context) {
+        return new JsonPrimitive(this.dateFormat.format(src));
     }
 
     @Override
-    public synchronized Date deserialize(@NotNull final JsonElement jsonElement, final Type type, final JsonDeserializationContext jsonDeserializationContext) {
+    public synchronized Date deserialize(@NotNull final JsonElement json, final Type typeOfT, final JsonDeserializationContext context) {
         try {
-            return this.dateFormat.parse(jsonElement.getAsString());
+            return this.dateFormat.parse(json.getAsString());
         } catch (ParseException parseException) {
             throw new JsonParseException(parseException);
         }

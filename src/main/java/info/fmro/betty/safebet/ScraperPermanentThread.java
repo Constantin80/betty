@@ -40,7 +40,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class ScraperPermanentThread
         implements Runnable, AverageLoggerInterface {
     private static final Logger logger = LoggerFactory.getLogger(ScraperPermanentThread.class);
-    public static final BrowserVersion defaultBrowserVersion = BrowserVersion.FIREFOX_60;
+    public static final BrowserVersion defaultBrowserVersion = BrowserVersion.FIREFOX_68;
     public static final boolean defaultSingleLogger = true;
     public static final long DEFAULT_DELAY = 500L;
     public static final int defaultCacheMaxSize = 200;

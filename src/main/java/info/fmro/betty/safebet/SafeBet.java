@@ -191,6 +191,7 @@ public class SafeBet
             return this.marketStatus.compareTo(o.marketStatus);
         }
         if (this.inPlay != o.inPlay) {
+            //noinspection ConstantConditions
             return !this.inPlay && o.inPlay ? BEFORE : AFTER;
         }
         if (this.betDelay != o.betDelay) {

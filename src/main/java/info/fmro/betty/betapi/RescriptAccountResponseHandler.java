@@ -32,10 +32,10 @@ class RescriptAccountResponseHandler
     // }
     @SuppressWarnings("OverlyNestedMethod")
     @Override
-    public synchronized String handleResponse(@NotNull final HttpResponse httpResponse)
+    public synchronized String handleResponse(@NotNull final HttpResponse response)
             throws IOException {
-        final StatusLine statusLine = httpResponse.getStatusLine();
-        final HttpEntity httpEntity = httpResponse.getEntity();
+        final StatusLine statusLine = response.getStatusLine();
+        final HttpEntity httpEntity = response.getEntity();
         @Nullable String httpEntityString = httpEntity == null ? null : EntityUtils.toString(httpEntity, Generic.UTF8_CHARSET);
         final int statusCode = statusLine.getStatusCode();
         if (statusCode == 200) { // there's no error present, httpEntityString will be returned further
@@ -55,38 +55,38 @@ class RescriptAccountResponseHandler
 
                         if (accountAPINGException != null) {
                             switch (accountAPINGException.getErrorCode()) {
-                                case INVALID_SESSION_INFORMATION:
+                                case INVALID_SESSION_INFORMATION -> {
                                     Statics.needSessionToken.set(true);
                                     Generic.alreadyPrintedMap.logOnce(defaultPrintExpiry, logger, LogLevel.INFO, "needing another session token, INVALID_SESSION_INFORMATION, call to api-ng failed: {} {}", httpEntityString, statusLine);
                                     Generic.threadSleep(100L);
-                                    break;
-                                case INVALID_APP_KEY: // I see this error if I send an invalid session token
+                                }
+                                case INVALID_APP_KEY -> { // I see this error if I send an invalid session token
                                     Statics.needSessionToken.set(true);
                                     Generic.alreadyPrintedMap.logOnce(defaultPrintExpiry, logger, LogLevel.WARN, "needing another session token, INVALID_APP_KEY, call to api-ng failed: {} {}", httpEntityString, statusLine);
                                     Generic.threadSleep(100L);
-                                    break;
-                                case NO_SESSION: // might be related to an invalid session token
+                                }
+                                case NO_SESSION -> { // might be related to an invalid session token
                                     Statics.needSessionToken.set(true);
                                     Generic.alreadyPrintedMap.logOnce(defaultPrintExpiry, logger, LogLevel.WARN, "needing another session token, NO_SESSION, call to api-ng failed: {} {}", httpEntityString, statusLine);
                                     Generic.threadSleep(100L);
-                                    break;
-                                case TOO_MANY_REQUESTS:
+                                }
+                                case TOO_MANY_REQUESTS -> {
                                     Generic.alreadyPrintedMap.logOnce(defaultPrintExpiry, logger, LogLevel.ERROR, "too many concurrent requests, call to api-ng failed: {} {}", httpEntityString, statusLine);
                                     Generic.threadSleep(500L);
-                                    break;
-                                case UNEXPECTED_ERROR:
+                                }
+                                case UNEXPECTED_ERROR -> {
                                     Generic.alreadyPrintedMap.logOnce(defaultPrintExpiry, logger, LogLevel.WARN, "unexpected server error, call to api-ng failed: {} {}", httpEntityString, statusLine);
                                     Generic.threadSleep(100L);
-                                    break;
-                                case NO_APP_KEY:
+                                }
+                                case NO_APP_KEY -> {
                                     Generic.alreadyPrintedMap.logOnce(defaultPrintExpiry, logger, LogLevel.ERROR, "NO_APP_KEY server error, call to api-ng failed: {} {}", httpEntityString, statusLine);
                                     Generic.threadSleep(500L);
-                                    break;
-                                default:
+                                }
+                                default -> {
                                     Generic.alreadyPrintedMap.logOnce(defaultPrintExpiry, logger, LogLevel.ERROR, "unsupported accountAPINGException errorCode: {}, call to api-ng failed: {} {}", Generic.objectToString(httpErrorAccountResponse),
                                                                       httpEntityString, statusLine);
                                     Generic.threadSleep(500L);
-                                    break;
+                                }
                             } // end switch
                         } else { // no error parsing can be done; likely json parser exception
                             Generic.alreadyPrintedMap.logOnce(defaultPrintExpiry, logger, LogLevel.ERROR, "accountAPINGException null for: {} {}", httpEntityString, statusLine);

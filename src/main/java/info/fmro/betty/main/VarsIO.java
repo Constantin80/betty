@@ -1,8 +1,5 @@
 package info.fmro.betty.main;
 
-import info.fmro.shared.entities.Event;
-import info.fmro.shared.entities.MarketBook;
-import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.betty.logic.SafetyLimits;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.safebet.BetradarEvent;
@@ -11,6 +8,9 @@ import info.fmro.betty.safebet.SafeRunner;
 import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
 import info.fmro.betty.threads.permanent.RulesManagerThread;
 import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.entities.Event;
+import info.fmro.shared.entities.MarketBook;
+import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.shared.objects.SessionTokenObject;
 import info.fmro.shared.objects.TimeStamps;
 import info.fmro.shared.stream.objects.StreamSynchronizedMap;
@@ -246,6 +246,7 @@ public final class VarsIO {
             final Object objectFromFile = Generic.readObjectFromFile(entry.getValue());
             if (objectFromFile != null) {
                 try {
+                    //noinspection EnhancedSwitchMigration
                     switch (key) {
                         case "timeStamps":
                             final TimeStamps timeStamps = (TimeStamps) objectFromFile;
@@ -343,6 +344,7 @@ public final class VarsIO {
         Statics.timeLastSaveToDisk.set(System.currentTimeMillis());
         for (final Entry<String, String> entry : Statics.objectFileNamesMap.entrySet()) {
             final String key = entry.getKey();
+            //noinspection EnhancedSwitchMigration
             switch (key) {
                 case "timeStamps":
                     Generic.synchronizedWriteObjectToFile(Statics.timeStamps, entry.getValue());

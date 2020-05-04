@@ -11,6 +11,7 @@ import info.fmro.shared.entities.PlaceInstruction;
 import info.fmro.shared.enums.OrderType;
 import info.fmro.shared.enums.PersistenceType;
 import info.fmro.shared.enums.TemporaryOrderType;
+import info.fmro.shared.objects.Exposure;
 import info.fmro.shared.objects.TemporaryOrder;
 import info.fmro.shared.stream.cache.order.OrderMarketRunner;
 import info.fmro.shared.stream.definitions.Order;
@@ -22,6 +23,7 @@ import info.fmro.shared.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,8 +136,8 @@ public class PendingOrdersThread
         return !this.temporaryOrders.isEmpty();
     }
 
-    public synchronized void checkTemporaryOrdersExposure(final String marketId, final RunnerId runnerId, final OrderMarketRunner orderMarketRunner) {
-//        orderMarketRunner.resetTemporaryAmounts();
+    public synchronized void checkTemporaryOrdersExposure(final String marketId, final RunnerId runnerId, @NotNull final Exposure exposure) {
+//        exposure.resetTemporaryAmounts();
         double tempBackExposure = 0d, tempLayExposure = 0d, tempBackProfit = 0d, tempLayProfit = 0d, tempBackCancel = 0d, tempLayCancel = 0d;
         for (final TemporaryOrder temporaryOrder : this.temporaryOrders) {
             if (temporaryOrder.runnerEquals(marketId, runnerId)) {
@@ -173,12 +175,12 @@ public class PendingOrdersThread
             } else { // temporaryOrder not interesting, nothing to be done
             }
         } // end for
-        orderMarketRunner.setTempBackExposure(tempBackExposure);
-        orderMarketRunner.setTempLayExposure(tempLayExposure);
-        orderMarketRunner.setTempBackProfit(tempBackProfit);
-        orderMarketRunner.setTempLayProfit(tempLayProfit);
-        orderMarketRunner.setTempBackCancel(tempBackCancel);
-        orderMarketRunner.setTempLayCancel(tempLayCancel);
+        exposure.setBackTempExposure(tempBackExposure);
+        exposure.setLayTempExposure(tempLayExposure);
+        exposure.setBackTempProfit(tempBackProfit);
+        exposure.setLayTempProfit(tempLayProfit);
+        exposure.setBackTempCancel(tempBackCancel);
+        exposure.setLayTempCancel(tempLayCancel);
     }
 
     public synchronized double addPlaceOrder(final String marketId, final RunnerId runnerId, final Side side, final double price, final double size) {

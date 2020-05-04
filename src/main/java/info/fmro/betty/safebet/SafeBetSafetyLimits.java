@@ -2,15 +2,15 @@ package info.fmro.betty.safebet;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import info.fmro.betty.betapi.RescriptOpThread;
-import info.fmro.shared.entities.CurrentOrderSummary;
-import info.fmro.shared.entities.MarketBook;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.entities.ClearedOrderSummary;
+import info.fmro.shared.entities.CurrentOrderSummary;
 import info.fmro.shared.entities.ExchangePrices;
 import info.fmro.shared.entities.LimitOrder;
+import info.fmro.shared.entities.MarketBook;
 import info.fmro.shared.entities.PlaceInstruction;
 import info.fmro.shared.entities.PriceSize;
 import info.fmro.shared.entities.Runner;
@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
-@SuppressWarnings({"OverlyComplexClass", "OverlyCoupledClass"})
+@SuppressWarnings("OverlyComplexClass")
 public class SafeBetSafetyLimits
         implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(SafeBetSafetyLimits.class);
@@ -92,19 +92,15 @@ public class SafeBetSafetyLimits
                         final Side side = safeRunner.getSide();
                         final ExchangePrices exchangePrices = runner.getEx();
                         if (exchangePrices != null) {
-                            @Nullable final List<PriceSize> safePriceSizesList;
-                            switch (side) {
-                                case BACK:
-                                    safePriceSizesList = exchangePrices.getAvailableToBack();
-                                    break;
-                                case LAY:
-                                    safePriceSizesList = exchangePrices.getAvailableToLay();
-                                    break;
-                                default:
-                                    safePriceSizesList = null;
+                            @Nullable final List<PriceSize> safePriceSizesList = switch (side) {
+                                case BACK -> exchangePrices.getAvailableToBack();
+                                case LAY -> exchangePrices.getAvailableToLay();
+                                //noinspection UnnecessaryDefault
+                                default -> {
                                     logger.error("STRANGE unknown side {} in getMarketBooks for: {} {}", side, Generic.objectToString(runner), Generic.objectToString(marketBook));
-                                    break;
-                            } // end switch
+                                    yield null;
+                                }
+                            }; // end switch
                             if (safePriceSizesList != null && !safePriceSizesList.isEmpty()) { // this is a list of safe price/size pairs
                                 final RunnerStatus runnerStatus = runner.getStatus();
                                 final AtomicDouble previousOversizedRealAmount = new AtomicDouble();
@@ -293,21 +289,9 @@ public class SafeBetSafetyLimits
                 limitOrder.setSize(orderSize);
                 // final double limitOrderSize = limitOrder.getSize();
                 switch (side) {
-                    case BACK:
-                        // if (localUsedBalance == 0d) {
-                        //     Statics.safetyLimits.addLocalUsedBalance(localUsedBalance);
-                        // }
-                        localUsedBalance += orderSize;
-                        break;
-                    case LAY:
-                        // if (localUsedBalance == 0d) {
-                        //     Statics.safetyLimits.addLocalUsedBalance(localUsedBalance);
-                        // }
-                        localUsedBalance += info.fmro.shared.utility.Formulas.layExposure(price, orderSize);
-                        break;
-                    default:
-                        logger.error("STRANGE unknown side in switch: {}", side);
-                        break;
+                    case BACK -> localUsedBalance += orderSize;
+                    case LAY -> localUsedBalance += info.fmro.shared.utility.Formulas.layExposure(price, orderSize);
+                    default -> logger.error("STRANGE unknown side in switch: {}", side);
                 }
 
                 final PlaceInstruction placeInstruction = new PlaceInstruction();
@@ -358,12 +342,13 @@ public class SafeBetSafetyLimits
                         final LimitOrder previousLimitOrder = returnOversizedPlaceInstruction.getLimitOrder();
                         final double previousPrice = previousLimitOrder.getPrice();
 
+                        //noinspection ConstantConditions
                         if (//(side.equals(Side.BACK) && previousPrice > limitOrder.getPrice()) ||
                             //(
                                 side == Side.BACK || (side == Side.LAY && previousPrice < limitOrder.getPrice())) //)
                         { // in case of Side.BACK, limitOrder.getPrice() gets modified before and after placing the order, so it can't be used as if condition
                             final double previousOrderSize = previousLimitOrder.getSize();
-                            //noinspection SwitchStatementDensity
+                            //noinspection SwitchStatementDensity,EnhancedSwitchMigration
                             switch (side) {
                                 case BACK:
                                     if (currentOrderIsOversized) {
