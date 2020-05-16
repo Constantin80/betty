@@ -35,9 +35,9 @@ public class InterfaceServerThread
 //        }
 //    }
 
-    public synchronized void closeSocket() {
+    public void closeSocket() { // this is hard shutoff, probably best to not synchronize
         logger.info("closing InterfaceServerThread socket");
-        Generic.closeObjects(this.serverSocket);
+        Generic.closeObject(this.serverSocket);
     }
 
     @Override

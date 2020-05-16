@@ -171,7 +171,7 @@ public final class FindSafeRunners {
     }
 
     @NotNull
-    private static SynchronizedMap<Class<? extends ScraperEventInterface>, Long> putUsedScrapersMap(final @NotNull Map<? super ScrapedField, ? super SynchronizedMap<Class<? extends ScraperEventInterface>, Long>> usedScrapersMap,
+    private static SynchronizedMap<Class<? extends ScraperEventInterface>, Long> putUsedScrapersMap(@NotNull final Map<? super ScrapedField, ? super SynchronizedMap<Class<? extends ScraperEventInterface>, Long>> usedScrapersMap,
                                                                                                     final ScrapedField scrapedField, final int initialSetSize) {
         final SynchronizedMap<Class<? extends ScraperEventInterface>, Long> map = new SynchronizedMap<>(initialSetSize);
         usedScrapersMap.put(scrapedField, map);

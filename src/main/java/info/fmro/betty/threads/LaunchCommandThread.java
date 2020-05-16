@@ -660,10 +660,16 @@ public class LaunchCommandThread
                         FindMarkets.findMarkets(true);
                     } else if (this.eventsSet != null) {
                         checkRecentlyUsed(this.eventsSet);
-                        FindMarkets.findMarkets(this.eventsSet);
+                        if (this.eventsSet.isEmpty()) { // nothing to be done
+                        } else {
+                            FindMarkets.findMarkets(this.eventsSet);
+                        }
                     } else if (this.idsSet != null) {
                         checkRecentlyUsed(this.idsSet);
-                        FindMarkets.findMarkets(this.idsSet);
+                        if (this.idsSet.isEmpty()) { // nothing to be done
+                        } else {
+                            FindMarkets.findMarkets(this.idsSet);
+                        }
                     } else {
                         FindMarkets.findMarkets(); // full run
                     }

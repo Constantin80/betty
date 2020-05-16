@@ -447,7 +447,9 @@ class RequestResponseProcessor
             if (change != null) {
                 Statics.orderCache.listOfQueues.send(message);
                 Statics.orderCache.onOrderChange(change, Statics.rulesManagerThread.rulesManager.orderCacheHasReset, Statics.rulesManagerThread.rulesManager.newOrderMarketCreated, Statics.pendingOrdersThread,
-                                                 Statics.safetyLimits.existingFunds.currencyRate);
+                                                 Statics.safetyLimits.existingFunds.currencyRate, Statics.marketCache.markets, Statics.rulesManagerThread.rulesManager.listOfQueues, Statics.rulesManagerThread.rulesManager.marketsToCheck,
+                                                 Statics.rulesManagerThread.rulesManager.events, Statics.rulesManagerThread.rulesManager.markets, Statics.rulesManagerThread.rulesManager.rulesHaveChanged, Statics.marketCataloguesMap,
+                                                 Statics.PROGRAM_START_TIME);
             }
         }
     }
@@ -473,7 +475,9 @@ class RequestResponseProcessor
 
                 if (change != null) {
                     Statics.marketCache.listOfQueues.send(message);
-                    Statics.marketCache.onMarketChange(change, Statics.safetyLimits.existingFunds.currencyRate, Statics.rulesManagerThread.rulesManager);
+                    Statics.marketCache.onMarketChange(change, Statics.safetyLimits.existingFunds.currencyRate, Statics.rulesManagerThread.rulesManager.listOfQueues, Statics.rulesManagerThread.rulesManager.marketsToCheck,
+                                                       Statics.rulesManagerThread.rulesManager.events, Statics.rulesManagerThread.rulesManager.markets, Statics.rulesManagerThread.rulesManager.rulesHaveChanged, Statics.marketCataloguesMap,
+                                                       Statics.PROGRAM_START_TIME);
                 }
             } else {
                 if (isIdRecentlyRemoved(id)) {

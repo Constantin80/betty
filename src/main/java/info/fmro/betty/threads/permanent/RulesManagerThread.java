@@ -102,14 +102,15 @@ public class RulesManagerThread
                 }
                 if (this.rulesManager.newOrderMarketCreated.get()) {
                     logger.info("checking newOrderMarketCreated");
-                    this.rulesManager.addManagedMarketsForExistingOrders(Statics.orderCache, Statics.marketCataloguesMap, Statics.marketCache, Statics.eventsMap, Statics.PROGRAM_START_TIME); // this method resets the AtomicBoolean
+                    this.rulesManager.addManagedMarketsForExistingOrders(Statics.orderCache.markets, Statics.marketCataloguesMap, Statics.marketCache.markets, Statics.eventsMap, Statics.PROGRAM_START_TIME); // this method resets the AtomicBoolean
                 }
                 if (this.rulesManager.marketsMapModified.getAndSet(false)) {
                     Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.streamMarkets));
-                    this.rulesManager.calculateMarketLimits(Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap, Statics.marketCache, Statics.PROGRAM_START_TIME);
+                    this.rulesManager.calculateMarketLimits(Statics.pendingOrdersThread, Statics.orderCache.markets, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap, Statics.marketCache.markets, Statics.PROGRAM_START_TIME);
                 }
                 if (this.rulesManager.newAddManagedRunnerCommand.get()) { // this method resets the AtomicBoolean
-                    this.rulesManager.addManagedRunnerCommands(Statics.marketCataloguesMap, Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits.existingFunds, Statics.marketCache, Statics.eventsMap, Statics.PROGRAM_START_TIME);
+                    this.rulesManager.addManagedRunnerCommands(Statics.marketCataloguesMap, Statics.pendingOrdersThread, Statics.orderCache.markets, Statics.safetyLimits.existingFunds, Statics.marketCache.markets, Statics.eventsMap,
+                                                               Statics.PROGRAM_START_TIME);
                 }
                 if (!this.rulesManager.marketsToCheck.isEmpty()) { // run just on the marketsToCheck
                     logger.info("manageMarket marketsToCheck: {}", this.rulesManager.marketsToCheck.size());
@@ -123,18 +124,18 @@ public class RulesManagerThread
 //                    }
 
 //                    checkMarketsAreAssociatedWithEvents();
-                    this.rulesManager.addManagedMarketsForExistingOrders(Statics.orderCache, Statics.marketCataloguesMap, Statics.marketCache, Statics.eventsMap, Statics.PROGRAM_START_TIME); // this can modify the marketsMapModified AtomicBoolean marker
+                    this.rulesManager.addManagedMarketsForExistingOrders(Statics.orderCache.markets, Statics.marketCataloguesMap, Statics.marketCache.markets, Statics.eventsMap, Statics.PROGRAM_START_TIME); // this can modify the marketsMapModified marker
                     //calculateMarketLimits(marketIds);
                     if (this.rulesManager.marketsMapModified.getAndSet(false)) {
                         Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.streamMarkets));
-                        this.rulesManager.calculateMarketLimits(Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap, Statics.marketCache, Statics.PROGRAM_START_TIME);
+                        this.rulesManager.calculateMarketLimits(Statics.pendingOrdersThread, Statics.orderCache.markets, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap, Statics.marketCache.markets, Statics.PROGRAM_START_TIME);
                     } else { // nothing to be done, will only calculated limits if marketsMapModified
                     }
 
                     do {
                         final String marketId = this.rulesManager.marketsToCheck.poll();
                         final ManagedMarket managedMarket = this.rulesManager.markets.get(marketId);
-                        this.rulesManager.manageMarket(managedMarket, Statics.marketCache, Statics.orderCache, Statics.pendingOrdersThread, Statics.safetyLimits.existingFunds.currencyRate, Statics.safetyLimits.speedLimit,
+                        this.rulesManager.manageMarket(managedMarket, Statics.marketCache.markets, Statics.orderCache.markets, Statics.pendingOrdersThread, Statics.safetyLimits.existingFunds.currencyRate, Statics.safetyLimits.speedLimit,
                                                        Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap, Statics.PROGRAM_START_TIME);
                     } while (!this.rulesManager.marketsToCheck.isEmpty());
                 }
@@ -142,10 +143,10 @@ public class RulesManagerThread
                     this.rulesManager.stampTimeLastFullCheck();
 
 //                    checkMarketsAreAssociatedWithEvents();
-                    this.rulesManager.addManagedMarketsForExistingOrders(Statics.orderCache, Statics.marketCataloguesMap, Statics.marketCache, Statics.eventsMap, Statics.PROGRAM_START_TIME);
-                    this.rulesManager.calculateMarketLimits(Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap, Statics.marketCache, Statics.PROGRAM_START_TIME);
+                    this.rulesManager.addManagedMarketsForExistingOrders(Statics.orderCache.markets, Statics.marketCataloguesMap, Statics.marketCache.markets, Statics.eventsMap, Statics.PROGRAM_START_TIME);
+                    this.rulesManager.calculateMarketLimits(Statics.pendingOrdersThread, Statics.orderCache.markets, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap, Statics.marketCache.markets, Statics.PROGRAM_START_TIME);
                     for (final ManagedMarket managedMarket : this.rulesManager.markets.valuesCopy()) {
-                        this.rulesManager.manageMarket(managedMarket, Statics.marketCache, Statics.orderCache, Statics.pendingOrdersThread, Statics.safetyLimits.existingFunds.currencyRate, Statics.safetyLimits.speedLimit,
+                        this.rulesManager.manageMarket(managedMarket, Statics.marketCache.markets, Statics.orderCache.markets, Statics.pendingOrdersThread, Statics.safetyLimits.existingFunds.currencyRate, Statics.safetyLimits.speedLimit,
                                                        Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap, Statics.PROGRAM_START_TIME);
                     }
                 }

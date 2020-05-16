@@ -50,11 +50,6 @@ public class InterfaceConnectionThread
 //        this.sendQueue.add(object);
 //    }
 
-    public synchronized void closeSocket() {
-        logger.info("closing InterfaceConnectionThread socket");
-        Generic.closeObjects(this.socket);
-    }
-
     @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "SwitchStatementDensity", "unchecked", "OverlyCoupledMethod", "OverlyNestedMethod"})
     private synchronized void runAfterReceive(@NotNull final StreamObjectInterface receivedCommand) {
         if (receivedCommand instanceof SerializableObjectModification) {
@@ -120,8 +115,8 @@ public class InterfaceConnectionThread
                             if (objectsToModify[0] instanceof String && objectsToModify[1] instanceof Double) {
                                 final String eventId = (String) objectsToModify[0];
                                 final Double newAmount = (Double) objectsToModify[1];
-                                Statics.rulesManagerThread.rulesManager.setEventAmountLimit(eventId, newAmount, Statics.pendingOrdersThread, Statics.orderCache, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap, Statics.marketCache,
-                                                                                            Statics.PROGRAM_START_TIME);
+                                Statics.rulesManagerThread.rulesManager.setEventAmountLimit(eventId, newAmount, Statics.pendingOrdersThread, Statics.orderCache.markets, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap,
+                                                                                            Statics.marketCache.markets, Statics.PROGRAM_START_TIME);
                             } else {
                                 logger.error("wrong objectsToModify class in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), rulesManagerModificationCommand.name(), Generic.objectToString(receivedCommand));
                             }
@@ -133,7 +128,7 @@ public class InterfaceConnectionThread
                         if (objectsToModify != null && objectsToModify.length == 1) {
                             if (objectsToModify[0] instanceof ManagedRunner) {
                                 final ManagedRunner managedRunner = (ManagedRunner) objectsToModify[0];
-                                Statics.rulesManagerThread.rulesManager.addManagedRunner(managedRunner, Statics.marketCataloguesMap, Statics.marketCache, Statics.eventsMap, Statics.PROGRAM_START_TIME);
+                                Statics.rulesManagerThread.rulesManager.addManagedRunner(managedRunner, Statics.marketCataloguesMap, Statics.marketCache.markets, Statics.eventsMap, Statics.PROGRAM_START_TIME);
                             } else {
                                 logger.error("wrong objectsToModify class in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), rulesManagerModificationCommand.name(), Generic.objectToString(receivedCommand));
                             }
@@ -366,6 +361,11 @@ public class InterfaceConnectionThread
         }
     }
 
+    public void closeSocket() { // this is hard shutoff, probably best to not synchronize
+        logger.info("closing InterfaceConnectionThread socket");
+        Generic.closeObject(this.socket);
+    }
+
     @Override
     public void run() {
         this.writerThread.start();
@@ -405,6 +405,7 @@ public class InterfaceConnectionThread
 
         if (this.writerThread.isAlive()) {
             this.sendQueue.add(new PoisonPill());
+//            this.writerThread.close();
 //            logger.info("joining writerThread thread");
             try {
                 this.writerThread.join();
