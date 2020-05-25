@@ -116,7 +116,7 @@ public class InterfaceConnectionThread
                                 final String eventId = (String) objectsToModify[0];
                                 final Double newAmount = (Double) objectsToModify[1];
                                 Statics.rulesManagerThread.rulesManager.setEventAmountLimit(eventId, newAmount, Statics.pendingOrdersThread, Statics.orderCache.markets, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap,
-                                                                                            Statics.marketCache.markets, Statics.PROGRAM_START_TIME);
+                                                                                            Statics.marketCache.markets, Statics.orderCache.initializedFromStreamStamp, Statics.PROGRAM_START_TIME);
                             } else {
                                 logger.error("wrong objectsToModify class in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), rulesManagerModificationCommand.name(), Generic.objectToString(receivedCommand));
                             }

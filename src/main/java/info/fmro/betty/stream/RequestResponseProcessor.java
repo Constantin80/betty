@@ -197,18 +197,33 @@ class RequestResponseProcessor
             repeatTask(task);
         }
 //        tasks = new ConcurrentHashMap<>();
+
+        if (this.mcmCommandReceived) {
+            this.mcmCommandReceived = false;
+            ClientHandler.threadsWithMcmCommandReceived.getAndDecrement();
+        }
+        if (this.ocmCommandReceived) {
+            this.ocmCommandReceived = false;
+            ClientHandler.threadsWithOcmCommandReceived.getAndDecrement();
+        }
     }
 
     synchronized void disconnected() {
-        setStatus(ConnectionStatus.DISCONNECTED);
-        resetProcessor();
+        if (this.status == ConnectionStatus.DISCONNECTED) { // already disconnected, nothing to be done
+        } else {
+            setStatus(ConnectionStatus.DISCONNECTED);
+            resetProcessor();
+        }
     }
 
     synchronized void stopped() {
-        this.marketSubscriptionHandler = null;
-        this.orderSubscriptionHandler = null;
-        setStatus(ConnectionStatus.STOPPED);
-        resetProcessor();
+        if (this.status == ConnectionStatus.STOPPED) { // already stopped, nothing to be done
+        } else {
+            this.marketSubscriptionHandler = null;
+            this.orderSubscriptionHandler = null;
+            setStatus(ConnectionStatus.STOPPED);
+            resetProcessor();
+        }
     }
 
     @Nullable
