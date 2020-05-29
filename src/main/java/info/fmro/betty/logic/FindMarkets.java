@@ -341,7 +341,7 @@ public final class FindMarkets {
                 } // end else
             } // end for
             for (final String marketId : notFoundMarketIds) {
-                logger.info("removing not found marketId: {}", marketId);
+                logger.info("removing not found marketId in findMarket: {}", marketId);
                 Statics.marketCataloguesMap.remove(marketId);
             }
 

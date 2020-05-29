@@ -280,7 +280,7 @@ public class Client
         this.socketIsConnected.set(false);
         this.streamIsConnected.set(false);
         this.isAuth.set(false);
-        this.processor.disconnected();
+        this.processor.disconnected(stoppingClient);
     }
 
     @Override
@@ -309,16 +309,22 @@ public class Client
 
         try {
             if (this.readerThread != null) {
+//                if (this.readerThread.isAlive()) {
+//                    Generic.threadSleep(100L);
+//                }
                 if (this.readerThread.isAlive()) {
-                    logger.info("[{}]joining readerThread", this.id);
+//                    logger.info("[{}]joining readerThread", this.id);
                     this.readerThread.join();
                 }
             } else {
                 logger.error("[{}]null readerThread during stream end", this.id);
             }
             if (this.writerThread != null) {
+//                if (this.writerThread.isAlive()) {
+//                    Generic.threadSleep(50L);
+//                }
                 if (this.writerThread.isAlive()) {
-                    logger.info("[{}]joining writerThread", this.id);
+//                    logger.info("[{}]joining writerThread", this.id);
                     this.writerThread.join();
                 }
             } else {

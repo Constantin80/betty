@@ -67,9 +67,9 @@ class RequestResponseProcessor
 
     private int traceChangeTruncation; // size to which some info messages from the processor are truncated
 
-    @SuppressWarnings({"BooleanVariableAlwaysNegated", "TransientFieldInNonSerializableClass"})
+    @SuppressWarnings("TransientFieldInNonSerializableClass")
     private transient boolean mcmCommandReceived;
-    @SuppressWarnings({"BooleanVariableAlwaysNegated", "TransientFieldInNonSerializableClass"})
+    @SuppressWarnings("TransientFieldInNonSerializableClass")
     private transient boolean ocmCommandReceived;
 
     RequestResponseProcessor(final Client client) {
@@ -208,8 +208,8 @@ class RequestResponseProcessor
         }
     }
 
-    synchronized void disconnected() {
-        if (this.status == ConnectionStatus.DISCONNECTED) { // already disconnected, nothing to be done
+    synchronized void disconnected(final boolean isShuttingDown) {
+        if (this.status == ConnectionStatus.DISCONNECTED || (isShuttingDown && this.status == ConnectionStatus.STOPPED)) { // already disconnected, nothing to be done
         } else {
             setStatus(ConnectionStatus.DISCONNECTED);
             resetProcessor();
@@ -596,10 +596,10 @@ class RequestResponseProcessor
             int lastHeartbeat = 0, lastAuth = 0, lastOrderSub = 0, lastMarketSub = 0;
             for (final Integer id : this.tasks.keySet()) {
                 if (id == null) {
-                    logger.error("[{}]null key in tasks", this.client.id);
+                    logger.error("[{}]null key in tasks, will remove it", this.client.id);
                     idsToRemove.add(id);
                 } else if (id <= 0) {
-                    logger.error("[{}]wrong value key in tasks: {} {}", this.client.id, id, Generic.objectToString(this.tasks.get(id)));
+                    logger.error("[{}]wrong value key in tasks, will remove it: {} {}", this.client.id, id, Generic.objectToString(this.tasks.get(id)));
                     idsToRemove.add(id);
                 } else {
                     final RequestResponse task = this.tasks.get(id);
@@ -610,8 +610,10 @@ class RequestResponseProcessor
                             if (lastHeartbeat == 0) {
                                 lastHeartbeat = id;
                             } else if (lastHeartbeat > id) {
+                                logger.error("[{}]removing previous heartbeat: {} recent:{} {}", this.client.id, id, lastHeartbeat, Generic.objectToString(task));
                                 idsToRemove.add(id);
                             } else if (lastHeartbeat < id) {
+                                logger.error("[{}]removing previous heartbeat: {} recent:{} {}", this.client.id, lastHeartbeat, id, Generic.objectToString(task));
                                 idsToRemove.add(lastHeartbeat);
                                 lastHeartbeat = id;
                             } else {
@@ -622,8 +624,10 @@ class RequestResponseProcessor
                             if (lastAuth == 0) {
                                 lastAuth = id;
                             } else if (lastAuth > id) {
+                                logger.error("[{}]removing previous auth: {} recent:{} {}", this.client.id, id, lastAuth, Generic.objectToString(task));
                                 idsToRemove.add(id);
                             } else if (lastAuth < id) {
+                                logger.error("[{}]removing previous auth: {} recent:{} {}", this.client.id, lastAuth, id, Generic.objectToString(task));
                                 idsToRemove.add(lastAuth);
                                 lastAuth = id;
                             } else {
@@ -634,8 +638,10 @@ class RequestResponseProcessor
                             if (lastOrderSub == 0) {
                                 lastOrderSub = id;
                             } else if (lastOrderSub > id) {
+                                logger.error("[{}]removing previous orderSubscription: {} recent:{} {}", this.client.id, id, lastOrderSub, Generic.objectToString(task));
                                 idsToRemove.add(id);
                             } else if (lastOrderSub < id) {
+                                logger.error("[{}]removing previous orderSubscription: {} recent:{} {}", this.client.id, lastOrderSub, id, Generic.objectToString(task));
                                 idsToRemove.add(lastOrderSub);
                                 lastOrderSub = id;
                             } else {
@@ -646,8 +652,10 @@ class RequestResponseProcessor
                             if (lastMarketSub == 0) {
                                 lastMarketSub = id;
                             } else if (lastMarketSub > id) {
+                                logger.error("[{}]removing previous marketSubscription: {} recent:{} {}", this.client.id, id, lastMarketSub, Generic.objectToString(task));
                                 idsToRemove.add(id);
                             } else if (lastMarketSub < id) {
+                                logger.error("[{}]removing previous marketSubscription: {} recent:{} {}", this.client.id, lastMarketSub, id, Generic.objectToString(task));
                                 idsToRemove.add(lastMarketSub);
                                 lastMarketSub = id;
                             } else {
@@ -664,7 +672,7 @@ class RequestResponseProcessor
             if (idsToRemove.isEmpty()) { // no id to remove, nothing to be done
             } else {
                 for (final Integer id : idsToRemove) {
-                    logger.info("[{}]removing task in tasksMaintenance: {} {}", this.client.id, id, Generic.objectToString(this.tasks.get(id)));
+//                    logger.info("[{}]removing task in tasksMaintenance: {} {}", this.client.id, id, Generic.objectToString(this.tasks.get(id)));
                     final long currentTime = System.currentTimeMillis();
                     this.previousIds.put(id, currentTime);
                     this.tasks.remove(id);
@@ -742,6 +750,7 @@ class RequestResponseProcessor
                     if (errorCode != ErrorCode.SUBSCRIPTION_LIMIT_EXCEEDED) {
                         this.client.setStreamError(true);
                     }
+                    logger.info("[{}]removing failed task: {} {}", this.client.id, id, Generic.objectToString(task));
                     idsToRemove.add(id);
                 } else if (task.isExpired()) {
                     if (Statics.needSessionToken.get() || Statics.sessionTokenObject.isRecent()) {
@@ -760,7 +769,7 @@ class RequestResponseProcessor
             if (idsToRemove.isEmpty()) { // no id to remove, nothing to be done
             } else {
                 for (final Integer id : idsToRemove) {
-                    logger.info("[{}]removing task in tasksMaintenance end: {} {}", this.client.id, id, Generic.objectToString(this.tasks.get(id)));
+//                    logger.info("[{}]removing task in tasksMaintenance end: {} {}", this.client.id, id, Generic.objectToString(this.tasks.get(id)));
                     final long currentTime = System.currentTimeMillis();
                     this.previousIds.put(id, currentTime);
                     this.tasks.remove(id);

@@ -64,16 +64,33 @@ public final class ClientHandler {
 
         final int[] sizes = new int[nClients];
         final boolean[] modified = new boolean[nClients];
+        int nRemovedMarkets = 0;
         for (int i = 0; i < nClients; i++) {
             final ArrayList<String> list = lists[i];
 //            modified[i] =
+            final int initialListSize = list.size();
             list.retainAll(marketIds);
-            sizes[i] = list.size();
+            final int finalListSize = list.size();
+            final int nRemovedElements = initialListSize - finalListSize;
+            nRemovedMarkets += nRemovedElements;
+            sizes[i] = finalListSize;
 
             marketIds.removeAll(list);
         }
+        if (nRemovedMarkets > 0) {
+            logger.info("nRemovedMarkets from stream: {}", nRemovedMarkets);
+        } else if (nRemovedMarkets == 0) { // nothing was removed, no need to print anything
+        } else { // nRemovedMarkets < 0
+            logger.error("nRemovedMarkets has strange value: {} {}", nRemovedMarkets, marketIds.size());
+        }
 
         final ArrayList<String> marketsLeft = new ArrayList<>(marketIds);
+        final int nMarketsAdded = marketsLeft.size();
+        if (nMarketsAdded > 0) {
+            logger.info("nMarketsAdded to stream: {} {}", nMarketsAdded, Generic.objectToString(marketsLeft));
+        } else { // nMarketsAdded == 0, nothing was added, no need to print anything
+        }
+
         for (int i = 0; i < nClients && !marketsLeft.isEmpty(); i++) {
             if (
 //                    modified[i] ||

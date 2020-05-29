@@ -93,7 +93,7 @@ class InterfaceConnectionWriterThread
         Statics.safetyLimits.existingFunds.listOfQueues.removeQueue(this.sendQueue);
         Statics.marketCataloguesMap.listOfQueues.removeQueue(this.sendQueue);
         Statics.eventsMap.listOfQueues.removeQueue(this.sendQueue);
-        Generic.closeObjects(this.objectOutputStream, this.outputStream);
+        Generic.closeObjects(this.objectOutputStream, this.outputStream, true);
 
         logger.info("InterfaceConnectionWriterThread ends");
     }

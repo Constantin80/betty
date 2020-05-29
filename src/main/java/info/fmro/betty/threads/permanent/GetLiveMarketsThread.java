@@ -111,7 +111,7 @@ public class GetLiveMarketsThread
                 }
             } // end for
             for (final String eventId : notFoundEventIds) {
-                logger.info("removing not found eventId: {}", eventId);
+                logger.info("removing not found eventId in parseEventsList: {}", eventId);
                 Statics.eventsMap.remove(eventId);
             }
             Statics.eventsMap.timeStamp();
