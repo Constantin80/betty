@@ -341,8 +341,13 @@ public final class FindMarkets {
                 } // end else
             } // end for
             for (final String marketId : notFoundMarketIds) {
-                logger.info("removing not found marketId in findMarket: {}", marketId);
-                Statics.marketCataloguesMap.remove(marketId);
+                if (Statics.rulesManagerThread.rulesManager.markets.containsKey(marketId)) { // must be an expired managedMarket
+                    Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "possibly expired marketId in findMarket: {}", marketId);
+                } else {
+                    logger.warn("removing not found marketId in findMarket: {}", marketId);
+                }
+                MaintenanceThread.removeMarket(marketId);
+//                Statics.marketCataloguesMap.remove(marketId);
             }
 
             if (Statics.safeBetModuleActivated) {

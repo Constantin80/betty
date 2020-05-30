@@ -1016,17 +1016,19 @@ public class MaintenanceThread
         return existingEvent;
     }
 
-    private static Event removeEvent(final String eventId) {
+    static Event removeEvent(final String eventId) {
         return removeEvent(eventId, true); // by default, removeMarkets; keep in mind the performance hit is huge, markets should be removed for batches of events
     }
 
     @SuppressWarnings("OverlyNestedMethod")
     private static Event removeEvent(final String eventId, final boolean removeMarkets) {
+        final boolean eventExists = Statics.eventsMap.containsKey(eventId);
         final Event matchedEvent = Statics.eventsMap.remove(eventId);
 
-        if (matchedEvent != null) {
-            final int nRemovedMarkets = removeMarkets ? removeMarkets(matchedEvent) : 0;
-            //            final Set<Entry<String, MarketCatalogue>> entrySetCopy = Statics.marketCataloguesMap.entrySetCopy();
+        if (eventExists) {
+            if (matchedEvent != null) {
+                final int nRemovedMarkets = removeMarkets ? removeMarkets(matchedEvent) : 0;
+                //            final Set<Entry<String, MarketCatalogue>> entrySetCopy = Statics.marketCataloguesMap.entrySetCopy();
 //            for (final Entry<String, MarketCatalogue> entry : entrySetCopy) {
 //                final MarketCatalogue marketCatalogue = entry.getValue();
 //                if (marketCatalogue != null) {
@@ -1043,45 +1045,47 @@ public class MaintenanceThread
 //                }
 //            } // end for
 
-            final int nScraperEventIds = matchedEvent.getNTotalScraperEventIds();
-            if (nScraperEventIds > 0) {
-                final LinkedHashMap<Class<? extends ScraperEventInterface>, Long> scraperEventIds = matchedEvent.getScraperEventIds();
-                final Set<Entry<Class<? extends ScraperEventInterface>, Long>> entrySet = scraperEventIds != null ? scraperEventIds.entrySet() : null;
-                if (entrySet != null) {
-                    for (final Entry<Class<? extends ScraperEventInterface>, Long> entry : entrySet) {
-                        final Class<? extends ScraperEventInterface> clazz = entry.getKey();
-                        final Long scraperId = entry.getValue();
-                        //                    final SynchronizedMap<Long, ? extends ScraperEvent> scraperEventMap = Formulas.getScraperEventsMap(clazz);
-                        final ScraperEventInterface scraperEvent = removeScraper(clazz, scraperId);
-                        if (scraperEvent != null) {
-                            final String matchedEventId = scraperEvent.getMatchedEventId();
-                            if (matchedEventId.equals(eventId)) { // it gets removed, nothing else needs to be done
-                                //                            scraperEvent.resetMatchedEventId();
-                            } else {
-                                logger.error("matchedEventId {} not equals eventId {} in removeEvent for: {} {}", matchedEventId, eventId, Generic.objectToString(matchedEvent), Generic.objectToString(scraperEvent));
+                final int nScraperEventIds = matchedEvent.getNTotalScraperEventIds();
+                if (nScraperEventIds > 0) {
+                    final LinkedHashMap<Class<? extends ScraperEventInterface>, Long> scraperEventIds = matchedEvent.getScraperEventIds();
+                    final Set<Entry<Class<? extends ScraperEventInterface>, Long>> entrySet = scraperEventIds != null ? scraperEventIds.entrySet() : null;
+                    if (entrySet != null) {
+                        for (final Entry<Class<? extends ScraperEventInterface>, Long> entry : entrySet) {
+                            final Class<? extends ScraperEventInterface> clazz = entry.getKey();
+                            final Long scraperId = entry.getValue();
+                            //                    final SynchronizedMap<Long, ? extends ScraperEvent> scraperEventMap = Formulas.getScraperEventsMap(clazz);
+                            final ScraperEventInterface scraperEvent = removeScraper(clazz, scraperId);
+                            if (scraperEvent != null) {
+                                final String matchedEventId = scraperEvent.getMatchedEventId();
+                                if (matchedEventId.equals(eventId)) { // it gets removed, nothing else needs to be done
+                                    //                            scraperEvent.resetMatchedEventId();
+                                } else {
+                                    logger.error("matchedEventId {} not equals eventId {} in removeEvent for: {} {}", matchedEventId, eventId, Generic.objectToString(matchedEvent), Generic.objectToString(scraperEvent));
+                                }
+                            } else { // scraperEvent not found in map; might be acceptable, will reevaluate after adding ignore list
                             }
-                        } else { // scraperEvent not found in map; might be acceptable, will reevaluate after adding ignore list
-                        }
-                    } // end for
-                } else {
-                    logger.error("null scraperEventIds in removeEvent for: {} {} {}", nScraperEventIds, eventId, Generic.objectToString(matchedEvent));
+                        } // end for
+                    } else {
+                        logger.error("null scraperEventIds in removeEvent for: {} {} {}", nScraperEventIds, eventId, Generic.objectToString(matchedEvent));
+                    }
+                } else { // no matched scrapers, nothing to be done about it
                 }
-            } else { // no matched scrapers, nothing to be done about it
-            }
 
-            if (removeMarkets && nRemovedMarkets == 0 && nScraperEventIds >= Statics.MIN_MATCHED) {
-                final long currentTime = System.currentTimeMillis();
-                final long timeSinceEventsMapRemoval = currentTime - Statics.eventsMap.getTimeStampRemoved();
-                if (timeSinceEventsMapRemoval < 200L) {
-                    logger.info("no marketIds found while purging matched event: {}", eventId);
-                } else {
-                    logger.error("no marketIds found while purging matched event: {} {}", eventId, Generic.objectToString(matchedEvent));
+                if (removeMarkets && nRemovedMarkets == 0 && nScraperEventIds >= Statics.MIN_MATCHED) {
+                    final long currentTime = System.currentTimeMillis();
+                    final long timeSinceEventsMapRemoval = currentTime - Statics.eventsMap.getTimeStampRemoved();
+                    if (timeSinceEventsMapRemoval < 200L) {
+                        logger.info("no marketIds found while purging matched event: {}", eventId);
+                    } else {
+                        logger.error("no marketIds found while purging matched event: {} {}", eventId, Generic.objectToString(matchedEvent));
+                    }
+                } else { // not enough scrapers matched to have associated marketIds
                 }
-            } else { // not enough scrapers matched to have associated marketIds
+            } else {
+                logger.error("null event value found in eventsMap during removeEvent for: {}", eventId);
+                Statics.eventsMap.removeValueAll(null);
             }
-        } else {
-            logger.error("null event value found in eventsMap during removeEvent for: {}", eventId);
-            Statics.eventsMap.removeValueAll(null);
+        } else { // can be normal during manual removal attempts
         }
 
         return matchedEvent;
@@ -1145,7 +1149,7 @@ public class MaintenanceThread
         return nPurgedMarkets;
     }
 
-    private static MarketCatalogue removeMarket(final String marketId) {
+    public static MarketCatalogue removeMarket(final String marketId) {
         final MarketCatalogue marketCatalogue = Statics.marketCataloguesMap.remove(marketId);
         removeFromSecondaryMaps(marketId);
 

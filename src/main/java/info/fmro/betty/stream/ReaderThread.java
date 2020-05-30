@@ -50,10 +50,10 @@ class ReaderThread
             this.bufferNotEmpty.set(false);
         }
         if (result != null && result.contains("\"ct\":\"HEARTBEAT\"") && result.indexOf("\"clk\":") > 0 && result.indexOf(",\"ct\":") > result.indexOf("\"clk\":")) { // {"op":"mcm","id":3,"clk":"AMORMQCrzikAzusu","pt":1583203755763,"ct":"HEARTBEAT"}
-            Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "client[{}] polled line: {}", this.client.id,
+            Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.DEBUG, "client[{}] polled line: {}", this.client.id,
                                               result.substring(0, result.indexOf("\"clk\":") + "\"clk\":".length()) + "erased" + result.substring(result.indexOf(",\"ct\":")));
         } else {
-            logger.info("client[{}] polled line: {}", this.client.id, result);
+            logger.debug("client[{}] polled line: {}", this.client.id, result);
         }
 
         return result;

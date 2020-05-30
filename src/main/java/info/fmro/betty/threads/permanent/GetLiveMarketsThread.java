@@ -111,8 +111,14 @@ public class GetLiveMarketsThread
                 }
             } // end for
             for (final String eventId : notFoundEventIds) {
-                logger.info("removing not found eventId in parseEventsList: {}", eventId);
-                Statics.eventsMap.remove(eventId);
+                if (Statics.rulesManagerThread.rulesManager.events.containsKey(eventId)) { // must be an expired managedEvent
+                    Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "possibly expired eventId in parseEventsList: {}", eventId);
+                } else {
+                    logger.warn("removing not found eventId in parseEventsList: {}", eventId);
+                }
+
+                MaintenanceThread.removeEvent(eventId);
+//                Statics.eventsMap.remove(eventId);
             }
             Statics.eventsMap.timeStamp();
 
@@ -322,7 +328,7 @@ public class GetLiveMarketsThread
 //                timeToSleep = Math.min(timeToSleep, timedStreamMarkets());
                 timeToSleep = Math.min(timeToSleep, timedCheckManagedMarketsOrEvents());
                 if (Statics.rulesManagerThread.rulesManager.newMarketsOrEventsForOutsideCheck.getAndSet(false)) {
-                    checkManagedEventsAndMarkets(new TreeSet<>(Statics.rulesManagerThread.rulesManager.eventsForOutsideCheck.copy()), new TreeSet<>(Statics.rulesManagerThread.rulesManager.marketsForOutsideCheck.copy()));
+                    checkManagedEventsAndMarkets(new TreeSet<>(Statics.rulesManagerThread.rulesManager.eventsForOutsideCheck.copyAndClear()), new TreeSet<>(Statics.rulesManagerThread.rulesManager.marketsForOutsideCheck.copyAndClear()));
                 }
 
                 Generic.threadSleepSegmented(timeToSleep, 100L, Statics.mustStop, Statics.rulesManagerThread.rulesManager.newMarketsOrEventsForOutsideCheck);
