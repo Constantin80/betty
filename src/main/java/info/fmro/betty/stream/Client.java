@@ -352,6 +352,6 @@ public class Client
 //            logger.error("[{}]keepAliveTimer null during stream end", this.id);
 //        }
 
-        logger.info("[{}]streamClient thread ends", this.id);
+        logger.debug("[{}]streamClient thread ends", this.id);
     }
 }

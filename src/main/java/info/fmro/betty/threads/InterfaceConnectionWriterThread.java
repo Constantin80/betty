@@ -95,6 +95,6 @@ class InterfaceConnectionWriterThread
         Statics.eventsMap.listOfQueues.removeQueue(this.sendQueue);
         Generic.closeObjects(this.objectOutputStream, this.outputStream, true);
 
-        logger.info("InterfaceConnectionWriterThread ends");
+        logger.debug("InterfaceConnectionWriterThread ends");
     }
 }

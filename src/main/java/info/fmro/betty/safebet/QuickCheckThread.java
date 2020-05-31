@@ -396,6 +396,6 @@ public class QuickCheckThread
             }
         }
 
-        logger.info("quickCheck thread ends");
+        logger.debug("quickCheck thread ends");
     }
 }

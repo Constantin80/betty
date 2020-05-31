@@ -56,7 +56,7 @@ public class PlacedAmountsThread
             }
         }
 
-        logger.info("PlacedAmountsThread ends");
+        logger.debug("PlacedAmountsThread ends");
     }
 
     //    public synchronized boolean shouldCheckAmounts() {

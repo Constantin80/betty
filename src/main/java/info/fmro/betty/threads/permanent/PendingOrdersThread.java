@@ -357,6 +357,6 @@ public class PendingOrdersThread
             }
         }
 
-        logger.info("PendingOrdersThread ends");
+        logger.debug("PendingOrdersThread ends");
     }
 }

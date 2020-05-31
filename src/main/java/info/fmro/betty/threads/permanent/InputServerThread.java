@@ -20,7 +20,7 @@ public class InputServerThread
     private ServerSocket serverSocket;
 
     public synchronized void closeSocket() {
-        logger.info("closing InputServerThread socket");
+        logger.debug("closing InputServerThread socket");
         Generic.closeObjects(this.serverSocket);
     }
 
@@ -61,7 +61,7 @@ public class InputServerThread
                     logger.error("STRANGE throwable in InputServer socket accept", throwable);
                 }
             } // end while
-            logger.info("closing input server socket");
+            logger.debug("closing input server socket");
             Generic.closeObject(this.serverSocket);
         } else {
             logger.error("STRANGE serverSocket null in InputServer thread, timeStamp={}", System.currentTimeMillis());

@@ -36,7 +36,7 @@ public class InterfaceServerThread
 //    }
 
     public void closeSocket() { // this is hard shutoff, probably best to not synchronize
-        logger.info("closing InterfaceServerThread socket");
+        logger.debug("closing InterfaceServerThread socket");
         Generic.closeObject(this.serverSocket);
     }
 
@@ -87,7 +87,7 @@ public class InterfaceServerThread
                     logger.error("STRANGE throwable in InterfaceServer socket accept", throwable);
                 }
             } // end while
-            logger.info("closing interface server socket");
+            logger.debug("closing interface server socket");
             Generic.closeObject(this.serverSocket);
         } else {
             logger.error("STRANGE serverSocket null in InterfaceServer thread, timeStamp={}", System.currentTimeMillis());
@@ -108,6 +108,6 @@ public class InterfaceServerThread
                 }
             }
         } // end for
-        logger.info("InterfaceServerThread ends");
+        logger.debug("InterfaceServerThread ends");
     }
 }

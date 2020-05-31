@@ -106,6 +106,6 @@ public class GetFundsThread
             }
         }
 
-        logger.info("GetFundsThread ends");
+        logger.debug("GetFundsThread ends");
     }
 }

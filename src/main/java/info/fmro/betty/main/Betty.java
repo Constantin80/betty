@@ -236,70 +236,70 @@ public final class Betty {
 
             if (inputServerThread.isAlive()) {
                 inputServerThread.closeSocket();
-                logger.info("joining inputServer thread");
+                logger.debug("joining inputServer thread");
                 inputServerThread.join();
             }
             if (interfaceServerThread.isAlive()) {
                 interfaceServerThread.closeSocket();
-                logger.info("joining interfaceServer thread");
+                logger.debug("joining interfaceServer thread");
                 interfaceServerThread.join();
             }
 
             if (getFundsThread.isAlive()) {
-                logger.info("joining getFunds thread");
+                logger.debug("joining getFunds thread");
                 getFundsThread.join();
             }
             if (getLiveMarketsThread.isAlive()) {
-                logger.info("joining getLiveMarkets thread");
+                logger.debug("joining getLiveMarkets thread");
                 getLiveMarketsThread.join();
             }
             if (betradarThread.isAlive()) {
-                logger.info("joining betradarScraper thread");
+                logger.debug("joining betradarScraper thread");
                 betradarThread.join();
             }
             if (coralThread.isAlive()) {
-                logger.info("joining coralScraper thread");
+                logger.debug("joining coralScraper thread");
                 coralThread.join();
             }
             if (Statics.safeBetModuleActivated) {
                 if (Statics.quickCheckThread.isAlive()) {
-                    logger.info("joining quickCheck thread");
+                    logger.debug("joining quickCheck thread");
                     Statics.quickCheckThread.join();
                 }
             }
             if (rulesManagerThread.isAlive()) {
-                logger.info("joining rulesManager thread");
+                logger.debug("joining rulesManager thread");
                 rulesManagerThread.join();
             }
             if (pendingOrdersThread.isAlive()) {
-                logger.info("joining pendingOrdersThread");
+                logger.debug("joining pendingOrdersThread");
                 pendingOrdersThread.join();
             }
             if (Statics.safeBetModuleActivated) {
                 if (placedAmountsThread.isAlive()) {
-                    logger.info("joining placedAmountsThread");
+                    logger.debug("joining placedAmountsThread");
                     placedAmountsThread.join();
                 }
             }
             if (timeJumpDetectorThread.isAlive()) {
-                logger.info("joining timeJumpDetectorThread");
+                logger.debug("joining timeJumpDetectorThread");
                 timeJumpDetectorThread.join();
             }
             if (idleConnectionMonitorThread.isAlive()) {
-                logger.info("joining idleConnectionMonitorThread");
+                logger.debug("joining idleConnectionMonitorThread");
                 idleConnectionMonitorThread.join();
             }
             if (maintenanceThread.isAlive()) {
-                logger.info("joining maintenance thread");
+                logger.debug("joining maintenance thread");
                 maintenanceThread.join();
             }
             if (loggerThread.isAlive()) {
-                logger.info("joining logger thread");
+                logger.debug("joining logger thread");
                 loggerThread.join();
             }
             for (int i = 0; i < streamClientsLength; i++) {
                 if (ClientHandler.streamClients[i].isAlive()) {
-                    logger.info("joining streamClient {}", i);
+                    logger.debug("joining streamClient {}", i);
                     ClientHandler.streamClients[i].join();
                 }
             }
@@ -330,14 +330,14 @@ public final class Betty {
                 }
             }
 
-            logger.info("closing HTTP Client");
+            logger.debug("closing HTTP Client");
             Statics.client.close();
-            logger.info("closing connManager");
+            logger.debug("closing connManager");
             Statics.connManager.close();
-            logger.info("connManager shutdown");
+            logger.debug("connManager shutdown");
             Statics.connManager.shutdown();
 
-            logger.info("All threads finished");
+            logger.debug("All threads finished");
 
             if (!Statics.programIsRunningMultiThreaded.getAndSet(false)) {
                 logger.error("final programMultithreaded state is false");

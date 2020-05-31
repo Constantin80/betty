@@ -337,6 +337,6 @@ public class GetLiveMarketsThread
             }
         }
 
-        logger.info("getLiveMarkets thread ends");
+        logger.debug("getLiveMarkets thread ends");
     }
 }

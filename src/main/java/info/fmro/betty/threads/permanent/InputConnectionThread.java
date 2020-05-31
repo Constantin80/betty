@@ -34,7 +34,7 @@ class InputConnectionThread
     }
 
     synchronized void closeSocket() {
-        logger.info("closing InputConnectionThread socket");
+        logger.debug("closing InputConnectionThread socket");
         Generic.closeObjects(this.socket);
     }
 
@@ -436,6 +436,6 @@ class InputConnectionThread
             //noinspection ConstantConditions
             Generic.closeObjects(printWriter, outputStream, bufferedReader, inputStreamReader, inputStream, this.socket);
         }
-        logger.info("reached the end of inputConnectionThread");
+        logger.debug("reached the end of inputConnectionThread");
     }
 }

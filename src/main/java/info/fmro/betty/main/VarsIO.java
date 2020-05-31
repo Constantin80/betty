@@ -237,7 +237,7 @@ public final class VarsIO {
         } else {
             logger.error("null fileName passed as argument in readVarsFromFile");
         }
-        logger.info("have read vars from file");
+        logger.debug("have read vars from file");
     }
 
     public static void readObjectsFromFiles() {
@@ -336,7 +336,7 @@ public final class VarsIO {
 //        Ignorable.database.syncIgnorableDatabase(Statics.programIsRunningMultiThreaded);
 
 //        Ignorable.database.testIsGenerated();
-        logger.info("have read objects from files");
+        logger.debug("have read objects from files");
     }
 
     public static void writeObjectsToFiles() {

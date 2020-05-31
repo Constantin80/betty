@@ -174,6 +174,6 @@ public class RulesManagerThread
             }
         } // end while
 
-        logger.info("ruleManager thread ends");
+        logger.debug("ruleManager thread ends");
     }
 }

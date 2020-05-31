@@ -124,6 +124,6 @@ public class LoggerThread
         } // end while
         this.finalPrintEntries();
 
-        logger.info("LoggerThread ends");
+        logger.debug("LoggerThread ends");
     }
 }

@@ -164,18 +164,18 @@ public class MaintenanceThread
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0L) {
             Statics.timeStamps.lastPrintDebugStamp(Generic.MINUTE_LENGTH_MILLISECONDS << 1);
-            logger.info("maxMemory: {} totalMemory: {} freeMemory: {}", Generic.addCommas(Runtime.getRuntime().maxMemory()), Generic.addCommas(Runtime.getRuntime().totalMemory()), Generic.addCommas(Runtime.getRuntime().freeMemory()));
-            logger.info("threadPools active/mostEver marketBooks: {}/{} important: {}/{} general: {}/{}", Statics.threadPoolExecutorMarketBooks.getActiveCount(), Statics.threadPoolExecutorMarketBooks.getLargestPoolSize(),
-                        Statics.threadPoolExecutorImportant.getActiveCount(), Statics.threadPoolExecutorImportant.getLargestPoolSize(), Statics.threadPoolExecutor.getActiveCount(), Statics.threadPoolExecutor.getLargestPoolSize());
+            logger.debug("maxMemory: {} totalMemory: {} freeMemory: {}", Generic.addCommas(Runtime.getRuntime().maxMemory()), Generic.addCommas(Runtime.getRuntime().totalMemory()), Generic.addCommas(Runtime.getRuntime().freeMemory()));
+            logger.debug("threadPools active/mostEver marketBooks: {}/{} important: {}/{} general: {}/{}", Statics.threadPoolExecutorMarketBooks.getActiveCount(), Statics.threadPoolExecutorMarketBooks.getLargestPoolSize(),
+                         Statics.threadPoolExecutorImportant.getActiveCount(), Statics.threadPoolExecutorImportant.getLargestPoolSize(), Statics.threadPoolExecutor.getActiveCount(), Statics.threadPoolExecutor.getLargestPoolSize());
             if (Statics.safeBetModuleActivated) {
-                logger.info("scraperEventsMap: b:{} c:{} eventsMap: {} marketCataloguesMap: {} safeMarketsMap: {} safeMarketBooksMap: {} safeMarketsImportantMap: {}", Statics.betradarEventsMap.size(), Statics.coralEventsMap.size(),
-                            Statics.eventsMap.size(), Statics.marketCataloguesMap.size(), Statics.safeMarketsMap.size(), Statics.safeMarketBooksMap.size(), Statics.safeMarketsImportantMap.size());
+                logger.debug("scraperEventsMap: b:{} c:{} eventsMap: {} marketCataloguesMap: {} safeMarketsMap: {} safeMarketBooksMap: {} safeMarketsImportantMap: {}", Statics.betradarEventsMap.size(), Statics.coralEventsMap.size(),
+                             Statics.eventsMap.size(), Statics.marketCataloguesMap.size(), Statics.safeMarketsMap.size(), Statics.safeMarketBooksMap.size(), Statics.safeMarketsImportantMap.size());
             } else {
-                logger.info("eventsMap: {} marketCataloguesMap: {} safeMarketsMap: {} safeMarketBooksMap: {} safeMarketsImportantMap: {}", Statics.eventsMap.size(), Statics.marketCataloguesMap.size(), Statics.safeMarketsMap.size(),
-                            Statics.safeMarketBooksMap.size(), Statics.safeMarketsImportantMap.size());
+                logger.debug("eventsMap: {} marketCataloguesMap: {} safeMarketsMap: {} safeMarketBooksMap: {} safeMarketsImportantMap: {}", Statics.eventsMap.size(), Statics.marketCataloguesMap.size(), Statics.safeMarketsMap.size(),
+                             Statics.safeMarketBooksMap.size(), Statics.safeMarketsImportantMap.size());
             }
-            logger.info("connManager stats: {} writeSettingsCounter: {} BetFrequencyLimit.nOrdersSinceReset: {}", Statics.connManager.getTotalStats(), Generic.addCommas(VarsIO.writeSettingsCounter.get()),
-                        Generic.addCommas(Statics.safetyLimits.speedLimit.getNOrdersSinceReset()));
+            logger.debug("connManager stats: {} writeSettingsCounter: {} BetFrequencyLimit.nOrdersSinceReset: {}", Statics.connManager.getTotalStats(), Generic.addCommas(VarsIO.writeSettingsCounter.get()),
+                         Generic.addCommas(Statics.safetyLimits.speedLimit.getNOrdersSinceReset()));
 
             timeForNext = Statics.timeStamps.getLastPrintDebug();
             timeTillNext = timeForNext - System.currentTimeMillis();
@@ -1310,7 +1310,7 @@ public class MaintenanceThread
 
         finalCleanSafeBetsMap();
 
-        logger.info("maintenance thread ends");
+        logger.debug("maintenance thread ends");
         if (Statics.orderToPrint.get() != null) {
             logger.info("order not executed due to program stop: {}", Statics.orderToPrint.get());
         } else { // no error, nothing to be done, thread finishes cleanly

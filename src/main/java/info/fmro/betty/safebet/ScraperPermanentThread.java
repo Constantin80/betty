@@ -411,6 +411,6 @@ public class ScraperPermanentThread
             newWebClient.close();
         }
 
-        logger.info("{} scraper thread ends", this.threadId);
+        logger.debug("{} scraper thread ends", this.threadId);
     }
 }

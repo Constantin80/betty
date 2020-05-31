@@ -413,6 +413,6 @@ public class InterfaceConnectionThread
                 logger.error("InterruptedException in interfaceConnection thread end", e);
             }
         }
-        logger.info("reached the end of interfaceConnectionThread");
+        logger.debug("reached the end of interfaceConnectionThread");
     }
 }

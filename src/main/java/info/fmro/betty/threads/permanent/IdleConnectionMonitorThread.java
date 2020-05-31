@@ -37,6 +37,6 @@ public class IdleConnectionMonitorThread
             }
         } // end while
 
-        logger.info("idleConnectionMonitor thread ends");
+        logger.debug("idleConnectionMonitor thread ends");
     }
 }
