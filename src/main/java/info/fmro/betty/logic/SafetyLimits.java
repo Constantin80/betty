@@ -1,18 +1,20 @@
 package info.fmro.betty.logic;
 
-import info.fmro.betty.objects.Statics;
 import info.fmro.shared.logic.BetFrequencyLimit;
 import info.fmro.shared.logic.ExistingFunds;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.utility.Generic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 public class SafetyLimits
 //        extends ExistingFunds
         implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(SafetyLimits.class);
+    @Serial
     private static final long serialVersionUID = 9100257467817248236L;
     private static final double reserveFraction = .5d; // reserve is 50% of total (but starts at 500 and only increases)
     //    private final HashMap<AtomicDouble, Long> tempReserveMap = new HashMap<>(0);
@@ -57,7 +59,7 @@ public class SafetyLimits
 
         //noinspection FloatingPointEquality
         if (this.existingFunds.currencyRate.get() == 1d || this.existingFunds.currencyRate.get() == 0d) { // likely default values
-            Statics.timeStamps.setLastListCurrencyRates(0L); // get currencyRate as soon as possible
+            SharedStatics.timeStamps.setLastListCurrencyRates(0L); // get currencyRate as soon as possible
         }
     }
 
@@ -70,7 +72,7 @@ public class SafetyLimits
         this.existingFunds.setExposure(newExposure);
         this.existingFunds.setTotalFunds(newAvailableFunds - newExposure); // exposure is a negative number
 
-        final double newReserve = Math.floor(this.existingFunds.getTotalFunds() * SafetyLimits.reserveFraction);
+        final double newReserve = (SharedStatics.noReserve && SharedStatics.notPlacingOrders) ? 0d : Math.floor(this.existingFunds.getTotalFunds() * SafetyLimits.reserveFraction);
 //        final double newReserve = Math.floor(availableFunds * SafetyLimits.reserveFraction);
 
         return this.existingFunds.setReserve(newReserve);

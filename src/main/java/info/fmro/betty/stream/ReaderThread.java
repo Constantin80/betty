@@ -1,6 +1,6 @@
 package info.fmro.betty.stream;
 
-import info.fmro.betty.objects.Statics;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import org.slf4j.Logger;
@@ -50,8 +50,8 @@ class ReaderThread
             this.bufferNotEmpty.set(false);
         }
         if (result != null && result.contains("\"ct\":\"HEARTBEAT\"") && result.indexOf("\"clk\":") > 0 && result.indexOf(",\"ct\":") > result.indexOf("\"clk\":")) { // {"op":"mcm","id":3,"clk":"AMORMQCrzikAzusu","pt":1583203755763,"ct":"HEARTBEAT"}
-            Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.DEBUG, "client[{}] polled line: {}", this.client.id,
-                                              result.substring(0, result.indexOf("\"clk\":") + "\"clk\":".length()) + "erased" + result.substring(result.indexOf(",\"ct\":")));
+            SharedStatics.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.DEBUG, "client[{}] polled line: {}", this.client.id,
+                                                    result.substring(0, result.indexOf("\"clk\":") + "\"clk\":".length()) + "erased" + result.substring(result.indexOf(",\"ct\":")));
         } else {
             logger.debug("client[{}] polled line: {}", this.client.id, result);
         }
@@ -68,7 +68,7 @@ class ReaderThread
     @Override
     public void run() {
         String line;
-        while (!Statics.mustStop.get()) {
+        while (!SharedStatics.mustStop.get()) {
             try {
                 if (this.client.socketIsConnected.get() && !this.client.streamError.get()) {
                     //noinspection NestedTryStatement
@@ -76,8 +76,8 @@ class ReaderThread
                         line = this.readLine();
                         if (line == null) {
 //                        throw new IOException("Socket closed - EOF");
-                            if (!Statics.mustStop.get()) {
-                                if (Statics.needSessionToken.get() || Statics.sessionTokenObject.isRecent()) {
+                            if (!SharedStatics.mustStop.get()) {
+                                if (SharedStatics.needSessionToken.get() || SharedStatics.sessionTokenObject.isRecent()) {
                                     logger.info("[{}]line null in streamReaderThread", this.client.id);
                                 } else {
                                     logger.error("[{}]line null in streamReaderThread", this.client.id);
@@ -89,7 +89,7 @@ class ReaderThread
 //                            processor.receiveLine(line);
                         }
                     } catch (IOException e) {
-                        if (!Statics.mustStop.get()) {
+                        if (!SharedStatics.mustStop.get()) {
                             if (this.client.socketIsConnected.get()) {
                                 logger.error("[{}]IOException in streamReaderThread", this.client.id, e);
                             } else {
@@ -100,7 +100,7 @@ class ReaderThread
 //                    disconnected();
                     }
                 } else {
-                    Generic.threadSleepSegmented(500L, 10L, this.client.socketIsConnected, Statics.mustStop);
+                    Generic.threadSleepSegmented(500L, 10L, this.client.socketIsConnected, SharedStatics.mustStop);
                 }
             } catch (Throwable throwable) {
                 logger.error("[{}]STRANGE ERROR inside Client readerThread loop", this.client.id, throwable);

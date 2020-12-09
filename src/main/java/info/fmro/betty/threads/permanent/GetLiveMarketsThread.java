@@ -8,6 +8,7 @@ import info.fmro.shared.entities.Event;
 import info.fmro.shared.entities.EventResult;
 import info.fmro.shared.entities.MarketFilter;
 import info.fmro.shared.enums.CommandType;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.utility.Formulas;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
@@ -27,7 +28,7 @@ public class GetLiveMarketsThread
         extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(GetLiveMarketsThread.class);
     public static final AtomicInteger timedMapEventsCounter = new AtomicInteger(), timedFindInterestingMarketsCounter = new AtomicInteger();
-//    public static final Set<String> unsupportedEventNames = Set.of("Set 01", "Set 02", "Set 03", "Set 04", "Set 05");
+    //    public static final Set<String> unsupportedEventNames = Set.of("Set 01", "Set 02", "Set 03", "Set 04", "Set 05");
 
 //    @SuppressWarnings("WeakerAccess")
 //    public static boolean unsupportedEvent(final Event event) {
@@ -59,10 +60,9 @@ public class GetLiveMarketsThread
         parseEventList(marketFilter);
     }
 
-    @SuppressWarnings("OverlyNestedMethod")
     private static void parseEventList(@NotNull final MarketFilter marketFilter) {
         final long startTime = System.currentTimeMillis();
-        final List<EventResult> eventResultList = ApiNGJRescriptDemo.getEventList(Statics.appKey.get(), marketFilter);
+        final List<EventResult> eventResultList = ApiNGJRescriptDemo.getEventList(marketFilter);
         final long receivedListFromServerTime = System.currentTimeMillis();
         if (eventResultList != null) {
             final Set<String> checkedEventIds = marketFilter.getEventIds();
@@ -112,7 +112,7 @@ public class GetLiveMarketsThread
             } // end for
             for (final String eventId : notFoundEventIds) {
                 if (Statics.rulesManagerThread.rulesManager.events.containsKey(eventId)) { // must be an expired managedEvent
-                    Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "possibly expired eventId in parseEventsList: {}", eventId);
+                    SharedStatics.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.DEBUG, "possibly expired eventId in parseEventsList: {}", eventId);
                 } else {
                     logger.warn("removing not found eventId in parseEventsList: {}", eventId);
                 }
@@ -141,16 +141,17 @@ public class GetLiveMarketsThread
                     toCheckEvents.addAll(notIgnoredModifiedEvents);
                     toCheckEvents.addAll(addedEvents);
                     logger.info("parseEventResultList toCheckEvents: {}({}+{}) launch: findMarkets", sizeToCheck, sizeAdded, sizeNotIgnoredModified);
-                    Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, toCheckEvents));
+                    SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, toCheckEvents));
                 }
             } else { // nothing to be done, I think that market check is only needed if safeBetModule is active
             }
             if (addedEvents.isEmpty()) { // no events were added, nothing to be done
             } else {
+                Statics.rulesManagerThread.rulesManager.attachEvents(Statics.eventsMap, Statics.marketCataloguesMap, addedEvents);
                 Statics.rulesManagerThread.rulesManager.checkManagedMarketsHaveParents(Statics.eventsMap, Statics.marketCataloguesMap);
             }
         } else {
-            if (Statics.mustStop.get() && Statics.needSessionToken.get()) { // normal to happen during program stop, if not logged in
+            if (SharedStatics.mustStop.get() && SharedStatics.needSessionToken.get()) { // normal to happen during program stop, if not logged in
             } else {
                 logger.error("eventResultList null in parseEventList");
 
@@ -161,17 +162,17 @@ public class GetLiveMarketsThread
             }
         }
         final long endTime = System.currentTimeMillis();
-        logger.info("parseEventList eventResultList size: {} finished in {} ms of which {} ms spent parsing", eventResultList == null ? null : eventResultList.size(), endTime - startTime, endTime - receivedListFromServerTime);
+        logger.debug("parseEventList eventResultList size: {} finished in {} ms of which {} ms spent parsing", eventResultList == null ? null : eventResultList.size(), endTime - startTime, endTime - receivedListFromServerTime);
     }
 
     private static long timedCheckEventResultList() {
-        long timeForNext = Statics.timeStamps.getLastParseEventResultList();
+        long timeForNext = SharedStatics.timeStamps.getLastParseEventResultList();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0) {
-            Statics.timeStamps.lastParseEventResultListStamp(5L * Generic.MINUTE_LENGTH_MILLISECONDS);
-            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.checkEventResultList));
+            SharedStatics.timeStamps.lastParseEventResultListStamp(5L * Generic.MINUTE_LENGTH_MILLISECONDS);
+            SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.checkEventResultList));
 
-            timeForNext = Statics.timeStamps.getLastParseEventResultList();
+            timeForNext = SharedStatics.timeStamps.getLastParseEventResultList();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -179,17 +180,17 @@ public class GetLiveMarketsThread
     }
 
     private static long timedFindMarkets() {
-        long timeForNext = Statics.timeStamps.getLastFindInterestingMarkets();
+        long timeForNext = SharedStatics.timeStamps.getLastFindInterestingMarkets();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0) {
-            Statics.timeStamps.lastFindInterestingMarketsStamp(2L * Generic.MINUTE_LENGTH_MILLISECONDS);
+            SharedStatics.timeStamps.lastFindInterestingMarketsStamp(2L * Generic.MINUTE_LENGTH_MILLISECONDS);
             if (timedFindInterestingMarketsCounter.getAndIncrement() % 10 == 0) {
-                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, true));
+                SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, true));
             } else {
-                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets));
+                SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets));
             }
 
-            timeForNext = Statics.timeStamps.getLastFindInterestingMarkets();
+            timeForNext = SharedStatics.timeStamps.getLastFindInterestingMarkets();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -197,17 +198,17 @@ public class GetLiveMarketsThread
     }
 
     private static long timedMapEventsToScraperEvents() {
-        long timeForNext = Statics.timeStamps.getLastMapEventsToScraperEvents();
+        long timeForNext = SharedStatics.timeStamps.getLastMapEventsToScraperEvents();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0) {
-            Statics.timeStamps.lastMapEventsToScraperEventsStamp(Generic.MINUTE_LENGTH_MILLISECONDS);
+            SharedStatics.timeStamps.lastMapEventsToScraperEventsStamp(Generic.MINUTE_LENGTH_MILLISECONDS);
             if (timedMapEventsCounter.getAndIncrement() % 10 == 0) {
-                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents, true));
+                SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents, true));
             } else {
-                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents));
+                SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents));
             }
 
-            timeForNext = Statics.timeStamps.getLastMapEventsToScraperEvents();
+            timeForNext = SharedStatics.timeStamps.getLastMapEventsToScraperEvents();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -215,13 +216,13 @@ public class GetLiveMarketsThread
     }
 
     private static long timedFindSafeRunners() {
-        long timeForNext = Statics.timeStamps.getLastFindSafeRunners();
+        long timeForNext = SharedStatics.timeStamps.getLastFindSafeRunners();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0) {
-            Statics.timeStamps.lastFindSafeRunnersStamp(Generic.MINUTE_LENGTH_MILLISECONDS);
-            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners));
+            SharedStatics.timeStamps.lastFindSafeRunnersStamp(Generic.MINUTE_LENGTH_MILLISECONDS);
+            SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners));
 
-            timeForNext = Statics.timeStamps.getLastFindSafeRunners();
+            timeForNext = SharedStatics.timeStamps.getLastFindSafeRunners();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -230,13 +231,13 @@ public class GetLiveMarketsThread
 
     @SuppressWarnings("unused")
     private static long timedStreamMarkets() {
-        long timeForNext = Statics.timeStamps.getLastStreamMarkets();
+        long timeForNext = SharedStatics.timeStamps.getLastStreamMarkets();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0) {
-            Statics.timeStamps.lastStreamMarketsStamp(Generic.MINUTE_LENGTH_MILLISECONDS << 1);
-            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.streamMarkets));
+            SharedStatics.timeStamps.lastStreamMarketsStamp(Generic.MINUTE_LENGTH_MILLISECONDS << 1);
+            SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.streamMarkets));
 
-            timeForNext = Statics.timeStamps.getLastStreamMarkets();
+            timeForNext = SharedStatics.timeStamps.getLastStreamMarkets();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -244,14 +245,14 @@ public class GetLiveMarketsThread
     }
 
     private static long timedCheckManagedMarketsOrEvents() {
-        long timeForNext = Statics.timeStamps.getLastCheckManagedMarketsOrEvents();
+        long timeForNext = SharedStatics.timeStamps.getLastCheckManagedMarketsOrEvents();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0) {
-            Statics.timeStamps.lastCheckManagedMarketsOrEventsStamp(Generic.MINUTE_LENGTH_MILLISECONDS << 3);
+            SharedStatics.timeStamps.lastCheckManagedMarketsOrEventsStamp(Statics.STREAMED_MARKETS_CHECK_PERIOD);
             Statics.rulesManagerThread.rulesManager.newMarketsOrEventsForOutsideCheck.set(false);
             checkManagedEventsAndMarkets(new TreeSet<>(Statics.rulesManagerThread.rulesManager.events.keySetCopy()), new TreeSet<>(Statics.rulesManagerThread.rulesManager.markets.keySetCopy()));
 
-            timeForNext = Statics.timeStamps.getLastCheckManagedMarketsOrEvents();
+            timeForNext = SharedStatics.timeStamps.getLastCheckManagedMarketsOrEvents();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -261,12 +262,12 @@ public class GetLiveMarketsThread
     public static boolean waitForSessionToken(final String id) {
         boolean neededToken = false;
         int whileCounter = 0;
-        while (Statics.needSessionToken.get() && !Statics.mustStop.get()) {
+        while (SharedStatics.needSessionToken.get() && !SharedStatics.mustStop.get()) {
             if (whileCounter == 0) {
-                Generic.alreadyPrintedMap.logOnce(20_000L, logger, LogLevel.INFO, "{} waiting for sessionToken...", id);
+                SharedStatics.alreadyPrintedMap.logOnce(20_000L, logger, LogLevel.DEBUG, "{} waiting for sessionToken...", id);
                 neededToken = true;
             } else if (whileCounter >= 2000 && whileCounter % 500 == 0) {
-                Generic.alreadyPrintedMap.logOnce(20_000L, logger, LogLevel.ERROR, "{} still waiting for sessionToken {}...", id, whileCounter);
+                SharedStatics.alreadyPrintedMap.logOnce(20_000L, logger, LogLevel.ERROR, "{} still waiting for sessionToken {}...", id, whileCounter);
 //                logger.error("{} still waiting for sessionToken {}...", id, whileCounter);
             }
             whileCounter++;
@@ -282,7 +283,7 @@ public class GetLiveMarketsThread
 //        }
         if (events.isEmpty()) { // I guess this can happen if I have no managedEvents
         } else {
-            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.checkEventResultList, events));
+            SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.checkEventResultList, events));
         }
 
         if (markets.isEmpty()) { // I guess this can happen if I have no managedMarkets
@@ -297,19 +298,19 @@ public class GetLiveMarketsThread
             }
             if (marketsWithoutEventsInMap.isEmpty()) { // no markets to get events for
             } else {
-                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.checkEventResultList, marketsWithoutEventsInMap, true));
+                SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.checkEventResultList, marketsWithoutEventsInMap, true));
             }
 
-            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, markets));
+            SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, markets));
         }
     }
 
     @Override
     public void run() {
-        while (!Statics.mustStop.get()) {
+        while (!SharedStatics.mustStop.get()) {
             try {
                 if (Statics.mustSleep.get()) {
-                    Betty.programSleeps(Statics.mustSleep, Statics.mustStop, "getLiveMarkets thread");
+                    Betty.programSleeps(Statics.mustSleep, "getLiveMarkets thread");
                 }
                 waitForSessionToken("GetLiveMarketsThread main");
 
@@ -331,7 +332,7 @@ public class GetLiveMarketsThread
                     checkManagedEventsAndMarkets(new TreeSet<>(Statics.rulesManagerThread.rulesManager.eventsForOutsideCheck.copyAndClear()), new TreeSet<>(Statics.rulesManagerThread.rulesManager.marketsForOutsideCheck.copyAndClear()));
                 }
 
-                Generic.threadSleepSegmented(timeToSleep, 100L, Statics.mustStop, Statics.rulesManagerThread.rulesManager.newMarketsOrEventsForOutsideCheck);
+                Generic.threadSleepSegmented(timeToSleep, 100L, SharedStatics.mustStop, Statics.rulesManagerThread.rulesManager.newMarketsOrEventsForOutsideCheck);
             } catch (Throwable throwable) { // safety net
                 logger.error("STRANGE ERROR inside GetLiveMarketsThread loop", throwable);
             }

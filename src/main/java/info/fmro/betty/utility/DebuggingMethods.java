@@ -1,14 +1,15 @@
 package info.fmro.betty.utility;
 
-import info.fmro.betty.betapi.ApiNgRescriptOperations;
-import info.fmro.betty.betapi.RescriptResponseHandler;
+import info.fmro.betty.betapi.HttpUtil;
+import info.fmro.betty.objects.Statics;
+import info.fmro.shared.betapi.ApiNgRescriptOperations;
+import info.fmro.shared.betapi.RescriptResponseHandler;
+import info.fmro.shared.entities.ClearedOrderSummary;
 import info.fmro.shared.entities.CurrentOrderSummary;
 import info.fmro.shared.entities.EventResult;
+import info.fmro.shared.entities.ExBestOffersOverrides;
 import info.fmro.shared.entities.MarketBook;
 import info.fmro.shared.entities.MarketCatalogue;
-import info.fmro.betty.objects.Statics;
-import info.fmro.shared.entities.ClearedOrderSummary;
-import info.fmro.shared.entities.ExBestOffersOverrides;
 import info.fmro.shared.entities.MarketDescription;
 import info.fmro.shared.entities.MarketFilter;
 import info.fmro.shared.entities.MarketTypeResult;
@@ -20,8 +21,8 @@ import info.fmro.shared.enums.OrderProjection;
 import info.fmro.shared.enums.PriceData;
 import info.fmro.shared.enums.RollupModel;
 import info.fmro.shared.enums.SortDir;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.stream.cache.market.Market;
-import info.fmro.shared.stream.cache.order.OrderMarket;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -44,16 +45,13 @@ public final class DebuggingMethods {
     }
 
     public static void printCachedOrders() {
-        final Iterable<OrderMarket> orderMarkets = Statics.orderCache.getOrderMarkets();
-        for (final OrderMarket orderMarket : orderMarkets) {
-            logger.info("listing orderMarket: {}", Generic.objectToString(orderMarket));
-        }
+        SharedStatics.orderCache.printOrderMarkets();
     }
 
     public static void printCachedMarkets(@NotNull final String marketIds) {
         final String[] marketIdsArray = marketIds.split(" ");
         for (final String marketId : marketIdsArray) {
-            final Market market = Statics.marketCache.getMarket(marketId);
+            final Market market = SharedStatics.marketCache.getMarket(marketId);
             final String toPrint = market == null ? "null " + marketId : Generic.objectToString(market);
             logger.info("listing market: {}", toPrint);
         }
@@ -62,7 +60,8 @@ public final class DebuggingMethods {
     public static void listCurrentOrders() {
         final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
         @NotNull final HashSet<CurrentOrderSummary> currentOrderSummarySet =
-                ApiNgRescriptOperations.listCurrentOrders(null, null, OrderProjection.ALL, null, OrderBy.BY_PLACE_TIME, SortDir.EARLIEST_TO_LATEST, 0, 0, Statics.appKey.get(), rescriptResponseHandler);
+                ApiNgRescriptOperations.listCurrentOrders(null, null, OrderProjection.ALL, null, OrderBy.BY_PLACE_TIME, SortDir.EARLIEST_TO_LATEST, 0, 0, rescriptResponseHandler,
+                                                          HttpUtil.sendPostRequestRescriptMethod);
 
         logger.info("listCurrentOrders size: {}", currentOrderSummarySet.size());
         logger.info("listCurrentOrders: {}", Generic.objectToString(currentOrderSummarySet));
@@ -71,8 +70,8 @@ public final class DebuggingMethods {
     public static void listClearedOrders() {
         final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
         final HashSet<ClearedOrderSummary> clearedOrderSummarySet =
-                ApiNgRescriptOperations.listClearedOrders(BetStatus.SETTLED, null, null, null, null, null, null, null, null, true, 0, 0,
-                                                          Statics.appKey.get(), rescriptResponseHandler);
+                ApiNgRescriptOperations.listClearedOrders(BetStatus.SETTLED, null, null, null, null, null, null, null, null, true, 0,
+                                                          0, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
         logger.info("listClearedOrders size: {}", clearedOrderSummarySet.size());
         logger.info("listClearedOrders: {}", Generic.objectToString(clearedOrderSummarySet));
@@ -85,7 +84,7 @@ public final class DebuggingMethods {
         marketFilter.setEventTypeIds(eventTypeIdsSet);
 
         final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
-        final List<MarketTypeResult> marketTypeResultList = ApiNgRescriptOperations.listMarketTypes(marketFilter, Statics.appKey.get(), rescriptResponseHandler);
+        final List<MarketTypeResult> marketTypeResultList = ApiNgRescriptOperations.listMarketTypes(marketFilter, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
         logger.info("marketTypeResultList size: {}", marketTypeResultList == null ? null : marketTypeResultList.size());
 
@@ -114,7 +113,7 @@ public final class DebuggingMethods {
         priceProjection.setPriceData(priceDataSet);
 
         RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
-        final List<MarketBook> marketBookList = ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, Statics.appKey.get(), rescriptResponseHandler);
+        final List<MarketBook> marketBookList = ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
         logger.info("printing marketBookList EX_ALL_OFFERS for {}: {}", marketId, Generic.objectToString(marketBookList));
 
@@ -151,12 +150,12 @@ public final class DebuggingMethods {
         // marketProjectionsSet.add(MarketProjection.RUNNER_METADATA); // gives strange recursion error when printing with objectToString
 
         rescriptResponseHandler = new RescriptResponseHandler();
-        final List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, Statics.appKey.get(), rescriptResponseHandler);
+        final List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
         logger.info("printing marketCatalogueList for {}: {}", marketId, Generic.objectToString(marketCatalogueList));
 
         rescriptResponseHandler = new RescriptResponseHandler();
-        final List<MarketTypeResult> marketTypeResultList = ApiNgRescriptOperations.listMarketTypes(marketFilter, Statics.appKey.get(), rescriptResponseHandler);
+        final List<MarketTypeResult> marketTypeResultList = ApiNgRescriptOperations.listMarketTypes(marketFilter, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
         logger.info("printing marketTypeResultList for {}: {}", marketId, Generic.objectToString(marketTypeResultList));
     }
@@ -168,12 +167,12 @@ public final class DebuggingMethods {
         marketFilter.setEventIds(eventIds);
 
         RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
-        final List<EventResult> eventResultList = ApiNgRescriptOperations.listEvents(marketFilter, Statics.appKey.get(), rescriptResponseHandler);
+        final List<EventResult> eventResultList = ApiNgRescriptOperations.listEvents(marketFilter, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
         logger.info("printing eventResultList for {}: {}", eventId, Generic.objectToString(eventResultList));
 
         rescriptResponseHandler = new RescriptResponseHandler();
-        final List<MarketTypeResult> marketTypeResultList = ApiNgRescriptOperations.listMarketTypes(marketFilter, Statics.appKey.get(), rescriptResponseHandler);
+        final List<MarketTypeResult> marketTypeResultList = ApiNgRescriptOperations.listMarketTypes(marketFilter, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
         logger.info("printing marketTypeResultList for {}: {}", eventId, Generic.objectToString(marketTypeResultList));
 
@@ -190,7 +189,7 @@ public final class DebuggingMethods {
         marketFilter.setEventIds(eventIds);
 
         rescriptResponseHandler = new RescriptResponseHandler();
-        final List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, Statics.appKey.get(), rescriptResponseHandler);
+        final List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
         if (marketCatalogueList != null) {
             final HashSet<String> unknownMarketTypesSet = new HashSet<>(0, 0.75f), unknownMarketNamesSet = new HashSet<>(0, 0.75f);
@@ -231,7 +230,7 @@ public final class DebuggingMethods {
         marketFilter.setEventTypeIds(eventTypeIdsSet);
 
         RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
-        final List<EventResult> eventResultList = ApiNgRescriptOperations.listEvents(marketFilter, Statics.appKey.get(), rescriptResponseHandler);
+        final List<EventResult> eventResultList = ApiNgRescriptOperations.listEvents(marketFilter, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
         logger.info("printing eventResultList for {}: {}", marketType, Generic.objectToString(eventResultList));
 
@@ -245,7 +244,7 @@ public final class DebuggingMethods {
 //        marketProjectionsSet.add(MarketProjection.MARKET_START_TIME);
 
         rescriptResponseHandler = new RescriptResponseHandler();
-        final List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, Statics.appKey.get(), rescriptResponseHandler);
+        final List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, marketProjectionsSet, null, 200, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
         logger.info("printing marketCatalogueList for {}: {}", marketType, Generic.objectToString(marketCatalogueList));
     }
@@ -277,7 +276,7 @@ public final class DebuggingMethods {
         }
 
         RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
-        ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, Statics.appKey.get(), rescriptResponseHandler);
+        ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
         logger.info("EX_ALL_OFFERS 11 ids tooMuchData: {}", rescriptResponseHandler.isTooMuchData());
         marketIdsList = new ArrayList<>(12);
@@ -286,7 +285,7 @@ public final class DebuggingMethods {
         }
 
         rescriptResponseHandler = new RescriptResponseHandler();
-        ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, Statics.appKey.get(), rescriptResponseHandler);
+        ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
         logger.info("EX_ALL_OFFERS 12 ids tooMuchData: {}", rescriptResponseHandler.isTooMuchData());
 
@@ -306,7 +305,7 @@ public final class DebuggingMethods {
         } // end for
 
         rescriptResponseHandler = new RescriptResponseHandler();
-        ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, Statics.appKey.get(), rescriptResponseHandler);
+        ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
         logger.info("EX_BEST_OFFERS depth=10 18 ids tooMuchData: {}", rescriptResponseHandler.isTooMuchData());
         marketIdsList = new ArrayList<>(19);
@@ -315,7 +314,7 @@ public final class DebuggingMethods {
         } // end for
 
         rescriptResponseHandler = new RescriptResponseHandler();
-        ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, Statics.appKey.get(), rescriptResponseHandler);
+        ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
         logger.info("EX_BEST_OFFERS depth=10 19 ids tooMuchData: {}", rescriptResponseHandler.isTooMuchData());
 
@@ -335,7 +334,7 @@ public final class DebuggingMethods {
         } // end for
 
         rescriptResponseHandler = new RescriptResponseHandler();
-        ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, Statics.appKey.get(), rescriptResponseHandler);
+        ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
         logger.info("EX_BEST_OFFERS depth=1 100 ids tooMuchData: {}", rescriptResponseHandler.isTooMuchData());
         marketIdsList = new ArrayList<>(101);
@@ -344,7 +343,7 @@ public final class DebuggingMethods {
         } // end for
 
         rescriptResponseHandler = new RescriptResponseHandler();
-        ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, Statics.appKey.get(), rescriptResponseHandler);
+        ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
         logger.info("EX_BEST_OFFERS depth=1 101 ids tooMuchData: {}", rescriptResponseHandler.isTooMuchData());
 
@@ -364,7 +363,7 @@ public final class DebuggingMethods {
         } // end for
 
         rescriptResponseHandler = new RescriptResponseHandler();
-        ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, Statics.appKey.get(), rescriptResponseHandler);
+        ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
         logger.info("EX_BEST_OFFERS depth=2 100 ids tooMuchData: {}", rescriptResponseHandler.isTooMuchData());
         marketIdsList = new ArrayList<>(101);
@@ -373,7 +372,7 @@ public final class DebuggingMethods {
         } // end for
 
         rescriptResponseHandler = new RescriptResponseHandler();
-        ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, Statics.appKey.get(), rescriptResponseHandler);
+        ApiNgRescriptOperations.listMarketBook(marketIdsList, priceProjection, null, null, null, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
         logger.info("EX_BEST_OFFERS depth=2 101 ids tooMuchData: {}", rescriptResponseHandler.isTooMuchData());
     }

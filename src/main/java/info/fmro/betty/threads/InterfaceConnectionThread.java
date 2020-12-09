@@ -5,11 +5,13 @@ import info.fmro.shared.entities.Event;
 import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.shared.enums.CommandType;
 import info.fmro.shared.enums.ExistingFundsModificationCommand;
+import info.fmro.shared.enums.PrefSide;
 import info.fmro.shared.enums.RulesManagerModificationCommand;
 import info.fmro.shared.enums.SynchronizedMapModificationCommand;
 import info.fmro.shared.logic.ManagedEvent;
 import info.fmro.shared.logic.ManagedMarket;
 import info.fmro.shared.logic.ManagedRunner;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.stream.objects.PoisonPill;
 import info.fmro.shared.stream.objects.RunnerId;
 import info.fmro.shared.stream.objects.SerializableObjectModification;
@@ -32,7 +34,7 @@ import java.util.HashSet;
 import java.util.TreeSet;
 import java.util.concurrent.LinkedBlockingQueue;
 
-@SuppressWarnings("OverlyComplexClass")
+@SuppressWarnings({"OverlyComplexClass", "OverlyCoupledClass"})
 public class InterfaceConnectionThread
         extends Thread {
     private static final Logger logger = LoggerFactory.getLogger(InterfaceConnectionThread.class);
@@ -50,7 +52,7 @@ public class InterfaceConnectionThread
 //        this.sendQueue.add(object);
 //    }
 
-    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "SwitchStatementDensity", "unchecked", "OverlyCoupledMethod", "OverlyNestedMethod"})
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "SwitchStatementDensity", "unchecked", "OverlyNestedMethod", "OverlyCoupledMethod"})
     private synchronized void runAfterReceive(@NotNull final StreamObjectInterface receivedCommand) {
         if (receivedCommand instanceof SerializableObjectModification) {
             final SerializableObjectModification<?> serializableObjectModification = (SerializableObjectModification<?>) receivedCommand;
@@ -115,8 +117,7 @@ public class InterfaceConnectionThread
                             if (objectsToModify[0] instanceof String && objectsToModify[1] instanceof Double) {
                                 final String eventId = (String) objectsToModify[0];
                                 final Double newAmount = (Double) objectsToModify[1];
-                                Statics.rulesManagerThread.rulesManager.setEventAmountLimit(eventId, newAmount, Statics.pendingOrdersThread, Statics.orderCache.markets, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap,
-                                                                                            Statics.marketCache.markets, Statics.orderCache.initializedFromStreamStamp, Statics.PROGRAM_START_TIME);
+                                Statics.rulesManagerThread.rulesManager.setEventAmountLimit(eventId, newAmount, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap);
                             } else {
                                 logger.error("wrong objectsToModify class in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), rulesManagerModificationCommand.name(), Generic.objectToString(receivedCommand));
                             }
@@ -128,7 +129,7 @@ public class InterfaceConnectionThread
                         if (objectsToModify != null && objectsToModify.length == 1) {
                             if (objectsToModify[0] instanceof ManagedRunner) {
                                 final ManagedRunner managedRunner = (ManagedRunner) objectsToModify[0];
-                                Statics.rulesManagerThread.rulesManager.addManagedRunner(managedRunner, Statics.marketCataloguesMap, Statics.marketCache.markets, Statics.eventsMap, Statics.PROGRAM_START_TIME);
+                                Statics.rulesManagerThread.rulesManager.addManagedRunner(managedRunner, Statics.marketCataloguesMap, Statics.eventsMap);
                             } else {
                                 logger.error("wrong objectsToModify class in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), rulesManagerModificationCommand.name(), Generic.objectToString(receivedCommand));
                             }
@@ -257,6 +258,60 @@ public class InterfaceConnectionThread
                             logger.error("wrong size objectsToModify in runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), rulesManagerModificationCommand.name(), Generic.objectToString(receivedCommand));
                         }
                         break;
+                    case setMarketMandatoryPlace:
+                        if (objectsToModify != null && objectsToModify.length == 2) {
+                            if (objectsToModify[0] instanceof String && objectsToModify[1] instanceof Boolean) {
+                                final String marketId = (String) objectsToModify[0];
+                                final Boolean mandatoryPlace = (Boolean) objectsToModify[1];
+                                Statics.rulesManagerThread.rulesManager.setMarketMandatoryPlace(marketId, mandatoryPlace);
+                            } else {
+                                logger.error("wrong objectsToModify class in runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), rulesManagerModificationCommand.name(), Generic.objectToString(receivedCommand));
+                            }
+                        } else {
+                            logger.error("wrong size objectsToModify in runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), rulesManagerModificationCommand.name(), Generic.objectToString(receivedCommand));
+                        }
+                        break;
+                    case setRunnerMandatoryPlace:
+                        if (objectsToModify != null && objectsToModify.length == 3) {
+                            if (objectsToModify[0] instanceof String && objectsToModify[1] instanceof RunnerId && objectsToModify[2] instanceof Boolean) {
+                                final String marketId = (String) objectsToModify[0];
+                                final RunnerId runnerId = (RunnerId) objectsToModify[1];
+                                final Boolean mandatoryPlace = (Boolean) objectsToModify[2];
+                                Statics.rulesManagerThread.rulesManager.setRunnerMandatoryPlace(marketId, runnerId, mandatoryPlace);
+                            } else {
+                                logger.error("wrong objectsToModify class in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), rulesManagerModificationCommand.name(), Generic.objectToString(receivedCommand));
+                            }
+                        } else {
+                            logger.error("wrong size objectsToModify in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), rulesManagerModificationCommand.name(), Generic.objectToString(receivedCommand));
+                        }
+                        break;
+                    case setMarketKeepAtInPlay:
+                        if (objectsToModify != null && objectsToModify.length == 2) {
+                            if (objectsToModify[0] instanceof String && objectsToModify[1] instanceof Boolean) {
+                                final String marketId = (String) objectsToModify[0];
+                                final Boolean keepAtInPlay = (Boolean) objectsToModify[1];
+                                Statics.rulesManagerThread.rulesManager.setMarketKeepAtInPlay(marketId, keepAtInPlay);
+                            } else {
+                                logger.error("wrong objectsToModify class in runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), rulesManagerModificationCommand.name(), Generic.objectToString(receivedCommand));
+                            }
+                        } else {
+                            logger.error("wrong size objectsToModify in runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), rulesManagerModificationCommand.name(), Generic.objectToString(receivedCommand));
+                        }
+                        break;
+                    case setRunnerPrefSide:
+                        if (objectsToModify != null && objectsToModify.length == 3) {
+                            if (objectsToModify[0] instanceof String && objectsToModify[1] instanceof RunnerId && objectsToModify[2] instanceof PrefSide) {
+                                final String marketId = (String) objectsToModify[0];
+                                final RunnerId runnerId = (RunnerId) objectsToModify[1];
+                                final PrefSide prefSide = (PrefSide) objectsToModify[2];
+                                Statics.rulesManagerThread.rulesManager.setRunnerPrefSide(marketId, runnerId, prefSide);
+                            } else {
+                                logger.error("wrong objectsToModify class in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), rulesManagerModificationCommand.name(), Generic.objectToString(receivedCommand));
+                            }
+                        } else {
+                            logger.error("wrong size objectsToModify in betty runAfterReceive: {} {} {}", Generic.objectToString(objectsToModify), rulesManagerModificationCommand.name(), Generic.objectToString(receivedCommand));
+                        }
+                        break;
                     default:
                         logger.error("unknown rulesManagerModificationCommand in betty runAfterReceive: {} {}", rulesManagerModificationCommand.name(), Generic.objectToString(receivedCommand));
                 } // end switch
@@ -318,7 +373,7 @@ public class InterfaceConnectionThread
                             case refresh:
                                 if (nObjects == 1) {
                                     if (Event.class.equals(clazz)) {
-                                        Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.checkEventResultList));
+                                        SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.checkEventResultList));
                                     } else {
                                         logger.error("unsupported refresh map in runAfterReceive: {} {} {} {}", clazz, Generic.objectToString(objectsToModify), synchronizedMapModificationCommand.name(), Generic.objectToString(receivedCommand));
                                     }
@@ -333,14 +388,14 @@ public class InterfaceConnectionThread
                                         for (int i = 1; i < nObjects; i++) {
                                             events.add((Event) objectsToModify[i]);
                                         }
-                                        Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, events));
+                                        SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, events));
                                     } else //noinspection ConstantConditions
                                         if (MarketCatalogue.class.equals(clazz)) {
                                             final TreeSet<String> marketIds = new TreeSet<>();
                                             for (int i = 1; i < nObjects; i++) {
                                                 marketIds.add((String) objectsToModify[i]);
                                             }
-                                            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, marketIds));
+                                            SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, marketIds));
                                         } else {
                                             logger.error("unsupported getMarkets map in runAfterReceive: {} {} {} {}", clazz, Generic.objectToString(objectsToModify), synchronizedMapModificationCommand.name(), Generic.objectToString(receivedCommand));
                                         }
@@ -385,15 +440,15 @@ public class InterfaceConnectionThread
                 } else {
                     logger.error("unknown type of object in interfaceConnection stream: {} {}", receivedObject.getClass(), Generic.objectToString(receivedObject));
                 }
-            } while (receivedObject != null && !Statics.mustStop.get() && !this.writerThread.finished.get());
+            } while (receivedObject != null && !SharedStatics.mustStop.get() && !this.writerThread.finished.get());
         } catch (IOException iOException) {
             @NotNull final Class<?> eClass = iOException.getClass();
-            if ((eClass.equals(SocketException.class) || eClass.equals(SSLException.class)) && (Statics.mustStop.get() || this.writerThread.finished.get())) { // normal, the socket has been closed from another thread
+            if ((eClass.equals(SocketException.class) || eClass.equals(SSLException.class)) && (SharedStatics.mustStop.get() || this.writerThread.finished.get())) { // normal, the socket has been closed from another thread
             } else if (eClass.equals(EOFException.class)) {
                 this.writerThread.finished.set(true); // set here as well, not just in finally, for speed, as there's a racing condition
                 logger.info("EOFException received in InterfaceConnectionThread, thread ending: {}", iOException.toString());
             } else {
-                logger.error("IOException in interfaceConnection thread", iOException);
+                logger.warn("IOException in interfaceConnection thread", iOException);
             }
         } catch (ClassNotFoundException e) {
             logger.error("ClassNotFoundException in interfaceConnection thread", e);

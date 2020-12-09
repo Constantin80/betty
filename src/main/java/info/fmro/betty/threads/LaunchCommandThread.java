@@ -13,6 +13,7 @@ import info.fmro.shared.entities.Event;
 import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.shared.enums.CommandType;
 import info.fmro.shared.enums.MatchStatus;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.stream.objects.ScraperEventInterface;
 import info.fmro.shared.utility.BlackList;
 import info.fmro.shared.utility.Generic;
@@ -254,9 +255,9 @@ public class LaunchCommandThread
 
                                     if (totalMatch < Statics.threshold && (homeMatch >= Statics.threshold || awayMatch >= Statics.threshold)) {
                                         // some extra spaces intentionally left in the output, due to removeStrangeChars; those spaces tell me where a char was replaced
-                                        final String printedString = Generic.alreadyPrintedMap
-                                                .logOnce(3 * Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "{} one team matched t:{} h:{} a:{} event: {} scraper: {} / {}", clazz.getSimpleName(), totalMatch, homeMatch, awayMatch,
-                                                         Formulas.removeStrangeChars(eventName), Formulas.removeStrangeChars(scraperEvent.getHomeTeam()), Formulas.removeStrangeChars(scraperEvent.getAwayTeam()));
+                                        final String printedString = SharedStatics.alreadyPrintedMap
+                                                .logOnce(3 * Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "{} one team matched t:{} h:{} a:{} event: {} scraper: {} / {}", clazz.getSimpleName(), totalMatch, homeMatch,
+                                                         awayMatch, Formulas.removeStrangeChars(eventName), Formulas.removeStrangeChars(scraperEvent.getHomeTeam()), Formulas.removeStrangeChars(scraperEvent.getAwayTeam()));
                                         oneTeamMatchedPrintStrings.add(printedString);
                                     }
 
@@ -283,9 +284,9 @@ public class LaunchCommandThread
                                         if (twoPotentialMatches) {
                                             final int listSize = errTotalMatchList.size();
                                             // some extra spaces intentionally left in the output, due to removeStrangeChars; those spaces tell me where a char was replaced
-                                            if (Generic.alreadyPrintedMap
-                                                        .logOnce(3 * Generic.HOUR_LENGTH_MILLISECONDS, Statics.matcherSynchronizedWriter, logger, LogLevel.WARN, "{} {} twoPotentialMatches not matched {} event: {} to {} / {}", clazz.getSimpleName(),
-                                                                 listSize + 1, maxTotalMatch, Formulas.removeStrangeChars(eventName), Formulas.removeStrangeChars(matchedScraperEvent.getHomeTeam()),
+                                            if (SharedStatics.alreadyPrintedMap
+                                                        .logOnce(3 * Generic.HOUR_LENGTH_MILLISECONDS, Statics.matcherSynchronizedWriter, logger, LogLevel.WARN, "{} {} twoPotentialMatches not matched {} event: {} to {} / {}",
+                                                                 clazz.getSimpleName(), listSize + 1, maxTotalMatch, Formulas.removeStrangeChars(eventName), Formulas.removeStrangeChars(matchedScraperEvent.getHomeTeam()),
                                                                  Formulas.removeStrangeChars(matchedScraperEvent.getAwayTeam())) != null) {
                                                 for (int i = 0; i < listSize; i++) {
                                                     final ScraperEventInterface localScraperEvent = errScraperEventList.get(i);
@@ -313,9 +314,8 @@ public class LaunchCommandThread
                                                         // akready matched, nothing further to be done; this might be normal in checkAll and maybe other situations
                                                     } else if (existingMatchedScraperEventId == null && existingMatchedEventId == null) {
                                                         final int eventModified =
-                                                                event.setScraperEventId(clazz, matchedScraperEventId, MaintenanceThread.removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, constructorLinkedHashSetLongMarket,
-                                                                                        Statics.safeBetModuleActivated,
-                                                                                        Statics.MIN_MATCHED, Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod,
+                                                                event.setScraperEventId(clazz, matchedScraperEventId, MaintenanceThread.removeFromSecondaryMapsMethod, constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.MIN_MATCHED,
+                                                                                        Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod,
                                                                                         constructorHashSetLongEvent);
                                                         final int scraperEventModified = matchedScraperEvent.setMatchedEventId(eventId);
                                                         if (eventModified > 0 && scraperEventModified > 0) {
@@ -345,8 +345,8 @@ public class LaunchCommandThread
                                                                 logger.warn("warning {}", printedString);
                                                             } else {
                                                                 logger.error("error {}", printedString);
-                                                                event.setIgnored(Generic.DAY_LENGTH_MILLISECONDS, MaintenanceThread.removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, constructorLinkedHashSetLongMarket,
-                                                                                 Statics.safeBetModuleActivated, Statics.marketCataloguesMap, constructorHashSetLongEvent); // having an error is no joke
+                                                                event.setIgnored(Generic.DAY_LENGTH_MILLISECONDS, MaintenanceThread.removeFromSecondaryMapsMethod, constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated,
+                                                                                 Statics.marketCataloguesMap, constructorHashSetLongEvent); // having an error is no joke
                                                                 matchedScraperEvent.setIgnored(Generic.DAY_LENGTH_MILLISECONDS); // having an error is no joke
 //                                                                event.removeScraperEventId(clazz);
 //                                                                matchedScraperEvent.resetMatchedEventId();
@@ -383,8 +383,8 @@ public class LaunchCommandThread
                                                     } else { // at least one matched and not matched to same partner
                                                         logger.error("error at least one matched and not matched to same partner {} {} {} {} {}: {} {}", clazz.getSimpleName(), existingMatchedScraperEventId, matchedScraperEventId, existingMatchedEventId,
                                                                      eventId, Generic.objectToString(event), Generic.objectToString(matchedScraperEvent));
-                                                        event.setIgnored(Generic.DAY_LENGTH_MILLISECONDS, MaintenanceThread.removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated,
-                                                                         Statics.marketCataloguesMap, constructorHashSetLongEvent); // having an error is no joke
+                                                        event.setIgnored(Generic.DAY_LENGTH_MILLISECONDS, MaintenanceThread.removeFromSecondaryMapsMethod, constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.marketCataloguesMap,
+                                                                         constructorHashSetLongEvent); // having an error is no joke
                                                         matchedScraperEvent.setIgnored(Generic.DAY_LENGTH_MILLISECONDS); // having an error is no joke
 //                                                        event.removeScraperEventId(clazz);
 //                                                        matchedScraperEvent.resetMatchedEventId();
@@ -396,8 +396,8 @@ public class LaunchCommandThread
                                                         }
                                                         if (existingMatchedEventId != null && !Objects.equals(eventId, existingMatchedEventId)) {
                                                             final Event existingEvent = Statics.eventsMap.get(existingMatchedEventId);
-                                                            existingEvent.setIgnored(Generic.DAY_LENGTH_MILLISECONDS, MaintenanceThread.removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, constructorLinkedHashSetLongMarket,
-                                                                                     Statics.safeBetModuleActivated, Statics.marketCataloguesMap, constructorHashSetLongEvent); // having an error is no joke
+                                                            existingEvent.setIgnored(Generic.DAY_LENGTH_MILLISECONDS, MaintenanceThread.removeFromSecondaryMapsMethod, constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated,
+                                                                                     Statics.marketCataloguesMap, constructorHashSetLongEvent); // having an error is no joke
 //                                                            existingEvent.removeScraperEventId(clazz);
                                                         }
                                                     }
@@ -421,8 +421,8 @@ public class LaunchCommandThread
                                 } else {
                                     if (matchedScraperEvent != null) {
                                         if (Statics.debugLevel.check(2, 149)) { // only print in this case
-                                            Generic.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "{} not matched, closest was {} event: {} scraper: {} / {}", clazz.getSimpleName(), maxTotalMatch, eventName, matchedScraperEvent.getHomeTeam(),
-                                                                              matchedScraperEvent.getAwayTeam());
+                                            SharedStatics.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "{} not matched, closest was {} event: {} scraper: {} / {}", clazz.getSimpleName(), maxTotalMatch, eventName, matchedScraperEvent.getHomeTeam(),
+                                                                                    matchedScraperEvent.getAwayTeam());
                                         }
 
                                         if (oneTeamMatchedPrintStrings.isEmpty()) { // no oneTeamMatches, nothing to be done
@@ -453,7 +453,7 @@ public class LaunchCommandThread
                         logger.info("twoPotentialMatches: removing matched {} scrapers from {} events", clazz.getSimpleName(), twoPotentialMatchesEventsSize);
                         for (final Event event : twoPotentialMatchesEvents) {
                             final Long matchedScraperId = event.getScraperEventId(clazz);
-                            event.setIgnored(Generic.DAY_LENGTH_MILLISECONDS, MaintenanceThread.removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.marketCataloguesMap,
+                            event.setIgnored(Generic.DAY_LENGTH_MILLISECONDS, MaintenanceThread.removeFromSecondaryMapsMethod, constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.marketCataloguesMap,
                                              constructorHashSetLongEvent); // having an error is no joke
 //                            event.removeScraperEventId(clazz);
                             if (matchedScraperId != null) {
@@ -477,8 +477,8 @@ public class LaunchCommandThread
                                 logger.error("matchedEventId {} found while removing twoPotentialMatches for {} scraperEvent: {}", matchedEventId, clazz.getSimpleName(),
                                              Generic.objectToString(scraperEvent));
                                 final Event matchedEvent = Statics.eventsMap.get(matchedEventId);
-                                matchedEvent.setIgnored(Generic.DAY_LENGTH_MILLISECONDS, MaintenanceThread.removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated,
-                                                        Statics.marketCataloguesMap, constructorHashSetLongEvent); // having an error is no joke
+                                matchedEvent.setIgnored(Generic.DAY_LENGTH_MILLISECONDS, MaintenanceThread.removeFromSecondaryMapsMethod, constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.marketCataloguesMap,
+                                                        constructorHashSetLongEvent); // having an error is no joke
 //                                matchedEvent.removeScraperEventId(clazz);
                             }
                         } // end for
@@ -508,7 +508,7 @@ public class LaunchCommandThread
                         } else {
                             logger.info(printedString);
                         }
-                        Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, notIgnoredToCheckEvents));
+                        SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, notIgnoredToCheckEvents));
                     }
                 }
 
@@ -517,7 +517,7 @@ public class LaunchCommandThread
                     // minimal delay
                     minTimeDifference = Math.max(minTimeDifference, scraperThread.delayGetScraperEvents);
                     logger.info("{} mapEventsToScraperEvents {}{}tooRecentMatchedEvents: {} launch: mapEventsToScraperEvents smallDelay {}ms", clazz.getSimpleName(), checkAllString, fullRunString, sizeRecent, minTimeDifference);
-                    Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents, tooRecentMatchedEvents, minTimeDifference));
+                    SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents, tooRecentMatchedEvents, minTimeDifference));
                 }
 
                 logger.info("{} mapEventsToScraperEvents {}{}size: {} not matched: {} finished in {} ms", clazz.getSimpleName(), checkAllString, fullRunString, Statics.eventsMap.size(), counterNotMatched, System.currentTimeMillis() - startTime);
@@ -536,7 +536,7 @@ public class LaunchCommandThread
             final long lastUsedTimePrimitive = lastUsedTime == null ? 0 : lastUsedTime;
             if (currentTime - lastUsedTimePrimitive <= RECENT_PERIOD) {
                 iterator.remove();
-                logger.info("checkRecentlyUsed throttle remove eventId: {}", event == null ? null : event.getId());
+                logger.debug("checkRecentlyUsed throttle remove eventId: {}", event == null ? null : event.getId());
             } else {
                 recentlyUsedEvents.put(event, currentTime, true);
             }
@@ -611,7 +611,7 @@ public class LaunchCommandThread
             if (!Statics.safeBetModuleActivated) {
                 logger.error("delay present and probably not necessary without safeBets");
             }
-            Generic.threadSleepSegmented(this.delay, 100L, Statics.mustStop);
+            Generic.threadSleepSegmented(this.delay, 100L, SharedStatics.mustStop);
         }
         //noinspection SwitchStatementDensity,EnhancedSwitchMigration
         switch (this.command) {
@@ -622,7 +622,7 @@ public class LaunchCommandThread
                 if (Statics.debugLevel.check(2, 152)) {
                     logger.info("Running mapEventsToScraperEvents");
                 }
-                if (!Statics.mustStop.get()) {
+                if (!SharedStatics.mustStop.get()) {
                     if (this.checkAll) {
                         mapEventsToScraperEvents(this.clazz, true);
                     } else if (this.eventsSet != null) {
@@ -641,7 +641,7 @@ public class LaunchCommandThread
                 if (Statics.debugLevel.check(2, 154)) {
                     logger.info("Running findSafeRunners");
                 }
-                if (!Statics.mustStop.get()) {
+                if (!SharedStatics.mustStop.get()) {
                     if (this.eventsSet != null) {
                         FindSafeRunners.findSafeRunners(this.eventsSet);
                     } else if (this.entrySet != null) {
@@ -655,7 +655,7 @@ public class LaunchCommandThread
                 if (Statics.debugLevel.check(2, 153)) {
                     logger.info("Running findMarkets");
                 }
-                if (!Statics.mustStop.get()) {
+                if (!SharedStatics.mustStop.get()) {
                     if (this.checkAll) {
                         FindMarkets.findMarkets(true);
                     } else if (this.eventsSet != null) {

@@ -15,6 +15,7 @@ import info.fmro.shared.entities.MarketBook;
 import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.shared.enums.CommandType;
 import info.fmro.shared.enums.ScrapedField;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.objects.StampedDouble;
 import info.fmro.shared.objects.TwoOrderedStrings;
 import info.fmro.shared.stream.objects.ScraperEventInterface;
@@ -59,10 +60,10 @@ public class MaintenanceThread
     //     return timeTillNext;
     // }
     private static long timedPrintAverages() {
-        long timeForNext = Statics.timeStamps.getLastPrintAverages();
+        long timeForNext = SharedStatics.timeStamps.getLastPrintAverages();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0L) {
-            Statics.timeStamps.lastPrintAveragesStamp(Statics.DELAY_PRINT_AVERAGES);
+            SharedStatics.timeStamps.lastPrintAveragesStamp(Statics.DELAY_PRINT_AVERAGES);
             if (Statics.safeBetModuleActivated) {
                 if (Statics.betradarScraperThread.averageLogger != null) {
                     Statics.betradarScraperThread.averageLogger.printRecords();
@@ -77,7 +78,7 @@ public class MaintenanceThread
                 Statics.quickCheckThread.averageLogger.printRecords();
             }
 
-            int size = Statics.linkedBlockingQueue.size();
+            int size = SharedStatics.linkedBlockingQueue.size();
             if (size >= 10) {
                 logger.error("elements in linkedBlockingQueue: {}", size);
             } else if (size > 0) {
@@ -89,14 +90,14 @@ public class MaintenanceThread
             } else if (size > 0) {
                 logger.warn("elements in linkedBlockingQueueMarketBooks: {}", size);
             }
-            size = Statics.linkedBlockingQueueImportant.size();
+            size = SharedStatics.linkedBlockingQueueImportant.size();
             if (size >= 10) {
                 logger.error("elements in linkedBlockingQueueImportant: {}", size);
             } else if (size > 0) {
                 logger.warn("elements in linkedBlockingQueueImportant: {}", size);
             }
 
-            timeForNext = Statics.timeStamps.getLastPrintAverages();
+            timeForNext = SharedStatics.timeStamps.getLastPrintAverages();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -104,15 +105,15 @@ public class MaintenanceThread
     }
 
     private static long timedReadAliases() {
-        long timeForNext = Statics.timeStamps.getLastCheckAliases();
+        long timeForNext = SharedStatics.timeStamps.getLastCheckAliases();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0L) {
-            Statics.timeStamps.lastCheckAliasesStamp(Generic.MINUTE_LENGTH_MILLISECONDS);
+            SharedStatics.timeStamps.lastCheckAliasesStamp(Generic.MINUTE_LENGTH_MILLISECONDS);
 
             VarsIO.checkAliasesFile(Statics.ALIASES_FILE_NAME, Statics.aliasesTimeStamp, Formulas.aliasesMap);
             VarsIO.checkAliasesFile(Statics.FULL_ALIASES_FILE_NAME, Statics.fullAliasesTimeStamp, Formulas.fullAliasesMap);
 
-            timeForNext = Statics.timeStamps.getLastCheckAliases();
+            timeForNext = SharedStatics.timeStamps.getLastCheckAliases();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -121,10 +122,10 @@ public class MaintenanceThread
 
     @SuppressWarnings("OverlyNestedMethod")
     private static long timedCheckDeadlock() {
-        long timeForNext = Statics.timeStamps.getLastCheckDeadlock();
+        long timeForNext = SharedStatics.timeStamps.getLastCheckDeadlock();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0L) {
-            Statics.timeStamps.lastCheckDeadlockStamp(Generic.HOUR_LENGTH_MILLISECONDS);
+            SharedStatics.timeStamps.lastCheckDeadlockStamp(Generic.HOUR_LENGTH_MILLISECONDS);
 
             final long[] deadlockedThreadIds = Statics.threadMXBean.findDeadlockedThreads();
             if (deadlockedThreadIds != null) {
@@ -152,7 +153,7 @@ public class MaintenanceThread
             } else { // no deadlocked threads, nothing to be done
             }
 
-            timeForNext = Statics.timeStamps.getLastCheckDeadlock();
+            timeForNext = SharedStatics.timeStamps.getLastCheckDeadlock();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -160,13 +161,13 @@ public class MaintenanceThread
     }
 
     private static long timedPrintDebug() {
-        long timeForNext = Statics.timeStamps.getLastPrintDebug();
+        long timeForNext = SharedStatics.timeStamps.getLastPrintDebug();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0L) {
-            Statics.timeStamps.lastPrintDebugStamp(Generic.MINUTE_LENGTH_MILLISECONDS << 1);
+            SharedStatics.timeStamps.lastPrintDebugStamp(Generic.MINUTE_LENGTH_MILLISECONDS << 1);
             logger.debug("maxMemory: {} totalMemory: {} freeMemory: {}", Generic.addCommas(Runtime.getRuntime().maxMemory()), Generic.addCommas(Runtime.getRuntime().totalMemory()), Generic.addCommas(Runtime.getRuntime().freeMemory()));
             logger.debug("threadPools active/mostEver marketBooks: {}/{} important: {}/{} general: {}/{}", Statics.threadPoolExecutorMarketBooks.getActiveCount(), Statics.threadPoolExecutorMarketBooks.getLargestPoolSize(),
-                         Statics.threadPoolExecutorImportant.getActiveCount(), Statics.threadPoolExecutorImportant.getLargestPoolSize(), Statics.threadPoolExecutor.getActiveCount(), Statics.threadPoolExecutor.getLargestPoolSize());
+                         SharedStatics.threadPoolExecutorImportant.getActiveCount(), SharedStatics.threadPoolExecutorImportant.getLargestPoolSize(), SharedStatics.threadPoolExecutor.getActiveCount(), SharedStatics.threadPoolExecutor.getLargestPoolSize());
             if (Statics.safeBetModuleActivated) {
                 logger.debug("scraperEventsMap: b:{} c:{} eventsMap: {} marketCataloguesMap: {} safeMarketsMap: {} safeMarketBooksMap: {} safeMarketsImportantMap: {}", Statics.betradarEventsMap.size(), Statics.coralEventsMap.size(),
                              Statics.eventsMap.size(), Statics.marketCataloguesMap.size(), Statics.safeMarketsMap.size(), Statics.safeMarketBooksMap.size(), Statics.safeMarketsImportantMap.size());
@@ -177,7 +178,7 @@ public class MaintenanceThread
             logger.debug("connManager stats: {} writeSettingsCounter: {} BetFrequencyLimit.nOrdersSinceReset: {}", Statics.connManager.getTotalStats(), Generic.addCommas(VarsIO.writeSettingsCounter.get()),
                          Generic.addCommas(Statics.safetyLimits.speedLimit.getNOrdersSinceReset()));
 
-            timeForNext = Statics.timeStamps.getLastPrintDebug();
+            timeForNext = SharedStatics.timeStamps.getLastPrintDebug();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -185,12 +186,12 @@ public class MaintenanceThread
     }
 
     private static long timedSaveObjects() {
-        long timeForNext = Statics.timeStamps.getLastObjectsSave();
+        long timeForNext = SharedStatics.timeStamps.getLastObjectsSave();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0L) {
             VarsIO.writeObjectsToFiles();
 
-            timeForNext = Statics.timeStamps.getLastObjectsSave();
+            timeForNext = SharedStatics.timeStamps.getLastObjectsSave();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -198,12 +199,12 @@ public class MaintenanceThread
     }
 
     private static long timedSaveSettings() {
-        long timeForNext = Statics.timeStamps.getLastSettingsSave();
+        long timeForNext = SharedStatics.timeStamps.getLastSettingsSave();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0L) {
             VarsIO.writeSettings();
 
-            timeForNext = Statics.timeStamps.getLastSettingsSave();
+            timeForNext = SharedStatics.timeStamps.getLastSettingsSave();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -211,15 +212,15 @@ public class MaintenanceThread
     }
 
     private static long timedCleanScraperEventsMap() {
-        long timeForNext = Statics.timeStamps.getLastCleanScraperEventsMap();
+        long timeForNext = SharedStatics.timeStamps.getLastCleanScraperEventsMap();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0L) {
-            Statics.timeStamps.lastCleanScraperEventsMapStamp(Generic.MINUTE_LENGTH_MILLISECONDS * 10L);
+            SharedStatics.timeStamps.lastCleanScraperEventsMapStamp(Generic.MINUTE_LENGTH_MILLISECONDS * 10L);
             for (final Class<? extends ScraperEvent> classFromSet : Statics.scraperEventSubclassesSet) {
                 cleanScraperEventsMap(classFromSet);
             }
 
-            timeForNext = Statics.timeStamps.getLastCleanScraperEventsMap();
+            timeForNext = SharedStatics.timeStamps.getLastCleanScraperEventsMap();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -266,12 +267,12 @@ public class MaintenanceThread
     }
 
     private static long timedCleanSecondaryMaps() {
-        long timeForNext = Statics.timeStamps.getLastCleanSecondaryMaps();
+        long timeForNext = SharedStatics.timeStamps.getLastCleanSecondaryMaps();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0L) {
             cleanSecondaryMaps();
 
-            timeForNext = Statics.timeStamps.getLastCleanSecondaryMaps();
+            timeForNext = SharedStatics.timeStamps.getLastCleanSecondaryMaps();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -292,12 +293,12 @@ public class MaintenanceThread
     }
 
     private static long timedCleanTimedMaps() {
-        long timeForNext = Statics.timeStamps.getLastCleanTimedMaps();
+        long timeForNext = SharedStatics.timeStamps.getLastCleanTimedMaps();
         long timeTillNext = timeForNext - System.currentTimeMillis();
         if (timeTillNext <= 0L) {
             cleanTimedMaps();
 
-            timeForNext = Statics.timeStamps.getLastCleanTimedMaps();
+            timeForNext = SharedStatics.timeStamps.getLastCleanTimedMaps();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -317,7 +318,6 @@ public class MaintenanceThread
         return timeTillNext;
     }
 
-    @SuppressWarnings("OverlyNestedMethod")
     private static void cleanSafeBetsMap() {
         Statics.safeBetsMap.timeCleanStamp(20_000L);
         final long startTime = System.currentTimeMillis();
@@ -415,7 +415,7 @@ public class MaintenanceThread
     }
 
     private static void cleanTimedMaps() {
-        Statics.timeStamps.lastCleanTimedMapsStamp(Generic.MINUTE_LENGTH_MILLISECONDS * 30L);
+        SharedStatics.timeStamps.lastCleanTimedMapsStamp(Generic.MINUTE_LENGTH_MILLISECONDS * 30L);
         final long startTimeTimedWarnings = System.currentTimeMillis();
 //        synchronized (Statics.timedWarningsMap) {
         int initialSize = Statics.timedWarningsMap.size();
@@ -439,25 +439,25 @@ public class MaintenanceThread
         }
 //        } // end synchronized
 
-        Generic.alreadyPrintedMap.clean();
+        SharedStatics.alreadyPrintedMap.clean();
 //        final long startTimeAlreadyPrinted = System.currentTimeMillis();
 ////        synchronized (Statics.alreadyPrintedMap) {
-//        initialSize = Generic.alreadyPrintedMap.size();
-//        valuesCopy = Generic.alreadyPrintedMap.valuesCopy();
+//        initialSize = SharedStatics.alreadyPrintedMap.size();
+//        valuesCopy = SharedStatics.alreadyPrintedMap.valuesCopy();
 //        for (Long value : valuesCopy) {
 //            if (value == null) {
 //                logger.error("null value during clean alreadyPrintedMap");
-//                Generic.alreadyPrintedMap.removeValueAll(null); // remove null
+//                SharedStatics.alreadyPrintedMap.removeValueAll(null); // remove null
 //            } else {
 //                final long primitive = value;
 //                if (startTimeAlreadyPrinted >= primitive) {
-//                    Generic.alreadyPrintedMap.removeValue(value);
+//                    SharedStatics.alreadyPrintedMap.removeValue(value);
 //                } else { // nothing to be done, entry is not yet obsolete
 //                }
 //            }
 //        } // end for
 //
-//        newSize = Generic.alreadyPrintedMap.size();
+//        newSize = SharedStatics.alreadyPrintedMap.size();
 //        if (newSize != initialSize) {
 //            logger.info("cleaned alreadyPrintedMap, initialSize: {} newSize: {} in {} ms", initialSize, newSize, System.currentTimeMillis() - startTimeAlreadyPrinted);
 //        }
@@ -522,7 +522,7 @@ public class MaintenanceThread
 
     @SuppressWarnings("OverlyNestedMethod")
     private static void cleanSecondaryMaps() {
-        Statics.timeStamps.lastCleanSecondaryMapsStamp(Generic.MINUTE_LENGTH_MILLISECONDS * 10L);
+        SharedStatics.timeStamps.lastCleanSecondaryMapsStamp(Generic.MINUTE_LENGTH_MILLISECONDS * 10L);
 
         final long startTime = System.currentTimeMillis();
         final int initialSizeSafeMarketsMap = Statics.safeMarketsMap.size();
@@ -675,7 +675,7 @@ public class MaintenanceThread
 
             if (marketCatalogue != null) {
                 final long timeStamp = marketCatalogue.getTimeStamp();
-                if (Math.min(eventsMapLastUpdate, marketCataloguesMapLastUpdate) - timeStamp > Generic.MINUTE_LENGTH_MILLISECONDS * 5L) {
+                if (Math.min(eventsMapLastUpdate, marketCataloguesMapLastUpdate) - timeStamp > Statics.STREAMED_MARKETS_CHECK_PERIOD + (Generic.MINUTE_LENGTH_MILLISECONDS << 1)) {
                     final MarketCatalogue removedMarketCatalogue = removeMarket(marketId);
 //                    Statics.marketCataloguesMap.remove(marketId);
 //                    removedMarketIds.add(marketId);
@@ -691,10 +691,9 @@ public class MaintenanceThread
                         if (event != null) {
                             if (Statics.safeBetModuleActivated) {
                                 checkScraperEvents(event);
-                                final int nScraperEventIds =
-                                        event.getNValidScraperEventIds(removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.MIN_MATCHED,
-                                                                       Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod,
-                                                                       LaunchCommandThread.constructorHashSetLongEvent);
+                                final int nScraperEventIds = event.getNValidScraperEventIds(removeFromSecondaryMapsMethod, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.MIN_MATCHED,
+                                                                                            Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod,
+                                                                                            LaunchCommandThread.constructorHashSetLongEvent);
                                 if (nScraperEventIds < Statics.MIN_MATCHED) {
                                     if (marketCatalogue.isIgnored()) { // normal behavior
                                     } else if (marketCatalogue.isResetIgnoredRecent()) {
@@ -717,11 +716,11 @@ public class MaintenanceThread
                                     logger.error("marketIgnoredExpiry {} smaller than eventIgnoredExpiry {} by {} in cleanMarketCataloguesMap for: {} {}", marketIgnoredExpiration, eventIgnoredExpiration, eventIgnoredExpiration - marketIgnoredExpiration,
                                                  Generic.objectToString(marketCatalogue), Generic.objectToString(event));
 //                                marketCatalogue.setIgnoredExpiration(eventIgnoredExpiration);
-                                    marketCatalogue.setIgnored(0L, eventIgnoredExpiration, removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated);
+                                    marketCatalogue.setIgnored(0L, eventIgnoredExpiration, removeFromSecondaryMapsMethod, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated);
                                 }
                             }
                         } else {
-                            logger.error("no event found in map during cleanMarketCataloguesMap for: {}", Generic.objectToString(marketCatalogue));
+                            logger.error("no event found in map during cleanMarketCataloguesMap for: {} {}", marketId, marketCatalogue.getMarketName());
                             final MarketCatalogue removedMarketCatalogue = removeMarket(marketId);
 //                        Statics.marketCataloguesMap.remove(marketId);
 //                        removedMarketIds.add(marketId); 
@@ -763,7 +762,6 @@ public class MaintenanceThread
         }
     }
 
-    @SuppressWarnings("OverlyNestedMethod")
     private static void cleanEventsMap() {
         Statics.eventsMap.timeCleanStamp(Generic.MINUTE_LENGTH_MILLISECONDS * 10L);
         final long startTime = System.currentTimeMillis();
@@ -801,7 +799,7 @@ public class MaintenanceThread
 //            final Date openDate = event.getOpenDate();
 //            final long openTime = openDate == null ? -1 : openDate.getTime();
             final String eventId = entry.getKey();
-            if (eventsMapLastUpdate - timeStamp > Generic.MINUTE_LENGTH_MILLISECONDS * 5L || startTime - eventsMapLastUpdate > Generic.DAY_LENGTH_MILLISECONDS << 1) {
+            if (eventsMapLastUpdate - timeStamp > Statics.STREAMED_MARKETS_CHECK_PERIOD + (Generic.MINUTE_LENGTH_MILLISECONDS << 1) || startTime - eventsMapLastUpdate > Generic.DAY_LENGTH_MILLISECONDS << 1) {
                 final Event removedEvent = removeEvent(eventId, false);
 //                Statics.eventsMap.remove(key);
 //                removedEventIds.add(key);
@@ -829,8 +827,8 @@ public class MaintenanceThread
 
                             if (scraperEvent == null) {
                                 logger.error("non existent matchedScraper {} {} found in cleanEventsMap for: {} {}", clazz.getSimpleName(), scraperId, eventId, Generic.objectToString(event));
-                                event.setIgnored(Generic.DAY_LENGTH_MILLISECONDS, removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated,
-                                                 Statics.marketCataloguesMap, LaunchCommandThread.constructorHashSetLongEvent); // error is no joke
+                                event.setIgnored(Generic.DAY_LENGTH_MILLISECONDS, removeFromSecondaryMapsMethod, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.marketCataloguesMap,
+                                                 LaunchCommandThread.constructorHashSetLongEvent); // error is no joke
 //                                event.removeScraperEventId(clazz);
                             } else { // everything is good, nothing to be done, ignored scrapers are OK
                             }
@@ -923,8 +921,8 @@ public class MaintenanceThread
             logger.info("cleaned {} scraperEventsMap, nRemovedScraperEvents: {} initialSize: {} newSize: {} in {} ms", clazz.getSimpleName(), nRemovedScraperEvents, initialSize, newSize, System.currentTimeMillis() - startTime);
 
             if (Statics.safeBetModuleActivated) {
-                Statics.timeStamps.setLastMapEventsToScraperEvents(System.currentTimeMillis() + Generic.MINUTE_LENGTH_MILLISECONDS);
-                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents));
+                SharedStatics.timeStamps.setLastMapEventsToScraperEvents(System.currentTimeMillis() + Generic.MINUTE_LENGTH_MILLISECONDS);
+                SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents));
             }
         } else { // nothing removed, I guess nothing needs to be printed
         }
@@ -1116,7 +1114,6 @@ public class MaintenanceThread
                 }
             } // end for
         }
-
         return nPurgedMarkets;
     }
 
@@ -1145,14 +1142,12 @@ public class MaintenanceThread
                 }
             } // end for
         }
-
         return nPurgedMarkets;
     }
 
     public static MarketCatalogue removeMarket(final String marketId) {
         final MarketCatalogue marketCatalogue = Statics.marketCataloguesMap.remove(marketId);
         removeFromSecondaryMaps(marketId);
-
         return marketCatalogue;
     }
 
@@ -1218,7 +1213,6 @@ public class MaintenanceThread
                 logger.error("null safeRunner in removeSafeRunner for: {}", marketId);
             }
         }
-
         return modified;
     }
 
@@ -1231,8 +1225,8 @@ public class MaintenanceThread
             if (Statics.safeBetModuleActivated) {
                 logger.warn("null safeRunners in removeSafeMarket for: {}", marketId);
             } else {
-//                Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "null safeRunners in removeSafeMarket for: {}", marketId);
-//                Generic.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "null safeRunners in removeSafeMarket"); // I don't think I event need to print this, as it is normal behavior
+//                SharedStatics.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "null safeRunners in removeSafeMarket for: {}", marketId);
+//                SharedStatics.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "null safeRunners in removeSafeMarket"); // I don't think I event need to print this, as it is normal behavior
             }
         }
         return safeRunners;
@@ -1240,23 +1234,23 @@ public class MaintenanceThread
 
     @Override
     public void run() {
-        while (!Statics.mustStop.get()) {
+        while (!SharedStatics.mustStop.get()) {
             try {
                 if (Statics.mustSleep.get()) {
-                    Betty.programSleeps(Statics.mustSleep, Statics.mustStop, "maintenance thread");
+                    Betty.programSleeps(Statics.mustSleep, "maintenance thread");
                 }
-                if (Statics.needSessionToken.get()) {
-                    Betty.authenticate(Statics.AUTH_URL, Statics.bu, Statics.bp, Statics.sessionTokenObject, Statics.KEY_STORE_FILE_NAME, Statics.KEY_STORE_PASSWORD, Statics.KEY_STORE_TYPE, Statics.appKey);
+                if (SharedStatics.needSessionToken.get()) {
+                    Betty.authenticate(Statics.AUTH_URL, Statics.bu, Statics.bp, Statics.KEY_STORE_FILE_NAME, Statics.KEY_STORE_PASSWORD, Statics.KEY_STORE_TYPE);
                 }
-                long timeToSleep = Statics.needSessionToken.get() ? 10_000L : 5L * Generic.MINUTE_LENGTH_MILLISECONDS; // initialized with maximum sleep time
+                long timeToSleep = SharedStatics.needSessionToken.get() ? 10_000L : 5L * Generic.MINUTE_LENGTH_MILLISECONDS; // initialized with maximum sleep time
 
-                if (Statics.mustWriteObjects.get()) {
+                if (SharedStatics.mustWriteObjects.get()) {
                     VarsIO.writeObjectsToFiles();
                     VarsIO.writeSettings();
-                    Statics.mustWriteObjects.set(false);
+                    SharedStatics.mustWriteObjects.set(false);
                 }
                 if (Statics.rulesManagerThread.rulesManager.rulesHaveChanged.get()) {
-                    Generic.threadSleepSegmented(500L, 50L, Statics.mustStop); // small sleep against multiple quick modifications that lead to writes
+                    Generic.threadSleepSegmented(500L, 50L, SharedStatics.mustStop); // small sleep against multiple quick modifications that lead to writes
                     VarsIO.writeSettings(); // this method sets the AtomicBoolean to false
                 }
                 if (Statics.orderToPrint.get() != null) {
@@ -1302,7 +1296,7 @@ public class MaintenanceThread
                 timeToSleep = Math.min(timeToSleep, timedReadAliases());
                 timeToSleep = Math.min(timeToSleep, timedCheckDeadlock());
 
-                Generic.threadSleepSegmented(timeToSleep, 100L, Statics.mustStop, Statics.mustWriteObjects, Statics.needSessionToken, Statics.orderToPrint, Statics.rulesManagerThread.rulesManager.rulesHaveChanged);
+                Generic.threadSleepSegmented(timeToSleep, 100L, SharedStatics.mustStop, SharedStatics.mustWriteObjects, SharedStatics.needSessionToken, Statics.orderToPrint, Statics.rulesManagerThread.rulesManager.rulesHaveChanged);
             } catch (Throwable throwable) {
                 logger.error("STRANGE ERROR inside Maintenance loop", throwable);
             }

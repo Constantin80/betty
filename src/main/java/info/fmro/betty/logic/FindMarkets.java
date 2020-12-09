@@ -16,6 +16,7 @@ import info.fmro.shared.enums.ParsedMarketType;
 import info.fmro.shared.enums.ParsedRunnerType;
 import info.fmro.shared.objects.ParsedMarket;
 import info.fmro.shared.objects.ParsedRunner;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import org.apache.commons.lang3.StringUtils;
@@ -67,8 +68,8 @@ public final class FindMarkets {
         } else {
             if (parsedMarketType == ParsedMarketType.ALT_TOTAL_GOALS && parsedRunnersSet.size() == 64) { // normal, happens, no need to print
             } else {
-                Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "incorrect parsedRunnersSet size {} in: {} {} for: {} set: {}", parsedRunnersSet.size(), parsedMarketType, marketId,
-                                                  Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"), Generic.objectToString(parsedRunnersSet));
+                SharedStatics.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "incorrect parsedRunnersSet size {} in: {} {} for: {} set: {}", parsedRunnersSet.size(), parsedMarketType, marketId,
+                                                        Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"), Generic.objectToString(parsedRunnersSet));
             }
             interestingMarket = false;
         }
@@ -85,20 +86,20 @@ public final class FindMarkets {
     }
 
     private static void unknownParsedRunnerTypeError(final ParsedMarketType parsedMarketType, final long sortPriority, final String runnerName, final String marketId, final MarketCatalogue marketCatalogue) {
-        Generic.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "unknown parsedRunnerType for {} {} {} in: {} for: {}", parsedMarketType, sortPriority, runnerName, marketId,
-                                          Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
+        SharedStatics.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "unknown parsedRunnerType for {} {} {} in: {} for: {}", parsedMarketType, sortPriority, runnerName, marketId,
+                                                Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
     }
 
 //    private static boolean unknownParsedMarketTypeError(final String marketName, final String eventHomeName, final String eventAwayName, final String marketId, final MarketCatalogue marketCatalogue) {
-//        Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "parsedMarketType null for {} {}/{} in: {} for: {}", marketName, eventHomeName, eventAwayName, marketId,
+//        SharedStatics.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "parsedMarketType null for {} {}/{} in: {} for: {}", marketName, eventHomeName, eventAwayName, marketId,
 //                                          Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
 //        return false;
 //    }
 
     @SuppressWarnings("SameReturnValue")
     private static boolean unknownParsedMarketTypeError(final String marketName, final StringBuilder eventHomeName, final StringBuilder eventAwayName, final String marketId, final MarketCatalogue marketCatalogue) {
-        Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "parsedMarketType null for {} {}/{} in: {} for: {}", marketName, eventHomeName, eventAwayName, marketId,
-                                          Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
+        SharedStatics.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "parsedMarketType null for {} {}/{} in: {} for: {}", marketName, eventHomeName, eventAwayName, marketId,
+                                                Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
         return false;
     }
 
@@ -120,7 +121,7 @@ public final class FindMarkets {
             } else if (awayMatch > Statics.threshold && homeMatch < awayMatch) {
                 Generic.stringBuilderReplace(eventAwayName, marketSubstring);
             } else {
-                Generic.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "STRANGE market team matching {} {} {} {} {} in: {}", homeMatch, awayMatch, eventHomeName, eventAwayName, marketName, marketId);
+                SharedStatics.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "STRANGE market team matching {} {} {} {} {} in: {}", homeMatch, awayMatch, eventHomeName, eventAwayName, marketName, marketId);
             }
             if (marketName.equalsIgnoreCase(eventHomeName + endMarker)) {
                 parsedMarketType = choiceA;
@@ -186,8 +187,8 @@ public final class FindMarkets {
                     teamString = runnerName.substring(beginIndex + beginMarker.length());
                 }
             } catch (StringIndexOutOfBoundsException stringIndexOutOfBoundsException) {
-                Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "STRANGE stringIndexOutOfBoundsException in runner team matching {} {} {} {} {} {} {} {} in: {} {}", runnerName, beginMarker, endMarker,
-                                                  sortPriority, sortHome, sortAway, eventHomeName, eventAwayName, marketId, Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"), stringIndexOutOfBoundsException);
+                SharedStatics.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "STRANGE stringIndexOutOfBoundsException in runner team matching {} {} {} {} {} {} {} {} in: {} {}", runnerName, beginMarker, endMarker,
+                                                        sortPriority, sortHome, sortAway, eventHomeName, eventAwayName, marketId, Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"), stringIndexOutOfBoundsException);
                 teamString = null;
             }
 
@@ -198,10 +199,10 @@ public final class FindMarkets {
                     if (homeMatch > Statics.threshold && awayMatch < homeMatch) {
                         Generic.stringBuilderReplace(eventHomeName, teamString);
                     } else {
-//                        Generic.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "STRANGE runner home team matching {} {} {} / {} - {} in: {} {}", homeMatch, awayMatch, eventHomeName, eventAwayName, teamString, marketId,
+//                        SharedStatics.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "STRANGE runner home team matching {} {} {} / {} - {} in: {} {}", homeMatch, awayMatch, eventHomeName, eventAwayName, teamString, marketId,
 //                                                          Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
-                        Generic.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "STRANGE runner home team matching {} {} {} / {} - {} in: {} {}", homeMatch, awayMatch, eventHomeName, eventAwayName, teamString, marketId,
-                                                          marketCatalogue == null ? null : marketCatalogue.getMarketName());
+                        SharedStatics.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "STRANGE runner home team matching {} {} {} / {} - {} in: {} {}", homeMatch, awayMatch, eventHomeName, eventAwayName, teamString, marketId,
+                                                                marketCatalogue == null ? null : marketCatalogue.getMarketName());
                         success = false;
                     }
                 }
@@ -211,10 +212,10 @@ public final class FindMarkets {
                     if (awayMatch > Statics.threshold && homeMatch < awayMatch) {
                         Generic.stringBuilderReplace(eventAwayName, teamString);
                     } else {
-//                        Generic.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "STRANGE runner away team matching {} {} {} / {} - {} in: {} {}", homeMatch, awayMatch, eventHomeName, eventAwayName, teamString, marketId,
+//                        SharedStatics.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "STRANGE runner away team matching {} {} {} / {} - {} in: {} {}", homeMatch, awayMatch, eventHomeName, eventAwayName, teamString, marketId,
 //                                                          Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
-                        Generic.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "STRANGE runner away team matching {} {} {} / {} - {} in: {} {}", homeMatch, awayMatch, eventHomeName, eventAwayName, teamString, marketId,
-                                                          marketCatalogue == null ? null : marketCatalogue.getMarketName());
+                        SharedStatics.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "STRANGE runner away team matching {} {} {} / {} - {} in: {} {}", homeMatch, awayMatch, eventHomeName, eventAwayName, teamString, marketId,
+                                                                marketCatalogue == null ? null : marketCatalogue.getMarketName());
                         success = false;
                     }
                 }
@@ -239,7 +240,7 @@ public final class FindMarkets {
         findMarkets(eventsSet, false);
     }
 
-    @SuppressWarnings({"OverlyLongMethod", "OverlyNestedMethod", "OverlyComplexMethod"})
+    @SuppressWarnings({"OverlyLongMethod", "OverlyComplexMethod"})
     public static void findMarkets(final TreeSet<String> marketIdsSet) {
 //        logger.info("findMarkets marketIdsSet: {}", Generic.objectToString(marketIdsSet));
         if (marketIdsSet != null && !marketIdsSet.isEmpty()) {
@@ -254,7 +255,7 @@ public final class FindMarkets {
                 threadList.add(thread);
             } // end for
 
-            final long startedWaitingTime = System.currentTimeMillis();
+//            final long startedWaitingTime = System.currentTimeMillis();
             for (final Thread thread : threadList) {
                 if (thread.isAlive()) {
                     try {
@@ -265,13 +266,14 @@ public final class FindMarkets {
                 } else { // thread already finished, nothing to be done
                 }
             } // end for
+            final long finishedWaitingTime = System.currentTimeMillis();
 
             final Collection<Event> modifiedEvents = new HashSet<>(0);
             final Collection<Entry<String, MarketCatalogue>> toCheckMarkets = new LinkedHashSet<>(0);
             int nModifiedMarkets = 0, nAddedMarkets = 0;
             final Collection<String> notFoundMarketIds = new HashSet<>(marketIdsSet);
             for (MarketCatalogue marketCatalogue : returnSet) {
-                marketCatalogue.setTimeStamp(startedWaitingTime);
+                marketCatalogue.setTimeStamp(finishedWaitingTime);
                 final Event event = Formulas.getStoredEventOfMarketCatalogue(marketCatalogue);
                 final String marketName = marketCatalogue.getMarketName();
                 final String marketId = marketCatalogue.getMarketId();
@@ -342,7 +344,7 @@ public final class FindMarkets {
             } // end for
             for (final String marketId : notFoundMarketIds) {
                 if (Statics.rulesManagerThread.rulesManager.markets.containsKey(marketId)) { // must be an expired managedMarket
-                    Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "possibly expired marketId in findMarket: {}", marketId);
+                    SharedStatics.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.DEBUG, "possibly expired marketId in findMarket: {}", marketId);
                 } else {
                     logger.warn("removing not found marketId in findMarket: {}", marketId);
                 }
@@ -364,7 +366,7 @@ public final class FindMarkets {
                     final int sizeNotIgnoredModified = notIgnoredModifiedEvents.size();
                     if (sizeNotIgnoredModified > 0) {
                         logger.info("findMarkets modifiedEvents: {} launch: findMarkets", sizeNotIgnoredModified);
-                        Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, notIgnoredModifiedEvents));
+                        SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, notIgnoredModifiedEvents));
                     }
                 }
                 final int sizeEntries = toCheckMarkets.size();
@@ -381,11 +383,11 @@ public final class FindMarkets {
                     } // end for
                     final int sizeNotIgnoredToCheckMarkets = notIgnoredToCheckMarkets.size();
                     if (sizeNotIgnoredToCheckMarkets > 0) {
-                        Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, notIgnoredToCheckMarkets));
+                        SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, notIgnoredToCheckMarkets));
                     }
                 }
             } else {
-                logger.info("findMarkets nAddedMarkets {} out of returnSet size {} out of initially checked size {}", nAddedMarkets, returnSet.size(), marketIdsSet.size());
+                logger.debug("findMarkets nAddedMarkets {} out of returnSet size {} out of initially checked size {}", nAddedMarkets, returnSet.size(), marketIdsSet.size());
 //                final Collection<String> returnSetIds = new ArrayList<>(returnSet.size());
 //                for (final MarketCatalogue marketCatalogue : returnSet) {
 //                    if (marketCatalogue == null) {
@@ -428,8 +430,8 @@ public final class FindMarkets {
                 } else if (event.isIgnored()) {
                     iterator.remove();
                 } else {
-                    final int nMatched = event.getNValidScraperEventIds(MaintenanceThread.removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated,
-                                                                        Statics.MIN_MATCHED, Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod,
+                    final int nMatched = event.getNValidScraperEventIds(MaintenanceThread.removeFromSecondaryMapsMethod, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.MIN_MATCHED,
+                                                                        Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod,
                                                                         LaunchCommandThread.constructorHashSetLongEvent);
                     final String eventId = event.getId();
                     if (nMatched < Statics.MIN_MATCHED || eventId == null) {
@@ -491,7 +493,8 @@ public final class FindMarkets {
                 final long endTime = System.currentTimeMillis();
                 final Collection<Entry<String, MarketCatalogue>> toCheckMarkets = new LinkedHashSet<>(0);
                 int nModifiedMarkets = 0, nAddedMarkets = 0;
-                final Collection<Event> modifiedEvents = new HashSet<>(0);
+                final HashSet<Event> modifiedEvents = new HashSet<>(0);
+                final TreeSet<String> toAddEvents = new TreeSet<>();
                 for (MarketCatalogue marketCatalogue : returnSet) {
                     marketCatalogue.setTimeStamp(startedWaitingTime);
                     final Event event = Formulas.getStoredEventOfMarketCatalogue(marketCatalogue);
@@ -499,34 +502,62 @@ public final class FindMarkets {
                     final String marketId = marketCatalogue.getMarketId();
                     final MarketDescription marketDescription = marketCatalogue.getDescription();
                     final List<RunnerCatalog> runnerCatalogsList = marketCatalogue.getRunners();
+                    final Event eventStump = marketCatalogue.getEventStump();
 
-                    if (event != null && marketName != null && marketId != null && marketDescription != null && runnerCatalogsList != null) {
-                        final String eventId = event.getId();
-                        final Event eventStump = marketCatalogue.getEventStump();
+                    if (eventStump == null) { // this never happens
+                        logger.error("null eventStump in findMarkets for: {} {} {}", marketId, marketName, Generic.objectToString(marketCatalogue));
+                    } else if (marketName != null && marketId != null && marketDescription != null && runnerCatalogsList != null) {
+                        final String eventId = eventStump.getId();
                         final int nMatched;
-                        if (eventStump.parseName() <= 0) { // includes unparsed and errors
-                            if (info.fmro.shared.utility.Formulas.isMarketType(marketCatalogue, Statics.supportedEventTypes)) {
-//                                logger.info("findMarkets unparsed event name: {} for: {}", eventStump.getName(), marketId);
-                                Generic.alreadyPrintedMap.logOnce(4L * Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "findMarkets unparsed event name: {} for: {}", eventStump.getName(), marketId);
-                            } else { // I won't clutter the logs, no print
-//                                Generic.alreadyPrintedMap.logOnce(4L * Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "findMarkets unparsed event name: {} for: {} {}", eventStump.getName(), marketId,
-//                                                                  Generic.objectToString(marketCatalogue.getEventType()));
+                        final int eventParseNameModifications = eventStump.parseName();
+
+                        if (event == null) {
+                            final boolean newEventToBeAdded = toAddEvents.add(eventId);
+                            nMatched = 0;
+
+                            if (newEventToBeAdded) {
+                                if (Statics.safeBetModuleActivated) {
+                                    final long timeSinceLastRemoved = methodStartTime - Statics.eventsMap.getTimeStampRemoved();
+                                    if (timeSinceLastRemoved < 1_000L) {
+                                        logger.info("marketCatalogue {} attached to event not present in eventsMap", marketId);
+                                    } else {
+                                        final long timeSinceUpdated = methodStartTime - Statics.eventsMap.getTimeStamp();
+                                        if (timeSinceUpdated > Generic.DAY_LENGTH_MILLISECONDS) {
+                                            logger.info("marketCatalogue {} attached to event not present in obsolete eventsMap", marketId);
+                                        } else {
+                                            logger.error("marketCatalogue attached to event not present in eventsMap: {}ms {} {} {} {}", Generic.addCommas(timeSinceLastRemoved), marketId, eventStump.getId(), eventStump.getName(), marketName);
+                                        }
+                                    }
+
+                                    continue; // don't place stuff that needs to be done after the continue line
+                                } else {
+                                    logger.info("marketCatalogue attached to event not present in eventsMap, can be normal, will re-add the event: {} {} {} {}", marketId, eventStump.getId(), eventStump.getName(), marketName);
+                                }
+                            } else { // won't print messaged again for the same event
                             }
-
-                            nMatched = 0; // so it just continues to next for element; actually without the safeBetsModule activated, it uses the element
                         } else {
-                            nMatched = event.getNValidScraperEventIds(MaintenanceThread.removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.MIN_MATCHED,
-                                                                      Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod,
-                                                                      LaunchCommandThread.constructorHashSetLongEvent);
-                        }
-                        if (event.isIgnored(methodStartTime)) {
-                            logger.warn("marketCatalogue attached to blackListed event: {}", marketId);
-                        }
-
-                        final int update = event.update(eventStump, Statics.loggerThread);
-                        if (update > 0) {
-                            modifiedEvents.add(event);
-                            logger.warn("event modified {} in findMarkets for: {} {} {}", update, marketId, Generic.objectToString(eventStump), Generic.objectToString(event)); // this might be normal behaviour
+                            if (eventParseNameModifications <= 0) { // includes unparsed and errors
+                                if (info.fmro.shared.utility.Formulas.isMarketType(marketCatalogue, Statics.supportedEventTypes)) {
+//                                logger.info("findMarkets unparsed event name: {} for: {}", eventStump.getName(), marketId);
+                                    SharedStatics.alreadyPrintedMap.logOnce(4L * Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "findMarkets unparsed event name: {} for: {}", eventStump.getName(), marketId);
+                                } else { // I won't clutter the logs, no print
+//                                SharedStatics.alreadyPrintedMap.logOnce(4L * Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "findMarkets unparsed event name: {} for: {} {}", eventStump.getName(), marketId,
+//                                                                  Generic.objectToString(marketCatalogue.getEventType()));
+                                }
+                                nMatched = 0; // so it just continues to next for element; actually without the safeBetsModule activated, it uses the element
+                            } else {
+                                nMatched = event.getNValidScraperEventIds(MaintenanceThread.removeFromSecondaryMapsMethod, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.MIN_MATCHED,
+                                                                          Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod,
+                                                                          LaunchCommandThread.constructorHashSetLongEvent);
+                            }
+                            if (event.isIgnored(methodStartTime)) {
+                                logger.warn("marketCatalogue attached to blackListed event: {}", marketId);
+                            }
+                            final int update = event.update(eventStump, Statics.loggerThread);
+                            if (update > 0) {
+                                modifiedEvents.add(event);
+                                logger.warn("event modified {} in findMarkets for: {} {} {}", update, marketId, Generic.objectToString(eventStump), Generic.objectToString(event)); // this might be normal behaviour
+                            }
                         }
 
                         @Nullable MarketCatalogue existingMarketCatalogue;
@@ -569,8 +600,8 @@ public final class FindMarkets {
                         } // end else
 //                        logger.info("before if: {} {} {}", marketId, checkAll, returnSet.size());
                         if (nMatched >= Statics.MIN_MATCHED && (checkAll || existingMarketCatalogue == null)) {
-                            final String eventHomeNameString = event.getHomeName();
-                            final String eventAwayNameString = event.getAwayName();
+                            final String eventHomeNameString = eventStump.getHomeName();
+                            final String eventAwayNameString = eventStump.getAwayName();
 //                            if (eventId != null && eventHomeNameString != null && eventAwayNameString != null) {
                             if (eventId != null) {
                                 final boolean interestingMarket = parseSupportedMarket(eventHomeNameString, eventAwayNameString, marketCatalogue, marketId, marketName, marketDescription, runnerCatalogsList);
@@ -595,9 +626,9 @@ public final class FindMarkets {
                                             final long currentTimeStamp = marketCatalogue.getTimeStamp();
                                             final long timeDifference = currentTimeStamp - existingTimeStamp;
                                             if (timeDifference > 1_000L && startedWaitingTime - existingTimeStamp > 1_000L) {
-                                                Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "probably modified {}({}) ms parsedMarket for: {} {}",
-                                                                                  timeDifference, startedWaitingTime - existingTimeStamp, Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"),
-                                                                                  Generic.objectToString(inMapMarketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
+                                                SharedStatics.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "probably modified {}({}) ms parsedMarket for: {} {}",
+                                                                                        timeDifference, startedWaitingTime - existingTimeStamp, Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"),
+                                                                                        Generic.objectToString(inMapMarketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
                                             } else { // can happen due to concurrent threads, no need to print message
                                             }
                                         }
@@ -617,35 +648,21 @@ public final class FindMarkets {
 //                                } else if (Formulas.isMarketType(marketCatalogue, Statics.supportedEventTypes)) {
 //                                    logger.info("null parsed name fields in findMarkets for: {} {}", marketId, event.getName());
 //                                } else {
-////                                    Generic.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "null parsed name fields in findMarkets for: {} {} {}", marketId, Generic.objectToString(marketCatalogue.getEventType()), event.getName());
-//                                    Generic.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "null parsed name fields in findMarkets for: {}", Generic.objectToString(marketCatalogue.getEventType()));
+////                                    SharedStatics.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "null parsed name fields in findMarkets for: {} {} {}", marketId, Generic.objectToString(marketCatalogue.getEventType()), event.getName());
+//                                    SharedStatics.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "null parsed name fields in findMarkets for: {}", Generic.objectToString(marketCatalogue.getEventType()));
 //                                }
                             }
                         } else { // no associated scraperEvent or market exists and not checkAll, won't be parsed
                         }
                     } else {
-                        if (event == null) {
-                            final long timeSinceLastRemoved = methodStartTime - Statics.eventsMap.getTimeStampRemoved();
-                            if (timeSinceLastRemoved < 1_000L) {
-                                logger.info("marketCatalogue {} attached to event not present in eventsMap", marketId);
-                            } else {
-                                final long timeSinceUpdated = methodStartTime - Statics.eventsMap.getTimeStamp();
-                                if (timeSinceUpdated > Generic.DAY_LENGTH_MILLISECONDS) {
-                                    logger.info("marketCatalogue {} attached to event not present in obsolete eventsMap", marketId);
-                                } else {
-                                    logger.error("marketCatalogue attached to event not present in eventsMap: {} {}", timeSinceLastRemoved, Generic.objectToString(marketCatalogue));
-                                }
-                            }
-                        } else {
-                            logger.error("null fields in findMarkets for: {}", Generic.objectToString(marketCatalogue));
-                        }
+                        logger.error("null fields in findMarkets for: {}", Generic.objectToString(marketCatalogue));
                     }
                 } // end for marketCatalogue
 
                 final boolean fullRun = eventsSet == null;
                 final String fullRunString = fullRun ? " fullRun" : "";
                 final String checkAllString = checkAll ? " checkAll" : "";
-                logger.info("findMarkets{}{}: {} in map, {} returned from {} matched events, in {} ms, of which {} ms waiting for threads", fullRunString, checkAllString, Statics.marketCataloguesMap.size(), returnSet.size(), eventsCopy.size(),
+                logger.debug("findMarkets{}{}: {} in map, {} returned from {} matched events, in {} ms, of which {} ms waiting for threads", fullRunString, checkAllString, Statics.marketCataloguesMap.size(), returnSet.size(), eventsCopy.size(),
                             System.currentTimeMillis() - methodStartTime, endTime - startedWaitingTime);
 
                 Statics.marketCataloguesMap.timeStamp();
@@ -667,7 +684,7 @@ public final class FindMarkets {
                             }
                         } // end for
                         if (!notIgnoredModifiedEvents.isEmpty()) {
-                            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, notIgnoredModifiedEvents));
+                            SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, notIgnoredModifiedEvents));
                         }
                     }
 
@@ -693,9 +710,16 @@ public final class FindMarkets {
                             }
                         } // end for
                         if (!notIgnoredToCheckMarkets.isEmpty()) {
-                            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, notIgnoredToCheckMarkets));
+                            SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, notIgnoredToCheckMarkets));
                         }
                     }
+                } else {
+                    if (!modifiedEvents.isEmpty()) {
+                        SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, modifiedEvents));
+                    }
+                }
+                if (!toAddEvents.isEmpty()) {
+                    SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.checkEventResultList, toAddEvents));
                 }
                 if (nAddedMarkets > 0) {
                     Statics.rulesManagerThread.rulesManager.checkManagedMarketsHaveParents(Statics.eventsMap, Statics.marketCataloguesMap);
@@ -742,23 +766,23 @@ public final class FindMarkets {
                             final int sortPriority = runnerCatalog.getSortPriority();
                             final String runnerName = runnerCatalog.getRunnerName();
                             final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && "0 - 0".equalsIgnoreCase(runnerName.trim())) {
+                            if (sortPriority == 1 && Generic.equalIgnoringSpacesAndCase("0 - 0", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_0_0;
-                            } else if (sortPriority == 2 && "1 - 1".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 2 && Generic.equalIgnoringSpacesAndCase("1 - 1", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_1_1;
-                            } else if (sortPriority == 3 && "2 - 2".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 3 && Generic.equalIgnoringSpacesAndCase("2 - 2", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_2_2;
-                            } else if (sortPriority == 4 && "1 - 0".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 4 && Generic.equalIgnoringSpacesAndCase("1 - 0", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_1_0;
-                            } else if (sortPriority == 5 && "2 - 0".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 5 && Generic.equalIgnoringSpacesAndCase("2 - 0", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_2_0;
-                            } else if (sortPriority == 6 && "2 - 1".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 6 && Generic.equalIgnoringSpacesAndCase("2 - 1", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_2_1;
-                            } else if (sortPriority == 7 && "0 - 1".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 7 && Generic.equalIgnoringSpacesAndCase("0 - 1", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_0_1;
-                            } else if (sortPriority == 8 && "0 - 2".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 8 && Generic.equalIgnoringSpacesAndCase("0 - 2", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_0_2;
-                            } else if (sortPriority == 9 && "1 - 2".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 9 && Generic.equalIgnoringSpacesAndCase("1 - 2", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_1_2;
                             } else if (sortPriority == 10 && "Any Unquoted".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.ANY_UNQUOTED;
@@ -803,25 +827,25 @@ public final class FindMarkets {
                                 if (sortPriority == 11 && "Any unquoted".equalsIgnoreCase(runnerName.trim())) {
                                     parsedRunnerType = ParsedRunnerType.ANY_UNQUOTED;
                                 } else if (parsedMarketType == ParsedMarketType.HALF_TIME_SCORE2_A) {
-                                    if (sortPriority == 1 && "3 - 0".equalsIgnoreCase(runnerName.trim())) {
+                                    if (sortPriority == 1 && Generic.equalIgnoringSpacesAndCase("3 - 0", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_3_0;
-                                    } else if (sortPriority == 2 && "3 - 1".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 2 && Generic.equalIgnoringSpacesAndCase("3 - 1", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_3_1;
-                                    } else if (sortPriority == 3 && "4 - 0".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 3 && Generic.equalIgnoringSpacesAndCase("4 - 0", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_4_0;
-                                    } else if (sortPriority == 4 && "4 - 1".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 4 && Generic.equalIgnoringSpacesAndCase("4 - 1", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_4_1;
-                                    } else if (sortPriority == 5 && "5 - 0".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 5 && Generic.equalIgnoringSpacesAndCase("5 - 0", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_5_0;
-                                    } else if (sortPriority == 6 && "5 - 1".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 6 && Generic.equalIgnoringSpacesAndCase("5 - 1", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_5_1;
-                                    } else if (sortPriority == 7 && "6 - 0".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 7 && Generic.equalIgnoringSpacesAndCase("6 - 0", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_6_0;
-                                    } else if (sortPriority == 8 && "6 - 1".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 8 && Generic.equalIgnoringSpacesAndCase("6 - 1", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_6_1;
-                                    } else if (sortPriority == 9 && "7 - 0".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 9 && Generic.equalIgnoringSpacesAndCase("7 - 0", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_7_0;
-                                    } else if (sortPriority == 10 && "7 - 1".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 10 && Generic.equalIgnoringSpacesAndCase("7 - 1", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_7_1;
                                     } else {
                                         unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
@@ -830,25 +854,25 @@ public final class FindMarkets {
                                     }
                                 } else //noinspection ConstantConditions
                                     if (parsedMarketType == ParsedMarketType.HALF_TIME_SCORE2_B) {
-                                        if (sortPriority == 1 && "0 - 3".equalsIgnoreCase(runnerName.trim())) {
+                                        if (sortPriority == 1 && Generic.equalIgnoringSpacesAndCase("0 - 3", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_0_3;
-                                        } else if (sortPriority == 2 && "1 - 3".equalsIgnoreCase(runnerName.trim())) {
+                                        } else if (sortPriority == 2 && Generic.equalIgnoringSpacesAndCase("1 - 3", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_1_3;
-                                        } else if (sortPriority == 3 && "0 - 4".equalsIgnoreCase(runnerName.trim())) {
+                                        } else if (sortPriority == 3 && Generic.equalIgnoringSpacesAndCase("0 - 4", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_0_4;
-                                        } else if (sortPriority == 4 && "1 - 4".equalsIgnoreCase(runnerName.trim())) {
+                                        } else if (sortPriority == 4 && Generic.equalIgnoringSpacesAndCase("1 - 4", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_1_4;
-                                        } else if (sortPriority == 5 && "0 - 5".equalsIgnoreCase(runnerName.trim())) {
+                                        } else if (sortPriority == 5 && Generic.equalIgnoringSpacesAndCase("0 - 5", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_0_5;
-                                        } else if (sortPriority == 6 && "1 - 5".equalsIgnoreCase(runnerName.trim())) {
+                                        } else if (sortPriority == 6 && Generic.equalIgnoringSpacesAndCase("1 - 5", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_1_5;
-                                        } else if (sortPriority == 7 && "0 - 6".equalsIgnoreCase(runnerName.trim())) {
+                                        } else if (sortPriority == 7 && Generic.equalIgnoringSpacesAndCase("0 - 6", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_0_6;
-                                        } else if (sortPriority == 8 && "1 - 6".equalsIgnoreCase(runnerName.trim())) {
+                                        } else if (sortPriority == 8 && Generic.equalIgnoringSpacesAndCase("1 - 6", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_1_6;
-                                        } else if (sortPriority == 9 && "0 - 7".equalsIgnoreCase(runnerName.trim())) {
+                                        } else if (sortPriority == 9 && Generic.equalIgnoringSpacesAndCase("0 - 7", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_0_7;
-                                        } else if (sortPriority == 10 && "1 - 7".equalsIgnoreCase(runnerName.trim())) {
+                                        } else if (sortPriority == 10 && Generic.equalIgnoringSpacesAndCase("1 - 7", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_1_7;
                                         } else {
                                             unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
@@ -877,8 +901,8 @@ public final class FindMarkets {
 //                                interestingMarket = false; // known but not parsed
                                 interestingMarket = true; // not supported markets, with no errors, pass all the time
                             } else {
-                                Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "new marketName found: {}, for: {}", marketName,
-                                                                  Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
+                                SharedStatics.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "new marketName found: {}, for: {}", marketName,
+                                                                        Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
                                 interestingMarket = false;
                             }
                         }
@@ -1042,37 +1066,37 @@ public final class FindMarkets {
                             final long selectionId = runnerCatalog.getSelectionId();
                             final String runnerName = runnerCatalog.getRunnerName();
                             final ParsedRunnerType parsedRunnerType;
-                            if ((selectionId == 1L || selectionId == 62784L) && "0 - 0".equalsIgnoreCase(runnerName.trim())) {
+                            if ((selectionId == 1L || selectionId == 62784L) && Generic.equalIgnoringSpacesAndCase("0 - 0", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_0_0;
-                            } else if ((selectionId == 4L || selectionId == 975545L) && "0 - 1".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 4L || selectionId == 975545L) && Generic.equalIgnoringSpacesAndCase("0 - 1", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_0_1;
-                            } else if ((selectionId == 9L || selectionId == 1063103L) && "0 - 2".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 9L || selectionId == 1063103L) && Generic.equalIgnoringSpacesAndCase("0 - 2", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_0_2;
-                            } else if ((selectionId == 16L || selectionId == 1170794L) && "0 - 3".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 16L || selectionId == 1170794L) && Generic.equalIgnoringSpacesAndCase("0 - 3", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_0_3;
-                            } else if ((selectionId == 2L || selectionId == 1063100L) && "1 - 0".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 2L || selectionId == 1063100L) && Generic.equalIgnoringSpacesAndCase("1 - 0", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_1_0;
-                            } else if ((selectionId == 3L || selectionId == 1063098L) && "1 - 1".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 3L || selectionId == 1063098L) && Generic.equalIgnoringSpacesAndCase("1 - 1", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_1_1;
-                            } else if ((selectionId == 8L || selectionId == 1063104L) && "1 - 2".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 8L || selectionId == 1063104L) && Generic.equalIgnoringSpacesAndCase("1 - 2", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_1_2;
-                            } else if ((selectionId == 15L || selectionId == 1170800L) && "1 - 3".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 15L || selectionId == 1170800L) && Generic.equalIgnoringSpacesAndCase("1 - 3", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_1_3;
-                            } else if ((selectionId == 5L || selectionId == 1063101L) && "2 - 0".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 5L || selectionId == 1063101L) && Generic.equalIgnoringSpacesAndCase("2 - 0", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_2_0;
-                            } else if ((selectionId == 6L || selectionId == 1063102L) && "2 - 1".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 6L || selectionId == 1063102L) && Generic.equalIgnoringSpacesAndCase("2 - 1", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_2_1;
-                            } else if ((selectionId == 7L || selectionId == 1063099L) && "2 - 2".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 7L || selectionId == 1063099L) && Generic.equalIgnoringSpacesAndCase("2 - 2", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_2_2;
-                            } else if ((selectionId == 14L || selectionId == 1170810L) && "2 - 3".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 14L || selectionId == 1170810L) && Generic.equalIgnoringSpacesAndCase("2 - 3", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_2_3;
-                            } else if ((selectionId == 10L || selectionId == 1170811L) && "3 - 0".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 10L || selectionId == 1170811L) && Generic.equalIgnoringSpacesAndCase("3 - 0", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_3_0;
-                            } else if ((selectionId == 11L || selectionId == 1170812L) && "3 - 1".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 11L || selectionId == 1170812L) && Generic.equalIgnoringSpacesAndCase("3 - 1", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_3_1;
-                            } else if ((selectionId == 12L || selectionId == 1170813L) && "3 - 2".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 12L || selectionId == 1170813L) && Generic.equalIgnoringSpacesAndCase("3 - 2", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_3_2;
-                            } else if ((selectionId == 13L || selectionId == 1170814L) && "3 - 3".equalsIgnoreCase(runnerName.trim())) {
+                            } else if ((selectionId == 13L || selectionId == 1170814L) && Generic.equalIgnoringSpacesAndCase("3 - 3", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_3_3;
                             } else if (selectionId == 9063254L && "Any Other Home Win".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.ANY_OTHER_HOME_WIN;
@@ -1097,35 +1121,35 @@ public final class FindMarkets {
                             final int sortPriority = runnerCatalog.getSortPriority();
                             final String runnerName = runnerCatalog.getRunnerName();
                             final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && "0 - 1".equalsIgnoreCase(runnerName.trim())) {
+                            if (sortPriority == 1 && Generic.equalIgnoringSpacesAndCase("0 - 1", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_0_1;
-                            } else if (sortPriority == 2 && "0 - 2".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 2 && Generic.equalIgnoringSpacesAndCase("0 - 2", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_0_2;
-                            } else if (sortPriority == 3 && "0 - 3".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 3 && Generic.equalIgnoringSpacesAndCase("0 - 3", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_0_3;
-                            } else if (sortPriority == 4 && "1 - 0".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 4 && Generic.equalIgnoringSpacesAndCase("1 - 0", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_1_0;
-                            } else if (sortPriority == 5 && "1 - 1".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 5 && Generic.equalIgnoringSpacesAndCase("1 - 1", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_1_1;
-                            } else if (sortPriority == 6 && "1 - 2".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 6 && Generic.equalIgnoringSpacesAndCase("1 - 2", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_1_2;
-                            } else if (sortPriority == 7 && "1 - 3".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 7 && Generic.equalIgnoringSpacesAndCase("1 - 3", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_1_3;
-                            } else if (sortPriority == 8 && "2 - 0".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 8 && Generic.equalIgnoringSpacesAndCase("2 - 0", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_2_0;
-                            } else if (sortPriority == 9 && "2 - 1".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 9 && Generic.equalIgnoringSpacesAndCase("2 - 1", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_2_1;
-                            } else if (sortPriority == 10 && "2 - 2".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 10 && Generic.equalIgnoringSpacesAndCase("2 - 2", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_2_2;
-                            } else if (sortPriority == 11 && "2 - 3".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 11 && Generic.equalIgnoringSpacesAndCase("2 - 3", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_2_3;
-                            } else if (sortPriority == 12 && "3 - 0".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 12 && Generic.equalIgnoringSpacesAndCase("3 - 0", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_3_0;
-                            } else if (sortPriority == 13 && "3 - 1".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 13 && Generic.equalIgnoringSpacesAndCase("3 - 1", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_3_1;
-                            } else if (sortPriority == 14 && "3 - 2".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 14 && Generic.equalIgnoringSpacesAndCase("3 - 2", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_3_2;
-                            } else if (sortPriority == 15 && "3 - 3".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 15 && Generic.equalIgnoringSpacesAndCase("3 - 3", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_3_3;
                             } else {
                                 unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
@@ -1145,23 +1169,23 @@ public final class FindMarkets {
                             final int sortPriority = runnerCatalog.getSortPriority();
                             final String runnerName = runnerCatalog.getRunnerName();
                             final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && "0 - 0".equalsIgnoreCase(runnerName.trim())) {
+                            if (sortPriority == 1 && Generic.equalIgnoringSpacesAndCase("0 - 0", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_0_0;
-                            } else if (sortPriority == 2 && "1 - 1".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 2 && Generic.equalIgnoringSpacesAndCase("1 - 1", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_1_1;
-                            } else if (sortPriority == 3 && "2 - 2".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 3 && Generic.equalIgnoringSpacesAndCase("2 - 2", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_2_2;
-                            } else if (sortPriority == 4 && "1 - 0".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 4 && Generic.equalIgnoringSpacesAndCase("1 - 0", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_1_0;
-                            } else if (sortPriority == 5 && "2 - 0".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 5 && Generic.equalIgnoringSpacesAndCase("2 - 0", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_2_0;
-                            } else if (sortPriority == 6 && "2 - 1".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 6 && Generic.equalIgnoringSpacesAndCase("2 - 1", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_2_1;
-                            } else if (sortPriority == 7 && "0 - 1".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 7 && Generic.equalIgnoringSpacesAndCase("0 - 1", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_0_1;
-                            } else if (sortPriority == 8 && "0 - 2".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 8 && Generic.equalIgnoringSpacesAndCase("0 - 2", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_0_2;
-                            } else if (sortPriority == 9 && "1 - 2".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 9 && Generic.equalIgnoringSpacesAndCase("1 - 2", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.SCORE_1_2;
                             } else if (sortPriority == 10 && "Any Unquoted".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.ANY_UNQUOTED;
@@ -1293,29 +1317,29 @@ public final class FindMarkets {
                                 if (sortPriority == 13 && "Any unquoted".equalsIgnoreCase(runnerName.trim())) {
                                     parsedRunnerType = ParsedRunnerType.ANY_UNQUOTED;
                                 } else if (parsedMarketType == ParsedMarketType.CORRECT_SCORE2_A) {
-                                    if (sortPriority == 1 && "4 - 0".equalsIgnoreCase(runnerName.trim())) {
+                                    if (sortPriority == 1 && Generic.equalIgnoringSpacesAndCase("4 - 0", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_4_0;
-                                    } else if (sortPriority == 2 && "4 - 1".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 2 && Generic.equalIgnoringSpacesAndCase("4 - 1", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_4_1;
-                                    } else if (sortPriority == 3 && "4 - 2".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 3 && Generic.equalIgnoringSpacesAndCase("4 - 2", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_4_2;
-                                    } else if (sortPriority == 4 && "5 - 0".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 4 && Generic.equalIgnoringSpacesAndCase("5 - 0", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_5_0;
-                                    } else if (sortPriority == 5 && "5 - 1".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 5 && Generic.equalIgnoringSpacesAndCase("5 - 1", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_5_1;
-                                    } else if (sortPriority == 6 && "5 - 2".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 6 && Generic.equalIgnoringSpacesAndCase("5 - 2", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_5_2;
-                                    } else if (sortPriority == 7 && "6 - 0".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 7 && Generic.equalIgnoringSpacesAndCase("6 - 0", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_6_0;
-                                    } else if (sortPriority == 8 && "6 - 1".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 8 && Generic.equalIgnoringSpacesAndCase("6 - 1", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_6_1;
-                                    } else if (sortPriority == 9 && "6 - 2".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 9 && Generic.equalIgnoringSpacesAndCase("6 - 2", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_6_2;
-                                    } else if (sortPriority == 10 && "7 - 0".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 10 && Generic.equalIgnoringSpacesAndCase("7 - 0", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_7_0;
-                                    } else if (sortPriority == 11 && "7 - 1".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 11 && Generic.equalIgnoringSpacesAndCase("7 - 1", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_7_1;
-                                    } else if (sortPriority == 12 && "7 - 2".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 12 && Generic.equalIgnoringSpacesAndCase("7 - 2", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_7_2;
                                     } else {
                                         unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
@@ -1323,29 +1347,29 @@ public final class FindMarkets {
                                         break;
                                     }
                                 } else if (parsedMarketType == ParsedMarketType.CORRECT_SCORE2_B) {
-                                    if (sortPriority == 1 && "0 - 4".equalsIgnoreCase(runnerName.trim())) {
+                                    if (sortPriority == 1 && Generic.equalIgnoringSpacesAndCase("0 - 4", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_0_4;
-                                    } else if (sortPriority == 2 && "1 - 4".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 2 && Generic.equalIgnoringSpacesAndCase("1 - 4", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_1_4;
-                                    } else if (sortPriority == 3 && "2 - 4".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 3 && Generic.equalIgnoringSpacesAndCase("2 - 4", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_2_4;
-                                    } else if (sortPriority == 4 && "0 - 5".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 4 && Generic.equalIgnoringSpacesAndCase("0 - 5", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_0_5;
-                                    } else if (sortPriority == 5 && "1 - 5".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 5 && Generic.equalIgnoringSpacesAndCase("1 - 5", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_1_5;
-                                    } else if (sortPriority == 6 && "2 - 5".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 6 && Generic.equalIgnoringSpacesAndCase("2 - 5", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_2_5;
-                                    } else if (sortPriority == 7 && "0 - 6".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 7 && Generic.equalIgnoringSpacesAndCase("0 - 6", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_0_6;
-                                    } else if (sortPriority == 8 && "1 - 6".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 8 && Generic.equalIgnoringSpacesAndCase("1 - 6", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_1_6;
-                                    } else if (sortPriority == 9 && "2 - 6".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 9 && Generic.equalIgnoringSpacesAndCase("2 - 6", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_2_6;
-                                    } else if (sortPriority == 10 && "0 - 7".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 10 && Generic.equalIgnoringSpacesAndCase("0 - 7", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_0_7;
-                                    } else if (sortPriority == 11 && "1 - 7".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 11 && Generic.equalIgnoringSpacesAndCase("1 - 7", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_1_7;
-                                    } else if (sortPriority == 12 && "2 - 7".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 12 && Generic.equalIgnoringSpacesAndCase("2 - 7", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_2_7;
                                     } else {
                                         unknownParsedRunnerTypeError(parsedMarketType, sortPriority, runnerName, marketId, marketCatalogue);
@@ -1353,29 +1377,29 @@ public final class FindMarkets {
                                         break;
                                     }
                                 } else if (parsedMarketType == ParsedMarketType.CORRECT_SCORE3_A) {
-                                    if (sortPriority == 1 && "8 - 0".equalsIgnoreCase(runnerName.trim())) {
+                                    if (sortPriority == 1 && Generic.equalIgnoringSpacesAndCase("8 - 0", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_8_0;
-                                    } else if (sortPriority == 2 && "8 - 1".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 2 && Generic.equalIgnoringSpacesAndCase("8 - 1", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_8_1;
-                                    } else if (sortPriority == 3 && "8 - 2".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 3 && Generic.equalIgnoringSpacesAndCase("8 - 2", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_8_2;
-                                    } else if (sortPriority == 4 && "9 - 0".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 4 && Generic.equalIgnoringSpacesAndCase("9 - 0", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_9_0;
-                                    } else if (sortPriority == 5 && "9 - 1".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 5 && Generic.equalIgnoringSpacesAndCase("9 - 1", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_9_1;
-                                    } else if (sortPriority == 6 && "9 - 2".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 6 && Generic.equalIgnoringSpacesAndCase("9 - 2", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_9_2;
-                                    } else if (sortPriority == 7 && "10 - 0".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 7 && Generic.equalIgnoringSpacesAndCase("10 - 0", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_10_0;
-                                    } else if (sortPriority == 8 && "10 - 1".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 8 && Generic.equalIgnoringSpacesAndCase("10 - 1", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_10_1;
-                                    } else if (sortPriority == 9 && "10 - 2".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 9 && Generic.equalIgnoringSpacesAndCase("10 - 2", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_10_2;
-                                    } else if (sortPriority == 10 && "11 - 0".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 10 && Generic.equalIgnoringSpacesAndCase("11 - 0", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_11_0;
-                                    } else if (sortPriority == 11 && "11 - 1".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 11 && Generic.equalIgnoringSpacesAndCase("11 - 1", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_11_1;
-                                    } else if (sortPriority == 12 && "11 - 2".equalsIgnoreCase(runnerName.trim())) {
+                                    } else if (sortPriority == 12 && Generic.equalIgnoringSpacesAndCase("11 - 2", runnerName)) {
                                         parsedRunnerType = ParsedRunnerType.SCORE_11_2;
                                     } else if (sortPriority == 13 && "Any unquoted".equalsIgnoreCase(runnerName.trim())) {
                                         parsedRunnerType = ParsedRunnerType.ANY_UNQUOTED;
@@ -1386,29 +1410,29 @@ public final class FindMarkets {
                                     }
                                 } else //noinspection ConstantConditions
                                     if (parsedMarketType == ParsedMarketType.CORRECT_SCORE3_B) {
-                                        if (sortPriority == 1 && "0 - 8".equalsIgnoreCase(runnerName.trim())) {
+                                        if (sortPriority == 1 && Generic.equalIgnoringSpacesAndCase("0 - 8", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_0_8;
-                                        } else if (sortPriority == 2 && "1 - 8".equalsIgnoreCase(runnerName.trim())) {
+                                        } else if (sortPriority == 2 && Generic.equalIgnoringSpacesAndCase("1 - 8", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_1_8;
-                                        } else if (sortPriority == 3 && "2 - 8".equalsIgnoreCase(runnerName.trim())) {
+                                        } else if (sortPriority == 3 && Generic.equalIgnoringSpacesAndCase("2 - 8", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_2_8;
-                                        } else if (sortPriority == 4 && "0 - 9".equalsIgnoreCase(runnerName.trim())) {
+                                        } else if (sortPriority == 4 && Generic.equalIgnoringSpacesAndCase("0 - 9", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_0_9;
-                                        } else if (sortPriority == 5 && "1 - 9".equalsIgnoreCase(runnerName.trim())) {
+                                        } else if (sortPriority == 5 && Generic.equalIgnoringSpacesAndCase("1 - 9", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_1_9;
-                                        } else if (sortPriority == 6 && "2 - 9".equalsIgnoreCase(runnerName.trim())) {
+                                        } else if (sortPriority == 6 && Generic.equalIgnoringSpacesAndCase("2 - 9", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_2_9;
-                                        } else if (sortPriority == 7 && "0 - 10".equalsIgnoreCase(runnerName.trim())) {
+                                        } else if (sortPriority == 7 && Generic.equalIgnoringSpacesAndCase("0 - 10", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_0_10;
-                                        } else if (sortPriority == 8 && "1 - 10".equalsIgnoreCase(runnerName.trim())) {
+                                        } else if (sortPriority == 8 && Generic.equalIgnoringSpacesAndCase("1 - 10", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_1_10;
-                                        } else if (sortPriority == 9 && "2 - 10".equalsIgnoreCase(runnerName.trim())) {
+                                        } else if (sortPriority == 9 && Generic.equalIgnoringSpacesAndCase("2 - 10", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_2_10;
-                                        } else if (sortPriority == 10 && "0 - 11".equalsIgnoreCase(runnerName.trim())) {
+                                        } else if (sortPriority == 10 && Generic.equalIgnoringSpacesAndCase("0 - 11", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_0_11;
-                                        } else if (sortPriority == 11 && "1 - 11".equalsIgnoreCase(runnerName.trim())) {
+                                        } else if (sortPriority == 11 && Generic.equalIgnoringSpacesAndCase("1 - 11", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_1_11;
-                                        } else if (sortPriority == 12 && "2 - 11".equalsIgnoreCase(runnerName.trim())) {
+                                        } else if (sortPriority == 12 && Generic.equalIgnoringSpacesAndCase("2 - 11", runnerName)) {
                                             parsedRunnerType = ParsedRunnerType.SCORE_2_11;
                                         } else if (sortPriority == 13 && "Any unquoted".equalsIgnoreCase(runnerName.trim())) {
                                             parsedRunnerType = ParsedRunnerType.ANY_UNQUOTED;
@@ -1687,8 +1711,8 @@ public final class FindMarkets {
                                 yield returnValue;
                             }
                             default -> {
-                                Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "new OVER_UNDER marketName found: {}, for: {}", marketName,
-                                                                  Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
+                                SharedStatics.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "new OVER_UNDER marketName found: {}, for: {}", marketName,
+                                                                        Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
                                 yield false;
                             }
                         }; // end switch
@@ -1752,7 +1776,7 @@ public final class FindMarkets {
                             final ParsedRunnerType parsedRunnerType;
                             if (sortPriority == 1 && "9 or less".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.CORNERS_9_OR_LESS;
-                            } else if (sortPriority == 2 && "10 - 12".equalsIgnoreCase(runnerName.trim())) {
+                            } else if (sortPriority == 2 && Generic.equalIgnoringSpacesAndCase("10 - 12", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.CORNERS_10_12;
                             } else if (sortPriority == 3 && "13 or more".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.CORNERS_13_OR_MORE;
@@ -1855,7 +1879,7 @@ public final class FindMarkets {
                             final ParsedRunnerType parsedRunnerType;
                             if (sortPriority == 1 && "25pts and Under".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.BOOKING_25_AND_UNDER;
-                            } else if (sortPriority == 2 && ("30 - 40pts".equalsIgnoreCase(runnerName.trim()) || "30 - 40 pts".equalsIgnoreCase(runnerName.trim()))) {
+                            } else if (sortPriority == 2 && Generic.equalIgnoringSpacesAndCase("30 - 40 pts", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.BOOKING_30_40;
                             } else if (sortPriority == 3 && "45pts and Over".equalsIgnoreCase(runnerName.trim())) {
                                 parsedRunnerType = ParsedRunnerType.BOOKING_45_AND_OVER;
@@ -2232,23 +2256,23 @@ public final class FindMarkets {
                             final int sortPriority = runnerCatalog.getSortPriority();
                             final String runnerName = runnerCatalog.getRunnerName();
                             final ParsedRunnerType parsedRunnerType;
-                            if (sortPriority == 1 && "1 - 10 Minutes".equalsIgnoreCase(runnerName)) {
+                            if (sortPriority == 1 && Generic.equalIgnoringSpacesAndCase("1 - 10 Minutes", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.MINUTES_INTERVAL;
-                            } else if (sortPriority == 2 && "11 - 20 Minutes".equalsIgnoreCase(runnerName)) {
+                            } else if (sortPriority == 2 && Generic.equalIgnoringSpacesAndCase("11 - 20 Minutes", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.MINUTES_INTERVAL;
-                            } else if (sortPriority == 3 && "21 - 30 Minutes".equalsIgnoreCase(runnerName)) {
+                            } else if (sortPriority == 3 && Generic.equalIgnoringSpacesAndCase("21 - 30 Minutes", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.MINUTES_INTERVAL;
-                            } else if (sortPriority == 4 && "31 - 40 Minutes".equalsIgnoreCase(runnerName)) {
+                            } else if (sortPriority == 4 && Generic.equalIgnoringSpacesAndCase("31 - 40 Minutes", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.MINUTES_INTERVAL;
-                            } else if (sortPriority == 5 && "41 - 50 Minutes".equalsIgnoreCase(runnerName)) {
+                            } else if (sortPriority == 5 && Generic.equalIgnoringSpacesAndCase("41 - 50 Minutes", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.MINUTES_INTERVAL;
-                            } else if (sortPriority == 6 && "51 - 60 Minutes".equalsIgnoreCase(runnerName)) {
+                            } else if (sortPriority == 6 && Generic.equalIgnoringSpacesAndCase("51 - 60 Minutes", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.MINUTES_INTERVAL;
-                            } else if (sortPriority == 7 && "61 - 70 Minutes".equalsIgnoreCase(runnerName)) {
+                            } else if (sortPriority == 7 && Generic.equalIgnoringSpacesAndCase("61 - 70 Minutes", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.MINUTES_INTERVAL;
-                            } else if (sortPriority == 8 && "71 - 80 Minutes".equalsIgnoreCase(runnerName)) {
+                            } else if (sortPriority == 8 && Generic.equalIgnoringSpacesAndCase("71 - 80 Minutes", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.MINUTES_INTERVAL;
-                            } else if (sortPriority == 9 && "81 - Full Time".equalsIgnoreCase(runnerName)) {
+                            } else if (sortPriority == 9 && Generic.equalIgnoringSpacesAndCase("81 - Full Time", runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.MINUTES_INTERVAL;
                             } else if (sortPriority == 10 && "No Goal".equalsIgnoreCase(runnerName)) {
                                 parsedRunnerType = ParsedRunnerType.NO_GOAL;
@@ -2288,8 +2312,8 @@ public final class FindMarkets {
                         break;
                     default:
 //                        if (!Statics.marketTypes.contains(marketType)) {
-                        Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "new marketType found: {}, for: {}", marketType,
-                                                          Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
+                        SharedStatics.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "new marketType found: {}, for: {}", marketType,
+                                                                Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
                         interestingMarket = false;
 //                        } else { // known market that is not parsed
 ////                            interestingMarket = false;

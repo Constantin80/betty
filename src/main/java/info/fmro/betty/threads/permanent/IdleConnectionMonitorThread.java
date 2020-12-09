@@ -2,6 +2,7 @@ package info.fmro.betty.threads.permanent;
 
 import info.fmro.betty.main.Betty;
 import info.fmro.betty.objects.Statics;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.utility.Generic;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.jetbrains.annotations.Contract;
@@ -22,16 +23,16 @@ public class IdleConnectionMonitorThread
 
     @Override
     public void run() {
-        while (!Statics.mustStop.get()) {
+        while (!SharedStatics.mustStop.get()) {
             try {
                 if (Statics.mustSleep.get()) {
-                    Betty.programSleeps(Statics.mustSleep, Statics.mustStop, "idleConnectionMonitor");
+                    Betty.programSleeps(Statics.mustSleep, "idleConnectionMonitor");
                 }
 
                 this.connMgr.closeExpiredConnections();
                 this.connMgr.closeIdleConnections(20, TimeUnit.MINUTES);
 
-                Generic.threadSleepSegmented(60_000L, 100L, Statics.mustStop);
+                Generic.threadSleepSegmented(60_000L, 100L, SharedStatics.mustStop);
             } catch (Throwable throwable) {
                 logger.error("STRANGE ERROR inside idleConnectionMonitor loop", throwable);
             }

@@ -2,6 +2,7 @@ package info.fmro.betty.threads.permanent;
 
 import info.fmro.betty.main.Betty;
 import info.fmro.betty.objects.Statics;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.utility.Generic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,10 +15,10 @@ public class TimeJumpDetectorThread
     @Override
     public void run() {
         long timeBeforeSleep, timeAfterSleep = System.currentTimeMillis(), timeDifference;
-        while (!Statics.mustStop.get()) {
+        while (!SharedStatics.mustStop.get()) {
             try {
                 if (Statics.mustSleep.get()) {
-                    Betty.programSleeps(Statics.mustSleep, Statics.mustStop, "timeJumpDetector");
+                    Betty.programSleeps(Statics.mustSleep, "timeJumpDetector");
                 }
 
                 timeBeforeSleep = System.currentTimeMillis();

@@ -1,6 +1,7 @@
 package info.fmro.betty.threads;
 
 import info.fmro.betty.objects.Statics;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.stream.objects.PoisonPill;
 import info.fmro.shared.stream.objects.StreamObjectInterface;
 import info.fmro.shared.utility.Generic;
@@ -46,7 +47,7 @@ class InterfaceConnectionWriterThread
 
     private synchronized void sendObject(@NotNull final StreamObjectInterface object) {
         if (object instanceof PoisonPill) {
-            logger.info("poison pill received by InterfaceConnectionWriterThread");
+            logger.debug("poison pill received by InterfaceConnectionWriterThread");
             this.finished.set(true);
         } else {
             // any runBeforeSend logic can be added here
@@ -55,7 +56,7 @@ class InterfaceConnectionWriterThread
                 this.objectOutputStream.writeObject(object); // not synchronized, so when sending initialImage I'll send a copy of the main cache object
                 this.objectOutputStream.flush();
             } catch (IOException e) {
-                if (e.getClass().equals(SocketException.class) && (Statics.mustStop.get() || this.finished.get())) {
+                if (e.getClass().equals(SocketException.class) && (SharedStatics.mustStop.get() || this.finished.get())) {
                     logger.info("IOException in InterfaceConnectionWriterThread.sendObject, thread ending: {}", e.toString());
                 } else {
                     logger.error("IOException in InterfaceConnectionWriterThread.sendObject", e);
@@ -72,23 +73,23 @@ class InterfaceConnectionWriterThread
 
     @Override
     public void run() {
-        Statics.marketCache.listOfQueues.registerQueue(this.sendQueue, Statics.marketCache);
-        Statics.orderCache.listOfQueues.registerQueue(this.sendQueue, Statics.orderCache);
+        SharedStatics.marketCache.listOfQueues.registerQueue(this.sendQueue, SharedStatics.marketCache);
+        SharedStatics.orderCache.listOfQueues.registerQueue(this.sendQueue, SharedStatics.orderCache);
         Statics.rulesManagerThread.rulesManager.listOfQueues.registerQueue(this.sendQueue, Statics.rulesManagerThread.rulesManager);
         Statics.safetyLimits.existingFunds.listOfQueues.registerQueue(this.sendQueue, Statics.safetyLimits.existingFunds);
         Statics.marketCataloguesMap.listOfQueues.registerQueue(this.sendQueue, Statics.marketCataloguesMap);
         Statics.eventsMap.listOfQueues.registerQueue(this.sendQueue, Statics.eventsMap);
         //        this.sendObject(initialImage);
 
-        while (!Statics.mustStop.get() && !this.finished.get()) {
+        while (!SharedStatics.mustStop.get() && !this.finished.get()) {
             try {
                 this.sendObject(this.sendQueue.take());
             } catch (InterruptedException e) {
                 logger.error("InterruptedException in InterfaceConnectionWriterThread main loop", e);
             }
         } // end while
-        Statics.marketCache.listOfQueues.removeQueue(this.sendQueue);
-        Statics.orderCache.listOfQueues.removeQueue(this.sendQueue);
+        SharedStatics.marketCache.listOfQueues.removeQueue(this.sendQueue);
+        SharedStatics.orderCache.listOfQueues.removeQueue(this.sendQueue);
         Statics.rulesManagerThread.rulesManager.listOfQueues.removeQueue(this.sendQueue);
         Statics.safetyLimits.existingFunds.listOfQueues.removeQueue(this.sendQueue);
         Statics.marketCataloguesMap.listOfQueues.removeQueue(this.sendQueue);

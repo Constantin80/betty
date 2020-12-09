@@ -6,6 +6,7 @@ import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.entities.Event;
 import info.fmro.shared.enums.MatchStatus;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.stream.objects.ScraperEventInterface;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.Ignorable;
@@ -16,7 +17,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.io.Serial;
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
 @SuppressWarnings({"ClassWithTooManyMethods", "OverlyComplexClass"})
@@ -24,6 +27,7 @@ public class ScraperEvent
         extends Ignorable
         implements ScraperEventInterface, Serializable, Comparable<ScraperEvent> {
     private static final Logger logger = LoggerFactory.getLogger(ScraperEvent.class);
+    @Serial
     private static final long serialVersionUID = 5045581708147478634L;
     public static final int BEFORE = -1, EQUAL = 0, AFTER = 1;
     public static final long standardBlackListPeriod = Generic.MINUTE_LENGTH_MILLISECONDS * 5L, shortBlackListPeriod = Generic.MINUTE_LENGTH_MILLISECONDS << 1, minimalBlackListPeriod = 10_000L;
@@ -449,7 +453,7 @@ public class ScraperEvent
                 final String printedString = MessageFormatter.arrayFormat("{} reset attempt matchStatus to {} from {} for: {} {}/{}", new Object[]{this.objectId, newMatchStatus, this.matchStatus, this.eventId, this.homeTeam, this.awayTeam}).getMessage();
 
                 if ("coral".equals(this.objectId)) {
-                    Generic.alreadyPrintedMap.logOnce(Statics.debugLevel.check(2, 210), Generic.MINUTE_LENGTH_MILLISECONDS * 5L, logger, LogLevel.INFO, printedString);
+                    SharedStatics.alreadyPrintedMap.logOnce(Statics.debugLevel.check(2, 210), Generic.MINUTE_LENGTH_MILLISECONDS * 5L, logger, LogLevel.INFO, printedString);
                 } else {
                     logger.error(printedString);
                 }
@@ -610,17 +614,17 @@ public class ScraperEvent
             if (this.matchedEventId != null) {
                 final Event event = Statics.eventsMap.get(this.matchedEventId);
                 if (event != null) {
-                    event.ignoredScrapersCheck(MaintenanceThread.removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.MIN_MATCHED,
-                                               Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod, LaunchCommandThread.constructorHashSetLongEvent);
+                    event.ignoredScrapersCheck(MaintenanceThread.removeFromSecondaryMapsMethod, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.MIN_MATCHED, Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD,
+                                               Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod, LaunchCommandThread.constructorHashSetLongEvent);
                     if (event.isIgnored()) { // event got ignored, standard behavior, nothing to be done
                     } else {
                         logger.info("event still not ignored after ScraperEvent ignored: {} {} {}", this.eventId, event.getId(),
-                                    event.getNValidScraperEventIds(MaintenanceThread.removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.MIN_MATCHED,
+                                    event.getNValidScraperEventIds(MaintenanceThread.removeFromSecondaryMapsMethod, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.MIN_MATCHED,
                                                                    Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod,
                                                                    LaunchCommandThread.constructorHashSetLongEvent));
                         final long eventIgnorePeriod = Math.min(period, Statics.MINIMUM_BAD_STUFF_HAPPENED_IGNORE); // if period is smaller than default minimum, it will be used
-                        event.setIgnored(eventIgnorePeriod, startTime, MaintenanceThread.removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated,
-                                         Statics.marketCataloguesMap, LaunchCommandThread.constructorHashSetLongEvent);
+                        event.setIgnored(eventIgnorePeriod, startTime, MaintenanceThread.removeFromSecondaryMapsMethod, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.marketCataloguesMap,
+                                         LaunchCommandThread.constructorHashSetLongEvent);
                     }
 
                     // delayed starting of threads might no longer be necessary
@@ -1049,7 +1053,7 @@ public class ScraperEvent
 
     @SuppressWarnings("MethodWithMultipleReturnPoints")
     @Override
-    public synchronized int compareTo(@NotNull final ScraperEvent o) {
+    public int compareTo(@NotNull final ScraperEvent o) {
         //noinspection ConstantConditions
         if (o == null) {
             return AFTER;
@@ -1069,25 +1073,19 @@ public class ScraperEvent
     }
 
     @Override
-    public synchronized int hashCode() {
-        int hash = 5;
-        hash = 71 * hash + (int) (this.eventId ^ (this.eventId >>> 32));
-        return hash;
-    }
-
-    @Contract(value = "null -> false", pure = true)
-    @Override
-    public synchronized boolean equals(final Object obj) {
-        if (obj == null) {
-            return false;
-        }
+    public boolean equals(final Object obj) {
         if (this == obj) {
             return true;
         }
-        if (getClass() != obj.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final ScraperEvent other = (ScraperEvent) obj;
-        return this.eventId == other.eventId;
+        final ScraperEvent that = (ScraperEvent) obj;
+        return this.eventId == that.eventId;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.eventId);
     }
 }

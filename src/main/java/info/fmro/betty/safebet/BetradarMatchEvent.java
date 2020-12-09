@@ -1,12 +1,12 @@
 package info.fmro.betty.safebet;
 
-import org.jetbrains.annotations.Contract;
-
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
 class BetradarMatchEvent
         implements Serializable {
+    @Serial
     private static final long serialVersionUID = 4657650910312201744L;
     private final int minute;
     private final String player, playerIn; // playerIn for substitutions
@@ -18,55 +18,34 @@ class BetradarMatchEvent
         this.playerIn = playerIn;
     }
 
-    public synchronized int getMinute() {
+    public int getMinute() {
         return this.minute;
     }
 
-    //    public synchronized void setMinute(int minute) {
-//        this.minute = minute;
-//    }
-    public synchronized String getPlayer() {
+    public String getPlayer() {
         return this.player;
     }
 
-    //    public synchronized void setPlayer(String player) {
-//        this.player = player;
-//    }
-    public synchronized String getPlayerIn() {
+    public String getPlayerIn() {
         return this.playerIn;
     }
 
-    //    public synchronized void setPlayerIn(String playerIn) {
-//        this.playerIn = playerIn;
-//    }
-    @Contract(value = "null -> false", pure = true)
     @Override
-    public synchronized boolean equals(final Object obj) {
-        if (obj == null) {
-            return false;
-        }
+    public boolean equals(final Object obj) {
         if (this == obj) {
             return true;
         }
-        if (getClass() != obj.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final BetradarMatchEvent other = (BetradarMatchEvent) obj;
-        if (this.minute != other.minute) {
-            return false;
-        }
-        if (!Objects.equals(this.player, other.player)) {
-            return false;
-        }
-        return Objects.equals(this.playerIn, other.playerIn);
+        final BetradarMatchEvent that = (BetradarMatchEvent) obj;
+        return this.minute == that.minute &&
+               Objects.equals(this.player, that.player) &&
+               Objects.equals(this.playerIn, that.playerIn);
     }
 
     @Override
-    public synchronized int hashCode() {
-        int hash = 7;
-        hash = 41 * hash + this.minute;
-        hash = 41 * hash + Objects.hashCode(this.player);
-        hash = 41 * hash + Objects.hashCode(this.playerIn);
-        return hash;
+    public int hashCode() {
+        return Objects.hash(this.minute, this.player, this.playerIn);
     }
 }

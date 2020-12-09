@@ -12,6 +12,7 @@ import info.fmro.shared.entities.Event;
 import info.fmro.shared.entities.MarketBook;
 import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.shared.objects.SessionTokenObject;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.objects.TimeStamps;
 import info.fmro.shared.stream.objects.StreamSynchronizedMap;
 import info.fmro.shared.utility.DebugLevel;
@@ -162,7 +163,7 @@ public final class VarsIO {
             success = false;
         }
         if (success) {
-            logger.info("have updated aliases from {}", fileName);
+            logger.debug("have updated aliases from {}", fileName);
         }
 
         return success;
@@ -181,7 +182,7 @@ public final class VarsIO {
         }
         if (haveRead) { // will run checkAll next
             GetLiveMarketsThread.timedMapEventsCounter.set(GetLiveMarketsThread.timedMapEventsCounter.get() - GetLiveMarketsThread.timedMapEventsCounter.get() % 10);
-            Statics.timeStamps.setLastMapEventsToScraperEvents(System.currentTimeMillis());
+            SharedStatics.timeStamps.setLastMapEventsToScraperEvents(System.currentTimeMillis());
             // Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents, true));
             Formulas.matchesCache.clear();
         }
@@ -199,7 +200,7 @@ public final class VarsIO {
                 String fileLine = localSynchronizedReader.readLine();
                 while (fileLine != null) {
                     if (fileLine.startsWith("appKey=")) {
-                        Statics.appKey.set(fileLine.substring(fileLine.indexOf("appKey=") + "appKey=".length()));
+                        SharedStatics.appKey.set(fileLine.substring(fileLine.indexOf("appKey=") + "appKey=".length()));
                     } else if (fileLine.startsWith("delayedAppKey=")) {
                         Statics.delayedAppKey.set(fileLine.substring(fileLine.indexOf("delayedAppKey=") + "delayedAppKey=".length()));
                     } else if (fileLine.startsWith("bu=")) {
@@ -250,7 +251,7 @@ public final class VarsIO {
                     switch (key) {
                         case "timeStamps":
                             final TimeStamps timeStamps = (TimeStamps) objectFromFile;
-                            Statics.timeStamps.copyFrom(timeStamps);
+                            SharedStatics.timeStamps.copyFrom(timeStamps);
                             break;
                         case "debugLevel":
                             final DebugLevel debugLevel = (DebugLevel) objectFromFile;
@@ -258,7 +259,7 @@ public final class VarsIO {
                             break;
                         case "sessionTokenObject":
                             final SessionTokenObject sessionTokenObject = (SessionTokenObject) objectFromFile;
-                            Statics.sessionTokenObject.copyFrom(sessionTokenObject);
+                            SharedStatics.sessionTokenObject.copyFrom(sessionTokenObject);
                             break;
                         case "safetyLimits":
                             final SafetyLimits safetyLimits = (SafetyLimits) objectFromFile;
@@ -298,7 +299,7 @@ public final class VarsIO {
                             break;
 //                        case "alreadyPrintedMap":
 //                            final AlreadyPrintedMap alreadyPrintedMap = (AlreadyPrintedMap) objectFromFile;
-//                            Generic.alreadyPrintedMap.copyFrom(alreadyPrintedMap);
+//                            SharedStatics.alreadyPrintedMap.copyFrom(alreadyPrintedMap);
 //                            break;
                         case "timedWarningsMap":
                             @SuppressWarnings("unchecked") final SynchronizedMap<String, Long> timedWarningsMap = (SynchronizedMap<String, Long>) objectFromFile;
@@ -340,20 +341,20 @@ public final class VarsIO {
     }
 
     public static void writeObjectsToFiles() {
-        Statics.timeStamps.lastObjectsSaveStamp(Generic.MINUTE_LENGTH_MILLISECONDS * 10L);
-        Statics.timeLastSaveToDisk.set(System.currentTimeMillis());
+        SharedStatics.timeStamps.lastObjectsSaveStamp(Generic.MINUTE_LENGTH_MILLISECONDS * 10L);
+        SharedStatics.timeLastSaveToDisk.set(System.currentTimeMillis());
         for (final Entry<String, String> entry : Statics.objectFileNamesMap.entrySet()) {
             final String key = entry.getKey();
             //noinspection EnhancedSwitchMigration
             switch (key) {
                 case "timeStamps":
-                    Generic.synchronizedWriteObjectToFile(Statics.timeStamps, entry.getValue());
+                    Generic.synchronizedWriteObjectToFile(SharedStatics.timeStamps, entry.getValue());
                     break;
                 case "debugLevel":
                     Generic.synchronizedWriteObjectToFile(Statics.debugLevel, entry.getValue());
                     break;
                 case "sessionTokenObject":
-                    Generic.synchronizedWriteObjectToFile(Statics.sessionTokenObject, entry.getValue());
+                    Generic.synchronizedWriteObjectToFile(SharedStatics.sessionTokenObject, entry.getValue());
                     break;
                 case "safetyLimits":
                     Generic.synchronizedWriteObjectToFile(Statics.safetyLimits, entry.getValue());
@@ -409,7 +410,7 @@ public final class VarsIO {
     }
 
     public static void writeSettings() {
-        Statics.timeStamps.lastSettingsSaveStamp(Generic.MINUTE_LENGTH_MILLISECONDS);
+        SharedStatics.timeStamps.lastSettingsSaveStamp(Generic.MINUTE_LENGTH_MILLISECONDS);
         Statics.rulesManagerThread.rulesManager.rulesHaveChanged.set(false);
         Generic.synchronizedWriteObjectToFile(Statics.rulesManagerThread, Statics.SETTINGS_FILE_NAME);
         writeSettingsCounter.incrementAndGet();

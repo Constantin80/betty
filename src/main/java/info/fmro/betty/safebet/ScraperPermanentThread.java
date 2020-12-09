@@ -17,12 +17,11 @@ import com.ximpleware.XPathEvalException;
 import com.ximpleware.XPathParseException;
 import info.fmro.betty.main.Betty;
 import info.fmro.betty.objects.Statics;
-import info.fmro.betty.threads.SavePageThread;
 import info.fmro.betty.utility.Formulas;
-import info.fmro.betty.utility.WebScraperMethods;
 import info.fmro.shared.objects.AverageLogger;
 import info.fmro.shared.objects.AverageLoggerInterface;
 import info.fmro.shared.objects.RecordedMaxValue;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +45,8 @@ public class ScraperPermanentThread
     public static final int defaultCacheMaxSize = 200;
     private final BrowserVersion browserVersion;
     public final long delayGetScraperEvents;
-    public final String threadId, cacheFileName, saveFolder;
+    public final String saveFolder;
+    final String threadId, cacheFileName;
     final AtomicLong lastTimedPageSave = new AtomicLong(); // only changed for the saves with timer, the others don't use it at all
     public final AtomicLong lastGetScraperEvents = new AtomicLong();
     final AtomicLong lastPageGet = new AtomicLong(), lastUpdatedScraperEvent = new AtomicLong();
@@ -272,7 +272,7 @@ public class ScraperPermanentThread
                 } else {
                     if (getPageThread != null) {
                         getPageThread = null;
-                        Generic.threadSleepSegmented(1_000L, 100L, Statics.mustStop); // avoid throttle
+                        Generic.threadSleepSegmented(1_000L, 100L, SharedStatics.mustStop); // avoid throttle
                     }
                     htmlPage = this.getHtmlPage(webClient);
                 }
@@ -281,12 +281,12 @@ public class ScraperPermanentThread
                     final WebWindow webWindow = htmlPage.getEnclosingWindow();
                     final JavaScriptJobManager javaScriptJobManager = webWindow.getJobManager();
 
-                    while (!Statics.mustStop.get()) {
+                    while (!SharedStatics.mustStop.get()) {
                         try {
                             pageManipulation(webClient, htmlPage);
 
                             if (Statics.mustSleep.get()) {
-                                Betty.programSleeps(Statics.mustSleep, Statics.mustStop, this.threadId + " scraper");
+                                Betty.programSleeps(Statics.mustSleep, this.threadId + " scraper");
                             }
                             if (Statics.debugLevel.check(3, 187)) {
                                 logger.info("{} javaScriptJobCount: {} cache size: {}", this.threadId, javaScriptJobManager.getJobCount(), cache.getSize());
@@ -295,7 +295,7 @@ public class ScraperPermanentThread
                             if ((this.mustRefreshPage.get() || javaScriptJobManager.getJobCount() <= 0) && threadGet == null) {
                                 // close window and reload page is the only reliable way for refresh
                                 if (threadSave != null && threadSave.isAlive()) {
-                                    Generic.alreadyPrintedMap.logOnce(Statics.debugLevel.check(3, 196), Generic.MINUTE_LENGTH_MILLISECONDS * 5L, logger, LogLevel.WARN, "{} threadSave still alive: won't refresh yet", this.threadId);
+                                    SharedStatics.alreadyPrintedMap.logOnce(Statics.debugLevel.check(3, 196), Generic.MINUTE_LENGTH_MILLISECONDS * 5L, logger, LogLevel.WARN, "{} threadSave still alive: won't refresh yet", this.threadId);
                                 } else {
                                     logger.info("{} mustRefreshPage encountered", this.threadId);
 
@@ -323,7 +323,7 @@ public class ScraperPermanentThread
 
                             timeToSleep = timedGetScraperEvents(htmlPage);
 
-                            Generic.threadSleepSegmented(timeToSleep, 100L, Statics.mustStop, this.mustSavePage, this.mustRefreshPage);
+                            Generic.threadSleepSegmented(timeToSleep, 100L, SharedStatics.mustStop, this.mustSavePage, this.mustRefreshPage);
 //                        } catch (RejectedExecutionException rejectedExecutionException) {
 //                            logger.error("exception in {} scraper inner loop", threadId, rejectedExecutionException);
 //                            if (!Statics.mustStop.get()) {
@@ -331,12 +331,12 @@ public class ScraperPermanentThread
 //                            }
                         } catch (RuntimeException | IOException exception) {
                             logger.error("exception in {} scraper inner loop", this.threadId, exception);
-                            if (!Statics.mustStop.get()) {
+                            if (!SharedStatics.mustStop.get()) {
                                 Generic.threadSleep(100L); // avoid throttle
                             }
                         } catch (Throwable throwable) { // inner safety net
                             logger.error("exception in {} scraper safety net inner loop", this.threadId, throwable);
-                            if (!Statics.mustStop.get()) {
+                            if (!SharedStatics.mustStop.get()) {
                                 Generic.threadSleep(100L); // avoid throttle
                             }
                         }
@@ -344,7 +344,7 @@ public class ScraperPermanentThread
                     logger.info("{} scraper page finished executing: {} {}", this.threadId, htmlPage, htmlPage.getTitleText());
 
                     if (threadSave != null && threadSave.isAlive()) {
-                        if (Statics.mustStop.get()) {
+                        if (SharedStatics.mustStop.get()) {
                             logger.info("parallel save thread still alive in {} scraperThread", this.threadId);
                         } else {
                             logger.error("parallel save thread still alive in {} scraperThread", this.threadId);
@@ -355,7 +355,7 @@ public class ScraperPermanentThread
                         } catch (InterruptedException interruptedException) {
                             logger.error("STRANGE interruptedException in threadSave join in {} scraperThread", this.threadId, interruptedException);
                         }
-                        if (Statics.mustStop.get()) {
+                        if (SharedStatics.mustStop.get()) {
                             logger.info("parallel save thread finally dead in {} scraperThread", this.threadId);
                         } else {
                             logger.error("parallel save thread finally dead in {} scraperThread", this.threadId);
@@ -366,7 +366,7 @@ public class ScraperPermanentThread
                     threadSave.start();
                     webClient = null; // avoids closeAllWindows from finally
                 } else {
-                    Generic.threadSleepSegmented(1_000L, 100L, Statics.mustStop); // avoid throttle
+                    Generic.threadSleepSegmented(1_000L, 100L, SharedStatics.mustStop); // avoid throttle
                 }
             } catch (Throwable throwable) { // safety net
                 logger.error("exception in {} scraper safety net", this.threadId, throwable);
@@ -383,7 +383,7 @@ public class ScraperPermanentThread
                     webClient.close();
                 }
                 if (threadGet != null && threadGet.isAlive()) {
-                    if (!Statics.mustStop.get()) {
+                    if (!SharedStatics.mustStop.get()) {
                         logger.error("parallel get thread still alive in {} scraperThread", this.threadId);
                     }
                     try {
@@ -391,12 +391,12 @@ public class ScraperPermanentThread
                     } catch (InterruptedException interruptedException) {
                         logger.error("STRANGE interruptedException in threadGet join in {} scraperThread", this.threadId, interruptedException);
                     }
-                    if (!Statics.mustStop.get()) {
+                    if (!SharedStatics.mustStop.get()) {
                         logger.error("parallel get thread finally dead in {} scraperThread", this.threadId);
                     }
                 } // end if threadGet
             } // end finally
-        } while (!Statics.mustStop.get());
+        } while (!SharedStatics.mustStop.get());
         if (threadSave != null && threadSave.isAlive()) {
             logger.info("parallel save thread still alive in {} scraperThread end", this.threadId);
             try {

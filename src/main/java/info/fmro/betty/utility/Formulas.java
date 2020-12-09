@@ -11,6 +11,7 @@ import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.shared.entities.MarketDescription;
 import info.fmro.shared.entities.PlaceInstruction;
 import info.fmro.shared.objects.OrderPrice;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.objects.StampedDouble;
 import info.fmro.shared.objects.TwoOrderedStrings;
 import info.fmro.shared.stream.objects.ScraperEventInterface;
@@ -35,7 +36,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
-@SuppressWarnings({"ClassWithTooManyMethods", "OverlyComplexClass", "UtilityClass"})
+@SuppressWarnings({"OverlyComplexClass", "UtilityClass"})
 public final class Formulas {
     private static final Logger logger = LoggerFactory.getLogger(Formulas.class);
     @NotNull
@@ -231,7 +232,7 @@ public final class Formulas {
             for (int i = 0; i < length; i++) {
                 final char c = modifiedString.charAt(i);
                 if ((c < 48 || c > 57) && (c < 97 || c > 122) && c != 32) {
-                    Generic.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.ERROR, "forbidden char:{} code:{} in parseTeamString: {}", c, (int) c, teamString);
+                    SharedStatics.alreadyPrintedMap.logOnce(Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.ERROR, "forbidden char:{} code:{} in parseTeamString: {}", c, (int) c, teamString);
                 }
             } // end for
 
@@ -396,7 +397,6 @@ public final class Formulas {
         return modifiedString;
     }
 
-    @SuppressWarnings("OverlyNestedMethod")
     public static double matchTeams(final String firstString, final String secondString) {
         double result;
         final TwoOrderedStrings twoOrderedStrings = new TwoOrderedStrings(firstString, secondString);

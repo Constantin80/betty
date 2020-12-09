@@ -1,6 +1,7 @@
 package info.fmro.betty.threads.permanent;
 
 import info.fmro.betty.objects.Statics;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.utility.Generic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,9 +40,9 @@ public class InputServerThread
 
         if (this.serverSocket != null) {
             Statics.inputServerPort.set(this.serverSocket.getLocalPort());
-            logger.info("inputServerPort={}", Statics.inputServerPort.get());
+            logger.debug("inputServerPort={}", Statics.inputServerPort.get());
 
-            while (!Statics.mustStop.get()) {
+            while (!SharedStatics.mustStop.get()) {
                 try {
                     final Socket socket = this.serverSocket.accept();
                     if ("127.0.0.1".equals(socket.getInetAddress().getHostAddress())) {
@@ -53,7 +54,7 @@ public class InputServerThread
                         socket.close();
                     }
                 } catch (IOException iOException) {
-                    if (Statics.mustStop.get()) { // program is stopping and the socket has been closed from another thread
+                    if (SharedStatics.mustStop.get()) { // program is stopping and the socket has been closed from another thread
                     } else {
                         logger.error("IOException in InputServer socket accept", iOException);
                     }

@@ -1,12 +1,12 @@
 package info.fmro.betty.safebet;
 
-import org.jetbrains.annotations.Contract;
-
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
 class BetradarPeriodScore
         implements Serializable {
+    @Serial
     private static final long serialVersionUID = 9030682989422139021L;
     private final String periodName;
     private final int homeScore, awayScore;
@@ -18,46 +18,34 @@ class BetradarPeriodScore
         this.awayScore = awayScore;
     }
 
-    public synchronized String getPeriodName() {
+    public String getPeriodName() {
         return this.periodName;
     }
 
-    public synchronized int getHomeScore() {
+    public int getHomeScore() {
         return this.homeScore;
     }
 
-    public synchronized int getAwayScore() {
+    public int getAwayScore() {
         return this.awayScore;
     }
 
-    @Contract(value = "null -> false", pure = true)
     @Override
-    public synchronized boolean equals(final Object obj) {
-        if (obj == null) {
-            return false;
-        }
+    public boolean equals(final Object obj) {
         if (this == obj) {
             return true;
         }
-        if (getClass() != obj.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final BetradarPeriodScore other = (BetradarPeriodScore) obj;
-        if (!Objects.equals(this.periodName, other.periodName)) {
-            return false;
-        }
-        if (this.homeScore != other.homeScore) {
-            return false;
-        }
-        return this.awayScore == other.awayScore;
+        final BetradarPeriodScore that = (BetradarPeriodScore) obj;
+        return this.homeScore == that.homeScore &&
+               this.awayScore == that.awayScore &&
+               Objects.equals(this.periodName, that.periodName);
     }
 
     @Override
-    public synchronized int hashCode() {
-        int hash = 7;
-        hash = 73 * hash + Objects.hashCode(this.periodName);
-        hash = 73 * hash + this.homeScore;
-        hash = 73 * hash + this.awayScore;
-        return hash;
+    public int hashCode() {
+        return Objects.hash(this.periodName, this.homeScore, this.awayScore);
     }
 }

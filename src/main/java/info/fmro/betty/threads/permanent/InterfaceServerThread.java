@@ -2,6 +2,7 @@ package info.fmro.betty.threads.permanent;
 
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.InterfaceConnectionThread;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.utility.Generic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,16 +71,16 @@ public class InterfaceServerThread
         if (this.serverSocket != null) {
             this.serverSocket.setNeedClientAuth(true);
             Statics.interfaceServerPort.set(this.serverSocket.getLocalPort());
-            logger.info("interfaceServerPort={}", Statics.interfaceServerPort.get());
+            logger.debug("interfaceServerPort={}", Statics.interfaceServerPort.get());
 
-            while (!Statics.mustStop.get()) {
+            while (!SharedStatics.mustStop.get()) {
                 try {
                     final Socket socket = this.serverSocket.accept();
                     final InterfaceConnectionThread interfaceConnectionThread = new InterfaceConnectionThread(socket);
                     this.interfaceConnectionThreadsSet.add(interfaceConnectionThread);
                     interfaceConnectionThread.start();
                 } catch (IOException iOException) {
-                    if (Statics.mustStop.get()) { // program is stopping and the socket has been closed from another thread
+                    if (SharedStatics.mustStop.get()) { // program is stopping and the socket has been closed from another thread
                     } else {
                         logger.error("IOException in InterfaceServer socket accept", iOException);
                     }

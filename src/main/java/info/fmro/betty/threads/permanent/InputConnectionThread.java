@@ -6,6 +6,7 @@ import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.utility.DebuggingMethods;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.enums.CommandType;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.utility.Generic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,7 @@ class InputConnectionThread
         Generic.closeObjects(this.socket);
     }
 
-    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "OverlyNestedMethod", "NestedTryStatement"})
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "NestedTryStatement"})
     @Override
     public void run() {
         OutputStream outputStream = null;
@@ -57,14 +58,14 @@ class InputConnectionThread
             bufferedReader = new BufferedReader(inputStreamReader);
 
             String inputLine = bufferedReader.readLine();
-            while (inputLine != null && !Statics.mustStop.get()) {
+            while (inputLine != null && !SharedStatics.mustStop.get()) {
                 String newOrder = null;
                 inputLine = inputLine.toLowerCase(Locale.ENGLISH);
                 if ("exit".equals(inputLine) || "quit".equals(inputLine)) {
                     printWriter.println("Bye");
                     break;
                 } else if ("stop".equals(inputLine)) {
-                    Statics.mustStop.set(true);
+                    SharedStatics.mustStop.set(true);
                     logger.info("Stop command executed");
                     printWriter.println("Stopping program");
                 } else if ("sleep".equals(inputLine)) {
@@ -84,16 +85,16 @@ class InputConnectionThread
                         printWriter.println("Program already awake");
                     }
                 } else if ("denyBetting".equals(inputLine)) {
-                    if (Statics.denyBetting.get()) {
+                    if (SharedStatics.denyBetting.get()) {
                         printWriter.println("denyBetting already active");
                     } else {
-                        Statics.denyBetting.set(true);
+                        SharedStatics.denyBetting.set(true);
                         logger.warn("denyBetting command executed");
                         printWriter.println("denyBetting activated");
                     }
                 } else if ("startBetting".equals(inputLine)) {
-                    if (Statics.denyBetting.get()) {
-                        Statics.denyBetting.set(false);
+                    if (SharedStatics.denyBetting.get()) {
+                        SharedStatics.denyBetting.set(false);
                         logger.warn("startBetting command executed");
                         printWriter.println("denyBetting inactivated");
                     } else {
@@ -140,11 +141,11 @@ class InputConnectionThread
                         printWriter.println("Will refresh " + command + " web page");
                     }
                 } else if ("getNewSsoId".equals(inputLine)) {
-                    Statics.needSessionToken.set(true);
+                    SharedStatics.needSessionToken.set(true);
                     logger.info("getNewSsoId command executed");
                     printWriter.println("Will get new ssoId");
                 } else if ("writeObjects".equals(inputLine)) {
-                    Statics.mustWriteObjects.set(true);
+                    SharedStatics.mustWriteObjects.set(true);
                     logger.info("writeObjects command executed");
                     printWriter.println("Will write objects to disk");
                 } else if (inputLine.startsWith("rules ")) {
@@ -152,8 +153,7 @@ class InputConnectionThread
                     logger.info("rulesManager command executed: {}", rulesString);
                     printWriter.println("Will execute rulesManager command");
 
-                    Statics.rulesManagerThread.rulesManager.executeCommand(rulesString, Statics.pendingOrdersThread, Statics.orderCache.markets, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap, Statics.eventsMap,
-                                                                           Statics.marketCache.markets, Statics.orderCache.initializedFromStreamStamp, Statics.PROGRAM_START_TIME);
+                    Statics.rulesManagerThread.rulesManager.executeCommand(rulesString, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap, Statics.eventsMap);
                 } else if ("findMarketTypes".equals(inputLine)) {
                     printWriter.println("Will find new market types");
                     newOrder = "findMarketTypes";
@@ -356,9 +356,9 @@ class InputConnectionThread
                             Formulas.matchesCache.clear();
                         }
                         GetLiveMarketsThread.timedMapEventsCounter.set(GetLiveMarketsThread.timedMapEventsCounter.get() - GetLiveMarketsThread.timedMapEventsCounter.get() % 10 + 11); // will delay running checkAll again
-                        Statics.timeStamps.setLastMapEventsToScraperEvents(System.currentTimeMillis() + Generic.MINUTE_LENGTH_MILLISECONDS);
+                        SharedStatics.timeStamps.setLastMapEventsToScraperEvents(System.currentTimeMillis() + Generic.MINUTE_LENGTH_MILLISECONDS);
                         if (Statics.safeBetModuleActivated) {
-                            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents, true));
+                            SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents, true));
                         }
                     }
                 } else if (inputLine.startsWith("reserve ")) {
@@ -428,7 +428,7 @@ class InputConnectionThread
                 inputLine = bufferedReader.readLine();
             } // end while
         } catch (IOException iOException) {
-            if (Statics.mustStop.get()) { // program is stopping and the socket has been closed from another thread
+            if (SharedStatics.mustStop.get()) { // program is stopping and the socket has been closed from another thread
             } else {
                 logger.error("IOException in InputConnection thread", iOException);
             }

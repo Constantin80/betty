@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
@@ -17,6 +18,7 @@ public class BetradarEvent
         extends ScraperEvent
         implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(BetradarEvent.class);
+    @Serial
     private static final long serialVersionUID = -6590032889145745147L;
     @Nullable
     private Date startTime;

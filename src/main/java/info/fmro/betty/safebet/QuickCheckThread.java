@@ -2,13 +2,14 @@ package info.fmro.betty.safebet;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import info.fmro.betty.betapi.ApiNgRescriptOperations;
-import info.fmro.betty.betapi.RescriptResponseHandler;
+import info.fmro.betty.betapi.HttpUtil;
 import info.fmro.betty.main.Betty;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
 import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.betapi.ApiNgRescriptOperations;
+import info.fmro.shared.betapi.RescriptResponseHandler;
 import info.fmro.shared.entities.Event;
 import info.fmro.shared.entities.ExBestOffersOverrides;
 import info.fmro.shared.entities.MarketBook;
@@ -20,6 +21,7 @@ import info.fmro.shared.enums.PriceData;
 import info.fmro.shared.enums.RollupModel;
 import info.fmro.shared.objects.AverageLogger;
 import info.fmro.shared.objects.AverageLoggerInterface;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.stream.objects.ScraperEventInterface;
 import info.fmro.shared.utility.BlackList;
 import info.fmro.shared.utility.Generic;
@@ -169,7 +171,7 @@ public class QuickCheckThread
 
     private void getMarketBooks(@SuppressWarnings("TypeMayBeWeakened") final Set<String> safeMarketsSet, final long timeStamp, final int marketsPerOperation) {
         if (timeStamp > 0) {
-            Statics.timeStamps.lastGetMarketBooksStamp(timeStamp);
+            SharedStatics.timeStamps.lastGetMarketBooksStamp(timeStamp);
         }
 
         final int size = safeMarketsSet.size();
@@ -188,7 +190,7 @@ public class QuickCheckThread
 
     void getMarketBooks(final List<String> marketIdsList, final long timeStamp, final int marketsPerOperation) {
         if (timeStamp > 0) {
-            Statics.timeStamps.lastGetMarketBooksStamp(timeStamp);
+            SharedStatics.timeStamps.lastGetMarketBooksStamp(timeStamp);
         }
 
         final int size = marketIdsList.size();
@@ -218,7 +220,8 @@ public class QuickCheckThread
                 // rescriptOpThreadMarketBook.run(); // thread runs here, not in parallel; this is intentional
                 final PriceProjection localPriceProjection = listSize <= 11 ? priceProjectionAll : priceProjectionBest;
                 final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
-                final List<MarketBook> marketBooksList = ApiNgRescriptOperations.listMarketBook(marketIdsListSplit, localPriceProjection, null, null, null, Statics.appKey.get(), rescriptResponseHandler);
+                final List<MarketBook> marketBooksList = ApiNgRescriptOperations.listMarketBook(marketIdsListSplit, localPriceProjection, null, null, null, rescriptResponseHandler,
+                                                                                                HttpUtil.sendPostRequestRescriptMethod);
                 final long endTime = System.currentTimeMillis();
 
                 // logger.info("retrieved {} marketBooks from {} marketIds in {} ms", returnSet.size(), listSize, endTime - startTime);
@@ -267,7 +270,7 @@ public class QuickCheckThread
                                 final long timePreviousMarketBookCheck;
                                 if (existingMarketBook != null) {
                                     timePreviousMarketBookCheck = existingMarketBook.getTimeStamp();
-                                    if (existingMarketBook.update(marketBook, Statics.timeLastSaveToDisk) > 0) {
+                                    if (existingMarketBook.update(marketBook) > 0) {
                                         safeMarketBooksMapModified++;
                                     }
                                 } else {
@@ -312,8 +315,8 @@ public class QuickCheckThread
 
                     if (returnListSize != listSize) {
                         // this does happen with old, expired markedIds; it should go away with the next maintenance clean maps
-                        Generic.alreadyPrintedMap.logOnce(Statics.debugLevel.check(2, 172), Generic.MINUTE_LENGTH_MILLISECONDS * 5L, logger, LogLevel.WARN,
-                                                          "returnSetSize: {} different from listSize: {} in getMarketBooks", returnListSize, listSize);
+                        SharedStatics.alreadyPrintedMap.logOnce(Statics.debugLevel.check(2, 172), Generic.MINUTE_LENGTH_MILLISECONDS * 5L, logger, LogLevel.WARN,
+                                                                "returnSetSize: {} different from listSize: {} in getMarketBooks", returnListSize, listSize);
                     }
 
                     final long currentTime = System.currentTimeMillis();
@@ -335,11 +338,11 @@ public class QuickCheckThread
     }
 
     private long timedGetMarketBooks() {
-        long timeForNext = Statics.timeStamps.getLastGetMarketBooks();
+        long timeForNext = SharedStatics.timeStamps.getLastGetMarketBooks();
         final long currentTime = System.currentTimeMillis();
         long timeTillNext = timeForNext - currentTime;
         if (timeTillNext <= 0) {
-            Statics.timeStamps.lastGetMarketBooksStamp(Statics.DELAY_GET_MARKET_BOOKS);
+            SharedStatics.timeStamps.lastGetMarketBooksStamp(Statics.DELAY_GET_MARKET_BOOKS);
 
             final int safeMarketsMapSize = Statics.safeMarketsMap.size();
             final int safeMarketsImportantMapSize = Statics.safeMarketsImportantMap.size();
@@ -370,7 +373,7 @@ public class QuickCheckThread
             } // end else
 
             //noinspection ReuseOfLocalVariable
-            timeForNext = Statics.timeStamps.getLastGetMarketBooks();
+            timeForNext = SharedStatics.timeStamps.getLastGetMarketBooks();
             timeTillNext = timeForNext - System.currentTimeMillis();
         } else { // nothing to be done
         }
@@ -379,10 +382,10 @@ public class QuickCheckThread
 
     @Override
     public void run() {
-        while (!Statics.mustStop.get()) {
+        while (!SharedStatics.mustStop.get()) {
             try {
                 if (Statics.mustSleep.get()) {
-                    Betty.programSleeps(Statics.mustSleep, Statics.mustStop, "quickCheck thread");
+                    Betty.programSleeps(Statics.mustSleep, "quickCheck thread");
                 }
                 GetLiveMarketsThread.waitForSessionToken("QuickCheckThread main");
 
@@ -390,7 +393,7 @@ public class QuickCheckThread
 
                 timeToSleep = timedGetMarketBooks();
 
-                Generic.threadSleepSegmented(timeToSleep, 100L, Statics.mustStop);
+                Generic.threadSleepSegmented(timeToSleep, 100L, SharedStatics.mustStop);
             } catch (Throwable throwable) {
                 logger.error("STRANGE ERROR inside QuickCheck loop", throwable);
             }

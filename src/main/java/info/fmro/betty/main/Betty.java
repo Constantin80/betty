@@ -1,7 +1,6 @@
 package info.fmro.betty.main;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
-import info.fmro.betty.betapi.JsonConverter;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.safebet.PlacedAmountsThread;
 import info.fmro.betty.stream.ClientHandler;
@@ -13,9 +12,10 @@ import info.fmro.betty.threads.permanent.InterfaceServerThread;
 import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.betty.threads.permanent.TimeJumpDetectorThread;
 import info.fmro.betty.utility.BettyUncaughtExceptionHandler;
+import info.fmro.shared.betapi.JsonConverter;
 import info.fmro.shared.entities.SessionToken;
 import info.fmro.shared.enums.ProgramName;
-import info.fmro.shared.objects.SessionTokenObject;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.utility.Generic;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
@@ -63,7 +63,7 @@ public final class Betty {
 
     @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "MethodWithMultipleReturnPoints"})
     public static void main(final String[] args) {
-        Generic.programName.set(ProgramName.SERVER);
+        SharedStatics.programName.set(ProgramName.SERVER);
 //        System.out.println("fhadkflcnruw 12121 dsdasdase");
 //        System.exit(0);
         Statics.standardStreamsList = Generic.replaceStandardStreams(Statics.STDOUT_FILE_NAME, Statics.STDERR_FILE_NAME, Statics.LOGS_FOLDER_NAME, !Statics.closeStandardStreamsNotInitialized);
@@ -99,7 +99,7 @@ public final class Betty {
                                 "  -denyBetting      denies placing of bets");
                     return;
                 } else if ("-denyBetting".equals(arg)) {
-                    Statics.denyBetting.set(true);
+                    SharedStatics.denyBetting.set(true);
                     logger.warn("betting denied");
                 } else if (arg.startsWith("-debug=")) {
                     debugLevel = Integer.parseInt(arg.substring(arg.indexOf("-debug=") + "-debug=".length()));
@@ -128,8 +128,16 @@ public final class Betty {
             Generic.disableHTTPSValidation();
             Generic.turnOffHtmlUnitLogger();
 
-            if (Statics.notPlacingOrders) {
+            if (SharedStatics.notPlacingOrders) {
                 logger.error("Statics.notPlacingOrders true. The program will not place orders.");
+            } else { // regular run, nothing to be done
+            }
+            if (SharedStatics.reserveCanDecrease) {
+                logger.error("Statics.reserveCanDecrease true. Should be false, except for testing. Reserve protection is affected.");
+            } else { // regular run, nothing to be done
+            }
+            if (SharedStatics.noReserve) {
+                logger.error("Statics.noReserve true. Should be false, except for testing. Reserve protection removed.");
             } else { // regular run, nothing to be done
             }
             if (Statics.connectingToBetfairServersDisabled) {
@@ -218,13 +226,13 @@ public final class Betty {
 //            ClientCommands.traceOrders();
 //            ClientCommands.traceMarkets();
 
-            while (!Statics.mustStop.get()) {
+            while (!SharedStatics.mustStop.get()) {
                 //noinspection NestedTryStatement
                 try {
                     if (Statics.mustSleep.get()) {
-                        programSleeps(Statics.mustSleep, Statics.mustStop, "betty main");
+                        programSleeps(Statics.mustSleep, "betty main");
                     }
-                    if (!Statics.mustStop.get()) {
+                    if (!SharedStatics.mustStop.get()) {
 
                         // this is where the work is placed
                         Generic.threadSleep(100);
@@ -304,13 +312,13 @@ public final class Betty {
                 }
             }
 
-            Statics.threadPoolExecutor.shutdown();
+            SharedStatics.threadPoolExecutor.shutdown();
             Statics.threadPoolExecutorMarketBooks.shutdown();
-            Statics.threadPoolExecutorImportant.shutdown();
+            SharedStatics.threadPoolExecutorImportant.shutdown();
 
-            if (!Statics.threadPoolExecutor.awaitTermination(10L, TimeUnit.MINUTES)) {
-                logger.error("threadPoolExecutor hanged: {}", Statics.threadPoolExecutor.getActiveCount());
-                final List<Runnable> runnableList = Statics.threadPoolExecutor.shutdownNow();
+            if (!SharedStatics.threadPoolExecutor.awaitTermination(10L, TimeUnit.MINUTES)) {
+                logger.error("threadPoolExecutor hanged: {}", SharedStatics.threadPoolExecutor.getActiveCount());
+                final List<Runnable> runnableList = SharedStatics.threadPoolExecutor.shutdownNow();
                 if (!runnableList.isEmpty()) {
                     logger.error("threadPoolExecutor not commenced: {}", runnableList.size());
                 }
@@ -322,9 +330,9 @@ public final class Betty {
                     logger.error("threadPoolExecutorMarketBooks not commenced: {}", runnableList.size());
                 }
             }
-            if (!Statics.threadPoolExecutorImportant.awaitTermination(10L, TimeUnit.MINUTES)) {
-                logger.error("threadPoolExecutorImportant hanged: {}", Statics.threadPoolExecutorImportant.getActiveCount());
-                final List<Runnable> runnableList = Statics.threadPoolExecutorImportant.shutdownNow();
+            if (!SharedStatics.threadPoolExecutorImportant.awaitTermination(10L, TimeUnit.MINUTES)) {
+                logger.error("threadPoolExecutorImportant hanged: {}", SharedStatics.threadPoolExecutorImportant.getActiveCount());
+                final List<Runnable> runnableList = SharedStatics.threadPoolExecutorImportant.shutdownNow();
                 if (!runnableList.isEmpty()) {
                     logger.error("threadPoolExecutorImportant not commenced: {}", runnableList.size());
                 }
@@ -345,7 +353,7 @@ public final class Betty {
 
             VarsIO.writeObjectsToFiles();
             VarsIO.writeSettings();
-            Generic.alreadyPrintedMap.clear(); // also prints the important properties
+            SharedStatics.alreadyPrintedMap.clear(); // also prints the important properties
         } catch (FileNotFoundException | NumberFormatException | InterruptedException exception) {
             logger.error("STRANGE ERROR inside Betty", exception);
         } catch (@SuppressWarnings("OverlyBroadCatchBlock") Throwable throwable) { // attempts to catch fatal errors
@@ -361,8 +369,7 @@ public final class Betty {
     }
 
     @SuppressWarnings({"OverlyLongMethod", "UnusedReturnValue"})
-    public static boolean authenticate(final String authURL, @NotNull final AtomicReference<String> bu, @NotNull final AtomicReference<String> bp, final SessionTokenObject sessionTokenObject, final String keyStoreFileName, final String keyStorePassword,
-                                       final String keyStoreType, @NotNull final AtomicReference<String> appKey) {
+    public static boolean authenticate(final String authURL, @NotNull final AtomicReference<String> bu, @NotNull final AtomicReference<String> bp, final String keyStoreFileName, final String keyStorePassword, final String keyStoreType) {
         boolean success = false;
         final long beginTime = System.currentTimeMillis();
         final HttpClientBuilder httpClientBuilder = HttpClients.custom();
@@ -388,12 +395,12 @@ public final class Betty {
 
             final HttpEntity urlEncodedFormEntity = new UrlEncodedFormEntity(nameValuePairArrayList);
             httpPost.setEntity(urlEncodedFormEntity);
-            httpPost.setHeader("X-Application", appKey.get());
+            httpPost.setHeader("X-Application", SharedStatics.appKey.get());
 
-            logger.info("authenticate executing request: {}", httpPost.getRequestLine());
+            logger.debug("authenticate executing request: {}", httpPost.getRequestLine());
 
             int whileCounter = 0;
-            while (Statics.needSessionToken.get() && !Statics.mustStop.get()) {
+            while (SharedStatics.needSessionToken.get() && !SharedStatics.mustStop.get()) {
                 whileCounter++;
                 CloseableHttpResponse closeableHttpResponse = null;
 
@@ -403,10 +410,10 @@ public final class Betty {
                     closeableHttpResponse = closeableHttpClient.execute(httpPost);
                     final HttpEntity httpEntity = closeableHttpResponse.getEntity();
 
-                    logger.info("authenticate response status line: {}", closeableHttpResponse.getStatusLine());
+                    logger.debug("authenticate response status line: {}", closeableHttpResponse.getStatusLine());
                     if (httpEntity != null) {
                         final String responseString = EntityUtils.toString(httpEntity, Generic.UTF8_CHARSET);
-                        logger.info("authenticate responseString: {}", responseString);
+                        logger.debug("authenticate responseString: {}", responseString);
 
                         @Nullable final SessionToken sessionToken;
                         if (responseString.contains("Internal error")) {
@@ -418,9 +425,9 @@ public final class Betty {
                         logger.info("sessionToken: {}", Generic.objectToString(sessionToken));
 
                         if (sessionToken != null && sessionToken.getSessionTokenLength() > 0) {
-                            sessionTokenObject.setSessionToken(sessionToken.getSessionToken());
+                            SharedStatics.sessionTokenObject.setSessionToken(sessionToken.getSessionToken());
 //                            sessionTokenObject.timeStamp();
-                            Statics.needSessionToken.set(false);
+                            SharedStatics.needSessionToken.set(false);
                             success = true;
                         } else {
                             logger.error("authentication failed, sessionToken: {}", Generic.objectToString(sessionToken));
@@ -435,7 +442,7 @@ public final class Betty {
                     Generic.closeObject(closeableHttpResponse);
                 }
 
-                if (Statics.needSessionToken.get() && !Statics.mustStop.get()) {
+                if (SharedStatics.needSessionToken.get() && !SharedStatics.mustStop.get()) {
                     final long amountToSleep = switch (whileCounter) {
                         case 0 -> {
                             logger.error("whileCounter is {} in authenticate method", whileCounter);
@@ -473,10 +480,10 @@ public final class Betty {
         return success;
     }
 
-    public static void programSleeps(@NotNull final AtomicBoolean mustSleep, final AtomicBoolean mustStop, final String id) {
+    public static void programSleeps(@NotNull final AtomicBoolean mustSleep, final String id) {
         if (mustSleep.get()) {
             logger.info("{} sleeping ...", id);
-            while (mustSleep.get() && !mustStop.get()) {
+            while (mustSleep.get() && !SharedStatics.mustStop.get()) {
                 Generic.threadSleep(100);
             }
             logger.info("{} woke up !", id);

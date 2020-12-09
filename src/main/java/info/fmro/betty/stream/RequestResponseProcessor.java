@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import info.fmro.betty.objects.Statics;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.stream.definitions.AuthenticationMessage;
 import info.fmro.shared.stream.definitions.ConnectionMessage;
 import info.fmro.shared.stream.definitions.HeartbeatMessage;
@@ -196,7 +197,7 @@ class RequestResponseProcessor
             this.previousIds.put(taskId, currentTime);
             repeatTask(task);
         }
-//        tasks = new ConcurrentHashMap<>();
+//        tasks = new HashMap<>();
 
         if (this.mcmCommandReceived) {
             this.mcmCommandReceived = false;
@@ -460,11 +461,8 @@ class RequestResponseProcessor
         } else {
             change = this.orderSubscriptionHandler.processChangeMessage(change);
             if (change != null) {
-                Statics.orderCache.listOfQueues.send(message);
-                Statics.orderCache.onOrderChange(change, Statics.rulesManagerThread.rulesManager.orderCacheHasReset, Statics.rulesManagerThread.rulesManager.newOrderMarketCreated, Statics.pendingOrdersThread,
-                                                 Statics.safetyLimits.existingFunds.currencyRate, Statics.marketCache.markets, Statics.rulesManagerThread.rulesManager.listOfQueues, Statics.rulesManagerThread.rulesManager.marketsToCheck,
-                                                 Statics.rulesManagerThread.rulesManager.events, Statics.rulesManagerThread.rulesManager.markets, Statics.rulesManagerThread.rulesManager.rulesHaveChanged, Statics.marketCataloguesMap,
-                                                 Statics.PROGRAM_START_TIME);
+                SharedStatics.orderCache.listOfQueues.send(message);
+                SharedStatics.orderCache.onOrderChange(change, Statics.rulesManagerThread.rulesManager);
             }
         }
     }
@@ -489,10 +487,8 @@ class RequestResponseProcessor
                 change = this.marketSubscriptionHandler.processChangeMessage(change);
 
                 if (change != null) {
-                    Statics.marketCache.listOfQueues.send(message);
-                    Statics.marketCache.onMarketChange(change, Statics.safetyLimits.existingFunds.currencyRate, Statics.rulesManagerThread.rulesManager.listOfQueues, Statics.rulesManagerThread.rulesManager.marketsToCheck,
-                                                       Statics.rulesManagerThread.rulesManager.events, Statics.rulesManagerThread.rulesManager.markets, Statics.rulesManagerThread.rulesManager.rulesHaveChanged, Statics.marketCataloguesMap,
-                                                       Statics.PROGRAM_START_TIME);
+                    SharedStatics.marketCache.listOfQueues.send(message);
+                    SharedStatics.marketCache.onMarketChange(change, Statics.rulesManagerThread.rulesManager, Statics.marketCataloguesMap);
                 }
             } else {
                 if (isIdRecentlyRemoved(id)) {
@@ -515,7 +511,7 @@ class RequestResponseProcessor
                 final ErrorCode errorCode = statusMessage.getErrorCode();
                 switch (errorCode) {
                     case TIMEOUT:
-                        if (Statics.needSessionToken.get() || Statics.sessionTokenObject.isRecent()) {
+                        if (SharedStatics.needSessionToken.get() || SharedStatics.sessionTokenObject.isRecent()) {
                             logger.info("{} Error Status Notification in streamClient[{}]: {}", errorCode, this.client.id, Generic.objectToString(statusMessage));
                         } else {
                             logger.error("{} Error Status Notification in streamClient[{}]: {}", errorCode, this.client.id, Generic.objectToString(statusMessage));
@@ -527,7 +523,7 @@ class RequestResponseProcessor
                     case NO_SESSION:
                     case INVALID_SESSION_INFORMATION:
                         logger.info("{}, Error Status Notification needSessionToken[{}]: {}", errorCode, this.client.id, Generic.objectToString(statusMessage));
-                        Statics.needSessionToken.set(true);
+                        SharedStatics.needSessionToken.set(true);
                         break;
                     case INVALID_CLOCK:
                     case UNEXPECTED_ERROR:
@@ -699,7 +695,7 @@ class RequestResponseProcessor
                         case NO_SESSION:
                         case INVALID_SESSION_INFORMATION:
                             logger.info("{}, needSessionToken[{}]: {}", errorCode, this.client.id, Generic.objectToString(statusMessage));
-                            Statics.needSessionToken.set(true);
+                            SharedStatics.needSessionToken.set(true);
                             tasksToRepeat.add(task);
 //                            repeatTask(operationType, task.getRequest());
                             break;
@@ -753,7 +749,7 @@ class RequestResponseProcessor
                     logger.info("[{}]removing failed task: {} {}", this.client.id, id, Generic.objectToString(task));
                     idsToRemove.add(id);
                 } else if (task.isExpired()) {
-                    if (Statics.needSessionToken.get() || Statics.sessionTokenObject.isRecent()) {
+                    if (SharedStatics.needSessionToken.get() || SharedStatics.sessionTokenObject.isRecent()) {
                         logger.info("[{}]maintenance, task expired: {}", this.client.id, id);
                     } else {
                         logger.error("[{}]maintenance, task expired: {}", this.client.id, Generic.objectToString(task));
@@ -838,14 +834,14 @@ class RequestResponseProcessor
         }
 
         int counter = 0;
-        while (!Statics.mustStop.get()) {
+        while (!SharedStatics.mustStop.get()) {
             try {
                 if (this.client.readerThread.bufferNotEmpty.get()) {
                     final String line = this.client.readerThread.pollLine();
                     processLine(line);
                 }
 
-                Generic.threadSleepSegmented(5_000L, 10L, this.client.readerThread.bufferNotEmpty, Statics.mustStop);
+                Generic.threadSleepSegmented(5_000L, 10L, this.client.readerThread.bufferNotEmpty, SharedStatics.mustStop);
                 tasksMaintenance();
                 if (counter % 6 == 0) {
                     keepAliveCheck();

@@ -1,10 +1,8 @@
-package info.fmro.betty.threads;
+package info.fmro.betty.safebet;
 
 import com.gargoylesoftware.htmlunit.Cache;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import info.fmro.betty.safebet.ScraperPermanentThread;
-import info.fmro.betty.utility.WebScraperMethods;
 import org.jetbrains.annotations.Contract;
 
 public class SavePageThread
@@ -17,7 +15,7 @@ public class SavePageThread
     private boolean hasRun;
 
     @Contract(pure = true)
-    public SavePageThread(final ScraperPermanentThread scraperThread, final String savePrefix, final WebClient webClient, final HtmlPage htmlPage, final Cache cache) {
+    SavePageThread(final ScraperPermanentThread scraperThread, final String savePrefix, final WebClient webClient, final HtmlPage htmlPage, final Cache cache) {
         this.scraperThread = scraperThread;
         this.savePrefix = savePrefix;
         this.webClient = webClient;

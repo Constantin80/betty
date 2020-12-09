@@ -2,11 +2,13 @@ package info.fmro.betty.betapi;
 
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
+import info.fmro.shared.betapi.RescriptAccountResponseHandler;
+import info.fmro.shared.betapi.RescriptResponseHandler;
 import info.fmro.shared.enums.ApiNgOperation;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.utility.Generic;
 import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.StringEntity;
@@ -17,13 +19,15 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
 @SuppressWarnings({"OverlyComplexClass", "UtilityClass"})
-final class HttpUtil {
+public final class HttpUtil {
     private static final Logger logger = LoggerFactory.getLogger(HttpUtil.class);
     public static final AtomicLong lastErrorLogged = new AtomicLong();
     public static final long intervalBetweenLoggedErrors = Generic.MINUTE_LENGTH_MILLISECONDS << 1;
@@ -32,6 +36,10 @@ final class HttpUtil {
     public static final String HTTP_HEADER_CONTENT_TYPE = "Content-Type";
     public static final String HTTP_HEADER_ACCEPT = "Accept";
     public static final String HTTP_HEADER_ACCEPT_CHARSET = "Accept-Charset";
+    @NotNull
+    public static final Method sendPostRequestAccountRescriptMethod = Objects.requireNonNull(Generic.getMethod(HttpUtil.class, "sendPostRequestAccountRescript", String.class, String.class, RescriptAccountResponseHandler.class));
+    @NotNull
+    public static final Method sendPostRequestRescriptMethod = Objects.requireNonNull(Generic.getMethod(HttpUtil.class, "sendPostRequestRescript", String.class, String.class, RescriptResponseHandler.class));
 
     @Contract(pure = true)
     private HttpUtil() {
@@ -58,7 +66,7 @@ final class HttpUtil {
     }
 
     @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod"})
-    private static String sendPostRequest(final String paramString, @NotNull final String operationString, final String appKeyString, final String URLString, final RescriptResponseHandler rescriptResponseHandler) {
+    private static String sendPostRequest(final String paramString, @NotNull final String operationString, final String URLString, final RescriptResponseHandler rescriptResponseHandler) {
         String responseString = null;
         boolean notSuccessful;
         long errorCounter = 0L;
@@ -70,8 +78,8 @@ final class HttpUtil {
                 httpPost.setHeader(HTTP_HEADER_CONTENT_TYPE, Statics.APPLICATION_JSON);
                 httpPost.setHeader(HTTP_HEADER_ACCEPT, Statics.APPLICATION_JSON);
                 httpPost.setHeader(HTTP_HEADER_ACCEPT_CHARSET, Generic.UTF8_CHARSET);
-                httpPost.setHeader(HTTP_HEADER_X_APPLICATION, appKeyString);
-                httpPost.setHeader(HTTP_HEADER_X_AUTHENTICATION, Statics.sessionTokenObject.getSessionToken()); // makes the ssoTokenString argument obsolete
+                httpPost.setHeader(HTTP_HEADER_X_APPLICATION, SharedStatics.appKey.get());
+                httpPost.setHeader(HTTP_HEADER_X_AUTHENTICATION, SharedStatics.sessionTokenObject.getSessionToken()); // makes the ssoTokenString argument obsolete
                 httpPost.setEntity(new StringEntity(paramString, Generic.UTF8_CHARSET));
                 if (isPlacingOrder) {
                     httpPost.setConfig(Statics.placingOrdersConfig);
@@ -86,11 +94,11 @@ final class HttpUtil {
                 }
             } catch (UnsupportedEncodingException unsupportedEncodingException) {
                 logger.error("STRANGE unsupportedEncodingException in sendPostRequest", unsupportedEncodingException);
-                Statics.mustStop.set(true);
+                SharedStatics.mustStop.set(true);
                 notSuccessful = true;
             } catch (ClientProtocolException clientProtocolException) {
                 logger.error("STRANGE clientProtocolException in sendPostRequest", clientProtocolException);
-                Statics.mustStop.set(true);
+                SharedStatics.mustStop.set(true);
                 notSuccessful = true;
             } catch (SocketTimeoutException socketTimeoutException) {
                 if (isPlacingOrder || (errorCounter >= 10L && errorCounter % 10L == 0 && canLogError())) {
@@ -149,13 +157,13 @@ final class HttpUtil {
                 }
                 notSuccessful = true;
             }
-            if (notSuccessful && !rescriptResponseHandler.isTooMuchData() && !Statics.mustStop.get()) {
+            if (notSuccessful && !rescriptResponseHandler.isTooMuchData() && !SharedStatics.mustStop.get()) {
                 if (!GetLiveMarketsThread.waitForSessionToken("sendPostRequest " + operationString)) {
                     errorCounter++;
                     Generic.threadSleep((errorCounter - 1L) * 100L); // avoid throttle, sessionToken might not have been needed; no sleep for first error
                 }
             }
-        } while (notSuccessful && !rescriptResponseHandler.isTooMuchData() && !Statics.mustStop.get());
+        } while (notSuccessful && !rescriptResponseHandler.isTooMuchData() && !SharedStatics.mustStop.get());
         if (errorCounter > 10L) {
             errorStamp();
             logger.error("finishing sendPostRequest with errorCounter: {}, isPlacingOrder: {}, operationString: {}", errorCounter, isPlacingOrder, operationString);
@@ -165,7 +173,7 @@ final class HttpUtil {
     }
 
     @SuppressWarnings({"OverlyLongMethod", "OverlyComplexMethod"})
-    private static String sendAccountPostRequest(final String paramString, final String operationString, final String appKeyString, final String URLString, final ResponseHandler<String> rescriptAccountResponseHandler) {
+    private static String sendAccountPostRequest(final String paramString, final String operationString, final String URLString, @SuppressWarnings("TypeMayBeWeakened") final RescriptAccountResponseHandler rescriptAccountResponseHandler) {
         String responseString = null;
         boolean notSuccessful;
         long errorCounter = 0L;
@@ -176,8 +184,8 @@ final class HttpUtil {
                 httpPost.setHeader(HTTP_HEADER_CONTENT_TYPE, Statics.APPLICATION_JSON);
                 httpPost.setHeader(HTTP_HEADER_ACCEPT, Statics.APPLICATION_JSON);
                 httpPost.setHeader(HTTP_HEADER_ACCEPT_CHARSET, Generic.UTF8_CHARSET);
-                httpPost.setHeader(HTTP_HEADER_X_APPLICATION, appKeyString);
-                httpPost.setHeader(HTTP_HEADER_X_AUTHENTICATION, Statics.sessionTokenObject.getSessionToken()); // makes the ssoTokenString argument obsolete
+                httpPost.setHeader(HTTP_HEADER_X_APPLICATION, SharedStatics.appKey.get());
+                httpPost.setHeader(HTTP_HEADER_X_AUTHENTICATION, SharedStatics.sessionTokenObject.getSessionToken()); // makes the ssoTokenString argument obsolete
 
                 httpPost.setEntity(new StringEntity(paramString, Generic.UTF8_CHARSET));
                 httpPost.setConfig(Statics.accountsApiConfig);
@@ -189,11 +197,11 @@ final class HttpUtil {
                 }
             } catch (UnsupportedEncodingException unsupportedEncodingException) {
                 logger.error("STRANGE unsupportedEncodingException in sendAccountPostRequest", unsupportedEncodingException);
-                Statics.mustStop.set(true);
+                SharedStatics.mustStop.set(true);
                 notSuccessful = true;
             } catch (ClientProtocolException clientProtocolException) {
                 logger.error("STRANGE clientProtocolException in sendAccountPostRequest", clientProtocolException);
-                Statics.mustStop.set(true);
+                SharedStatics.mustStop.set(true);
                 notSuccessful = true;
             } catch (SocketTimeoutException socketTimeoutException) {
                 if (errorCounter >= 10L && errorCounter % 10L == 0 && canLogError()) {
@@ -252,13 +260,13 @@ final class HttpUtil {
                 }
                 notSuccessful = true;
             }
-            if (notSuccessful && !Statics.mustStop.get()) {
+            if (notSuccessful && !SharedStatics.mustStop.get()) {
                 if (!GetLiveMarketsThread.waitForSessionToken("sendAccountPostRequest " + operationString)) {
                     errorCounter++;
                     Generic.threadSleep((errorCounter - 1L) * 100L); // avoid throttle, sessionToken might not have been needed
                 }
             }
-        } while (notSuccessful && !Statics.mustStop.get());
+        } while (notSuccessful && !SharedStatics.mustStop.get());
         if (errorCounter > 10L) {
             errorStamp();
             logger.error("finishing sendAccountPostRequest with errorCounter: {}, operationString: {}", errorCounter, operationString);
@@ -267,13 +275,13 @@ final class HttpUtil {
         return responseString;
     }
 
-    static String sendPostRequestAccountRescript(final String paramString, final String operationString, final String appKeyString, final ResponseHandler<String> rescriptAccountResponseHandler) {
+    public static String sendPostRequestAccountRescript(final String paramString, final String operationString, final RescriptAccountResponseHandler rescriptAccountResponseHandler) {
         final String apiNgURLString = Statics.ACCOUNT_APING_URL + Statics.RESCRIPT_SUFFIX + operationString + "/";
-        return sendAccountPostRequest(paramString, operationString, appKeyString, apiNgURLString, rescriptAccountResponseHandler);
+        return sendAccountPostRequest(paramString, operationString, apiNgURLString, rescriptAccountResponseHandler);
     }
 
-    static String sendPostRequestRescript(final String paramString, final String operationString, final String appKeyString, final RescriptResponseHandler rescriptResponseHandler) {
+    public static String sendPostRequestRescript(final String paramString, final String operationString, final RescriptResponseHandler rescriptResponseHandler) {
         final String apiNgURLString = Statics.APING_URL + Statics.RESCRIPT_SUFFIX + operationString + "/";
-        return sendPostRequest(paramString, operationString, appKeyString, apiNgURLString, rescriptResponseHandler);
+        return sendPostRequest(paramString, operationString, apiNgURLString, rescriptResponseHandler);
     }
 }

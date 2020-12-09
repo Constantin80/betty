@@ -1,15 +1,16 @@
 package info.fmro.betty.safebet;
 
 import com.google.common.collect.Iterables;
-import info.fmro.betty.betapi.ApiNgRescriptOperations;
+import info.fmro.betty.betapi.HttpUtil;
 import info.fmro.betty.betapi.RescriptOpThread;
-import info.fmro.betty.betapi.RescriptResponseHandler;
 import info.fmro.betty.logic.FindMarkets;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.betty.threads.permanent.GetLiveMarketsThread;
 import info.fmro.betty.threads.permanent.MaintenanceThread;
 import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.betapi.ApiNgRescriptOperations;
+import info.fmro.shared.betapi.RescriptResponseHandler;
 import info.fmro.shared.entities.Event;
 import info.fmro.shared.entities.EventResult;
 import info.fmro.shared.entities.MarketCatalogue;
@@ -17,6 +18,7 @@ import info.fmro.shared.entities.MarketDescription;
 import info.fmro.shared.entities.MarketFilter;
 import info.fmro.shared.entities.RunnerCatalog;
 import info.fmro.shared.enums.CommandType;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import org.jetbrains.annotations.Contract;
@@ -45,7 +47,7 @@ final class SafeBetModuleMethods {
     private SafeBetModuleMethods() {
     }
 
-    private static List<EventResult> getLiveEventResultList(final String appKeyString) {
+    private static List<EventResult> getLiveEventResultList() {
         final Set<String> eventTypeIdsSet = new HashSet<>(2, 0.75f);
         eventTypeIdsSet.add("1"); // soccer
 
@@ -55,7 +57,7 @@ final class SafeBetModuleMethods {
         marketFilter.setEventTypeIds(eventTypeIdsSet);
 
         final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
-        final List<EventResult> eventResultList = ApiNgRescriptOperations.listEvents(marketFilter, appKeyString, rescriptResponseHandler);
+        final List<EventResult> eventResultList = ApiNgRescriptOperations.listEvents(marketFilter, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
         if (Statics.debugLevel.check(3, 113)) {
             logger.info("eventResultList size: {}", eventResultList == null ? null : eventResultList.size());
@@ -64,10 +66,9 @@ final class SafeBetModuleMethods {
         return eventResultList;
     }
 
-    @SuppressWarnings("OverlyNestedMethod")
     public static void parseEventResultList() {
         final long startTime = System.currentTimeMillis();
-        final List<EventResult> eventResultList = getLiveEventResultList(Statics.appKey.get());
+        final List<EventResult> eventResultList = getLiveEventResultList();
         if (eventResultList != null) {
             // Statics.timeStamps.lastParseEventResultListStamp(Generic.MINUTE_LENGTH_MILLISECONDS);
             final HashSet<Event> addedEvents = new HashSet<>(0);
@@ -102,7 +103,7 @@ final class SafeBetModuleMethods {
                         }
                     }
                 } else {
-                    Generic.alreadyPrintedMap.logOnce(logger, LogLevel.WARN, "parseEventResultList ignoring unparsed event name: {}", event.getName());
+                    SharedStatics.alreadyPrintedMap.logOnce(logger, LogLevel.WARN, "parseEventResultList ignoring unparsed event name: {}", event.getName());
                 }
             } // end for
             Statics.eventsMap.timeStamp();
@@ -118,7 +119,7 @@ final class SafeBetModuleMethods {
                 final int sizeNotIgnoredModified = notIgnoredModifiedEvents.size();
                 if (sizeNotIgnoredModified > 0) {
                     logger.info("parseEventResultList modifiedEvents: {} launch: findMarkets", sizeNotIgnoredModified);
-                    Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, notIgnoredModifiedEvents));
+                    SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, notIgnoredModifiedEvents));
                 }
             }
 
@@ -126,7 +127,7 @@ final class SafeBetModuleMethods {
             if (sizeAdded > 0) { // only added; modified will be checked during fullRun
                 if (Statics.safeBetModuleActivated) {
                     logger.info("parseEventResultList addedEvents: {} launch: mapEventsToScraperEvents delayed", sizeAdded);
-                    Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents, addedEvents, Generic.MINUTE_LENGTH_MILLISECONDS));
+                    SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents, addedEvents, Generic.MINUTE_LENGTH_MILLISECONDS));
                 }
             }
         } else {
@@ -140,7 +141,7 @@ final class SafeBetModuleMethods {
         logger.info("parseEventResultList finished in {} ms eventResultList size: {}", System.currentTimeMillis() - startTime, eventResultList == null ? null : eventResultList.size());
     }
 
-    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod", "OverlyNestedMethod"})
+    @SuppressWarnings({"OverlyComplexMethod", "OverlyLongMethod"})
     public static void findInterestingMarkets(final Collection<String> marketIdsSet) {
         if (marketIdsSet != null) {
             final long methodStartTime = System.currentTimeMillis();
@@ -249,7 +250,7 @@ final class SafeBetModuleMethods {
                     }
                 } // end for
                 if (!notIgnoredModifiedEvents.isEmpty()) {
-                    Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, notIgnoredModifiedEvents));
+                    SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, notIgnoredModifiedEvents));
                 }
             }
             final int sizeEntries = toCheckMarkets.size();
@@ -266,7 +267,7 @@ final class SafeBetModuleMethods {
                 } // end for
                 if (!notIgnoredToCheckMarkets.isEmpty()) {
                     if (Statics.safeBetModuleActivated) {
-                        Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, notIgnoredToCheckMarkets));
+                        SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, notIgnoredToCheckMarkets));
                     }
                 }
             }
@@ -290,8 +291,8 @@ final class SafeBetModuleMethods {
                 } else if (event.isIgnored()) {
                     iterator.remove();
                 } else {
-                    final int nMatched = event.getNValidScraperEventIds(MaintenanceThread.removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated,
-                                                                        Statics.MIN_MATCHED, Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod,
+                    final int nMatched = event.getNValidScraperEventIds(MaintenanceThread.removeFromSecondaryMapsMethod, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.MIN_MATCHED,
+                                                                        Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod,
                                                                         LaunchCommandThread.constructorHashSetLongEvent);
                     final String eventId = event.getId();
                     if (nMatched < Statics.MIN_MATCHED || eventId == null) {
@@ -372,13 +373,13 @@ final class SafeBetModuleMethods {
                             if (info.fmro.shared.utility.Formulas.isMarketType(marketCatalogue, Statics.supportedEventTypes)) {
                                 logger.warn("findInterestingMarkets unparsed event name: {} for: {}", eventStump.getName(), marketId);
                             } else {
-                                Generic.alreadyPrintedMap.logOnce(4L * Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "findInterestingMarkets unparsed event name: {} for: {} {}", eventStump.getName(), marketId,
-                                                                  Generic.objectToString(marketCatalogue.getEventType()));
+                                SharedStatics.alreadyPrintedMap.logOnce(4L * Generic.HOUR_LENGTH_MILLISECONDS, logger, LogLevel.INFO, "findInterestingMarkets unparsed event name: {} for: {} {}", eventStump.getName(), marketId,
+                                                                        Generic.objectToString(marketCatalogue.getEventType()));
                             }
 
                             nMatched = 0; // so it just continues to next for element; actually without the safeBetsModule activated, it uses the element
                         } else {
-                            nMatched = event.getNValidScraperEventIds(MaintenanceThread.removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.MIN_MATCHED,
+                            nMatched = event.getNValidScraperEventIds(MaintenanceThread.removeFromSecondaryMapsMethod, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.MIN_MATCHED,
                                                                       Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod,
                                                                       LaunchCommandThread.constructorHashSetLongEvent);
                         }
@@ -457,9 +458,10 @@ final class SafeBetModuleMethods {
                                             final long currentTimeStamp = marketCatalogue.getTimeStamp();
                                             final long timeDifference = currentTimeStamp - existingTimeStamp;
                                             if (timeDifference > 1_000L && startedWaitingTime - existingTimeStamp > 1_000L) {
-                                                Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "probably modified {}({}) ms parsedMarket for: {} {}", timeDifference, startedWaitingTime - existingTimeStamp,
-                                                                                  Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"),
-                                                                                  Generic.objectToString(inMapMarketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
+                                                SharedStatics.alreadyPrintedMap
+                                                        .logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "probably modified {}({}) ms parsedMarket for: {} {}", timeDifference, startedWaitingTime - existingTimeStamp,
+                                                                 Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"),
+                                                                 Generic.objectToString(inMapMarketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
                                             } else { // can happen due to concurrent threads, no need to print message
                                             }
                                         }
@@ -477,7 +479,7 @@ final class SafeBetModuleMethods {
                                 if (info.fmro.shared.utility.Formulas.isMarketType(marketCatalogue, Statics.supportedEventTypes)) {
                                     logger.error("null fields in findInterestingMarkets inner for: {}", Generic.objectToString(marketCatalogue));
                                 } else {
-                                    Generic.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "null fields in findInterestingMarkets inner for: {} {}", marketId, Generic.objectToString(marketCatalogue.getEventType()));
+                                    SharedStatics.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "null fields in findInterestingMarkets inner for: {} {}", marketId, Generic.objectToString(marketCatalogue.getEventType()));
                                 }
                             }
                         } else { // no associated scraperEvent or market exists and not checkAll, won't be parsed
@@ -520,13 +522,14 @@ final class SafeBetModuleMethods {
                         }
                     } // end for
                     if (!notIgnoredModifiedEvents.isEmpty()) {
-                        Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, notIgnoredModifiedEvents));
+                        SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findMarkets, notIgnoredModifiedEvents));
                     }
                 }
                 final int sizeEntries = toCheckMarkets.size();
                 if (sizeEntries > 0) {
                     final String printedString =
-                            MessageFormatter.arrayFormat("findInterestingMarkets{}{} toCheckMarkets(modify/add): {}({}/{}) launch: findSafeRunners", new Object[]{fullRunString, checkAllString, sizeEntries, nModifiedMarkets, nAddedMarkets}).getMessage();
+                            MessageFormatter.arrayFormat("findInterestingMarkets{}{} toCheckMarkets(modify/add): {}({}/{}) launch: findSafeRunners",
+                                                         new Object[]{fullRunString, checkAllString, sizeEntries, nModifiedMarkets, nAddedMarkets}).getMessage();
                     if (fullRun) {
                         if (nModifiedMarkets > 0) {
                             logger.warn(printedString); // sometimes, rarely, does happen
@@ -546,7 +549,7 @@ final class SafeBetModuleMethods {
                     } // end for
                     if (!notIgnoredToCheckMarkets.isEmpty()) {
                         if (Statics.safeBetModuleActivated) {
-                            Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, notIgnoredToCheckMarkets));
+                            SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, notIgnoredToCheckMarkets));
                         }
                     }
                 }

@@ -3,6 +3,7 @@ package info.fmro.betty.safebet;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.utility.Formulas;
 import info.fmro.shared.enums.MatchStatus;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import org.jetbrains.annotations.Contract;
@@ -10,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -18,6 +20,7 @@ public class CoralEvent
         extends ScraperEvent
         implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(CoralEvent.class);
+    @Serial
     private static final long serialVersionUID = -1908827012627039399L;
     private String eventName;
     private int seconds = -1;
@@ -37,7 +40,7 @@ public class CoralEvent
             final int awayModified = this.setAwayTeam(this.eventName.substring(this.eventName.indexOf(" v ") + " v ".length()).trim());
             modified = homeModified + awayModified;
         } else {
-            Generic.alreadyPrintedMap.logOnce(logger, LogLevel.WARN, "unknown coralEvent name home/away separator for: {}", this.eventName);
+            SharedStatics.alreadyPrintedMap.logOnce(logger, LogLevel.WARN, "unknown coralEvent name home/away separator for: {}", this.eventName);
 
             // won't allow null to be set
             // homeName = null;

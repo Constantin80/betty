@@ -1,6 +1,6 @@
 package info.fmro.betty.safebet;
 
-import info.fmro.betty.objects.Statics;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.stream.objects.ScraperEventInterface;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Contract;
@@ -86,7 +86,7 @@ public class SafeBetStats {
             if (this.timeLastAppear < timeLastAppear) {
                 this.timeLastAppear = timeLastAppear;
             } else {
-                final long timeSinceLastDiskSave = this.timeLastAppear - Statics.timeLastSaveToDisk.get();
+                final long timeSinceLastDiskSave = this.timeLastAppear - SharedStatics.timeLastSaveToDisk.get();
                 if (timeSinceLastDiskSave > 5_000L) {
                     final long timeDifference = this.timeLastAppear - timeLastAppear;
                     if (timeDifference > 500L) {

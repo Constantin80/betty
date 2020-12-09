@@ -12,10 +12,10 @@ import com.ximpleware.XPathEvalException;
 import com.ximpleware.XPathParseException;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
-import info.fmro.betty.utility.WebScraperMethods;
 import info.fmro.shared.entities.Event;
 import info.fmro.shared.enums.CommandType;
 import info.fmro.shared.enums.MatchStatus;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import org.jetbrains.annotations.NotNull;
@@ -155,7 +155,7 @@ public class BetradarScraperThread
                 } while (indexSpan >= 0);
                 scraperEvent.setHomeRedCards(counterCards);
                 if (counterCards > 0) {
-                    Generic.alreadyPrintedMap.logOnce(Statics.debugLevel.check(2, 127), logger, LogLevel.INFO, "red cards for {}: {}", homeTeam, counterCards);
+                    SharedStatics.alreadyPrintedMap.logOnce(Statics.debugLevel.check(2, 127), logger, LogLevel.INFO, "red cards for {}: {}", homeTeam, counterCards);
                 }
             } else {
                 if (Statics.debugLevel.check(2, 131)) {
@@ -212,7 +212,7 @@ public class BetradarScraperThread
                 } while (indexSpan >= 0);
                 scraperEvent.setAwayRedCards(counterCards);
                 if (counterCards > 0) {
-                    Generic.alreadyPrintedMap.logOnce(Statics.debugLevel.check(2, 128), logger, LogLevel.INFO, "red cards for {}: {}", awayTeam, counterCards);
+                    SharedStatics.alreadyPrintedMap.logOnce(Statics.debugLevel.check(2, 128), logger, LogLevel.INFO, "red cards for {}: {}", awayTeam, counterCards);
                 }
             } else {
                 if (Statics.debugLevel.check(2, 132)) {
@@ -233,7 +233,7 @@ public class BetradarScraperThread
         return success;
     }
 
-    @SuppressWarnings({"NestedTryStatement", "OverlyLongMethod", "OverlyNestedMethod"})
+    @SuppressWarnings({"NestedTryStatement", "OverlyLongMethod"})
     private boolean scrapeScore(final BetradarEvent scraperEvent, @NotNull final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
@@ -340,7 +340,7 @@ public class BetradarScraperThread
         return success;
     }
 
-    @SuppressWarnings({"OverlyNestedMethod", "NestedTryStatement"})
+    @SuppressWarnings("NestedTryStatement")
     private boolean scrapeHtScore(final BetradarEvent scraperEvent, @NotNull final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
@@ -525,7 +525,7 @@ public class BetradarScraperThread
         return success;
     }
 
-    @SuppressWarnings({"OverlyNestedMethod", "NestedTryStatement"})
+    @SuppressWarnings("NestedTryStatement")
     private boolean scrapeMinutesPlayed(final BetradarEvent scraperEvent, @NotNull final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
@@ -729,8 +729,7 @@ public class BetradarScraperThread
                                     nLiveEvents = i + 1 + counterNotStarted; // will get a few extra but ensures I get all; i+1 because it starts from 0
                                     if (counterNotStarted > 0) {
                                         if (Statics.debugLevel.check(2, 195)) {
-                                            Generic.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "{} found started game after not started: counterNotStarted={} {} id:{}",
-                                                                              this.threadId, counterNotStarted, matchStatus.name(), eventId);
+                                            SharedStatics.alreadyPrintedMap.logOnce(logger, LogLevel.INFO, "{} found started game after not started: counterNotStarted={} {} id:{}", this.threadId, counterNotStarted, matchStatus.name(), eventId);
                                         }
 //                                                            lastFoundStartedAfterNotStarted.set(startTime);
                                     }
@@ -765,10 +764,9 @@ public class BetradarScraperThread
                                                     final long timeSinceLastRemoved = startTime - Statics.betradarEventsMap.getTimeStampRemoved();
                                                     Statics.betradarEventsMap.removeValueAll(null);
 
-                                                    final String printedString = MessageFormatter.arrayFormat(
-                                                            "{} null betradarEvent in map, timeSinceLastRemoved: {} for eventId: {} of scraperEvent: {} {}",
-                                                            new Object[]{this.threadId, timeSinceLastRemoved, eventId, Generic.objectToString(scraperEvent),
-                                                                         Generic.objectToString(existingScraperEvent)}).getMessage();
+                                                    final String printedString = MessageFormatter.arrayFormat("{} null betradarEvent in map, timeSinceLastRemoved: {} for eventId: {} of scraperEvent: {} {}",
+                                                                                                              new Object[]{this.threadId, timeSinceLastRemoved, eventId, Generic.objectToString(scraperEvent),
+                                                                                                                           Generic.objectToString(existingScraperEvent)}).getMessage();
 //                                                    if (timeSinceLastRemoved < 1_000L) {
 //                                                        logger.info("{} null betradarEvent in map timeSinceLastRemoved {} for eventId {}", threadId, timeSinceLastRemoved,
 //                                                                eventId);
@@ -838,10 +836,10 @@ public class BetradarScraperThread
 //                                                    logger.error("{} check true scraperEvent updated into check false scraperEvent: {} {}", threadId,
 //                                                            Generic.objectToString(scraperEvent), Generic.objectToString(existingScraperEvent));
 
-                                                    Generic.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR,
-                                                                                      "{} check true scraperEvent updated into check false {} scraperEvent: {} {}", this.threadId, existingScraperErrors,
-                                                                                      Generic.objectToString(scraperEvent, "seconds", "classModifiers", "minutesPlayed", "stoppageTime", "Stamp"),
-                                                                                      Generic.objectToString(existingScraperEvent, "seconds", "classModifiers", "minutesPlayed", "stoppageTime", "Stamp"));
+                                                    SharedStatics.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR,
+                                                                                            "{} check true scraperEvent updated into check false {} scraperEvent: {} {}", this.threadId, existingScraperErrors,
+                                                                                            Generic.objectToString(scraperEvent, "seconds", "classModifiers", "minutesPlayed", "stoppageTime", "Stamp"),
+                                                                                            Generic.objectToString(existingScraperEvent, "seconds", "classModifiers", "minutesPlayed", "stoppageTime", "Stamp"));
 
                                                     // probably no need for removal, ignore is done when existingScraperEvent.errors() is invoked
 //                                                    Statics.betradarEventsMap.remove(eventId);
@@ -862,8 +860,8 @@ public class BetradarScraperThread
 
                                         if (scraperErrors >= 100) {
 //                                            logger.error("{} scraperEvent scraperErrors: {} in getScraperEvents for: {}", threadId, scraperErrors, scraperString);
-                                            Generic.alreadyPrintedMap.logOnce(5L * Generic.MINUTE_LENGTH_MILLISECONDS, logger, LogLevel.ERROR,
-                                                                              "{} scraperEvent scraperErrors: {} in getScraperEvents for: {}", this.threadId, scraperErrors, scraperString);
+                                            SharedStatics.alreadyPrintedMap.logOnce(5L * Generic.MINUTE_LENGTH_MILLISECONDS, logger, LogLevel.ERROR,
+                                                                                    "{} scraperEvent scraperErrors: {} in getScraperEvents for: {}", this.threadId, scraperErrors, scraperString);
                                         } else { // scraperErrors >= 1
                                             final long currentTime = System.currentTimeMillis();
 
@@ -910,12 +908,12 @@ public class BetradarScraperThread
             final int sizeAdded = addedScraperEvents.size();
             if (sizeAdded > 0) {
                 logger.info("{} getScraperEvents addedScraperEvents: {} launch: mapEventsToScraperEvents", this.threadId, sizeAdded);
-                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents, addedScraperEvents, BetradarEvent.class));
+                SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents, addedScraperEvents, BetradarEvent.class));
             }
             final int sizeEvents = eventsAttachedToModifiedScraperEvents.size();
             if (sizeEvents > 0) {
                 logger.info("{} getScraperEvents toCheckEvents: {} launch: findSafeRunners", this.threadId, sizeEvents);
-                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, eventsAttachedToModifiedScraperEvents));
+                SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, eventsAttachedToModifiedScraperEvents));
             }
 
             if (this.mustRefreshPage.get()) { // mustRefresh already true, no need to recheck

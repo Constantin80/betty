@@ -1,4 +1,4 @@
-package info.fmro.betty.utility;
+package info.fmro.betty.safebet;
 
 import com.gargoylesoftware.htmlunit.AlertHandler;
 import com.gargoylesoftware.htmlunit.BrowserVersion;
@@ -62,7 +62,8 @@ public final class WebScraperMethods {
         return savePage(htmlPage, mustSavePage, "pages/", "page", ".html", threadId);
     }
 
-    public static boolean savePage(final HtmlPage htmlPage, final AtomicBoolean mustSavePage, final String prefix, final String threadId) {
+    @SuppressWarnings("UnusedReturnValue")
+    static boolean savePage(final HtmlPage htmlPage, final AtomicBoolean mustSavePage, final String prefix, final String threadId) {
         return savePage(htmlPage, mustSavePage, prefix, "page", ".html", threadId);
     }
 
@@ -99,7 +100,7 @@ public final class WebScraperMethods {
         clearCache(cache, null, threadId);
     }
 
-    public static void clearCache(final Cache cache, final String fileName, final String threadId) {
+    static void clearCache(final Cache cache, final String fileName, final String threadId) {
         if (cache != null) {
             if (fileName != null) {
                 Generic.synchronizedWriteObjectToFile(cache, fileName);
@@ -165,7 +166,7 @@ public final class WebScraperMethods {
 //
 //        return success;
 //    }
-    public static HtmlPage getPage(final WebClient webClient, final String savePrefix, final AtomicBoolean mustRefreshPage, final AtomicBoolean mustSavePage, final String url, final String threadId, final String... expressionXPaths) {
+    static HtmlPage getPage(final WebClient webClient, final String savePrefix, final AtomicBoolean mustRefreshPage, final AtomicBoolean mustSavePage, final String url, final String threadId, final String... expressionXPaths) {
         return getPage(webClient, savePrefix, mustRefreshPage, mustSavePage, defaultInitialWaitForScripts, defaultSecondaryWaitForScripts, defaultFinalWaitForScripts, url, threadId, expressionXPaths);
     }
 
@@ -174,8 +175,8 @@ public final class WebScraperMethods {
         return getPage(webClient, savePrefix, mustRefreshPage, mustSavePage, waitForScripts, defaultSecondaryWaitForScripts, defaultFinalWaitForScripts, url, threadId, expressionXPaths);
     }
 
-    public static HtmlPage getPage(@NotNull final WebClient webClient, final String savePrefix, final AtomicBoolean mustRefreshPage, final AtomicBoolean mustSavePage, final long waitForScripts, final long secondaryWaitForScripts,
-                                   final long finalWaitForScripts, final String url, final String threadId, final String... expressionXPaths) {
+    static HtmlPage getPage(@NotNull final WebClient webClient, final String savePrefix, final AtomicBoolean mustRefreshPage, final AtomicBoolean mustSavePage, final long waitForScripts, final long secondaryWaitForScripts,
+                            final long finalWaitForScripts, final String url, final String threadId, final String... expressionXPaths) {
         @Nullable HtmlPage htmlPage;
         final long beginLoadPageTime = System.currentTimeMillis();
         try {
@@ -254,8 +255,8 @@ public final class WebScraperMethods {
         return clickElements(webClient, mustRefreshPage, htmlPage, defaultSecondaryWaitForScripts, expressionXPath, threadId, savePrefix, mustSavePage);
     }
 
-    public static HtmlPage clickElements(final WebClient webClient, final AtomicBoolean mustRefreshPage, final HtmlPage htmlPage, final long secondaryWaitForScripts, @NotNull final String expressionXPath, final String threadId, final String savePrefix,
-                                         final AtomicBoolean mustSavePage) {
+    static HtmlPage clickElements(final WebClient webClient, final AtomicBoolean mustRefreshPage, final HtmlPage htmlPage, final long secondaryWaitForScripts, @NotNull final String expressionXPath, final String threadId, final String savePrefix,
+                                  final AtomicBoolean mustSavePage) {
         // clicks all found elements
         HtmlPage page = htmlPage;
         String xPath = expressionXPath;
@@ -305,7 +306,7 @@ public final class WebScraperMethods {
         waitForScripts(webClient, defaultInitialWaitForScripts, threadId);
     }
 
-    public static void waitForScripts(final WebClient webClient, final long waitForScripts, final String threadId) {
+    static void waitForScripts(final WebClient webClient, final long waitForScripts, final String threadId) {
         if (waitForScripts >= 0) {
             final long beginExecuteScriptsTime = System.currentTimeMillis();
             final int jobsStillActive = webClient.waitForBackgroundJavaScriptStartingBefore(waitForScripts);
@@ -333,7 +334,7 @@ public final class WebScraperMethods {
     }
 
     @NotNull
-    public static Cache initializeCache(final WebClient webClient, final String fileName, final int cacheMaxSize, final String threadId) {
+    static Cache initializeCache(final WebClient webClient, final String fileName, final int cacheMaxSize, final String threadId) {
         return initializeCache(webClient, fileName, null, cacheMaxSize, threadId);
     }
 
@@ -342,8 +343,9 @@ public final class WebScraperMethods {
         return initializeCache(webClient, null, sourceCache, defaultCacheMaxSize, threadId);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     @NotNull
-    public static Cache initializeCache(final WebClient webClient, final Cache sourceCache, final int cacheMaxSize, final String threadId) {
+    static Cache initializeCache(final WebClient webClient, final Cache sourceCache, final int cacheMaxSize, final String threadId) {
         return initializeCache(webClient, null, sourceCache, cacheMaxSize, threadId);
     }
 
@@ -382,7 +384,7 @@ public final class WebScraperMethods {
     }
 
     @NotNull
-    public static WebClient getNewWebClient(final BrowserVersion browserVersion, final String threadId) {
+    static WebClient getNewWebClient(final BrowserVersion browserVersion, final String threadId) {
 //        browserVersion.setApplicationCodeName(BrowserVersion.INTERNET_EXPLORER_8.getApplicationCodeName());
 //        browserVersion.setApplicationMinorVersion(BrowserVersion.INTERNET_EXPLORER_8.getApplicationMinorVersion());
 //        browserVersion.setApplicationName(BrowserVersion.INTERNET_EXPLORER_8.getApplicationName());

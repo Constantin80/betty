@@ -122,45 +122,45 @@ public class SafeBet
         return stringBuilder.toString().trim();
     }
 
-    public synchronized String getMarketId() {
+    public String getMarketId() {
         return this.marketId;
     }
 
-    public synchronized MarketStatus getMarketStatus() {
+    public MarketStatus getMarketStatus() {
         return this.marketStatus;
     }
 
-    public synchronized boolean isInPlay() {
+    public boolean isInPlay() {
         return this.inPlay;
     }
 
-    public synchronized int getBetDelay() {
+    public int getBetDelay() {
         return this.betDelay;
     }
 
-    public synchronized long getRunnerId() {
+    public long getRunnerId() {
         return this.runnerId;
     }
 
-    public synchronized RunnerStatus getRunnerStatus() {
+    public RunnerStatus getRunnerStatus() {
         return this.runnerStatus;
     }
 
-    public synchronized double getPrice() {
+    public double getPrice() {
         return this.price;
     }
 
-    public synchronized double getSize() {
+    public double getSize() {
         return this.size;
     }
 
-    public synchronized Side getSide() {
+    public Side getSide() {
         return this.side;
     }
 
     @SuppressWarnings("MethodWithMultipleReturnPoints")
     @Override
-    public synchronized int compareTo(@NotNull final SafeBet o) {
+    public int compareTo(@NotNull final SafeBet o) {
         //noinspection ConstantConditions
         if (o == null) {
             return AFTER;
@@ -229,57 +229,27 @@ public class SafeBet
     }
 
     @Override
-    public synchronized int hashCode() {
-        int hash = 7;
-        hash = 71 * hash + Objects.hashCode(this.marketId);
-        hash = 71 * hash + Objects.hashCode(this.marketStatus);
-        hash = 71 * hash + (this.inPlay ? 1 : 0);
-        hash = 71 * hash + this.betDelay;
-        hash = 71 * hash + (int) (this.runnerId ^ (this.runnerId >>> 32));
-        hash = 71 * hash + Objects.hashCode(this.runnerStatus);
-        hash = 71 * hash + (int) (Double.doubleToLongBits(this.price) ^ (Double.doubleToLongBits(this.price) >>> 32));
-        // hash = 71 * hash + (int) (Double.doubleToLongBits(this.size) ^ (Double.doubleToLongBits(this.size) >>> 32));
-        hash = 71 * hash + (int) Math.round(this.size); // this doesn't protect from cases where the value is around .5
-        return hash;
-    }
-
-    @Contract(value = "null -> false", pure = true)
-    @Override
-    public synchronized boolean equals(final Object obj) {
-        if (obj == null) {
-            return false;
-        }
+    public boolean equals(final Object obj) {
         if (this == obj) {
             return true;
         }
-        if (getClass() != obj.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final SafeBet other = (SafeBet) obj;
-        if (!Objects.equals(this.marketId, other.marketId)) {
-            return false;
-        }
-        if (this.marketStatus != other.marketStatus) {
-            return false;
-        }
-        if (this.inPlay != other.inPlay) {
-            return false;
-        }
-        if (this.betDelay != other.betDelay) {
-            return false;
-        }
-        if (this.runnerId != other.runnerId) {
-            return false;
-        }
-        if (this.runnerStatus != other.runnerStatus) {
-            return false;
-        }
-        if (Double.doubleToLongBits(this.price) != Double.doubleToLongBits(other.price)) {
-            return false;
-        }
-        if (this.side != other.side) {
-            return false;
-        }
-        return Math.round(this.size) == Math.round(other.size);
+        final SafeBet safeBet = (SafeBet) obj;
+        return this.inPlay == safeBet.inPlay &&
+               this.betDelay == safeBet.betDelay &&
+               this.runnerId == safeBet.runnerId &&
+               Double.compare(safeBet.price, this.price) == 0 &&
+               Double.compare(safeBet.size, this.size) == 0 &&
+               Objects.equals(this.marketId, safeBet.marketId) &&
+               this.marketStatus == safeBet.marketStatus &&
+               this.runnerStatus == safeBet.runnerStatus &&
+               this.side == safeBet.side;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.marketId, this.marketStatus, this.inPlay, this.betDelay, this.runnerId, this.runnerStatus, this.price, this.size, this.side);
     }
 }

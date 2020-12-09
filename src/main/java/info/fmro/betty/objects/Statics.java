@@ -19,10 +19,7 @@ import info.fmro.shared.entities.MarketBook;
 import info.fmro.shared.entities.MarketCatalogue;
 import info.fmro.shared.enums.ParsedMarketType;
 import info.fmro.shared.objects.OrderPrice;
-import info.fmro.shared.objects.SessionTokenObject;
-import info.fmro.shared.objects.TimeStamps;
-import info.fmro.shared.stream.cache.market.MarketCache;
-import info.fmro.shared.stream.cache.order.OrderCache;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.stream.objects.StreamSynchronizedMap;
 import info.fmro.shared.utility.DebugLevel;
 import info.fmro.shared.utility.Generic;
@@ -62,7 +59,7 @@ import java.util.concurrent.atomic.AtomicReference;
 @SuppressWarnings("UtilityClass")
 public final class Statics {
     private static final Logger logger = LoggerFactory.getLogger(Statics.class);
-    public static final boolean notPlacingOrders = true; // hard stop for order placing; true for testing, false enables order placing
+    //    public static final boolean notPlacingOrders = true; // hard stop for order placing; true for testing, false enables order placing
     public static final boolean connectingToBetfairServersDisabled = false; // hard stop for interrogating Betfair servers, when not needed during testing; stop most communication, but not all
     public static final boolean safeBetModuleActivated = false; // false for now, I won't be using this module for quite a while
     public static final boolean resetTestMarker = false; // when true, resets rulesManager testMarker variable, and then exits the program
@@ -72,8 +69,9 @@ public final class Statics {
     public static final double threshold = .8d, highThreshold = .9d;
     public static final int SOCKET_CONNECT_TIMEOUT = 30_000, SOCKET_READ_TIMEOUT = 30_000, PAGE_GET_TIMEOUT = 120_000;
     public static final int ENCRYPTION_KEY = 0, DECRYPTION_KEY = 2, N_BEST = 100, N_ALL = 11, N_MARKET_BOOK_THREADS_LIMIT = 50, MIN_MATCHED = safeBetModuleActivated ? 2 : 0, SSL_PORT = 443, TEST_MARKER = 346562;
-    public static final long DELAY_GET_MARKET_BOOKS = 200L, EXECUTOR_KEEP_ALIVE = 10_000L, DELAY_PRINT_AVERAGES = 20_000L, DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD = 1_000L, N_MARKET_BOOK_THREADS_INTERVAL = 2_000L,
-            INITIAL_EVENT_SAFETY_PERIOD = Generic.MINUTE_LENGTH_MILLISECONDS, PROGRAM_START_TIME = System.currentTimeMillis(), MINIMUM_BAD_STUFF_HAPPENED_IGNORE = 2L * Generic.MINUTE_LENGTH_MILLISECONDS;
+    public static final long DELAY_GET_MARKET_BOOKS = 200L, DELAY_PRINT_AVERAGES = 20_000L, DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD = 1_000L, N_MARKET_BOOK_THREADS_INTERVAL = 2_000L,
+            INITIAL_EVENT_SAFETY_PERIOD = Generic.MINUTE_LENGTH_MILLISECONDS, MINIMUM_BAD_STUFF_HAPPENED_IGNORE = 2L * Generic.MINUTE_LENGTH_MILLISECONDS, STREAMED_MARKETS_CHECK_PERIOD = Generic.MINUTE_LENGTH_MILLISECONDS << 3;
+    // , EXECUTOR_KEEP_ALIVE = 10_000L, PROGRAM_START_TIME = System.currentTimeMillis()
     public static final String SSO_HOST_RO = "identitysso-cert.betfair.ro", AUTH_URL = "https://" + SSO_HOST_RO + "/api/certlogin", KEY_STORE_TYPE = "pkcs12", PROJECT_PREFIX = "info.fmro";
     public static final String VARS_FILE_NAME = "input/vars.txt", STDOUT_FILE_NAME = "out.txt", STDERR_FILE_NAME = "err.txt", MATCHER_FILE_NAME = "matcher.txt", SAFE_BETS_FILE_NAME = "bets.txt", NEW_MARKET_FILE_NAME = "newMarket.txt",
             KEY_STORE_FILE_NAME = "input/client-2048.p12", KEY_STORE_PASSWORD = "", APING_URL = "https://api.betfair.com/exchange/betting/", RESCRIPT_SUFFIX = "rest/v1.0/", APPLICATION_JSON = "application/json", ACCOUNT_APING_URL =
@@ -81,7 +79,6 @@ public final class Statics {
             SETTINGS_FILE_NAME = Statics.DATA_FOLDER_NAME + "/rulesManager.txt";
     public static final String INTERFACE_KEY_STORE_FILE_NAME = "input/keystore";
     public static final List<String> supportedEventTypes = List.of("1"); // "1" = soccer
-
     //    public static AtomicBoolean closeStandardStreams = new AtomicBoolean(true); // modified by reflection for tests
     public static final boolean closeStandardStreamsNotInitialized = false; // modified by reflection for tests; can't initialize, as that inlines the value and it can no longer be modified; no longer modified in tests, now I initialize it
     @SuppressWarnings({"StaticVariableMayNotBeInitialized", "PublicStaticCollectionField", "StaticNonFinalField"})
@@ -89,12 +86,12 @@ public final class Statics {
     //    public static final ArrayList<? extends OutputStream> standardStreamsList = Generic.replaceStandardStreams(STDOUT_FILE_NAME, STDERR_FILE_NAME, LOGS_FOLDER_NAME, !closeStandardStreamsNotInitialized); // negated boolean, as it's not initialized
     public static final Set<Class<? extends ScraperEvent>> scraperEventSubclassesSet = Set.copyOf(Generic.getSubclasses(PROJECT_PREFIX, ScraperEvent.class));
     //    public static final Set<Class<? extends ScraperPermanentThread>> scraperThreadSubclassesSet = Set.copyOf(Generic.getSubclasses(PROJECT_PREFIX, ScraperPermanentThread.class));
-    public static final AtomicBoolean mustStop = new AtomicBoolean(), mustSleep = new AtomicBoolean(), needSessionToken = new AtomicBoolean(), mustWriteObjects = new AtomicBoolean(), fundsQuickRun = new AtomicBoolean(), denyBetting = new AtomicBoolean(),
-            programIsRunningMultiThreaded = new AtomicBoolean();
+    public static final AtomicBoolean mustSleep = new AtomicBoolean(), fundsQuickRun = new AtomicBoolean(), programIsRunningMultiThreaded = new AtomicBoolean();
+    // , mustStop = new AtomicBoolean(), mustWriteObjects = new AtomicBoolean(), needSessionToken = new AtomicBoolean(), denyBetting = new AtomicBoolean()
     public static final AtomicInteger inputServerPort = new AtomicInteger(), interfaceServerPort = new AtomicInteger();
-    public static final AtomicReference<String> appKey = new AtomicReference<>(), delayedAppKey = new AtomicReference<>(), bu = new AtomicReference<>(), bp = new AtomicReference<>(), orderToPrint = new AtomicReference<>(),
-            interfaceKeyStorePassword = new AtomicReference<>();
-    public static final AtomicLong timeLastFundsOp = new AtomicLong(), timeLastSaveToDisk = new AtomicLong(), aliasesTimeStamp = new AtomicLong(), fullAliasesTimeStamp = new AtomicLong();
+    public static final AtomicReference<String> delayedAppKey = new AtomicReference<>(), bu = new AtomicReference<>(), bp = new AtomicReference<>(), orderToPrint = new AtomicReference<>(), interfaceKeyStorePassword = new AtomicReference<>();
+    // , appKey = new AtomicReference<>()
+    public static final AtomicLong timeLastFundsOp = new AtomicLong(), aliasesTimeStamp = new AtomicLong(), fullAliasesTimeStamp = new AtomicLong(); // , timeLastSaveToDisk = new AtomicLong()
     @SuppressWarnings("PublicStaticCollectionField")
     public static final Map<OrderPrice, Double> executingOrdersMap = Collections.synchronizedMap(new HashMap<>(2));
     @SuppressWarnings("PublicStaticCollectionField")
@@ -106,15 +103,15 @@ public final class Statics {
     public static final SynchronizedWriter matcherSynchronizedWriter = new SynchronizedWriter(ENCRYPTION_KEY);
     public static final SynchronizedWriter safeBetsSynchronizedWriter = new SynchronizedWriter(ENCRYPTION_KEY);
     public static final SynchronizedWriter newMarketSynchronizedWriter = new SynchronizedWriter(ENCRYPTION_KEY);
-    @SuppressWarnings("PublicStaticCollectionField")
-    public static final LinkedBlockingQueue<Runnable> linkedBlockingQueue = new LinkedBlockingQueue<>();
-    public static final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(64, 64, EXECUTOR_KEEP_ALIVE, TimeUnit.MILLISECONDS, linkedBlockingQueue);
+    //    @SuppressWarnings("PublicStaticCollectionField")
+//    public static final LinkedBlockingQueue<Runnable> linkedBlockingQueue = new LinkedBlockingQueue<>();
+//    public static final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(64, 64, EXECUTOR_KEEP_ALIVE, TimeUnit.MILLISECONDS, linkedBlockingQueue);
     @SuppressWarnings("PublicStaticCollectionField")
     public static final LinkedBlockingQueue<Runnable> linkedBlockingQueueMarketBooks = new LinkedBlockingQueue<>();
-    public static final ThreadPoolExecutor threadPoolExecutorMarketBooks = new ThreadPoolExecutor(512, 512, EXECUTOR_KEEP_ALIVE, TimeUnit.MILLISECONDS, linkedBlockingQueueMarketBooks);
-    @SuppressWarnings("PublicStaticCollectionField")
-    public static final LinkedBlockingQueue<Runnable> linkedBlockingQueueImportant = new LinkedBlockingQueue<>();
-    public static final ThreadPoolExecutor threadPoolExecutorImportant = new ThreadPoolExecutor(64, 64, EXECUTOR_KEEP_ALIVE, TimeUnit.MILLISECONDS, linkedBlockingQueueImportant);
+    public static final ThreadPoolExecutor threadPoolExecutorMarketBooks = new ThreadPoolExecutor(512, 512, SharedStatics.EXECUTOR_KEEP_ALIVE, TimeUnit.MILLISECONDS, linkedBlockingQueueMarketBooks);
+    //    @SuppressWarnings("PublicStaticCollectionField")
+//    public static final LinkedBlockingQueue<Runnable> linkedBlockingQueueImportant = new LinkedBlockingQueue<>();
+//    public static final ThreadPoolExecutor threadPoolExecutorImportant = new ThreadPoolExecutor(64, 64, EXECUTOR_KEEP_ALIVE, TimeUnit.MILLISECONDS, linkedBlockingQueueImportant);
     @SuppressWarnings({"resource", "IOResourceOpenedButNotSafelyClosed"})
     public static final PoolingHttpClientConnectionManager connManager = new PoolingHttpClientConnectionManager();
     public static final RequestConfig fastConfig = RequestConfig.custom().setConnectionRequestTimeout(10_000).setConnectTimeout(1_000).setSocketTimeout(1_000).build();
@@ -129,15 +126,13 @@ public final class Statics {
     public static final RulesManagerThread rulesManagerThread = new RulesManagerThread();
     public static final QuickCheckThread quickCheckThread = new QuickCheckThread();
     public static final PendingOrdersThread pendingOrdersThread = new PendingOrdersThread();
-
-    public static final TimeStamps timeStamps = new TimeStamps();
+    //    public static final TimeStamps timeStamps = new TimeStamps();
     public static final DebugLevel debugLevel = new DebugLevel();
-    public static final SessionTokenObject sessionTokenObject = new SessionTokenObject();
+    //    public static final SessionTokenObject sessionTokenObject = new SessionTokenObject();
     public static final SafetyLimits safetyLimits = new SafetyLimits();
     public static final SafeBetSafetyLimits safeBetSafetyLimits = new SafeBetSafetyLimits();
-//    public static final BlackList blackList = new BlackList();
+    //    public static final BlackList blackList = new BlackList();
 //    public static final PlacedAmounts placedAmounts = new PlacedAmounts();
-
     public static final SynchronizedMap<Long, BetradarEvent> betradarEventsMap = new SynchronizedMap<>(128); // <scraperId, BetradarEvent>
     public static final SynchronizedMap<Long, CoralEvent> coralEventsMap = new SynchronizedMap<>(128); // <scraperId, CoralEvent>
     public static final StreamSynchronizedMap<String, Event> eventsMap = new StreamSynchronizedMap<>(Event.class, 128); // <eventId, Event>
@@ -152,11 +147,9 @@ public final class Statics {
     // safeBetsMap contains marketIds as keys and maps of SafeBet(available safeBets) to SafeBetStats(some time details about the safeBet) as values; added to in QuickCheckThread
     public static final SafeBetsMap<SafeBet> safeBetsMap = new SafeBetsMap<>(); // <marketId, <SafeBet, SafeBetStats>>
     public static final SynchronizedMap<String, Long> timedWarningsMap = new SynchronizedMap<>(); // String, timeStamp
-
     public static final SubclassMaps<ScraperEvent> scraperEventMaps = new SubclassMaps<>(scraperEventSubclassesSet);
-
-    public static final MarketCache marketCache = new MarketCache(); // , offlineMarketCache = new MarketCache();
-    public static final OrderCache orderCache = new OrderCache(); // , offlineOrderCache = new OrderCache();
+//    public static final MarketCache marketCache = new MarketCache(); // , offlineMarketCache = new MarketCache();
+//    public static final OrderCache orderCache = new OrderCache(); // , offlineOrderCache = new OrderCache();
 
     private Statics() {
     }
@@ -171,9 +164,9 @@ public final class Statics {
     }
 
     static {
-        threadPoolExecutor.allowCoreThreadTimeOut(true);
+//        threadPoolExecutor.allowCoreThreadTimeOut(true);
         threadPoolExecutorMarketBooks.allowCoreThreadTimeOut(true);
-        threadPoolExecutorImportant.allowCoreThreadTimeOut(true);
+//        threadPoolExecutorImportant.allowCoreThreadTimeOut(true);
     }
 
     private static final Map<String, String> privateObjectFileNamesMap = new LinkedHashMap<>(32);
@@ -372,11 +365,11 @@ public final class Statics {
         }
     }
 
-    public static boolean programHasRecentlyStarted() {
-        return programHasRecentlyStarted(System.currentTimeMillis());
-    }
-
-    public static boolean programHasRecentlyStarted(final long currentTime) {
-        return currentTime - PROGRAM_START_TIME <= Generic.MINUTE_LENGTH_MILLISECONDS;
-    }
+//    public static boolean programHasRecentlyStarted() {
+//        return programHasRecentlyStarted(System.currentTimeMillis());
+//    }
+//
+//    public static boolean programHasRecentlyStarted(final long currentTime) {
+//        return currentTime - PROGRAM_START_TIME <= Generic.MINUTE_LENGTH_MILLISECONDS;
+//    }
 }

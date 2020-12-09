@@ -3,6 +3,7 @@ package info.fmro.betty.threads.permanent;
 import info.fmro.betty.main.Betty;
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.objects.LoggerThreadInterface;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.utility.Generic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +55,11 @@ public class LoggerThread
             final String valuesString = "(nEntries:" + nEntries + " lowest:" + lowest + " average:" + average + " highest:" + highest + ")";
             final String formattedString = MessageFormatter.arrayFormat(messageFormat, new Object[]{valuesString}).getMessage();
 
-            logger.info("loggerThread {}ms after last input: {}", DEFAULT_TIME_OUT_TO_PRINT, formattedString);
+            if (highest >= 100L) {
+                logger.info("loggerThread {}ms after last input: {}", DEFAULT_TIME_OUT_TO_PRINT, formattedString);
+            } else {
+                logger.debug("loggerThread {}ms after last input: {}", DEFAULT_TIME_OUT_TO_PRINT, formattedString);
+            }
         }
     }
 
@@ -110,14 +115,14 @@ public class LoggerThread
 
     @Override
     public void run() {
-        while (!Statics.mustStop.get()) {
+        while (!SharedStatics.mustStop.get()) {
             try {
                 if (Statics.mustSleep.get()) {
-                    Betty.programSleeps(Statics.mustSleep, Statics.mustStop, "logger thread");
+                    Betty.programSleeps(Statics.mustSleep, "logger thread");
                 }
 
                 final long timeToSleep = this.checkEntries();
-                Generic.threadSleepSegmented(timeToSleep, 100L, Statics.mustStop);
+                Generic.threadSleepSegmented(timeToSleep, 100L, SharedStatics.mustStop);
             } catch (Throwable throwable) {
                 logger.error("STRANGE ERROR inside LoggerThread loop", throwable);
             }

@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
@@ -19,6 +20,7 @@ public class SafeBetsMap<K extends SafeBet>
         extends SynchronizedMap<String, SynchronizedMap<K, SafeBetStats>>
         implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(SafeBetsMap.class);
+    @Serial
     private static final long serialVersionUID = 6744057008225898485L;
 
     public SafeBetsMap() {

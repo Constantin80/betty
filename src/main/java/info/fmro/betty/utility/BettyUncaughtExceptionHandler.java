@@ -1,6 +1,6 @@
 package info.fmro.betty.utility;
 
-import info.fmro.betty.objects.Statics;
+import info.fmro.shared.objects.SharedStatics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,7 +13,7 @@ public class BettyUncaughtExceptionHandler
     // Implements Thread.CustomUncaughtExceptionHandler.uncaughtException()
     @Override
     public void uncaughtException(final Thread t, final Throwable e) {
-        if (Statics.mustStop.get() && e instanceof RejectedExecutionException) {
+        if (SharedStatics.mustStop.get() && e instanceof RejectedExecutionException) {
             logger.warn("Crashed thread while mustStop: {} {} {} {}", t.getName(), t.getId(), t, e.toString());
         } else if (e instanceof ThreadDeath) {
             logger.warn("Crashed thread: {} {} {} {}", t.getName(), t.getId(), t, e.toString());

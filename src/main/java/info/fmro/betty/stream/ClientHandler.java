@@ -63,25 +63,29 @@ public final class ClientHandler {
         }
 
         final int[] sizes = new int[nClients];
-        final boolean[] modified = new boolean[nClients];
-        int nRemovedMarkets = 0;
+        final boolean[] listWasModified = new boolean[nClients];
+        int nRemovedMarkets = 0, nRemainingMarkets = 0;
         for (int i = 0; i < nClients; i++) {
             final ArrayList<String> list = lists[i];
 //            modified[i] =
             final int initialListSize = list.size();
             list.retainAll(marketIds);
             final int finalListSize = list.size();
-            final int nRemovedElements = initialListSize - finalListSize;
-            nRemovedMarkets += nRemovedElements;
+            final int nRemovedElementsFromThisList = initialListSize - finalListSize;
+            nRemovedMarkets += nRemovedElementsFromThisList;
+            nRemainingMarkets += finalListSize;
             sizes[i] = finalListSize;
+            if (nRemovedElementsFromThisList > 0) {
+                listWasModified[i] = true; // this will cause a new subscription message
+            }
 
             marketIds.removeAll(list);
         }
         if (nRemovedMarkets > 0) {
-            logger.info("nRemovedMarkets from stream: {}", nRemovedMarkets);
+            logger.info("nRemovedMarkets from stream: {} remaining: {}", nRemovedMarkets, nRemainingMarkets);
         } else if (nRemovedMarkets == 0) { // nothing was removed, no need to print anything
         } else { // nRemovedMarkets < 0
-            logger.error("nRemovedMarkets has strange value: {} {}", nRemovedMarkets, marketIds.size());
+            logger.error("nRemovedMarkets has strange value: {} {} {}", nRemovedMarkets, marketIds.size(), nRemainingMarkets);
         }
 
         final ArrayList<String> marketsLeft = new ArrayList<>(marketIds);
@@ -100,16 +104,16 @@ public final class ClientHandler {
                 final List<String> subList = marketsLeft.size() <= sizeLeft ? marketsLeft : marketsLeft.subList(0, sizeLeft - 1);
                 list.addAll(subList);
                 subList.clear();
-                modified[i] = true;
+                listWasModified[i] = true;
             } else { // won't add to this client
             }
         }
 
-        int nModified = 0;
+        int nModifiedLists = 0;
         for (int i = 0; i < nClients; i++) {
-            if (modified[i]) {
+            if (listWasModified[i]) {
                 streamClients[i].processor.setMarketsSet(lists[i]);
-                nModified++;
+                nModifiedLists++;
             }
         }
 
@@ -117,8 +121,8 @@ public final class ClientHandler {
             logger.error("markets still left in streamMarkets: {} {} {}", marketsLeft.size(), Statics.marketCataloguesMap.size(), Generic.objectToString(sizes));
         }
 
-        if (ClientHandler.nMcmCommandsNeeded.get() == 0 && nModified > 0) {
-            ClientHandler.nMcmCommandsNeeded.set(nModified);
+        if (ClientHandler.nMcmCommandsNeeded.get() == 0 && nModifiedLists > 0) {
+            ClientHandler.nMcmCommandsNeeded.set(nModifiedLists);
         }
     }
 }

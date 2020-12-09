@@ -1,8 +1,8 @@
 package info.fmro.betty.safebet;
 
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -10,6 +10,7 @@ import java.util.Objects;
 @SuppressWarnings("unused")
 class BetradarMatchFacts
         implements Serializable {
+    @Serial
     private static final long serialVersionUID = 755062000734275494L;
     private final String homeTeam, matchStatus, awayTeam;
     private final int homeScore, awayScore;
@@ -37,23 +38,23 @@ class BetradarMatchFacts
         this.awaySubstitutionsList = new ArrayList<>(awaySubstitutionsList);
     }
 
-    public synchronized String getHomeTeam() {
+    public String getHomeTeam() {
         return this.homeTeam;
     }
 
-    public synchronized String getMatchStatus() {
+    public String getMatchStatus() {
         return this.matchStatus;
     }
 
-    public synchronized String getAwayTeam() {
+    public String getAwayTeam() {
         return this.awayTeam;
     }
 
-    public synchronized int getHomeScore() {
+    public int getHomeScore() {
         return this.homeScore;
     }
 
-    public synchronized int getAwayScore() {
+    public int getAwayScore() {
         return this.awayScore;
     }
 
@@ -102,78 +103,34 @@ class BetradarMatchFacts
         return new ArrayList<>(this.awaySubstitutionsList);
     }
 
-    @Contract(value = "null -> false", pure = true)
     @Override
-    public synchronized boolean equals(final Object obj) {
-        if (obj == null) {
-            return false;
-        }
+    public boolean equals(final Object obj) {
         if (this == obj) {
             return true;
         }
-        if (getClass() != obj.getClass()) {
+        if (obj == null || getClass() != obj.getClass()) {
             return false;
         }
-        final BetradarMatchFacts other = (BetradarMatchFacts) obj;
-        if (!Objects.equals(this.homeTeam, other.homeTeam)) {
-            return false;
-        }
-        if (!Objects.equals(this.matchStatus, other.matchStatus)) {
-            return false;
-        }
-        if (!Objects.equals(this.awayTeam, other.awayTeam)) {
-            return false;
-        }
-        if (this.homeScore != other.homeScore) {
-            return false;
-        }
-        if (this.awayScore != other.awayScore) {
-            return false;
-        }
-        if (!Objects.equals(this.periodScoresList, other.periodScoresList)) {
-            return false;
-        }
-        if (!Objects.equals(this.homeGoalsList, other.homeGoalsList)) {
-            return false;
-        }
-        if (!Objects.equals(this.awayGoalsList, other.awayGoalsList)) {
-            return false;
-        }
-        if (!Objects.equals(this.homeYellowCardsList, other.homeYellowCardsList)) {
-            return false;
-        }
-        if (!Objects.equals(this.homeRedCardsList, other.homeRedCardsList)) {
-            return false;
-        }
-        if (!Objects.equals(this.awayYellowCardsList, other.awayYellowCardsList)) {
-            return false;
-        }
-        if (!Objects.equals(this.awayRedCardsList, other.awayRedCardsList)) {
-            return false;
-        }
-        if (!Objects.equals(this.homeSubstitutionsList, other.homeSubstitutionsList)) {
-            return false;
-        }
-        return Objects.equals(this.awaySubstitutionsList, other.awaySubstitutionsList);
+        final BetradarMatchFacts that = (BetradarMatchFacts) obj;
+        return this.homeScore == that.homeScore &&
+               this.awayScore == that.awayScore &&
+               Objects.equals(this.homeTeam, that.homeTeam) &&
+               Objects.equals(this.matchStatus, that.matchStatus) &&
+               Objects.equals(this.awayTeam, that.awayTeam) &&
+               Objects.equals(this.periodScoresList, that.periodScoresList) &&
+               Objects.equals(this.homeGoalsList, that.homeGoalsList) &&
+               Objects.equals(this.awayGoalsList, that.awayGoalsList) &&
+               Objects.equals(this.homeYellowCardsList, that.homeYellowCardsList) &&
+               Objects.equals(this.homeRedCardsList, that.homeRedCardsList) &&
+               Objects.equals(this.awayYellowCardsList, that.awayYellowCardsList) &&
+               Objects.equals(this.awayRedCardsList, that.awayRedCardsList) &&
+               Objects.equals(this.homeSubstitutionsList, that.homeSubstitutionsList) &&
+               Objects.equals(this.awaySubstitutionsList, that.awaySubstitutionsList);
     }
 
     @Override
-    public synchronized int hashCode() {
-        int hash = 5;
-        hash = 43 * hash + Objects.hashCode(this.homeTeam);
-        hash = 43 * hash + Objects.hashCode(this.matchStatus);
-        hash = 43 * hash + Objects.hashCode(this.awayTeam);
-        hash = 43 * hash + this.homeScore;
-        hash = 43 * hash + this.awayScore;
-        hash = 43 * hash + Objects.hashCode(this.periodScoresList);
-        hash = 43 * hash + Objects.hashCode(this.homeGoalsList);
-        hash = 43 * hash + Objects.hashCode(this.awayGoalsList);
-        hash = 43 * hash + Objects.hashCode(this.homeYellowCardsList);
-        hash = 43 * hash + Objects.hashCode(this.homeRedCardsList);
-        hash = 43 * hash + Objects.hashCode(this.awayYellowCardsList);
-        hash = 43 * hash + Objects.hashCode(this.awayRedCardsList);
-        hash = 43 * hash + Objects.hashCode(this.homeSubstitutionsList);
-        hash = 43 * hash + Objects.hashCode(this.awaySubstitutionsList);
-        return hash;
+    public int hashCode() {
+        return Objects.hash(this.homeTeam, this.matchStatus, this.awayTeam, this.homeScore, this.awayScore, this.periodScoresList, this.homeGoalsList, this.awayGoalsList, this.homeYellowCardsList, this.homeRedCardsList, this.awayYellowCardsList,
+                            this.awayRedCardsList, this.homeSubstitutionsList, this.awaySubstitutionsList);
     }
 }

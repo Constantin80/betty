@@ -4,6 +4,9 @@ import info.fmro.betty.logic.SafetyLimits;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.safebet.PlacedAmountsThread;
 import info.fmro.betty.utility.Formulas;
+import info.fmro.shared.betapi.ApiNgRescriptOperations;
+import info.fmro.shared.betapi.RescriptAccountResponseHandler;
+import info.fmro.shared.betapi.RescriptResponseHandler;
 import info.fmro.shared.entities.AccountFundsResponse;
 import info.fmro.shared.entities.CancelExecutionReport;
 import info.fmro.shared.entities.CurrencyRate;
@@ -17,9 +20,9 @@ import info.fmro.shared.enums.MarketProjection;
 import info.fmro.shared.enums.OperationType;
 import info.fmro.shared.enums.Side;
 import info.fmro.shared.objects.OrderPrice;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
-import org.apache.http.client.ResponseHandler;
 import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,7 +96,7 @@ public class RescriptOpThread<T>
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "OverlyComplexMethod", "OverlyLongMethod", "OverlyNestedMethod"})
+    @SuppressWarnings({"unchecked", "OverlyComplexMethod", "OverlyLongMethod", "OverlyCoupledMethod"})
     public void run() {
         //noinspection SwitchStatementDensity
         switch (this.operation) {
@@ -104,7 +107,7 @@ public class RescriptOpThread<T>
                     marketFilter.setMarketIds(this.marketIdsSet);
 
                     final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
-                    List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, this.marketProjectionsSet, null, 200, Statics.appKey.get(), rescriptResponseHandler);
+                    List<MarketCatalogue> marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, this.marketProjectionsSet, null, 200, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
                     if (marketCatalogueList != null) {
                         this.returnSet.addAll((List<T>) marketCatalogueList);
@@ -117,7 +120,7 @@ public class RescriptOpThread<T>
                                 marketFilter = new MarketFilter();
                                 marketFilter.setEventIds(singleEventSet);
 
-                                marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, this.marketProjectionsSet, null, 200, Statics.appKey.get(), rescriptResponseHandler);
+                                marketCatalogueList = ApiNgRescriptOperations.listMarketCatalogue(marketFilter, this.marketProjectionsSet, null, 200, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
                                 if (marketCatalogueList != null) {
                                     this.returnSet.addAll((List<T>) marketCatalogueList);
@@ -125,7 +128,7 @@ public class RescriptOpThread<T>
                                     logger.error("marketCatalogueList null while getting single event: {} {}", eventId, rescriptResponseHandler.isTooMuchData());
                                 }
                             } // end for
-                        } else if (Statics.mustStop.get() && Statics.needSessionToken.get()) { // normal case, no results returned because I couldn't get sessionToken and program ended
+                        } else if (SharedStatics.mustStop.get() && SharedStatics.needSessionToken.get()) { // normal case, no results returned because I couldn't get sessionToken and program ended
                         } else {
                             logger.error("marketCatalogueList null and not tooMuchData for: {}", Generic.objectToString(this.eventIdsSet));
                         }
@@ -137,22 +140,22 @@ public class RescriptOpThread<T>
             case getAccountFunds:
                 try {
                     if (this.safetyLimits != null) {
-                        final ResponseHandler<String> rescriptAccountResponseHandler = new RescriptAccountResponseHandler();
-                        final AccountFundsResponse accountFundsResponse = ApiNgRescriptOperations.getAccountFunds(Statics.appKey.get(), rescriptAccountResponseHandler);
+                        final RescriptAccountResponseHandler rescriptAccountResponseHandler = new RescriptAccountResponseHandler();
+                        final AccountFundsResponse accountFundsResponse = ApiNgRescriptOperations.getAccountFunds(rescriptAccountResponseHandler, HttpUtil.sendPostRequestAccountRescriptMethod);
 
                         if (accountFundsResponse != null) {
                             final Double availableToBetBalance = accountFundsResponse.getAvailableToBetBalance();
                             final Double exposure = accountFundsResponse.getExposure();
                             if (availableToBetBalance != null && exposure != null) {
                                 this.safetyLimits.processFunds(availableToBetBalance, exposure);
-                                // atomicAvailableToBetBalance.set(availableToBetBalance - Statics.safetyLimits.getReserve());
 
-                                Generic.alreadyPrintedMap.logOnce(Statics.debugLevel.check(3, 102), logger, LogLevel.INFO, "accountFundsResponse: {}", Generic.objectToString(accountFundsResponse));
+                                // atomicAvailableToBetBalance.set(availableToBetBalance - Statics.safetyLimits.getReserve());
+                                SharedStatics.alreadyPrintedMap.logOnce(Statics.debugLevel.check(3, 102), logger, LogLevel.INFO, "accountFundsResponse: {}", Generic.objectToString(accountFundsResponse));
                             } else {
                                 logger.error("availableToBetBalance or exposure null for: {}", Generic.objectToString(accountFundsResponse));
                             }
                         } else {
-                            if (Statics.mustStop.get() && Statics.needSessionToken.get()) { // normal to happen during program stop, if not logged in
+                            if (SharedStatics.mustStop.get() && SharedStatics.needSessionToken.get()) { // normal to happen during program stop, if not logged in
                             } else {
                                 logger.error("accountFundsResponse null");
                             }
@@ -170,10 +173,10 @@ public class RescriptOpThread<T>
                 break;
             case listCurrencyRates:
                 if (this.safetyLimits != null) {
-                    final ResponseHandler<String> rescriptAccountResponseHandler = new RescriptAccountResponseHandler();
-                    final List<CurrencyRate> currencyRates = ApiNgRescriptOperations.listCurrencyRates(Statics.appKey.get(), rescriptAccountResponseHandler);
+                    final RescriptAccountResponseHandler rescriptAccountResponseHandler = new RescriptAccountResponseHandler();
+                    final List<CurrencyRate> currencyRates = ApiNgRescriptOperations.listCurrencyRates(rescriptAccountResponseHandler, HttpUtil.sendPostRequestAccountRescriptMethod);
 
-                    this.safetyLimits.existingFunds.setCurrencyRate(currencyRates, Statics.mustStop, Statics.needSessionToken);
+                    this.safetyLimits.existingFunds.setCurrencyRate(currencyRates);
                 } else {
                     logger.error("null or empty variables in RescriptOpThread listCurrencyRates");
                 }
@@ -202,10 +205,10 @@ public class RescriptOpThread<T>
                         logger.info("fundsQuickRun starts");
                     }
 
-                    if (!Statics.notPlacingOrders && !Statics.denyBetting.get()) {
+                    if (!SharedStatics.notPlacingOrders && !SharedStatics.denyBetting.get()) {
 //                        final boolean isStartedGettingOrders = Statics.placedAmounts.addInstructionsList(eventId, marketId, placeInstructionsList);
 
-                        placeExecutionReport = ApiNgRescriptOperations.placeOrders(this.marketId, this.placeInstructionsList, customerRef, Statics.appKey.get(), rescriptResponseHandler);
+                        placeExecutionReport = ApiNgRescriptOperations.placeOrders(this.marketId, this.placeInstructionsList, customerRef, rescriptResponseHandler, Statics.safetyLimits.speedLimit, HttpUtil.sendPostRequestRescriptMethod);
 
                         Statics.timeLastFundsOp.set(System.currentTimeMillis());
                         if (!Statics.fundsQuickRun.getAndSet(true)) {
@@ -231,7 +234,8 @@ public class RescriptOpThread<T>
                         } else { // added at beginning, and no need to add again
                         }
                     } else { // Statics.notPlacingOrders || Statics.denyBetting.get()
-                        logger.warn("order placing denied {} {}: marketId = {}, placeInstructionsList = {}", Statics.notPlacingOrders, Statics.denyBetting.get(), this.marketId, Generic.objectToString(this.placeInstructionsList));
+                        logger.warn("old order placing denied perm_deny:{} temp_deny:{}: marketId = {}, placeInstructionsList = {}", SharedStatics.notPlacingOrders, SharedStatics.denyBetting.get(), this.marketId,
+                                    Generic.objectToString(this.placeInstructionsList));
                     }
 
                     Statics.pendingOrdersThread.addCancelAllOrder(0L);
@@ -264,8 +268,7 @@ public class RescriptOpThread<T>
                     logger.info("fundsQuickRun starts");
                 }
 
-                final CancelExecutionReport cancelExecutionReport = ApiNgRescriptOperations.cancelOrders(null, null, null, Statics.appKey.get(), rescriptResponseHandler);
-
+                final CancelExecutionReport cancelExecutionReport = ApiNgRescriptOperations.cancelOrders(null, null, null, rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
                 Statics.timeLastFundsOp.set(System.currentTimeMillis());
                 if (!Statics.fundsQuickRun.getAndSet(true)) {
                     logger.info("fundsQuickRun starts");

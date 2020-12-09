@@ -13,6 +13,7 @@ import info.fmro.shared.enums.ScrapedField;
 import info.fmro.shared.enums.Side;
 import info.fmro.shared.objects.ParsedMarket;
 import info.fmro.shared.objects.ParsedRunner;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.stream.objects.ScraperEventInterface;
 import info.fmro.shared.utility.BlackList;
 import info.fmro.shared.utility.Generic;
@@ -56,8 +57,8 @@ public final class FindSafeRunners {
                 BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, startTime, "marketCatalogue in safeRunnersSetSizeCheck", Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD);
                 MaintenanceThread.removeFromSecondaryMaps(marketId);
             } else if (Statics.marketsUnderTesting.contains(parsedMarketType)) {
-                Generic.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "marketsUnderTesting safeRunnersSet not added, size: {} in findSafeRunners for: {} {} {} {}", safeRunnersSet.size(), scraperData, Generic.objectToString(usedParsedRunnersSet),
-                                                  Generic.objectToString(safeRunnersSet), Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
+                SharedStatics.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "marketsUnderTesting safeRunnersSet not added, size: {} in findSafeRunners for: {} {} {} {}", safeRunnersSet.size(), scraperData, Generic.objectToString(usedParsedRunnersSet),
+                                                        Generic.objectToString(safeRunnersSet), Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
             } else {
                 final SynchronizedSafeSet<SafeRunner> inMapSafeRunnersSet = Statics.safeMarketsMap.putIfAbsent(marketId, safeRunnersSet);
                 if (inMapSafeRunnersSet == null) { // safeRunnersSet was added, no previous safeRunnersSet existed
@@ -68,7 +69,7 @@ public final class FindSafeRunners {
                         if (!modifiedMarketsList.contains(marketId)) {
                             modifiedMarketsList.add(marketId);
                         }
-                        Generic.alreadyPrintedMap
+                        SharedStatics.alreadyPrintedMap
                                 .logOnce(logger, LogLevel.INFO, "Safe market {} {} of event ({}) added with {} runners: {} {}", marketId, parsedMarketType.name(), eventName, nSafeRunners, scraperData, Generic.objectToString(usedParsedRunnersSet));
 //                                Generic.objectToString(safeRunnersSet));
                     }
@@ -83,8 +84,9 @@ public final class FindSafeRunners {
                 }
             }
         } else {
-            Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "STRANGE safeRunnersSet size: {}({}) in findSafeRunners for: {} {} {} {}", safeRunnersSet.size(), nSafeRunners, scraperData,
-                                              Generic.objectToString(usedParsedRunnersSet), Generic.objectToString(safeRunnersSet, "Stamp"), Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
+            SharedStatics.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "STRANGE safeRunnersSet size: {}({}) in findSafeRunners for: {} {} {} {}", safeRunnersSet.size(), nSafeRunners, scraperData,
+                                                    Generic.objectToString(usedParsedRunnersSet), Generic.objectToString(safeRunnersSet, "Stamp"),
+                                                    Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
         }
     }
 
@@ -141,8 +143,8 @@ public final class FindSafeRunners {
     }
 
     private static void defaultParsedRunnerTypeError(final ParsedRunnerType parsedRunnerType, final MarketCatalogue marketCatalogue) {
-        Generic.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "STRANGE unknown parsedRunnerType: {} in findSafeRunners for: {}",
-                                          parsedRunnerType, Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
+        SharedStatics.alreadyPrintedMap.logOnce(Statics.newMarketSynchronizedWriter, logger, LogLevel.ERROR, "STRANGE unknown parsedRunnerType: {} in findSafeRunners for: {}",
+                                                parsedRunnerType, Generic.objectToString(marketCatalogue, "Stamp", "timeFirstSeen", "totalMatched"));
     }
 
     @Contract(pure = true)
@@ -216,8 +218,8 @@ public final class FindSafeRunners {
                             final ParsedMarketType parsedMarketType = parsedMarket.getParsedMarketType();
                             final String eventName = event.getName();
                             if (parsedRunnersSet != null && parsedMarketType != null && eventName != null && scraperEventIds != null) {
-                                final int nMatches = event.getNValidScraperEventIds(MaintenanceThread.removeFromSecondaryMapsMethod, Statics.threadPoolExecutor, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated,
-                                                                                    Statics.MIN_MATCHED, Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod,
+                                final int nMatches = event.getNValidScraperEventIds(MaintenanceThread.removeFromSecondaryMapsMethod, LaunchCommandThread.constructorLinkedHashSetLongMarket, Statics.safeBetModuleActivated, Statics.MIN_MATCHED,
+                                                                                    Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD, Statics.marketCataloguesMap, Formulas.getScraperEventsMapMethod, Formulas.getIgnorableMapMethod,
                                                                                     LaunchCommandThread.constructorHashSetLongEvent);
                                 final List<Integer> homeScores = new ArrayList<>(nMatches), awayScores = new ArrayList<>(nMatches), homeHtScores = new ArrayList<>(nMatches), awayHtScores = new ArrayList<>(nMatches);
                                 final List<MatchStatus> matchStatuses = new ArrayList<>(nMatches);
@@ -2825,8 +2827,8 @@ public final class FindSafeRunners {
 //                                } else { // strange error, but error message is printed when the error is first found
 //                                }
                                 } else {
-                                    Generic.alreadyPrintedMap.logOnce(logger, LogLevel.WARN, "no proper scores for eventName:{} marketId:{} score:{}/{} ht:{}/{} status:{}", eventName, marketId, homeScore, awayScore, homeHtScore, awayHtScore,
-                                                                      matchStatus == null ? null : matchStatus.name());
+                                    SharedStatics.alreadyPrintedMap.logOnce(logger, LogLevel.WARN, "no proper scores for eventName:{} marketId:{} score:{}/{} ht:{}/{} status:{}", eventName, marketId, homeScore, awayScore, homeHtScore, awayHtScore,
+                                                                            matchStatus == null ? null : matchStatus.name());
                                 }
 //                                    } else {
 //                                        String scraperString = Generic.objectToString(scraperEvent);
@@ -2897,7 +2899,7 @@ public final class FindSafeRunners {
                 final String printedString = MessageFormatter.arrayFormat("findSafeRunners {}modifiedMarketsList: {} launch: getMarketBooks", new Object[]{fullRunString, sizeMarkets}).getMessage();
                 if (fullRun) {
 //                    if (startTime - Statics.PROGRAM_START_TIME <= Generic.MINUTE_LENGTH_MILLISECONDS) {
-                    if (Statics.programHasRecentlyStarted(startTime)) {
+                    if (SharedStatics.programHasRecentlyStarted(startTime)) {
                         logger.info("beginning of the program {}", printedString); // this sometimes happens at the beginning of program run
                     } else {
                         final long currentTime = System.currentTimeMillis();

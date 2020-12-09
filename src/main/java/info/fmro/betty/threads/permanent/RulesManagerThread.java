@@ -1,5 +1,6 @@
 package info.fmro.betty.threads.permanent;
 
+import info.fmro.betty.betapi.HttpUtil;
 import info.fmro.betty.main.VarsIO;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.stream.ClientHandler;
@@ -7,16 +8,21 @@ import info.fmro.betty.threads.LaunchCommandThread;
 import info.fmro.shared.enums.CommandType;
 import info.fmro.shared.logic.ManagedMarket;
 import info.fmro.shared.logic.RulesManager;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.utility.Generic;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serial;
 import java.io.Serializable;
+import java.util.Map;
 
 public class RulesManagerThread
 //        extends RulesManager
         implements Runnable, Serializable {
     private static final Logger logger = LoggerFactory.getLogger(RulesManagerThread.class);
+    @Serial
     private static final long serialVersionUID = 7059620547591940095L;
     public final RulesManager rulesManager = new RulesManager();
     // shouldn't have serializable fields, as those could conflict with the testMarker from RulesManager class
@@ -57,9 +63,9 @@ public class RulesManagerThread
         boolean cachesAreLive = false, startingTheCachesTakesTooLong = false;
         final long startTime = System.currentTimeMillis();
         int whileCounter = 0;
-        while (!Statics.mustStop.get() && !cachesAreLive) {
+        while (!SharedStatics.mustStop.get() && !cachesAreLive) {
             try {
-                Generic.threadSleepSegmented(1_000L, 100L, Statics.mustStop);
+                Generic.threadSleepSegmented(1_000L, 100L, SharedStatics.mustStop);
                 cachesAreLive = ClientHandler.threadsWithOcmCommandReceived.get() >= 1 && ClientHandler.threadsWithMcmCommandReceived.get() >= ClientHandler.nMcmCommandsNeeded.get();
 
                 if (startingTheCachesTakesTooLong) {
@@ -84,10 +90,10 @@ public class RulesManagerThread
             }
         }
 
-        if (Statics.mustStop.get()) { // program is stopping, nothing to be done
+        if (SharedStatics.mustStop.get()) { // program is stopping, nothing to be done
         } else {
             if (cachesAreLive) {
-                Generic.threadSleepSegmented(2_000L, 10L, Statics.mustStop); // a small sleep to allow for cache update
+                Generic.threadSleepSegmented(2_000L, 10L, SharedStatics.mustStop); // a small sleep to allow for cache update
             } else {
                 logger.error("rulesManager continues without live caches: {} {} {} {}", whileCounter, ClientHandler.threadsWithOcmCommandReceived.get(), ClientHandler.threadsWithMcmCommandReceived.get(), ClientHandler.nMcmCommandsNeeded.get());
 //            Generic.threadSleepSegmented(180_000L, 10L, Statics.mustStop); // a long sleep, after which the program will continue
@@ -95,27 +101,26 @@ public class RulesManagerThread
         }
 
         boolean hasReachedEndOfSleep = true; // full run first time
-        while (!Statics.mustStop.get()) {
+        while (!SharedStatics.mustStop.get()) {
             try {
-                if (this.rulesManager.orderCacheHasReset.get()) {
-                    this.rulesManager.resetOrderCacheObjects(); // the method resets the AtomicBoolean
-                }
+//                if (this.rulesManager.orderCacheHasReset.get()) {
+//                    this.rulesManager.resetOrderCacheObjects(); // the method resets the AtomicBoolean
+//                }
                 if (this.rulesManager.newOrderMarketCreated.get()) {
                     logger.info("checking newOrderMarketCreated");
-                    this.rulesManager.addManagedMarketsForExistingOrders(Statics.orderCache.markets, Statics.marketCataloguesMap, Statics.marketCache.markets, Statics.eventsMap, Statics.PROGRAM_START_TIME); // this method resets the AtomicBoolean
+                    this.rulesManager.addManagedMarketsForExistingOrders(Statics.marketCataloguesMap, Statics.eventsMap); // this method resets the AtomicBoolean
                 }
                 if (this.rulesManager.marketsMapModified.getAndSet(false)) {
-                    Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.streamMarkets));
-                    this.rulesManager.calculateMarketLimits(Statics.pendingOrdersThread, Statics.orderCache.markets, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap, Statics.marketCache.markets,
-                                                            Statics.orderCache.initializedFromStreamStamp, Statics.PROGRAM_START_TIME);
+                    SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.streamMarkets));
+                    this.rulesManager.calculateMarketLimits(Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap);
                 }
                 if (this.rulesManager.newAddManagedRunnerCommand.get()) { // this method resets the AtomicBoolean
-                    this.rulesManager.addManagedRunnerCommands(Statics.marketCataloguesMap, Statics.pendingOrdersThread, Statics.orderCache.markets, Statics.safetyLimits.existingFunds, Statics.marketCache.markets, Statics.eventsMap,
-                                                               Statics.orderCache.initializedFromStreamStamp, Statics.PROGRAM_START_TIME);
+                    this.rulesManager.addManagedRunnerCommands(Statics.marketCataloguesMap, Statics.safetyLimits.existingFunds, Statics.eventsMap);
                 }
                 if (!this.rulesManager.marketsToCheck.isEmpty()) { // run just on the marketsToCheck
-                    logger.info("manageMarket marketsToCheck: {}", this.rulesManager.marketsToCheck);
-//                    final HashSet<RulesManagerStringObject> objectsSet = this.marketsToCheck.copy();
+//                    logger.info("manageMarket marketsToCheck: {}", this.rulesManager.marketsToCheck);
+
+                    //                    final HashSet<RulesManagerStringObject> objectsSet = this.marketsToCheck.copy();
 //                    this.marketsToCheck.removeAll(objectsSet); // the atomicBoolean marker will get reset if marketsToCheck becomes empty
 //
 //                    final Collection<String> marketIds = new HashSet<>(2);
@@ -125,31 +130,28 @@ public class RulesManagerThread
 //                    }
 
 //                    checkMarketsAreAssociatedWithEvents();
-                    this.rulesManager.addManagedMarketsForExistingOrders(Statics.orderCache.markets, Statics.marketCataloguesMap, Statics.marketCache.markets, Statics.eventsMap, Statics.PROGRAM_START_TIME); // this can modify the marketsMapModified marker
+                    this.rulesManager.addManagedMarketsForExistingOrders(Statics.marketCataloguesMap, Statics.eventsMap); // this can modify the marketsMapModified marker
                     //calculateMarketLimits(marketIds);
 //                    final boolean iHaveCalculatedTheLimits;
                     if (this.rulesManager.marketsMapModified.getAndSet(false)) {
-                        Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.streamMarkets));
-                        this.rulesManager.calculateMarketLimits(Statics.pendingOrdersThread, Statics.orderCache.markets, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap, Statics.marketCache.markets,
-                                                                Statics.orderCache.initializedFromStreamStamp, Statics.PROGRAM_START_TIME);
+                        SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.streamMarkets));
+                        this.rulesManager.calculateMarketLimits(Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap);
 //                        iHaveCalculatedTheLimits = true;
                     } else { // nothing to be done, will only calculated limits if marketsMapModified
 //                        iHaveCalculatedTheLimits = false;
                     }
 
                     do {
-                        final String marketId = this.rulesManager.marketsToCheck.poll();
+                        @NotNull final Map.Entry<String, Long> entry = this.rulesManager.marketsToCheck.poll();
+                        final String marketId = entry.getKey();
+                        final Long checkMarketRequestStamp = entry.getValue();
+//                        final long checkMarketRequestStamp = value == null ? 0L : value;
                         final ManagedMarket managedMarket = this.rulesManager.markets.get(marketId);
                         if (managedMarket == null) {
                             logger.error("null managedMarket while checking markets for marketId: {}", marketId);
                         } else {
-//                            if (iHaveCalculatedTheLimits) { // exposure has already been updated, nothing to be done
-//                            } else {
-//                              managedMarket.calculateExposure(Statics.pendingOrdersThread, Statics.orderCache.markets, Statics.PROGRAM_START_TIME, this.rulesManager.listOfQueues, this.rulesManager.marketsToCheck, this.rulesManager.marketsForOutsideCheck,
-//                                                                this.rulesManager.rulesHaveChanged, this.rulesManager.marketsMapModified, this.rulesManager.newMarketsOrEventsForOutsideCheck, Statics.orderCache.initializedFromStreamStamp);
-//                            }
-                            this.rulesManager.manageMarket(managedMarket, Statics.marketCache.markets, Statics.orderCache.markets, Statics.pendingOrdersThread, Statics.safetyLimits.existingFunds.currencyRate, Statics.safetyLimits.speedLimit,
-                                                           Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap, Statics.mustStop, Statics.orderCache.initializedFromStreamStamp, Statics.PROGRAM_START_TIME);
+                            managedMarket.lastCheckMarketRequestStamp.add(checkMarketRequestStamp);
+                            this.rulesManager.manageMarket(managedMarket, Statics.safetyLimits.speedLimit, Statics.safetyLimits.existingFunds, HttpUtil.sendPostRequestRescriptMethod, Statics.marketCataloguesMap, false);
                         }
                     } while (!this.rulesManager.marketsToCheck.isEmpty());
                 }
@@ -157,17 +159,15 @@ public class RulesManagerThread
                     this.rulesManager.stampTimeLastFullCheck();
 
 //                    checkMarketsAreAssociatedWithEvents();
-                    this.rulesManager.addManagedMarketsForExistingOrders(Statics.orderCache.markets, Statics.marketCataloguesMap, Statics.marketCache.markets, Statics.eventsMap, Statics.PROGRAM_START_TIME);
-                    this.rulesManager.calculateMarketLimits(Statics.pendingOrdersThread, Statics.orderCache.markets, Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap, Statics.marketCache.markets,
-                                                            Statics.orderCache.initializedFromStreamStamp, Statics.PROGRAM_START_TIME);
+                    this.rulesManager.addManagedMarketsForExistingOrders(Statics.marketCataloguesMap, Statics.eventsMap);
+                    this.rulesManager.calculateMarketLimits(Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap);
                     for (final ManagedMarket managedMarket : this.rulesManager.markets.valuesCopy()) {
-                        this.rulesManager.manageMarket(managedMarket, Statics.marketCache.markets, Statics.orderCache.markets, Statics.pendingOrdersThread, Statics.safetyLimits.existingFunds.currencyRate, Statics.safetyLimits.speedLimit,
-                                                       Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap, Statics.mustStop, Statics.orderCache.initializedFromStreamStamp, Statics.PROGRAM_START_TIME);
+                        this.rulesManager.manageMarket(managedMarket, Statics.safetyLimits.speedLimit, Statics.safetyLimits.existingFunds, HttpUtil.sendPostRequestRescriptMethod, Statics.marketCataloguesMap, false);
                     }
                 }
 
-                hasReachedEndOfSleep = Generic.threadSleepSegmented(this.rulesManager.timeTillNextFullRun(), 10L, this.rulesManager.marketsToCheckExist, this.rulesManager.marketsMapModified, this.rulesManager.orderCacheHasReset,
-                                                                    this.rulesManager.newOrderMarketCreated, this.rulesManager.newAddManagedRunnerCommand, Statics.mustStop);
+                hasReachedEndOfSleep = Generic.threadSleepSegmented(this.rulesManager.timeTillNextFullRun(), 10L, this.rulesManager.marketsToCheckExist, this.rulesManager.marketsMapModified, this.rulesManager.newOrderMarketCreated,
+                                                                    this.rulesManager.newAddManagedRunnerCommand, SharedStatics.mustStop); // , this.rulesManager.orderCacheHasReset
                 this.rulesManager.marketsToCheckExist.set(false); // reset, should become true when another command is added
             } catch (Throwable throwable) {
                 logger.error("STRANGE ERROR inside rulesManager loop", throwable);

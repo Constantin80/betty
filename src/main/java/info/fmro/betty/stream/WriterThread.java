@@ -1,6 +1,6 @@
 package info.fmro.betty.stream;
 
-import info.fmro.betty.objects.Statics;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -57,8 +57,8 @@ class WriterThread
     private synchronized String getAuthLine() {
         final String result = this.authLine;
         if (this.authLine == null) {
-            if (Statics.needSessionToken.get()) { // normal, nothing to be done
-            } else if (isLastAuthRecent() || this.lastAuthSentStamp == 0L || Statics.sessionTokenObject.isRecent()) { // normal, no need to print
+            if (SharedStatics.needSessionToken.get()) { // normal, nothing to be done
+            } else if (isLastAuthRecent() || this.lastAuthSentStamp == 0L || SharedStatics.sessionTokenObject.isRecent()) { // normal, no need to print
 //                logger.info("[{}]returning null line in getAuthLine: {}", client.id, timeSinceLastAuth());
             } else {
                 logger.error("[{}]returning null line in getAuthLine: {}", this.client.id, timeSinceLastAuth());
@@ -119,8 +119,8 @@ class WriterThread
         } else {
             result = getAuthLine();
             if (result == null) {
-                if (Statics.needSessionToken.get()) { // normal, nothing to be done
-                } else if (isLastAuthRecent() || this.lastAuthSentStamp == 0L || Statics.sessionTokenObject.isRecent()) { // normal, no need to print
+                if (SharedStatics.needSessionToken.get()) { // normal, nothing to be done
+                } else if (isLastAuthRecent() || this.lastAuthSentStamp == 0L || SharedStatics.sessionTokenObject.isRecent()) { // normal, no need to print
 //                    logger.info("[{}]client is not auth and I have don't have authLine in writerThread: {} {} {} {} {}", client.id, client.isStopped.get(), client.socketIsConnected.get(), client.streamIsConnected.get(), client.isAuth.get(),
 //                                timeSinceLastAuth());
                 } else {
@@ -153,8 +153,8 @@ class WriterThread
                 }
             }
         } else {
-            if (Statics.needSessionToken.get()) { // normal, nothing to be done
-            } else if (isLastAuthRecent() || this.lastAuthSentStamp == 0L || Statics.sessionTokenObject.isRecent()) { // normal, no need to print
+            if (SharedStatics.needSessionToken.get()) { // normal, nothing to be done
+            } else if (isLastAuthRecent() || this.lastAuthSentStamp == 0L || SharedStatics.sessionTokenObject.isRecent()) { // normal, no need to print
 //                logger.info("[{}]won't send null line in stream writerThread: {}", client.id, timeSinceLastAuth());
             } else {
                 logger.error("[{}]won't send null line in stream writerThread: {}", this.client.id, timeSinceLastAuth());
@@ -170,21 +170,21 @@ class WriterThread
 
     @Override
     public void run() {
-        while (!Statics.mustStop.get()) {
+        while (!SharedStatics.mustStop.get()) {
             try {
                 if (this.client.streamIsConnected.get() && !this.client.streamError.get()) {
                     if (this.bufferNotEmpty.get()) {
                         final String line = pollLine();
                         sendLine(line);
                         if (!this.client.isAuth.get()) {
-                            Generic.threadSleepSegmented(500L, 10L, this.client.isAuth, Statics.mustStop);
+                            Generic.threadSleepSegmented(500L, 10L, this.client.isAuth, SharedStatics.mustStop);
                         }
                     }
                 } else {
-                    Generic.threadSleepSegmented(500L, 10L, this.client.streamIsConnected, Statics.mustStop);
+                    Generic.threadSleepSegmented(500L, 10L, this.client.streamIsConnected, SharedStatics.mustStop);
                 }
 
-                Generic.threadSleepSegmented(5_000L, 10L, this.bufferNotEmpty, Statics.mustStop);
+                Generic.threadSleepSegmented(5_000L, 10L, this.bufferNotEmpty, SharedStatics.mustStop);
             } catch (Throwable throwable) {
                 logger.error("[{}]STRANGE ERROR inside Client writerThread loop", this.client.id, throwable);
             }

@@ -12,10 +12,10 @@ import com.ximpleware.XPathEvalException;
 import com.ximpleware.XPathParseException;
 import info.fmro.betty.objects.Statics;
 import info.fmro.betty.threads.LaunchCommandThread;
-import info.fmro.betty.utility.WebScraperMethods;
 import info.fmro.shared.entities.Event;
 import info.fmro.shared.enums.CommandType;
 import info.fmro.shared.enums.MatchStatus;
+import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.utility.Generic;
 import info.fmro.shared.utility.LogLevel;
 import org.jetbrains.annotations.NotNull;
@@ -100,7 +100,7 @@ public class CoralScraperThread
         return scraperEvent;
     }
 
-    @SuppressWarnings({"OverlyNestedMethod", "NestedTryStatement"})
+    @SuppressWarnings("NestedTryStatement")
     private boolean scrapeScore(@NotNull final CoralEvent scraperEvent, @NotNull final BookMark bookMark, final AtomicInteger knownCauseForFailure) {
         boolean success;
         bookMark.setCursorPosition();
@@ -175,7 +175,7 @@ public class CoralScraperThread
         return success;
     }
 
-    @SuppressWarnings({"OverlyNestedMethod", "NestedTryStatement"})
+    @SuppressWarnings("NestedTryStatement")
     private boolean scrapeTime(final CoralEvent scraperEvent, @NotNull final BookMark bookMark) {
         boolean success;
         bookMark.setCursorPosition();
@@ -493,10 +493,10 @@ public class CoralScraperThread
 //                                        logger.error("{} check true scraperEvent updated into check false {} scraperEvent: {} {}", threadId, existingScraperErrors,
 //                                                Generic.objectToString(scraperEvent), Generic.objectToString(existingScraperEvent));
 
-                                        Generic.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "{} check true scraperEvent updated into check false {} scraperEvent: {} {}",
-                                                                          this.threadId, existingScraperErrors,
-                                                                          Generic.objectToString(scraperEvent, "seconds", "classModifiers", "minutesPlayed", "stoppageTime", "Stamp"),
-                                                                          Generic.objectToString(existingScraperEvent, "seconds", "classModifiers", "minutesPlayed", "stoppageTime", "Stamp"));
+                                        SharedStatics.alreadyPrintedMap.logOnce(logger, LogLevel.ERROR, "{} check true scraperEvent updated into check false {} scraperEvent: {} {}",
+                                                                                this.threadId, existingScraperErrors,
+                                                                                Generic.objectToString(scraperEvent, "seconds", "classModifiers", "minutesPlayed", "stoppageTime", "Stamp"),
+                                                                                Generic.objectToString(existingScraperEvent, "seconds", "classModifiers", "minutesPlayed", "stoppageTime", "Stamp"));
 
                                         // probably no need for removal, ignore is done when existingScraperEvent.errors() is invoked
 //                                        BlackList.ignoreScraper(scraperEvent, 10_000L);
@@ -514,7 +514,7 @@ public class CoralScraperThread
 
                             if (scraperErrors >= 100) {
 //                                logger.error("{} scraperEvent scraperErrors: {} in getScraperEvents for: {}", threadId, scraperErrors, scraperString);
-                                Generic.alreadyPrintedMap.logOnce(5L * Generic.MINUTE_LENGTH_MILLISECONDS, logger, LogLevel.ERROR, "{} scraperEvent scraperErrors: {} in getScraperEvents for: {}", this.threadId, scraperErrors, scraperString);
+                                SharedStatics.alreadyPrintedMap.logOnce(5L * Generic.MINUTE_LENGTH_MILLISECONDS, logger, LogLevel.ERROR, "{} scraperEvent scraperErrors: {} in getScraperEvents for: {}", this.threadId, scraperErrors, scraperString);
                             } else { // scraperErrors >= 1
                                 final long currentTime = System.currentTimeMillis();
 
@@ -552,12 +552,12 @@ public class CoralScraperThread
             final int sizeAdded = addedScraperEvents.size();
             if (sizeAdded > 0) {
                 logger.info("{} getScraperEvents addedScraperEvents: {} launch: mapEventsToScraperEvents", this.threadId, sizeAdded);
-                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents, addedScraperEvents, CoralEvent.class));
+                SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.mapEventsToScraperEvents, addedScraperEvents, CoralEvent.class));
             }
             final int sizeEvents = eventsAttachedToModifiedScraperEvents.size();
             if (sizeEvents > 0) {
                 logger.info("{} getScraperEvents toCheckEvents: {} launch: findSafeRunners", this.threadId, sizeEvents);
-                Statics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, eventsAttachedToModifiedScraperEvents));
+                SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.findSafeRunners, eventsAttachedToModifiedScraperEvents));
             }
         } else {
             // support for htmlDivisionFootball not found not implemented because of: it happens normally when no football events live and page refreshes every 15-20 minutes anyway
