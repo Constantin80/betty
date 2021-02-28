@@ -49,7 +49,7 @@ public class BetradarScraperThread
     private final AtomicLong timeLastPageManipulation = new AtomicLong();
 
     public BetradarScraperThread() {
-        super("betradar", 500L, BrowserVersion.FIREFOX_68, 50, false);
+        super("betradar", 500L, BrowserVersion.BEST_SUPPORTED, 50, false);
     }
 
     @SuppressWarnings("NestedTryStatement")

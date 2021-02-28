@@ -380,7 +380,7 @@ public final class WebScraperMethods {
     @NotNull
     public static WebClient getNewWebClient(final String threadId) {
         // return getNewWebClient(BrowserVersion.INTERNET_EXPLORER_8, threadId);
-        return getNewWebClient(BrowserVersion.FIREFOX_68, threadId);
+        return getNewWebClient(BrowserVersion.BEST_SUPPORTED, threadId);
     }
 
     @NotNull

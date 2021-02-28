@@ -292,7 +292,7 @@ public class SafeBetSafetyLimits
                 // final double limitOrderSize = limitOrder.getSize();
                 switch (side) {
                     case BACK -> localUsedBalance += orderSize;
-                    case LAY -> localUsedBalance += info.fmro.shared.utility.Formulas.layExposure(price, orderSize);
+                    case LAY -> localUsedBalance += info.fmro.shared.utility.Formulas.calculateLayExposure(price, orderSize);
                     default -> logger.error("STRANGE unknown side in switch: {}", side);
                 }
 

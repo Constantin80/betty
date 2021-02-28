@@ -40,7 +40,7 @@ public class CoralScraperThread
     private boolean shouldChangeCheckboxes;
 
     public CoralScraperThread() {
-        super("coral", 500L, BrowserVersion.FIREFOX_68, 200, true);
+        super("coral", 500L, BrowserVersion.BEST_SUPPORTED, 200, true);
     }
 
     @SuppressWarnings("NestedTryStatement")

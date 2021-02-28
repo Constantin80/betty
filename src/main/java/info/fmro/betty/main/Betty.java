@@ -217,7 +217,7 @@ public final class Betty {
 //            Statics.rulesManager.start();
 
             if (Statics.safeBetModuleActivated) {
-                if (!BrowserVersion.BEST_SUPPORTED.equals(BrowserVersion.FIREFOX_68)) {
+                if (!BrowserVersion.BEST_SUPPORTED.equals(BrowserVersion.FIREFOX_78)) {
                     // sometimes this changes if I use a new version of HtmlUnit
                     logger.error("HtmlUnit BrowserVersion.BEST_SUPPORTED has changed, a review of BrowserVersion usage is necessary");
                 }
