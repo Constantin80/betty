@@ -60,8 +60,8 @@ public final class DebuggingMethods {
     public static void listCurrentOrders() {
         final RescriptResponseHandler rescriptResponseHandler = new RescriptResponseHandler();
         @NotNull final HashSet<CurrentOrderSummary> currentOrderSummarySet =
-                ApiNgRescriptOperations.listCurrentOrders(null, null, OrderProjection.ALL, null, OrderBy.BY_PLACE_TIME, SortDir.EARLIEST_TO_LATEST, 0, 0, rescriptResponseHandler,
-                                                          HttpUtil.sendPostRequestRescriptMethod);
+                ApiNgRescriptOperations.listCurrentOrders(null, null, OrderProjection.ALL, null, OrderBy.BY_PLACE_TIME, SortDir.EARLIEST_TO_LATEST, 0, 0, true,
+                                                          rescriptResponseHandler, HttpUtil.sendPostRequestRescriptMethod);
 
         logger.info("listCurrentOrders size: {}", currentOrderSummarySet.size());
         logger.info("listCurrentOrders: {}", Generic.objectToString(currentOrderSummarySet));

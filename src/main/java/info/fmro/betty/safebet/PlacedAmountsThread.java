@@ -40,7 +40,7 @@ public class PlacedAmountsThread
 
                 final RescriptResponseHandler rescriptResponseHandlerCurrent = new RescriptResponseHandler();
                 final HashSet<CurrentOrderSummary> currentOrderSummarySet = ApiNgRescriptOperations.listCurrentOrders(null, null, OrderProjection.ALL, null, OrderBy.BY_PLACE_TIME, SortDir.EARLIEST_TO_LATEST, 0,
-                                                                                                                      0, rescriptResponseHandlerCurrent, HttpUtil.sendPostRequestRescriptMethod);
+                                                                                                                      0, true, rescriptResponseHandlerCurrent, HttpUtil.sendPostRequestRescriptMethod);
 
                 final RescriptResponseHandler rescriptResponseHandlerCleared = new RescriptResponseHandler();
                 final HashSet<ClearedOrderSummary> clearedOrderSummarySet = ApiNgRescriptOperations.listClearedOrders(BetStatus.SETTLED, null, null, null, null, null, null, null,

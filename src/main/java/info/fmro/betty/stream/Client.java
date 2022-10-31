@@ -62,7 +62,7 @@ public class Client
     @SuppressWarnings("PackageVisibleField")
     final AtomicLong heartbeatMs = new AtomicLong();
     @SuppressWarnings("PackageVisibleField")
-    final MarketDataFilter marketDataFilter = new MarketDataFilter(FilterFlag.EX_ALL_OFFERS, FilterFlag.EX_TRADED, FilterFlag.EX_TRADED_VOL, FilterFlag.EX_LTP, FilterFlag.EX_MARKET_DEF);
+    final MarketDataFilter marketDataFilter = new MarketDataFilter(FilterFlag.EX_BEST_OFFERS_DISP, FilterFlag.EX_TRADED, FilterFlag.EX_TRADED_VOL, FilterFlag.EX_LTP, FilterFlag.EX_MARKET_DEF);
 
     Client(final int id, final String hostName, final int port) {
         super();
@@ -79,7 +79,7 @@ public class Client
         this.heartbeatMs.set(30_000L);
     }
 
-    void setStreamError(final boolean newValue) { // not synchronized, as it's not needed and I have sleep inside, and synchronization would lead to deadlocks
+    void setStreamError(final boolean newValue) { // not synchronized, as it's not needed, and I have sleep inside, and synchronization would lead to deadlocks
         if (newValue) {
             if (System.currentTimeMillis() > this.startedStamp.get() + 500L) {
                 this.streamError.set(newValue);

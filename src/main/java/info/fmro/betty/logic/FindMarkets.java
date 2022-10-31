@@ -663,7 +663,7 @@ public final class FindMarkets {
                 final String fullRunString = fullRun ? " fullRun" : "";
                 final String checkAllString = checkAll ? " checkAll" : "";
                 logger.debug("findMarkets{}{}: {} in map, {} returned from {} matched events, in {} ms, of which {} ms waiting for threads", fullRunString, checkAllString, Statics.marketCataloguesMap.size(), returnSet.size(), eventsCopy.size(),
-                            System.currentTimeMillis() - methodStartTime, endTime - startedWaitingTime);
+                             System.currentTimeMillis() - methodStartTime, endTime - startedWaitingTime);
 
                 Statics.marketCataloguesMap.timeStamp();
 
@@ -1819,6 +1819,7 @@ public final class FindMarkets {
                         }
                         interestingMarket = !errorAlreadyPrinted && parsedRunnersSetSizeCheck(parsedRunnersSet, nParsedRunners, marketId, parsedMarketType, marketCatalogue);
                         break;
+                    case "OVER_UNDER_15_CARDS":
                     case "OVER_UNDER_25_CARDS":
                     case "OVER_UNDER_35_CARDS":
                     case "OVER_UNDER_45_CARDS":
@@ -2308,6 +2309,10 @@ public final class FindMarkets {
                     case "NEXT_GOALSCORER_9TH_GOAL": // list of player names, won't parse
                     case "ET_FIRST_GOALSCORER": // list of player names, won't parse
                     case "TO_SCORE_2_OR_MORE": // list of player names, won't parse
+                    case "ANYTIME_ASSIST": // list of player names, won't parse
+                    case "SHOTS_ON_TARGET_P1": // list of player names, won't parse
+                    case "SHOTS_ON_TARGET_P2": // list of player names, won't parse
+                    case "SHOTS_ON_TARGET_P3": // list of player names, won't parse
                         interestingMarket = true; // not supported markets, with no errors, pass all the time
                         break;
                     default:

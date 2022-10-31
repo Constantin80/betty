@@ -425,7 +425,7 @@ public final class VarsIO {
         } else {
             readSuccessful = false;
             logger.error("objectFromFile null in readSettings");
-            if (Statics.resetTestMarker) {
+            if (Statics.resetTestMarker || SharedStatics.resetTestMarker.get()) {
                 Statics.rulesManagerThread.copyFrom(new RulesManagerThread()); // I need copyFrom to run for reset to work
             }
         }

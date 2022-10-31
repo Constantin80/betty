@@ -96,11 +96,15 @@ public final class Betty {
                 if ("-help".equals(arg)) {
                     logger.info("Available options:\n  -help             prints this help screen\n" +
                                 "  -debug=[0|1|2|3]  writes debug info to disk (0 is default and writes nothing, 3 writes all)\n" +
-                                "  -denyBetting      denies placing of bets");
+                                "  -denyBetting      denies placing of bets" +
+                                "  -resetTestMarker      resets rulesManager settings and exits");
                     return;
                 } else if ("-denyBetting".equals(arg)) {
                     SharedStatics.denyBetting.set(true);
                     logger.warn("betting denied");
+                } else if ("-resetTestMarker".equals(arg)) {
+                    SharedStatics.resetTestMarker.set(true);
+                    logger.warn("rulesManager settings are being reset");
                 } else if (arg.startsWith("-debug=")) {
                     debugLevel = Integer.parseInt(arg.substring(arg.indexOf("-debug=") + "-debug=".length()));
                 } else {

@@ -3,6 +3,7 @@ package info.fmro.betty.threads;
 import info.fmro.betty.objects.Statics;
 import info.fmro.shared.objects.SharedStatics;
 import info.fmro.shared.stream.objects.PoisonPill;
+import info.fmro.shared.stream.objects.StreamHasStartedPill;
 import info.fmro.shared.stream.objects.StreamObjectInterface;
 import info.fmro.shared.utility.Generic;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +34,7 @@ class InterfaceConnectionWriterThread
         OutputStream tempOutputStream = null;
         try {
             tempOutputStream = socket.getOutputStream();
-            //noinspection resource,IOResourceOpenedButNotSafelyClosed
+
             tempObjectOutputStream = new ObjectOutputStream(tempOutputStream);
         } catch (IOException e) {
             logger.error("IOException in InterfaceConnectionWriterThread constructor", e);
@@ -73,13 +74,14 @@ class InterfaceConnectionWriterThread
 
     @Override
     public void run() {
+        this.sendObject(new StreamHasStartedPill()); // send this so the client clears its cached objects
+
         SharedStatics.marketCache.listOfQueues.registerQueue(this.sendQueue, SharedStatics.marketCache);
         SharedStatics.orderCache.listOfQueues.registerQueue(this.sendQueue, SharedStatics.orderCache);
         Statics.rulesManagerThread.rulesManager.listOfQueues.registerQueue(this.sendQueue, Statics.rulesManagerThread.rulesManager);
         Statics.safetyLimits.existingFunds.listOfQueues.registerQueue(this.sendQueue, Statics.safetyLimits.existingFunds);
         Statics.marketCataloguesMap.listOfQueues.registerQueue(this.sendQueue, Statics.marketCataloguesMap);
         Statics.eventsMap.listOfQueues.registerQueue(this.sendQueue, Statics.eventsMap);
-        //        this.sendObject(initialImage);
 
         while (!SharedStatics.mustStop.get() && !this.finished.get()) {
             try {

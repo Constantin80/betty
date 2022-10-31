@@ -94,11 +94,12 @@ class RequestResponseProcessor
         return this.marketsSet.size();
     }
 
+    @NotNull
     synchronized HashSet<String> getMarketsSet() {
-        @Nullable final HashSet<String> returnValue;
+        @NotNull final HashSet<String> returnValue;
         if (this.marketsSet == null) {
             logger.error("[{}]null marketsSet in processor", this.client.id);
-            returnValue = null;
+            returnValue = new HashSet<>(2);
         } else {
             returnValue = new HashSet<>(this.marketsSet);
         }
@@ -119,7 +120,11 @@ class RequestResponseProcessor
             modified = false;
         }
         if (modified) {
-            marketSubscription(ClientCommands.createMarketSubscriptionMessage(this.client, getMarketsSet()));
+            @NotNull final HashSet<String> localMarketsSet = getMarketsSet();
+            if (localMarketsSet.isEmpty()) { // nothing to subscribe to
+            } else {
+                marketSubscription(ClientCommands.createMarketSubscriptionMessage(this.client, getMarketsSet()));
+            }
         }
         return modified;
     }

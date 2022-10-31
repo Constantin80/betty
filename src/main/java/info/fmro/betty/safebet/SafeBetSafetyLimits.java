@@ -222,12 +222,14 @@ public class SafeBetSafetyLimits
 
         if (BlackList.notExistOrIgnored(Statics.marketCataloguesMap, marketId)) {
             BlackList.printNotExistOrBannedErrorMessages(Statics.marketCataloguesMap, marketId, "processOpenMarket, marketCatalogue map", Statics.DEFAULT_REMOVE_OR_BAN_SAFETY_PERIOD);
-        } else if (localAvailableFunds < 2d || (side == Side.LAY && localAvailableFunds < 2d * (price - 1d))) {
+//        } else if (localAvailableFunds < 2d || (side == Side.LAY && localAvailableFunds < 2d * (price - 1d))) {
+        } else if (!info.fmro.shared.utility.Formulas.betObeysMinimumLimits(side.toStreamSide(), price, localAvailableFunds)) {
             logger.warn("not enough funds to place bets: {} {} {}", side, price, localAvailableFunds);
             Statics.pendingOrdersThread.addCancelAllOrder(0L);
         } else {
             double orderSize;
             final long orderDelay;
+            final double minOrderSize = side == Side.LAY ? info.fmro.shared.utility.Formulas.calculateLayBetMinimumSize(price) : SharedStatics.MINIMUM_BET_SIZE; // todo formula is a bit different, and works for both back and lay; also a complicated formula anti rounding issues
             if (side == Side.BACK) {
                 if (size <= localAvailableFunds) {
                     orderSize = size;
@@ -235,8 +237,8 @@ public class SafeBetSafetyLimits
                         // extra 1 cent, and a bit for double imprecision
                         orderSize += 0.0101d;
                     }
-                    if (orderSize < 2d) {
-                        orderSize = 2d;
+                    if (orderSize < minOrderSize) {
+                        orderSize = minOrderSize;
                         orderDelay = betDelay * 1_000L + 2_001L;
                         logger.info("will place oversized order {} {}", orderSize, size);
                         currentOrderIsOversized = true;
@@ -260,8 +262,8 @@ public class SafeBetSafetyLimits
                     if (orderSize + 0.0101d <= maximumBet) { // extra 1 cent, and a bit for double imprecision
                         orderSize += 0.0101d;
                     }
-                    if (orderSize < 2d) {
-                        orderSize = 2d;
+                    if (orderSize < minOrderSize) {
+                        orderSize = minOrderSize;
                         orderDelay = betDelay * 1_000L + 2_001L;
                         logger.info("will place oversized order {} {}", orderSize, size);
                         currentOrderIsOversized = true;
@@ -283,8 +285,7 @@ public class SafeBetSafetyLimits
                 orderSize = -1d;
                 orderDelay = 0L;
             }
-
-            if (orderSize >= 2d) {
+            if (info.fmro.shared.utility.Formulas.betObeysMinimumLimits(side.toStreamSide(), price, orderSize)) {
                 final LimitOrder limitOrder = new LimitOrder();
                 limitOrder.setPersistenceType(persistenceType);
                 limitOrder.setPrice(price);
@@ -355,8 +356,8 @@ public class SafeBetSafetyLimits
                                 case BACK:
                                     if (currentOrderIsOversized) {
                                         newSize = previousRealAmount + size;
-                                        if (newSize < 2d) {
-                                            newSize = 2d;
+                                        if (newSize < minOrderSize) {
+                                            newSize = minOrderSize;
                                         } else {
                                             currentOrderIsOversized = false;
                                         }
@@ -383,7 +384,7 @@ public class SafeBetSafetyLimits
                                     final boolean betterToModify;
                                     if (currentOrderIsOversized) {
                                         newSize = previousRealAmount + size;
-                                        if (newSize < 2d) {
+                                        if (newSize < minOrderSize) {
                                             betterToModify = true;
                                         } else {
                                             final double sizeDifference = newSize - limitOrder.getSize();
@@ -396,8 +397,8 @@ public class SafeBetSafetyLimits
                                     if (betterToModify) {
                                         if (currentOrderIsOversized) {
                                             newSize = previousRealAmount + size;
-                                            if (newSize < 2d) {
-                                                newSize = 2d;
+                                            if (newSize < minOrderSize) {
+                                                newSize = minOrderSize;
                                             } else {
                                                 currentOrderIsOversized = false;
                                             }

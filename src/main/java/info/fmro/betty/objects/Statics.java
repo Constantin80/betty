@@ -262,12 +262,17 @@ public final class Statics {
         marketTypes.add("NEXT_GOALSCORER"); // player who scores next(separate markets for 2nd, 3rd, 4th, ..., 9th), from long list, after 2nd half; hard to code
         marketTypes.add("RACE_TO_2_GOALS"); // fist team to score 2 goals, 3 options, after 2nd half; fairly hard & probably closed when imopossible
         marketTypes.add("RACE_TO_3_GOALS"); // fist team to score 3 goals, 3 options, after 2nd half; fairly hard & probably closed when imopossible
+        marketTypes.add("SHOTS_ON_TARGET_P1"); // named player, from long list, to shoot on target 1 or more times, after 2nd half; players who didn't play voided; impossible
+        marketTypes.add("SHOTS_ON_TARGET_P2"); // named player, from long list, to shoot on target 2 or more times, after 2nd half; players who didn't play voided; impossible
+        marketTypes.add("SHOTS_ON_TARGET_P3"); // named player, from long list, to shoot on target 3 or more times, after 2nd half; players who didn't play voided; impossible
+        marketTypes.add("ANYTIME_ASSIST"); // named player, from long list, to assist, after 2nd half; OGs don't count, players who didn't play voided; impossible
         marketTypes.add("TO_SCORE"); // named player, from long list, to score, after 2nd half; OGs don't count, players who didn't play voided; hard
         marketTypes.add("TO_SCORE_2_OR_MORE"); // player to score 2+ goals, after 2nd half; OGs don't count, players who didn't play voided; hard
         marketTypes.add("TO_SCORE_HATTRICK"); // named player, from long list, to score 3+ times, after 2nd half; OGs don't count, players who didn't play voided; hard
         marketTypes.add("FIRST_GOAL_ODDS"); // minute interval when first goal is scored, or no goal, after 2nd half; hard & probably closed when imopossible
         marketTypes.add("HAT_TRICKED_SCORED"); // 3+ goals by same player, after 2nd half; own goals don't count; hard & likely not live & probably closed when imopossible
         marketTypes.add("PENALTY_TAKEN"); // penalty awarded, after 2nd half; hard & likely not live & probably closed when imopossible
+        marketTypes.add("OVER_UNDER_15_CARDS"); // number of total cards over/under 1.5, after 2nd half; hard & probably closed when imopossible
         marketTypes.add("OVER_UNDER_25_CARDS"); // number of total cards over/under 2.5, after 2nd half; hard & probably closed when imopossible
         marketTypes.add("OVER_UNDER_35_CARDS"); // number of total cards over/under 2.5, after 2nd half; hard & probably closed when imopossible
         marketTypes.add("OVER_UNDER_45_CARDS"); // number of total cards over/under 4.5, after 2nd half; hard & probably closed when imopossible
@@ -344,7 +349,8 @@ public final class Statics {
 //        marketNullTypes.add("Next Goalscorer - 8th Goal"); // player who scores 8th, from long list, after 2nd half; hard to code
 //        marketNullTypes.add("Next Goalscorer - 9th Goal"); // player who scores 9th, from long list, after 2nd half; hard to code
         marketNullTypes.add("ET - First Goalscorer"); // player who scores first in ET, from long list, after ET; hard to code
-        // marketNullTypes.add("Cards Over/Under 2.5"); // number of total cards over/under 2.5, after 2nd half; hard & probably closed when imopossible
+        marketNullTypes.add("Cards Over/Under 1.5"); // number of total cards over/under 1.5, after 2nd half; hard & probably closed when imopossible
+//        marketNullTypes.add("Cards Over/Under 2.5"); // number of total cards over/under 2.5, after 2nd half; hard & probably closed when imopossible
         // marketNullTypes.add("Corners Over/Under 8.5"); // over/under 8.5 corners, after 2nd half; hard to code and might get closed when impossible
         // marketNullTypes.add("To Score 2 Goals or more"); // player to score 2+ goals, after 2nd half; OGs don't count, players who didn't play voided; hard & might not be live
         marketNullTypes.add("First Carded Player"); // player who get a card first, from long list, after 2nd half; hard to code

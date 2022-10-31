@@ -35,7 +35,7 @@ public class RulesManagerThread
         } else {
             final boolean managerReadSuccessful = this.rulesManager.copyFrom(other.rulesManager);
 
-            if (Statics.resetTestMarker) {
+            if (Statics.resetTestMarker || SharedStatics.resetTestMarker.get()) {
                 logger.error("resetTestMarker {} to {} , will still exit the program after reset", this.rulesManager.getTestMarker(), Statics.TEST_MARKER);
                 final boolean objectModified = this.rulesManager.setTestMarker(Statics.TEST_MARKER);
                 if (objectModified) {
@@ -137,7 +137,7 @@ public class RulesManagerThread
                         SharedStatics.threadPoolExecutor.execute(new LaunchCommandThread(CommandType.streamMarkets));
                         this.rulesManager.calculateMarketLimits(Statics.safetyLimits.existingFunds, Statics.marketCataloguesMap);
 //                        iHaveCalculatedTheLimits = true;
-                    } else { // nothing to be done, will only calculated limits if marketsMapModified
+                    } else { // nothing to be done, will only calculate limits if marketsMapModified
 //                        iHaveCalculatedTheLimits = false;
                     }
 
