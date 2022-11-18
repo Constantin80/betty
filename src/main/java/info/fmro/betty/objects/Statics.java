@@ -56,7 +56,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-@SuppressWarnings("UtilityClass")
+@SuppressWarnings({"UtilityClass", "StaticCollection"})
 public final class Statics {
     private static final Logger logger = LoggerFactory.getLogger(Statics.class);
     //    public static final boolean notPlacingOrders = true; // hard stop for order placing; true for testing, false enables order placing
